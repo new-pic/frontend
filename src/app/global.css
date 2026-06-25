@@ -1,0 +1,21 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+
+@import "nativewind/theme";
+
+@theme {
+  /* 🌟 v5 정석: 기본 sans 계열을 리스트 형태로 덮어써야 시스템 폰트를 완전히 밀어냅니다. */
+  --font-sans: "Paperlogy-9Black";
+
+  /* 💡 굵기별 세팅은 NativeWind 컴파일러가 유틸리티로 인식하도록 다음과 같이 등록합니다. */
+  --font-sans-thin: "Paperlogy-1Thin";
+  --font-sans-extralight: "Paperlogy-2ExtraLight";
+  --font-sans-light: "Paperlogy-3Light";
+  --font-sans-regular: "Paperlogy-4Regular";
+  --font-sans-medium: "Paperlogy-5Medium";
+  --font-sans-semibold: "Paperlogy-6SemiBold";
+  --font-sans-bold: "Paperlogy-7Bold";
+  --font-sans-extrabold: "Paperlogy-8ExtraBold";
+  --font-sans-black: "Paperlogy-9Black";
+}

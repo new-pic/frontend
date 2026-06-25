@@ -8,7 +8,11 @@
     "scheme": "newpic",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.newpic.newpic",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +21,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.newpic.newpic"
     },
     "web": {
       "output": "static",
@@ -33,6 +38,22 @@
             "image": "./assets/images/splash-icon.png",
             "imageWidth": 76
           }
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Paperlogy-1Thin.ttf",
+            "./assets/fonts/Paperlogy-2ExtraLight.ttf",
+            "./assets/fonts/Paperlogy-9Black.ttf",
+            "./assets/fonts/Paperlogy-8ExtraBold.ttf",
+            "./assets/fonts/Paperlogy-7Bold.ttf",
+            "./assets/fonts/Paperlogy-4Regular.ttf",
+            "./assets/fonts/Paperlogy-6SemiBold.ttf",
+            "./assets/fonts/Paperlogy-5Medium.ttf",
+            "./assets/fonts/Paperlogy-3Light.ttf"
+          ]
         }
       ]
     ],
