@@ -1,16 +1,18 @@
-'use client';
-import { createButton } from '@gluestack-ui/core/button/creator';
-import { UIIcon } from '@gluestack-ui/core/icon/creator';
+"use client";
+import { gradients } from "@/shared/config";
+import { createButton } from "@gluestack-ui/core/button/creator";
+import { UIIcon } from "@gluestack-ui/core/icon/creator";
 import {
   tva,
   useStyleContext,
   withStyleContext,
   type VariantProps,
-} from '@gluestack-ui/utils/nativewind-utils';
-import { styled } from 'nativewind';
-import React from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-const SCOPE = 'BUTTON';
+} from "@gluestack-ui/utils/nativewind-utils";
+import { LinearGradient } from "expo-linear-gradient";
+import { styled } from "nativewind";
+import React from "react";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
+const SCOPE = "BUTTON";
 const Root = withStyleContext(Pressable, SCOPE);
 const StyledUIIcon = styled(UIIcon, {
   className: "style",
@@ -23,123 +25,151 @@ const UIButton = createButton({
   Icon: StyledUIIcon,
 });
 const buttonStyle = tva({
-  base: 'rounded-md flex-row items-center justify-center data-[focus-visible=true]:web:outline-none data-[focus-visible=true]:web:ring-2 data-[disabled=true]:opacity-40 gap-2 h-fit',
+  base: "rounded-md flex-row items-center justify-center data-[focus-visible=true]:web:outline-none data-[focus-visible=true]:web:ring-2 data-[disabled=true]:opacity-40 gap-2 h-fit",
   variants: {
     variant: {
       default:
-        'bg-primary data-[hover=true]:bg-primary/90 data-[active=true]:bg-primary/90',
+        "bg-primary data-[hover=true]:bg-primary/90 data-[active=true]:bg-primary/90",
+      gradient: "overflow-hidden p-0",
       destructive:
-        'bg-destructive data-[hover=true]:bg-destructive/90 data-[active=true]:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
+        "bg-destructive data-[hover=true]:bg-destructive/90 data-[active=true]:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
       outline:
-        'border border-border bg-background shadow-xs data-[hover=true]:bg-accent data-[active=true]:bg-accent dark:bg-input/[0.045] dark:border-border/90 dark:data-[hover=true]:bg-input/[0.075] dark:data-[active=true]:bg-input/[0.075]',
+        "border border-outline bg-background data-[hover=true]:bg-accent data-[active=true]:bg-accent dark:bg-input/[0.045] dark:border-outline/90 dark:data-[hover=true]:bg-input/[0.075] dark:data-[active=true]:bg-input/[0.075]",
       secondary:
-        'bg-secondary text-secondary-foreground data-[hover=true]:bg-secondary/80 data-[active=true]:bg-secondary/80',
-      ghost: 'data-[hover=true]:bg-accent data-[active=true]:bg-accent dark:data-[hover=true]:bg-accent/50 dark:data-[active=true]:bg-accent/50',
-      link: 'text-primary underline-offset-4 data-[hover=true]:underline data-[active=true]:underline',
+        "bg-secondary text-secondary-foreground data-[hover=true]:bg-secondary/80 data-[active=true]:bg-secondary/80",
+      ghost:
+        "data-[hover=true]:bg-accent data-[active=true]:bg-accent dark:data-[hover=true]:bg-accent/50 dark:data-[active=true]:bg-accent/50",
+      link: "text-primary underline-offset-4 data-[hover=true]:underline data-[active=true]:underline",
     },
     size: {
-      default: 'px-4 py-2',
-      sm: 'min-h-8 rounded-md px-3 text-xs',
-      lg: 'min-h-10 rounded-md px-8',
-      icon: 'min-h-9 min-w-9',
+      default: "px-4 py-2",
+      sm: "min-h-8 rounded-md px-3 text-xs",
+      lg: "min-h-12.5 rounded-xl px-8",
+      icon: "min-h-9 min-w-9",
     },
   },
 });
 const buttonTextStyle = tva({
-  base: 'web:select-none font-sans',
+  base: "web:select-none font-sans",
   parentVariants: {
     variant: {
-      default: 'text-primary-foreground',
-      destructive: 'text-white',
-      outline: 'text-foreground data-[hover=true]:text-accent-foreground data-[active=true]:text-accent-foreground',
-      secondary: 'text-secondary-foreground',
-      ghost: 'text-foreground ',
-      link: 'text-primary data-[hover=true]:underline data-[active=true]:underline',
+      default: "text-primary-foreground",
+      destructive: "text-white",
+      outline:
+        "text-foreground data-[hover=true]:text-accent-foreground data-[active=true]:text-accent-foreground",
+      secondary: "text-secondary-foreground",
+      ghost: "text-foreground ",
+      link: "text-primary data-[hover=true]:underline data-[active=true]:underline",
     },
     size: {
-      default: 'text-sm',
-      sm: 'text-xs',
-      lg: 'text-sm',
-      icon: 'text-sm',
+      default: "text-sm",
+      sm: "text-xs",
+      lg: "text-lg",
+      icon: "text-sm",
     },
   },
 });
 
 const buttonSpinnerStyle = tva({
-  base: '',
+  base: "",
   parentVariants: {
     size: {
-      default: 'h-4 w-4',
-      sm: 'h-3 w-3',
-      lg: 'h-5 w-5',
-      icon: 'h-4 w-4',
+      default: "h-4 w-4",
+      sm: "h-3 w-3",
+      lg: "h-5 w-5",
+      icon: "h-4 w-4",
     },
   },
 });
 
 const buttonIconStyle = tva({
-  base: 'fill-none pointer-events-none shrink-0',
+  base: "fill-none pointer-events-none shrink-0",
   parentVariants: {
     variant: {
-      default: 'text-primary-foreground',
-      destructive: 'text-white',
+      default: "text-primary-foreground",
+      destructive: "text-white",
       outline:
-        'text-foreground data-[hover=true]:text-accent-foreground data-[active=true]:text-accent-foreground',
-      secondary: 'text-secondary-foreground',
+        "text-foreground data-[hover=true]:text-accent-foreground data-[active=true]:text-accent-foreground",
+      secondary: "text-secondary-foreground",
       ghost:
-        'text-foreground data-[hover=true]:text-accent-foreground data-[active=true]:text-accent-foreground',
-      link: 'text-primary',
+        "text-foreground data-[hover=true]:text-accent-foreground data-[active=true]:text-accent-foreground",
+      link: "text-primary",
     },
     size: {
-      default: 'h-4 w-4',
-      sm: 'h-3 w-3',
-      lg: 'h-5 w-5',
-      icon: 'h-4 w-4',
+      default: "h-4 w-4",
+      sm: "h-3 w-3",
+      lg: "h-5 w-5",
+      icon: "h-4 w-4",
     },
   },
 });
 const buttonGroupStyle = tva({
-  base: '',
+  base: "",
   variants: {
     space: {
-      'xs': 'gap-1',
-      'sm': 'gap-2',
-      'md': 'gap-3',
-      'lg': 'gap-4',
-      'xl': 'gap-5',
-      '2xl': 'gap-6',
-      '3xl': 'gap-7',
-      '4xl': 'gap-8',
+      xs: "gap-1",
+      sm: "gap-2",
+      md: "gap-3",
+      lg: "gap-4",
+      xl: "gap-5",
+      "2xl": "gap-6",
+      "3xl": "gap-7",
+      "4xl": "gap-8",
     },
     isAttached: {
-      true: 'gap-0',
+      true: "gap-0",
     },
     flexDirection: {
-      'row': 'flex-row',
-      'column': 'flex-col',
-      'row-reverse': 'flex-row-reverse',
-      'column-reverse': 'flex-col-reverse',
+      row: "flex-row",
+      column: "flex-col",
+      "row-reverse": "flex-row-reverse",
+      "column-reverse": "flex-col-reverse",
     },
   },
 });
 type IButtonProps = Omit<
   React.ComponentPropsWithoutRef<typeof UIButton>,
-  'context'
+  "context"
 > &
-  VariantProps<typeof buttonStyle> & { className?: string };
+  VariantProps<typeof buttonStyle> & {
+    className?: string;
+    children?: React.ReactNode; // ← 추가
+  };
 const Button = React.forwardRef<
   React.ElementRef<typeof UIButton>,
   IButtonProps
->(({ className, variant = 'default', size = 'default', ...props }, ref) => {
-  return (
-    <UIButton
-      ref={ref}
-      {...props}
-      className={buttonStyle({ variant, size, class: className })}
-      context={{ variant, size }}
-    />
-  );
-});
+>(
+  (
+    { className, variant = "default", size = "default", children, ...props },
+    ref,
+  ) => {
+    if (variant === "gradient") {
+      return (
+        <UIButton
+          ref={ref}
+          {...props}
+          className={buttonStyle({ variant, size, class: className })}
+          context={{ variant, size }}
+        >
+          <LinearGradient
+            {...gradients.primary}
+            className="w-full items-center justify-center px-4 py-2"
+          >
+            {children}
+          </LinearGradient>
+        </UIButton>
+      );
+    }
+    return (
+      <UIButton
+        ref={ref}
+        {...props}
+        className={buttonStyle({ variant, size, class: className })}
+        context={{ variant, size }}
+      />
+    );
+  },
+);
 type IButtonTextProps = React.ComponentPropsWithoutRef<typeof UIButton.Text> &
   VariantProps<typeof buttonTextStyle> & { className?: string };
 const ButtonText = React.forwardRef<
@@ -167,7 +197,16 @@ const ButtonSpinner = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof UIButton.Spinner>
 >(({ className, ...props }, ref) => {
   const { size: parentSize } = useStyleContext(SCOPE);
-  return <UIButton.Spinner ref={ref} {...props} className={buttonSpinnerStyle({ parentVariants: { size: parentSize }, class: className })} />;
+  return (
+    <UIButton.Spinner
+      ref={ref}
+      {...props}
+      className={buttonSpinnerStyle({
+        parentVariants: { size: parentSize },
+        class: className,
+      })}
+    />
+  );
 });
 type IButtonIcon = React.ComponentPropsWithoutRef<typeof UIButton.Icon> &
   VariantProps<typeof buttonIconStyle> & {
@@ -181,7 +220,7 @@ const ButtonIcon = React.forwardRef<
   IButtonIcon
 >(({ className, size, ...props }, ref) => {
   const { size: parentSize, variant: parentVariant } = useStyleContext(SCOPE);
-  if (typeof size === 'number') {
+  if (typeof size === "number") {
     return (
       <UIButton.Icon
         ref={ref}
@@ -226,12 +265,12 @@ const ButtonGroup = React.forwardRef<
   (
     {
       className,
-      space = 'md',
+      space = "md",
       isAttached = false,
-      flexDirection = 'column',
+      flexDirection = "column",
       ...props
     },
-    ref
+    ref,
   ) => {
     return (
       <UIButton.Group
@@ -245,11 +284,11 @@ const ButtonGroup = React.forwardRef<
         ref={ref}
       />
     );
-  }
+  },
 );
-Button.displayName = 'Button';
-ButtonText.displayName = 'ButtonText';
-ButtonSpinner.displayName = 'ButtonSpinner';
-ButtonIcon.displayName = 'ButtonIcon';
-ButtonGroup.displayName = 'ButtonGroup';
+Button.displayName = "Button";
+ButtonText.displayName = "ButtonText";
+ButtonSpinner.displayName = "ButtonSpinner";
+ButtonIcon.displayName = "ButtonIcon";
+ButtonGroup.displayName = "ButtonGroup";
 export { Button, ButtonGroup, ButtonIcon, ButtonSpinner, ButtonText };
