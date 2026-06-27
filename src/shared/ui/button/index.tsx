@@ -1,5 +1,5 @@
 "use client";
-import { gradients } from "@/shared/config";
+import { gradients } from "@shared/config";
 import { createButton } from "@gluestack-ui/core/button/creator";
 import { UIIcon } from "@gluestack-ui/core/icon/creator";
 import {
