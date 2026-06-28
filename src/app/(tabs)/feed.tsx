@@ -1,10 +1,5 @@
-import { Text } from "@shared/ui";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { FeedPage } from "@pages/feed";
 
-export default function FeedPage() {
-  return (
-    <SafeAreaView>
-      <Text>asdf</Text>
-    </SafeAreaView>
-  );
+export default function Feed() {
+  return <FeedPage />;
 }
