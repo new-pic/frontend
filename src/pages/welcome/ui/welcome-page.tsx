@@ -1,3 +1,5 @@
+import AppleLogo from "@assets/icons/apple-logo.svg";
+import GoogleLogo from "@assets/icons/google-logo.svg";
 import { Button, ButtonText, Center, Text, VStack } from "@shared/ui";
 import { Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -5,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export function WelcomPage() {
   return (
     <SafeAreaView>
-      <VStack className="h-full px-8">
+      <VStack className="h-full px-8 justify-center py-8 gap-14">
         <Center>
           <Image
             source={require("@assets/images/brand-character/hello-newpic.png")}
@@ -18,12 +20,14 @@ export function WelcomPage() {
           <Text>사진을 못찍는 친구들이 사람 취급을 받는</Text>
           <Text>그날 까지..... free</Text>
         </Center>
-        <VStack space="md">
+        <VStack space="lg">
           <Button variant="outline" className="rounded-full">
+            <GoogleLogo width={24} height={24} />
             <ButtonText>구글로 시작하기</ButtonText>
           </Button>
-          <Button variant="outline" className="rounded-full">
-            <ButtonText>애플로 시작하기</ButtonText>
+          <Button variant="outline" className="rounded-full bg-black">
+            <AppleLogo width={24} height={24} />
+            <ButtonText className="text-white">애플로 시작하기</ButtonText>
           </Button>
           <Button variant="ghost">
             <ButtonText>로그인 없이 사용하기</ButtonText>

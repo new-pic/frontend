@@ -1,5 +1,4 @@
 "use client";
-import { gradients } from "@shared/config";
 import { createButton } from "@gluestack-ui/core/button/creator";
 import { UIIcon } from "@gluestack-ui/core/icon/creator";
 import {
@@ -8,6 +7,7 @@ import {
   withStyleContext,
   type VariantProps,
 } from "@gluestack-ui/utils/nativewind-utils";
+import { gradients } from "@shared/config";
 import { LinearGradient } from "expo-linear-gradient";
 import { styled } from "nativewind";
 import React from "react";
@@ -164,6 +164,7 @@ const Button = React.forwardRef<
       <UIButton
         ref={ref}
         {...props}
+        children={children}
         className={buttonStyle({ variant, size, class: className })}
         context={{ variant, size }}
       />
