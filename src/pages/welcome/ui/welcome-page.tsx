@@ -1,10 +1,14 @@
 import AppleLogo from "@assets/icons/apple-logo.svg";
 import GoogleLogo from "@assets/icons/google-logo.svg";
 import { Button, ButtonText, Center, Text, VStack } from "@shared/ui";
+import { router } from "expo-router";
 import { Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function WelcomPage() {
+  const handleNavigateToCamera = () => {
+    router.replace("/camera");
+  };
   return (
     <SafeAreaView>
       <VStack className="h-full px-8 justify-center py-8 gap-14">
@@ -21,7 +25,11 @@ export function WelcomPage() {
           <Text>그날 까지..... free</Text>
         </Center>
         <VStack space="lg">
-          <Button variant="outline" className="rounded-full">
+          <Button
+            variant="outline"
+            className="rounded-full"
+            onPress={handleNavigateToCamera}
+          >
             <GoogleLogo width={24} height={24} />
             <ButtonText>구글로 시작하기</ButtonText>
           </Button>
