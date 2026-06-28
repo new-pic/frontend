@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export function WelcomPage() {
   const handleNavigateToCamera = () => {
-    router.replace("/camera");
+    router.replace("/feed");
   };
   return (
     <SafeAreaView>
