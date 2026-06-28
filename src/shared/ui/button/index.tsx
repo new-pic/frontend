@@ -7,7 +7,7 @@ import {
   withStyleContext,
   type VariantProps,
 } from "@gluestack-ui/utils/nativewind-utils";
-import { gradients } from "@shared/config";
+import { gradients } from "@shared/constants";
 import { LinearGradient } from "expo-linear-gradient";
 import { styled } from "nativewind";
 import React from "react";
