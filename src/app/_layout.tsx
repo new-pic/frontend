@@ -21,7 +21,12 @@ export default function RootLayout() {
 
   return (
     <GluestackUIProvider>
-      <Stack screenOptions={{ header: () => <></> }} />
+      <Stack
+        screenOptions={{
+          header: () => <></>,
+          contentStyle: { backgroundColor: "white" },
+        }}
+      />
     </GluestackUIProvider>
   );
 }
