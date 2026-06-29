@@ -8,6 +8,7 @@ import {
   InputField,
   InputIcon,
   InputSlot,
+  Text,
   VStack,
 } from "@shared/ui";
 import { PhotoGrid } from "@shared/ui/photo-grid";
@@ -142,7 +143,10 @@ export function FeedPage() {
   return (
     <SafeAreaView edges={["top"]}>
       <VStack className="h-full pt-4">
-        <VStack className="px-8 mb-2">
+        <VStack className="px-6 mb-2">
+          <Text className="font-semibold mb-2" size="xl">
+            피드
+          </Text>
           <Input>
             <InputField placeholder="검색어를 입력해주세요." />
             <InputSlot>

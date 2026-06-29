@@ -30,6 +30,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="feed/[id]"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="camera"
         options={{
           title: "카메라",
