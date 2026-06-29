@@ -7,6 +7,7 @@
   --color-outline: #d1d1d1;
   --color-link-text: #1d7bef;
   --color-blue-bg: #65aaff;
+  --color-label-muted: #9f9f9f;
   /* 🌟 v5 정석: 기본 sans 계열을 리스트 형태로 덮어써야 시스템 폰트를 완전히 밀어냅니다. */
   --font-sans: Paperlogy-4Regular;
 
