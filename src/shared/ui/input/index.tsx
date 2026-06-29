@@ -1,14 +1,13 @@
-'use client';
-import React from 'react';
-import { createInput } from '@gluestack-ui/core/input/creator';
-import { View, Pressable, TextInput } from 'react-native';
-import { tva } from '@gluestack-ui/utils/nativewind-utils';
-import { withStyleContext } from '@gluestack-ui/utils/nativewind-utils';
-import { styled } from 'nativewind';
-import type { VariantProps } from '@gluestack-ui/utils/nativewind-utils';
-import { UIIcon } from '@gluestack-ui/core/icon/creator';
+"use client";
+import { UIIcon } from "@gluestack-ui/core/icon/creator";
+import { createInput } from "@gluestack-ui/core/input/creator";
+import type { VariantProps } from "@gluestack-ui/utils/nativewind-utils";
+import { tva, withStyleContext } from "@gluestack-ui/utils/nativewind-utils";
+import { styled } from "nativewind";
+import React from "react";
+import { Pressable, TextInput, View } from "react-native";
 
-const SCOPE = 'INPUT';
+const SCOPE = "INPUT";
 
 const StyledUIIcon = styled(UIIcon, { className: "style" });
 
@@ -19,21 +18,20 @@ const UIInput = createInput({
   Input: TextInput,
 });
 
-
 const inputStyle = tva({
-  base: 'min-h-9 w-full flex-row items-center rounded-md border border-border  dark:bg-input/30 bg-transparent shadow-xs transition-[color,box-shadow] overflow-hidden data-[focus=true]:outline-none data-[focus=true]:border-ring dark:data-[focus=true]:border-ring data-[focus=true]:web:ring-[3px] data-[focus=true]:web:ring-ring/50 data-[invalid=true]:border-destructive/40 dark:data-[invalid=true]:border-destructive/40 data-[invalid=true]:web:ring-destructive/20 dark:data-[invalid=true]:web:ring-destructive/40 data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50 px-3 gap-2',
+  base: "min-h-10 w-full flex-row items-center rounded-md border border-outline dark:bg-input/30 bg-transparent transition-[color] overflow-hidden data-[focus=true]:outline-none data-[focus=true]:border-ring dark:data-[focus=true]:border-ring data-[focus=true]:web:ring-[3px] data-[focus=true]:web:ring-ring/50 data-[invalid=true]:border-destructive/40 dark:data-[invalid=true]:border-destructive/40 data-[invalid=true]:web:ring-destructive/20 dark:data-[invalid=true]:web:ring-destructive/40 data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50 px-3 gap-2",
 });
 
 const inputIconStyle = tva({
-  base: 'justify-center items-center text-muted-foreground fill-none h-4 w-4',
+  base: "justify-center items-center text-muted-foreground fill-none h-5 w-5",
 });
 
 const inputSlotStyle = tva({
-  base: 'justify-center items-center web:disabled:cursor-not-allowed',
+  base: "justify-center items-center web:disabled:cursor-not-allowed",
 });
 
 const inputFieldStyle = tva({
-  base: 'flex-1 text-foreground text-sm md:text-sm py-1 h-full placeholder:text-muted-foreground  web:outline-none ios:leading-[0px] web:cursor-text web:data-[disabled=true]:cursor-not-allowed',
+  base: "font-sans flex-1 text-foreground text-sm md:text-sm py-1 h-full placeholder:text-label-muted  web:outline-none ios:leading-[0px] web:cursor-text web:data-[disabled=true]:cursor-not-allowed",
 });
 
 type IInputProps = React.ComponentProps<typeof UIInput> &
@@ -48,7 +46,7 @@ const Input = React.forwardRef<React.ComponentRef<typeof UIInput>, IInputProps>(
         context={{}}
       />
     );
-  }
+  },
 );
 
 type IInputIconProps = React.ComponentProps<typeof UIInput.Icon> &
@@ -107,9 +105,9 @@ const InputField = React.forwardRef<
   );
 });
 
-Input.displayName = 'Input';
-InputIcon.displayName = 'InputIcon';
-InputSlot.displayName = 'InputSlot';
-InputField.displayName = 'InputField';
+Input.displayName = "Input";
+InputIcon.displayName = "InputIcon";
+InputSlot.displayName = "InputSlot";
+InputField.displayName = "InputField";
 
 export { Input, InputField, InputIcon, InputSlot };
