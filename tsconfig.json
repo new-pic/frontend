@@ -3,27 +3,14 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@app/*": [
-        "./src/app/*"
-      ],
-      "@entities/*": [
-        "./src/entities/*"
-      ],
-      "@features/*": [
-        "./src/features/*"
-      ],
-      "@shared/*": [
-        "./src/shared/*"
-      ],
-      "@widgets/*": [
-        "./src/widgets/*"
-      ],
-      "@/assets/*": [
-        "./assets/*"
-      ]
+      "@/*": ["./src/*"],
+      "@app/*": ["./src/app/*"],
+      "@pages/*": ["./src/pages/*"],
+      "@entities/*": ["./src/entities/*"],
+      "@features/*": ["./src/features/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@widgets/*": ["./src/widgets/*"],
+      "@assets/*": ["./assets/*"]
     }
   },
   "include": [

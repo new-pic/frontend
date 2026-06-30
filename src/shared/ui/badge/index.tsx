@@ -1,47 +1,50 @@
-'use client';
-import { PrimitiveIcon, UIIcon } from '@gluestack-ui/core/icon/creator';
-import type { VariantProps } from '@gluestack-ui/utils/nativewind-utils';
-import { tva, useStyleContext, withStyleContext } from '@gluestack-ui/utils/nativewind-utils';
-import { styled } from 'nativewind';
-import React from 'react';
-import { Text, View } from 'react-native';
-import { Svg } from 'react-native-svg';
+"use client";
+import { PrimitiveIcon, UIIcon } from "@gluestack-ui/core/icon/creator";
+import type { VariantProps } from "@gluestack-ui/utils/nativewind-utils";
+import {
+  tva,
+  useStyleContext,
+  withStyleContext,
+} from "@gluestack-ui/utils/nativewind-utils";
+import { styled } from "nativewind";
+import React from "react";
+import { Text, View } from "react-native";
+import { Svg } from "react-native-svg";
 
-const SCOPE = 'BADGE';
+const SCOPE = "BADGE";
 
 const badgeStyle = tva({
-  base: 'flex-row items-center justify-center rounded-sm px-2 py-0.5',
+  base: "flex-row items-center justify-center rounded-sm px-2 py-0.5",
   variants: {
     variant: {
-      default: 'bg-primary',
-      secondary: 'bg-secondary',
-      destructive:
-        'bg-destructive dark:bg-destructive/60',
-      outline: 'border border-border dark:border-border/90 bg-transparent',
+      default: "bg-brand",
+      secondary: "bg-secondary",
+      destructive: "bg-destructive dark:bg-destructive/60",
+      outline: "border border-brand dark:border-border/90 bg-transparent",
     },
   },
 });
 
 const badgeTextStyle = tva({
-  base: 'text-xs font-medium tracking-normal uppercase',
+  base: "text-xs font-medium tracking-normal uppercase",
   parentVariants: {
     variant: {
-      default: 'text-primary-foreground',
-      secondary: 'text-secondary-foreground',
-      destructive: 'text-white',
-      outline: 'text-foreground',
+      default: "text-white",
+      secondary: "text-secondary-foreground",
+      destructive: "text-white",
+      outline: "text-foreground",
     },
   },
 });
 
 const badgeIconStyle = tva({
-  base: 'fill-none h-3 w-3 pointer-events-none',
+  base: "fill-none h-3 w-3 pointer-events-none",
   parentVariants: {
     variant: {
-      default: 'text-primary-foreground',
-      secondary: 'text-secondary-foreground',
-      destructive: 'text-white',
-      outline: 'text-foreground',
+      default: "text-primary-foreground",
+      secondary: "text-secondary-foreground",
+      destructive: "text-white",
+      outline: "text-foreground",
     },
   },
 });
@@ -52,7 +55,7 @@ type IBadgeProps = React.ComponentPropsWithoutRef<typeof ContextView> &
   VariantProps<typeof badgeStyle>;
 function Badge({
   children,
-  variant = 'default',
+  variant = "default",
   className,
   ...props
 }: { className?: string } & IBadgeProps) {
@@ -94,21 +97,20 @@ const BadgeText = React.forwardRef<
 type IBadgeIconProps = React.ComponentPropsWithoutRef<typeof PrimitiveIcon> &
   VariantProps<typeof badgeIconStyle> & {
     size?: number;
-};
-  
+  };
+
 const StyledUIIcon = styled(UIIcon, {
   className: {
-    target: 'style',
+    target: "style",
     nativeStyleToProp: {
       height: true,
       width: true,
       fill: true,
-      color: 'classNameColor',
+      color: "classNameColor",
       stroke: true,
     },
   },
 });
-
 
 const BadgeIcon = React.forwardRef<
   React.ComponentRef<typeof Svg>,
@@ -116,7 +118,7 @@ const BadgeIcon = React.forwardRef<
 >(function BadgeIcon({ className, size, ...props }, ref) {
   const { variant: parentVariant } = useStyleContext(SCOPE);
 
-  if (typeof size === 'number') {
+  if (typeof size === "number") {
     return (
       <StyledUIIcon
         ref={ref}
@@ -151,8 +153,8 @@ const BadgeIcon = React.forwardRef<
   );
 });
 
-Badge.displayName = 'Badge';
-BadgeText.displayName = 'BadgeText';
-BadgeIcon.displayName = 'BadgeIcon';
+Badge.displayName = "Badge";
+BadgeText.displayName = "BadgeText";
+BadgeIcon.displayName = "BadgeIcon";
 
 export { Badge, BadgeIcon, BadgeText };
