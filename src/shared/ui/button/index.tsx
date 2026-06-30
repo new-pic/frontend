@@ -54,6 +54,7 @@ const buttonTextStyle = tva({
   parentVariants: {
     variant: {
       default: "text-primary-foreground",
+      gradient: "text-white",
       destructive: "text-white",
       outline:
         "text-foreground data-[hover=true]:text-accent-foreground data-[active=true]:text-accent-foreground",
@@ -153,7 +154,13 @@ const Button = React.forwardRef<
         >
           <LinearGradient
             {...gradients.primary}
-            className="w-full items-center justify-center px-4 py-2"
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+            }}
           >
             {children}
           </LinearGradient>
