@@ -11,6 +11,7 @@
     "@tabler/icons-react-native": "^3.44.0",
     "expo": "~56.0.12",
     "expo-constants": "~56.0.18",
+    "expo-dev-client": "~56.0.21",
     "expo-device": "~56.0.4",
     "expo-font": "~56.0.7",
     "expo-glass-effect": "~56.0.4",
