@@ -7,7 +7,7 @@ export function CameraPage() {
 
   return (
     <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
-      <VStack className="h-full py-4">
+      <VStack className="h-full">
         <CustomCamera />
       </VStack>
     </SafeAreaView>

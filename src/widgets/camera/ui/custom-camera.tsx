@@ -1,4 +1,16 @@
-import { Button, ButtonText, Text, VStack } from "@shared/ui";
+import {
+  Button,
+  ButtonIcon,
+  ButtonText,
+  HStack,
+  Text,
+  VStack,
+} from "@shared/ui";
+import {
+  IconBolt,
+  IconCameraRotate,
+  IconChevronLeft,
+} from "@tabler/icons-react-native";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -10,15 +22,75 @@ import {
   usePhotoOutput,
 } from "react-native-vision-camera";
 
+function CameraHeader() {
+  const handleGoBack = () => {
+    router.back();
+  };
+  return (
+    <HStack className="py-3 px-6 justify-between">
+      <Button variant="ghost" size="icon" onPress={handleGoBack}>
+        <ButtonIcon as={IconChevronLeft} />
+      </Button>
+      <HStack space="md">
+        <Button variant="gradient" className="w-35 p-0">
+          <ButtonText>실시간 공유하기</ButtonText>
+        </Button>
+        <Button variant="ghost" size="icon" className="w-7 h-7">
+          <ButtonIcon className="w-7 h-7" as={IconBolt} />
+        </Button>
+      </HStack>
+    </HStack>
+  );
+}
+
+interface CameraControlsProps {
+  onChangePosition: () => void;
+}
+function CameraControls({ onChangePosition }: CameraControlsProps) {
+  return (
+    <VStack className="w-full py-8 px-6">
+      <HStack className="items-center justify-around">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="w-7 h-7"
+          onPress={onChangePosition}
+        >
+          <ButtonIcon className="w-7 h-7" as={IconBolt} />
+        </Button>
+        <Button variant="outline" className="w-20 h-20 rounded-full"></Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="w-10 h-10"
+          onPress={onChangePosition}
+        >
+          <ButtonIcon className="w-10 h-10" as={IconCameraRotate} />
+        </Button>
+      </HStack>
+    </VStack>
+  );
+}
+
 // 💡 1. 실제 카메라와 무거운 훅들을 담당하는 내부 컴포넌트
 function CameraView() {
-  const [cameraDevice] = useState<CameraPosition>("back");
-  const device = useCameraDevice(cameraDevice);
+  const [cameraDevice, setCameraDevice] = useState<CameraPosition>("back");
+  const device = useCameraDevice(cameraDevice, {
+    physicalDevices: ["ultra-wide-angle", "wide-angle", "telephoto"],
+  });
 
   // ⭐️ 권한이 허용된 상태에서만 이 훅이 실행되므로 절대 먹통이 되지 않습니다.
   const photoOutput = usePhotoOutput({
     targetResolution: CommonResolutions.UHD_16_9,
   });
+
+  const handleChangePosition = () => {
+    if (cameraDevice === "back") {
+      setCameraDevice("front");
+    } else {
+      setCameraDevice("back");
+    }
+  };
 
   if (!device) {
     return (
@@ -35,12 +107,17 @@ function CameraView() {
   }
 
   return (
-    <Camera
-      style={{ flex: 1 }}
-      isActive={true}
-      device={device}
-      outputs={[photoOutput]}
-    />
+    <VStack className="h-full bg-white">
+      <CameraHeader />
+      <Camera
+        style={{ flex: 1 }}
+        isActive={true}
+        enableNativeZoomGesture={true}
+        device={device}
+        outputs={[photoOutput]}
+      />
+      <CameraControls onChangePosition={handleChangePosition} />
+    </VStack>
   );
 }
 
