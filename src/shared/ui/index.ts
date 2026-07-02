@@ -17,6 +17,7 @@ export * from "./hstack";
 export * from "./icon";
 export * from "./image-viewer";
 export * from "./input";
+export * from "./photo-grid";
 export * from "./pressable";
 export * from "./skeleton";
 export * from "./spinner";

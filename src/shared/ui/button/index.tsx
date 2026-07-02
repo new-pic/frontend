@@ -78,7 +78,7 @@ const buttonSpinnerStyle = tva({
       default: "h-4 w-4",
       sm: "h-3 w-3",
       lg: "h-5 w-5",
-      icon: "h-4 w-4",
+      icon: "h-9 w-9",
     },
   },
 });
@@ -100,7 +100,7 @@ const buttonIconStyle = tva({
       default: "h-4 w-4",
       sm: "h-3 w-3",
       lg: "h-5 w-5",
-      icon: "h-6 w-6",
+      icon: "h-9 w-9",
     },
   },
 });
