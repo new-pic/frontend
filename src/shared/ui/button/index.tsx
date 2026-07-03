@@ -156,6 +156,7 @@ const Button = React.forwardRef<
             {...gradients.primary}
             style={{
               flex: 1,
+              height: "100%",
               justifyContent: "center",
               alignItems: "center",
               paddingHorizontal: 16,

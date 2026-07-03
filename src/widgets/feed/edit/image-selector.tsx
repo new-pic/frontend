@@ -52,7 +52,7 @@ const MOCK_IMAGES = [
 
 export function ImageSelector() {
   return (
-    <VStack space="md" className="border-t pt-3 border-outline-light">
+    <VStack space="md" className="border-t pt-3 border-outline-light flex-1">
       <Pressable className="mx-6">
         <HStack className="items-center" space="sm">
           <Text className="font-semibold" size="lg">
