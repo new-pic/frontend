@@ -2,6 +2,7 @@ export * from "./alert-dialog";
 export * from "./avatar";
 export * from "./badge";
 // export * from "./bottomsheet";
+export * from "./bottomsheet";
 export * from "./box";
 export * from "./button";
 export * from "./card";
