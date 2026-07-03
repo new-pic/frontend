@@ -38,6 +38,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="feed/edit"
         options={{
+          tabBarStyle: { display: "none" },
           href: null,
         }}
       />
