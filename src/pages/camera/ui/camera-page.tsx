@@ -1,5 +1,5 @@
 import { VStack } from "@shared/ui";
-import { CustomCamera } from "@widgets/camera";
+import { Camera } from "@widgets/camera";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function CameraPage() {
@@ -8,7 +8,7 @@ export function CameraPage() {
   return (
     <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
       <VStack className="h-full">
-        <CustomCamera />
+        <Camera />
       </VStack>
     </SafeAreaView>
   );

@@ -1,1 +1,1 @@
-export { CustomCamera } from "./ui/custom-camera";
+export { CustomCamera as Camera } from "./ui/camera";
