@@ -1,3 +1,4 @@
+import { feedQuery } from "@entities/feed";
 import { gradients } from "@shared/constants";
 import { useConfirm } from "@shared/lib";
 
@@ -139,6 +140,7 @@ const MOCK_IMAGES = [
 ];
 
 export function FeedPage() {
+  const { data } = feedQuery.useReadFeeds();
   const openConfirm = useConfirm();
   const handlePressFeed = async () => {
     router.push("/feed/1");
@@ -176,7 +178,7 @@ export function FeedPage() {
             </Badge>
           </HStack>
         </VStack>
-        <PhotoGrid images={MOCK_IMAGES} onPress={handlePressFeed} />
+        <PhotoGrid images={data.items} onPress={handlePressFeed} />
         <Fab
           className="w-15 h-15 rounded-full bottom-8 right-8"
           onPress={handlePressEdit}
