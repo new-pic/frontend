@@ -1,21 +1,21 @@
-'use client';
-import { createAlertDialog } from '@gluestack-ui/core/alert-dialog/creator';
-import type { VariantProps } from '@gluestack-ui/utils/nativewind-utils';
+"use client";
+import { createAlertDialog } from "@gluestack-ui/core/alert-dialog/creator";
+import type { VariantProps } from "@gluestack-ui/utils/nativewind-utils";
 import {
   tva,
   useStyleContext,
   withStyleContext,
-} from '@gluestack-ui/utils/nativewind-utils';
-import React from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+} from "@gluestack-ui/utils/nativewind-utils";
+import React from "react";
+import { Pressable, ScrollView, View } from "react-native";
 import Animated, {
   Easing,
   FadeIn,
   FadeOut,
-  ZoomIn
-} from 'react-native-reanimated';
+  ZoomIn,
+} from "react-native-reanimated";
 
-const SCOPE = 'ALERT_DIALOG';
+const SCOPE = "ALERT_DIALOG";
 
 const RootComponent = withStyleContext(View, SCOPE);
 
@@ -33,47 +33,47 @@ const UIAccessibleAlertDialog = createAlertDialog({
 });
 
 const alertDialogStyle = tva({
-  base: 'group/modal w-full h-full justify-center items-center web:pointer-events-none',
+  base: "group/modal w-full h-full justify-center items-center web:pointer-events-none",
   parentVariants: {
     size: {
-      xs: '',
-      sm: '',
-      md: '',
-      lg: '',
-      full: '',
+      xs: "",
+      sm: "",
+      md: "",
+      lg: "",
+      full: "",
     },
   },
 });
 
 const alertDialogContentStyle = tva({
-  base: 'bg-background rounded-lg overflow-hidden border border-border p-6',
+  base: "bg-white rounded-3xl overflow-hidden border border-outline p-8",
   parentVariants: {
     size: {
-      xs: 'w-[60%] max-w-[360px]',
-      sm: 'w-[70%] max-w-[420px]',
-      md: 'w-[80%] max-w-[510px]',
-      lg: 'w-[90%] max-w-[640px]',
-      full: 'w-full',
+      xs: "w-[60%] max-w-[360px]",
+      sm: "w-[70%] max-w-[420px]",
+      md: "w-[80%] max-w-[510px]",
+      lg: "w-[90%] max-w-[640px]",
+      full: "w-full",
     },
   },
 });
 
 const alertDialogCloseButtonStyle = tva({
-  base: 'group/alert-dialog-close-button z-10 rounded-sm p-2 data-[focus-visible=true]:bg-background/10 web:cursor-pointer outline-0',
+  base: "group/alert-dialog-close-button z-10 rounded-sm p-2 data-[focus-visible=true]:bg-background/10 web:cursor-pointer outline-0",
 });
 
 const alertDialogHeaderStyle = tva({
-  base: 'justify-between items-center flex-row',
+  base: "justify-between items-center flex-row",
 });
 
 const alertDialogFooterStyle = tva({
-  base: 'flex-row justify-end items-center gap-3',
+  base: "flex-row items-center gap-2",
 });
 
-const alertDialogBodyStyle = tva({ base: '' });
+const alertDialogBodyStyle = tva({ base: "" });
 
 const alertDialogBackdropStyle = tva({
-  base: 'absolute left-0 top-0 right-0 bottom-0 bg-black/50 web:cursor-default',
+  base: "absolute left-0 top-0 right-0 bottom-0 bg-black/50 web:cursor-default",
 });
 
 type IAlertDialogProps = React.ComponentPropsWithoutRef<
@@ -114,7 +114,7 @@ type IAlertDialogBackdropProps = React.ComponentPropsWithoutRef<
 const AlertDialog = React.forwardRef<
   React.ComponentRef<typeof UIAccessibleAlertDialog>,
   IAlertDialogProps
->(function AlertDialog({ className, size = 'md', ...props }, ref) {
+>(function AlertDialog({ className, size = "md", ...props }, ref) {
   return (
     <UIAccessibleAlertDialog
       ref={ref}
@@ -230,13 +230,13 @@ const AlertDialogBackdrop = React.forwardRef<
   );
 });
 
-AlertDialog.displayName = 'AlertDialog';
-AlertDialogContent.displayName = 'AlertDialogContent';
-AlertDialogCloseButton.displayName = 'AlertDialogCloseButton';
-AlertDialogHeader.displayName = 'AlertDialogHeader';
-AlertDialogFooter.displayName = 'AlertDialogFooter';
-AlertDialogBody.displayName = 'AlertDialogBody';
-AlertDialogBackdrop.displayName = 'AlertDialogBackdrop';
+AlertDialog.displayName = "AlertDialog";
+AlertDialogContent.displayName = "AlertDialogContent";
+AlertDialogCloseButton.displayName = "AlertDialogCloseButton";
+AlertDialogHeader.displayName = "AlertDialogHeader";
+AlertDialogFooter.displayName = "AlertDialogFooter";
+AlertDialogBody.displayName = "AlertDialogBody";
+AlertDialogBackdrop.displayName = "AlertDialogBackdrop";
 
 export {
   AlertDialog,
@@ -245,6 +245,5 @@ export {
   AlertDialogCloseButton,
   AlertDialogContent,
   AlertDialogFooter,
-  AlertDialogHeader
+  AlertDialogHeader,
 };
-

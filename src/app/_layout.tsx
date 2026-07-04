@@ -2,6 +2,7 @@ import { GluestackUIProvider } from "@shared/ui/gluestack-ui-provider";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 
+import { ConfirmProvider } from "@shared/lib";
 import "./global.css";
 
 export default function RootLayout() {
@@ -21,12 +22,14 @@ export default function RootLayout() {
 
   return (
     <GluestackUIProvider>
-      <Stack
-        screenOptions={{
-          header: () => <></>,
-          contentStyle: { backgroundColor: "white" },
-        }}
-      />
+      <ConfirmProvider>
+        <Stack
+          screenOptions={{
+            header: () => <></>,
+            contentStyle: { backgroundColor: "white" },
+          }}
+        />
+      </ConfirmProvider>
     </GluestackUIProvider>
   );
 }

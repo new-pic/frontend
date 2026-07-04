@@ -1,4 +1,5 @@
 import { gradients } from "@shared/constants";
+
 import {
   Badge,
   BadgeText,
@@ -137,8 +138,12 @@ const MOCK_IMAGES = [
 ];
 
 export function FeedPage() {
-  const handlePressFeed = () => {
+  const handlePressFeed = async () => {
     router.push("/feed/1");
+  };
+
+  const handlePressEdit = async () => {
+    router.push("/feed/edit");
   };
   return (
     <SafeAreaView edges={["top"]}>
@@ -163,7 +168,10 @@ export function FeedPage() {
           </HStack>
         </VStack>
         <PhotoGrid images={MOCK_IMAGES} onPress={handlePressFeed} />
-        <Fab className="w-15 h-15 rounded-full bottom-8 right-8">
+        <Fab
+          className="w-15 h-15 rounded-full bottom-8 right-8"
+          onPress={handlePressEdit}
+        >
           <LinearGradient
             {...gradients.primary}
             style={{

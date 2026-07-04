@@ -1,5 +1,5 @@
-import { SafeAreaView } from "react-native-safe-area-context";
+import { CameraPage } from "@pages/camera";
 
-export default function CameraPage() {
-  return <SafeAreaView></SafeAreaView>;
+export default function CameraScreen() {
+  return <CameraPage />;
 }

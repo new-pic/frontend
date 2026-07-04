@@ -54,6 +54,7 @@ const buttonTextStyle = tva({
   parentVariants: {
     variant: {
       default: "text-primary-foreground",
+      gradient: "text-white",
       destructive: "text-white",
       outline:
         "text-foreground data-[hover=true]:text-accent-foreground data-[active=true]:text-accent-foreground",
@@ -77,7 +78,7 @@ const buttonSpinnerStyle = tva({
       default: "h-4 w-4",
       sm: "h-3 w-3",
       lg: "h-5 w-5",
-      icon: "h-4 w-4",
+      icon: "h-9 w-9",
     },
   },
 });
@@ -99,7 +100,7 @@ const buttonIconStyle = tva({
       default: "h-4 w-4",
       sm: "h-3 w-3",
       lg: "h-5 w-5",
-      icon: "h-6 w-6",
+      icon: "h-9 w-9",
     },
   },
 });
@@ -153,7 +154,14 @@ const Button = React.forwardRef<
         >
           <LinearGradient
             {...gradients.primary}
-            className="w-full items-center justify-center px-4 py-2"
+            style={{
+              flex: 1,
+              height: "100%",
+              justifyContent: "center",
+              alignItems: "center",
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+            }}
           >
             {children}
           </LinearGradient>
