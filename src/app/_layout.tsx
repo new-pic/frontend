@@ -3,7 +3,10 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 
 import { ConfirmProvider } from "@shared/lib";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./global.css";
+
+import "@shared/api/interceptors";
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -20,16 +23,20 @@ export default function RootLayout() {
 
   if (!loaded) return null;
 
+  const queryClient = new QueryClient();
+
   return (
     <GluestackUIProvider>
-      <ConfirmProvider>
-        <Stack
-          screenOptions={{
-            header: () => <></>,
-            contentStyle: { backgroundColor: "white" },
-          }}
-        />
-      </ConfirmProvider>
+      <QueryClientProvider client={queryClient}>
+        <ConfirmProvider>
+          <Stack
+            screenOptions={{
+              header: () => <></>,
+              contentStyle: { backgroundColor: "white" },
+            }}
+          />
+        </ConfirmProvider>
+      </QueryClientProvider>
     </GluestackUIProvider>
   );
 }

@@ -1,14 +1,14 @@
 import * as SecureStore from "expo-secure-store";
-import { ApiInstance } from "./api-instance";
+import { ApiPrivateInstance } from "./api-private-instance";
 
-ApiInstance.interceptors.request.use(async (config) => {
+ApiPrivateInstance.interceptors.request.use(async (config) => {
   const token = await SecureStore.getItemAsync("accessToken");
 
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-ApiInstance.interceptors.response.use(
+ApiPrivateInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
