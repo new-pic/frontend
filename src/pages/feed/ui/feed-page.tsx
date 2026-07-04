@@ -1,4 +1,5 @@
 import { gradients } from "@shared/constants";
+import { useConfirm } from "@shared/lib";
 
 import {
   Badge,
@@ -138,12 +139,20 @@ const MOCK_IMAGES = [
 ];
 
 export function FeedPage() {
+  const openConfirm = useConfirm();
   const handlePressFeed = async () => {
     router.push("/feed/1");
   };
 
   const handlePressEdit = async () => {
     router.push("/feed/edit");
+  };
+
+  const handlePress = async () => {
+    const a = await openConfirm({
+      title: "확인",
+      message: "정말로 삭제하시겠습니까?",
+    });
   };
   return (
     <SafeAreaView edges={["top"]}>
@@ -154,7 +163,7 @@ export function FeedPage() {
           </Text>
           <Input>
             <InputField placeholder="검색어를 입력해주세요." />
-            <InputSlot>
+            <InputSlot onPress={handlePress}>
               <InputIcon as={IconSearch} />
             </InputSlot>
           </Input>

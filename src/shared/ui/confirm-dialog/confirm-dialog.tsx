@@ -39,7 +39,7 @@ export function ConfirmDialog({
         <AlertDialogHeader>
           <Text className="text-lg font-semibold">{title}</Text>
         </AlertDialogHeader>
-        <AlertDialogBody className="mb-10">
+        <AlertDialogBody className="mb-10 p-0">
           <Text className="text-sm mt-1 text-label-muted">{message}</Text>
         </AlertDialogBody>
         <AlertDialogFooter>
@@ -47,7 +47,7 @@ export function ConfirmDialog({
             <ButtonText>{cancelText}</ButtonText>
           </Button>
           <Button
-            className="flex-1 p-0"
+            className="flex-1 p-0 h-10"
             variant="gradient"
             onPress={handleConfirm}
           >
