@@ -1,16 +1,12 @@
+import { FeedResponse } from "@entities/feed";
 import { useMemo } from "react";
 import { Dimensions, FlatList, Image } from "react-native";
 import { Pressable } from "../pressable";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
-interface PhotoImages {
-  id: string;
-  uri: string;
-}
-
 export interface PhotoGridProps {
-  images: PhotoImages[];
+  images: FeedResponse[];
   columns?: number;
   onPress?: () => void;
 }
@@ -26,7 +22,7 @@ export function PhotoGrid({ images, columns = 3, onPress }: PhotoGridProps) {
       renderItem={({ item }) => (
         <Pressable onPress={onPress}>
           <Image
-            source={{ uri: item.uri }}
+            source={{ uri: item.imageUrl }}
             style={{
               width: imageSize,
               aspectRatio: 4 / 5,
