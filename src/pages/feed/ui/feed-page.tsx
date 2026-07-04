@@ -1,4 +1,6 @@
+import { feedQuery } from "@entities/feed";
 import { gradients } from "@shared/constants";
+import { useConfirm } from "@shared/lib";
 
 import {
   Badge,
@@ -138,12 +140,21 @@ const MOCK_IMAGES = [
 ];
 
 export function FeedPage() {
+  const { data } = feedQuery.useReadFeeds();
+  const openConfirm = useConfirm();
   const handlePressFeed = async () => {
     router.push("/feed/1");
   };
 
   const handlePressEdit = async () => {
     router.push("/feed/edit");
+  };
+
+  const handlePress = async () => {
+    const a = await openConfirm({
+      title: "확인",
+      message: "정말로 삭제하시겠습니까?",
+    });
   };
   return (
     <SafeAreaView edges={["top"]}>
@@ -154,7 +165,7 @@ export function FeedPage() {
           </Text>
           <Input>
             <InputField placeholder="검색어를 입력해주세요." />
-            <InputSlot>
+            <InputSlot onPress={handlePress}>
               <InputIcon as={IconSearch} />
             </InputSlot>
           </Input>
@@ -167,7 +178,7 @@ export function FeedPage() {
             </Badge>
           </HStack>
         </VStack>
-        <PhotoGrid images={MOCK_IMAGES} onPress={handlePressFeed} />
+        <PhotoGrid images={data.items} onPress={handlePressFeed} />
         <Fab
           className="w-15 h-15 rounded-full bottom-8 right-8"
           onPress={handlePressEdit}

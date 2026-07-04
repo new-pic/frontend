@@ -25,7 +25,7 @@ function CameraView() {
   const [images, setImages] = useState<SessionPhoto[]>([]);
   const [flashMode, setFlashMode] = useState<FlashMode>("off");
   const [targetResolution, setTargetResolution] = useState<Size>(
-    CommonResolutions.UHD_16_9,
+    CommonResolutions.UHD_4_3,
   );
   const [aspectRatio, setAspectRatio] = useState(
     targetResolution.width / targetResolution.height,

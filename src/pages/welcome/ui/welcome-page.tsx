@@ -1,13 +1,26 @@
 import AppleLogo from "@assets/icons/apple-logo.svg";
 import GoogleLogo from "@assets/icons/google-logo.svg";
+import { useSocialLogin } from "@features/auth/use-social-login";
 import { Button, ButtonText, Center, Text, VStack } from "@shared/ui";
 import { router } from "expo-router";
 import { Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function WelcomPage() {
+  const { handleGoogleLogin, handleServiceLogin } = useSocialLogin();
+
   const handleNavigateToCamera = () => {
     router.replace("/feed");
+  };
+
+  const handleGoogleLoginPress = async () => {
+    try {
+      const token = await handleGoogleLogin();
+      handleServiceLogin({ nickname: "제발되라", idToken: token });
+      handleNavigateToCamera();
+    } catch (error) {
+      console.error("Error during Google login:", error);
+    }
   };
   return (
     <SafeAreaView>
@@ -28,7 +41,7 @@ export function WelcomPage() {
           <Button
             variant="outline"
             className="rounded-full"
-            onPress={handleNavigateToCamera}
+            onPress={handleGoogleLoginPress}
           >
             <GoogleLogo width={24} height={24} />
             <ButtonText>구글로 시작하기</ButtonText>

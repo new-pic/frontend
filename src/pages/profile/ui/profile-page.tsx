@@ -1,3 +1,4 @@
+import { profileQuery } from "@entities/profile";
 import { gradients } from "@shared/constants";
 import {
   Avatar,
@@ -21,18 +22,17 @@ import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function ProfilePage() {
+  const { data } = profileQuery.useReadMe();
   return (
     <SafeAreaView>
       <VStack className="h-full pt-10 px-6 w-full" space="xl">
         <HStack space="xl" className="items-center px-1 py-2 ">
           <Avatar className="h-20 w-20">
-            <AvatarFallbackText>민서1234</AvatarFallbackText>
-            <AvatarImage
-              source={require("@assets/images/brand-character/hello-newpic.png")}
-            />
+            <AvatarFallbackText>{data?.nickname}</AvatarFallbackText>
+            <AvatarImage source={{ uri: data?.profileImage }} />
           </Avatar>
           <VStack className="justify-center">
-            <Text className="font-medium">민서1234</Text>
+            <Text className="font-medium">{data?.nickname}</Text>
             <Button variant="ghost" size="sm" className="justify-start p-0">
               <ButtonText className="text-link-text">프로필 변경</ButtonText>
             </Button>
