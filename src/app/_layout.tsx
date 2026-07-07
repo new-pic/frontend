@@ -8,6 +8,8 @@ import "./global.css";
 
 import "@shared/api/interceptors";
 
+const queryClient = new QueryClient();
+
 export default function RootLayout() {
   const [loaded] = useFonts({
     "Paperlogy-1Thin": require("@assets/fonts/Paperlogy-1Thin.ttf"),
@@ -23,8 +25,6 @@ export default function RootLayout() {
 
   if (!loaded) return null;
 
-  const queryClient = new QueryClient();
-
   return (
     <GluestackUIProvider>
       <QueryClientProvider client={queryClient}>
@@ -34,7 +34,9 @@ export default function RootLayout() {
               header: () => <></>,
               contentStyle: { backgroundColor: "white" },
             }}
-          />
+          >
+            <Stack.Screen name="auth/setup" />
+          </Stack>
         </ConfirmProvider>
       </QueryClientProvider>
     </GluestackUIProvider>
