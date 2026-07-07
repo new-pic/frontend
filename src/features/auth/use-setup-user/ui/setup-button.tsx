@@ -1,4 +1,4 @@
-import { UpdateProfileRequest, usersQuery } from "@/entities/users";
+import { UpdateProfileRequest, usersQuery } from "@entities/users";
 import { Button } from "@shared/ui";
 import { router } from "expo-router";
 import { UseSetupFormReturn } from "../lib/use-setup-form";

@@ -1,4 +1,4 @@
-import { usersQuery } from "@/entities/users";
+import { usersQuery } from "@entities/users";
 import { gradients } from "@shared/constants";
 import {
   Avatar,

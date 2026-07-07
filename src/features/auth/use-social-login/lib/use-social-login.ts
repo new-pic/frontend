@@ -1,5 +1,5 @@
-import { usersQuery } from "@/entities/users";
 import { authQuery } from "@entities/auth";
+import { usersQuery } from "@entities/users";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { env } from "@shared/config";
 import { deleteAccessToken, getAccessToken, setAccessToken } from "@shared/lib";
