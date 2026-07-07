@@ -1,4 +1,4 @@
-import { profileQuery } from "@entities/profile";
+import { usersQuery } from "@/entities/users";
 import { gradients } from "@shared/constants";
 import {
   Avatar,
@@ -22,7 +22,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function ProfilePage() {
-  const { data } = profileQuery.useReadMe();
+  const { data } = usersQuery.useReadMe();
   return (
     <SafeAreaView>
       <VStack className="h-full pt-10 px-6 w-full" space="xl">

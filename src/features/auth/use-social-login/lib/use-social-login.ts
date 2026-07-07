@@ -1,5 +1,5 @@
+import { usersQuery } from "@/entities/users";
 import { authQuery } from "@entities/auth";
-import { profileQuery } from "@entities/profile";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { env } from "@shared/config";
 import { deleteAccessToken, getAccessToken, setAccessToken } from "@shared/lib";
@@ -7,7 +7,7 @@ import { router } from "expo-router";
 
 export function useSocialLogin() {
   const mutationToServiceLogin = authQuery.useGoogleLogin();
-  const fetchMe = profileQuery.useFetchMe();
+  const fetchMe = usersQuery.useFetchMe();
 
   // 구글 로그인
   const loginWithGoogle = async () => {
