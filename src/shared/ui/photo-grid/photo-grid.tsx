@@ -8,7 +8,7 @@ const SCREEN_WIDTH = Dimensions.get("window").width;
 export interface PhotoGridProps {
   images: FeedResponse[];
   columns?: number;
-  onPress?: () => void;
+  onPress?: (feedId: string) => void;
 }
 
 export function PhotoGrid({ images, columns = 3, onPress }: PhotoGridProps) {
@@ -20,7 +20,7 @@ export function PhotoGrid({ images, columns = 3, onPress }: PhotoGridProps) {
       keyExtractor={(item) => item.id}
       numColumns={columns}
       renderItem={({ item }) => (
-        <Pressable onPress={onPress}>
+        <Pressable onPress={() => onPress?.(item.id)}>
           <Image
             source={{ uri: item.imageUrl }}
             style={{
