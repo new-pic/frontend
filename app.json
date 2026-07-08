@@ -56,6 +56,14 @@
         }
       ],
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "custom photos permission",
+          "cameraPermission": "Allow $(PRODUCT_NAME) to open the camera"
+        }
+      ],
+      ["expo-media-library"],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",
