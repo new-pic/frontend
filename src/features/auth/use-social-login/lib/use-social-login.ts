@@ -34,7 +34,7 @@ export function useSocialLogin() {
     if (response.status === "LOGIN_SUCCESS") {
       router.replace("/feed");
     } else if (response.status === "NEED_NICKNAME") {
-      router.replace("/auth/setup");
+      router.push("/profile/edit");
     }
   };
 
@@ -42,7 +42,7 @@ export function useSocialLogin() {
   const loginWithStoredToken = async () => {
     const accessToken = await getAccessToken();
     if (!accessToken) {
-      // accessToken이 없는 경우 처리
+      // accessToken이 없는 경우 토스트메시지
       return;
     }
     try {

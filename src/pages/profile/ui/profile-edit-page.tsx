@@ -13,7 +13,6 @@ import {
 import { IconChevronLeft } from "@tabler/icons-react-native";
 import { router } from "expo-router";
 import { Controller } from "react-hook-form";
-import { Keyboard, TouchableWithoutFeedback } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function ProfileEditPage() {
@@ -26,7 +25,6 @@ export function ProfileEditPage() {
   return (
     <SafeAreaView>
       <KeyboardDismissLayout>
-        {" "}
         <VStack className="h-full pt-3 w-full" space="xl">
           <HStack className="py-3 px-6 items-center justify-between border-b border-outline-light">
             <Button variant="ghost" size="icon" onPress={handleGoBack}>
