@@ -140,10 +140,10 @@ const MOCK_IMAGES = [
 ];
 
 export function FeedPage() {
-  const { data } = feedQuery.useReadFeeds();
+  const { data } = feedQuery.useReadFeeds({ take: 20 });
   const openConfirm = useConfirm();
-  const handlePressFeed = async () => {
-    router.push("/feed/1");
+  const handlePressFeed = async (feedId: string) => {
+    router.push(`/feed/${feedId}`);
   };
 
   const handlePressEdit = async () => {
@@ -178,7 +178,10 @@ export function FeedPage() {
             </Badge>
           </HStack>
         </VStack>
-        <PhotoGrid images={data.items} onPress={handlePressFeed} />
+        <PhotoGrid
+          images={data?.items || []}
+          onPress={(feedId) => handlePressFeed(feedId)}
+        />
         <Fab
           className="w-15 h-15 rounded-full bottom-8 right-8"
           onPress={handlePressEdit}

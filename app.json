@@ -49,6 +49,21 @@
         }
       ],
       [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true,
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "custom photos permission",
+          "cameraPermission": "Allow $(PRODUCT_NAME) to open the camera"
+        }
+      ],
+      ["expo-media-library"],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",

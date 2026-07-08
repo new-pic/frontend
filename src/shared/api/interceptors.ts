@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { ApiPrivateInstance } from "./api-private-instance";
 
@@ -13,8 +14,7 @@ ApiPrivateInstance.interceptors.response.use(
   async (error) => {
     if (error.response?.status === 401) {
       await SecureStore.deleteItemAsync("accessToken");
-
-      // TODO: 로그인 화면 이동
+      router.replace("/");
     }
 
     return Promise.reject(error);

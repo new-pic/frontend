@@ -3,24 +3,23 @@ import GoogleLogo from "@assets/icons/google-logo.svg";
 import { useSocialLogin } from "@features/auth/use-social-login";
 import { Button, ButtonText, Center, Text, VStack } from "@shared/ui";
 import { router } from "expo-router";
+import { useEffect } from "react";
 import { Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function WelcomPage() {
-  const { handleGoogleLogin, handleServiceLogin } = useSocialLogin();
+  const { isLoading, loginWithGoogle, loginWithStoredToken } = useSocialLogin();
 
-  const handleNavigateToCamera = () => {
+  useEffect(() => {
+    loginWithStoredToken();
+  }, []);
+
+  const handleNavigateToFeed = () => {
     router.replace("/feed");
   };
 
   const handleGoogleLoginPress = async () => {
-    try {
-      const token = await handleGoogleLogin();
-      handleServiceLogin({ nickname: "제발되라", idToken: token });
-      handleNavigateToCamera();
-    } catch (error) {
-      console.error("Error during Google login:", error);
-    }
+    await loginWithGoogle();
   };
   return (
     <SafeAreaView>
@@ -41,16 +40,25 @@ export function WelcomPage() {
           <Button
             variant="outline"
             className="rounded-full"
+            disabled={isLoading}
             onPress={handleGoogleLoginPress}
           >
             <GoogleLogo width={24} height={24} />
             <ButtonText>구글로 시작하기</ButtonText>
           </Button>
-          <Button variant="outline" className="rounded-full bg-black">
+          <Button
+            variant="outline"
+            className="rounded-full bg-black"
+            disabled={isLoading}
+          >
             <AppleLogo width={24} height={24} />
             <ButtonText className="text-white">애플로 시작하기</ButtonText>
           </Button>
-          <Button variant="ghost">
+          <Button
+            variant="ghost"
+            disabled={isLoading}
+            onPress={handleNavigateToFeed}
+          >
             <ButtonText>로그인 없이 사용하기</ButtonText>
           </Button>
         </VStack>
