@@ -91,10 +91,9 @@ export function useFetchMe() {
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationKey: [...QUERY_KEY, "profile", "update"],
     mutationFn: async (data: UpdateProfileRequest) => {
       const response = await ApiPrivateInstance.patch("/users/me", data);
-      queryClient.invalidateQueries({ queryKey: [...QUERY_KEY, "me"] });
+      await queryClient.invalidateQueries({ queryKey: [...QUERY_KEY, "me"] });
       return response.data;
     },
   });

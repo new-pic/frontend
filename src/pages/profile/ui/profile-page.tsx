@@ -1,5 +1,7 @@
 import { usersQuery } from "@entities/users";
 import { gradients } from "@shared/constants";
+import { useConfirm } from "@shared/lib";
+import { deleteAccessToken } from "@shared/lib/auth-token";
 import {
   Avatar,
   AvatarFallbackText,
@@ -19,10 +21,27 @@ import {
   IconPencilFilled,
 } from "@tabler/icons-react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function ProfilePage() {
+  const openConfirm = useConfirm();
   const { data } = usersQuery.useReadMe();
+
+  const handleLogout = async () => {
+    const response = await openConfirm({
+      title: "로그아웃",
+      message: "정말로 로그아웃하시겠습니까?",
+    });
+    if (response) {
+      await deleteAccessToken();
+    }
+  };
+
+  const handleGoEdit = () => {
+    router.push("/profile/edit");
+  };
+
   return (
     <SafeAreaView>
       <VStack className="h-full pt-10 px-6 w-full" space="xl">
@@ -33,7 +52,12 @@ export function ProfilePage() {
           </Avatar>
           <VStack className="justify-center">
             <Text className="font-medium">{data?.nickname}</Text>
-            <Button variant="ghost" size="sm" className="justify-start p-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="justify-start p-0"
+              onPress={handleGoEdit}
+            >
               <ButtonText className="text-link-text">프로필 변경</ButtonText>
             </Button>
           </VStack>
@@ -105,6 +129,10 @@ export function ProfilePage() {
           <Divider className="bg-outline" />
           <Pressable className="p-6">
             <Text size="sm">서비스 약관</Text>
+          </Pressable>
+          <Divider className="bg-outline" />
+          <Pressable className="p-6" onPress={handleLogout}>
+            <Text size="sm">로그아웃</Text>
           </Pressable>
         </VStack>
       </VStack>

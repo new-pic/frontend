@@ -19,6 +19,7 @@ type EditStep = "IMAGE" | "CAPTION";
 
 export function FeedEditPage() {
   const [step, setStep] = useState<EditStep>("IMAGE");
+
   const handleGoBack = () => {
     router.back();
   };
