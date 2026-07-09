@@ -1,5 +1,5 @@
 import { feedQuery } from "@entities/feed";
-import { colors } from "@shared/constants";
+import { FeedLikeButton } from "@features/feed/update-feed-like";
 import {
   Avatar,
   AvatarFallbackText,
@@ -10,11 +10,7 @@ import {
   Text,
   VStack,
 } from "@shared/ui";
-import {
-  IconChevronLeft,
-  IconHeartFilled,
-  IconShare,
-} from "@tabler/icons-react-native";
+import { IconChevronLeft, IconShare } from "@tabler/icons-react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -22,11 +18,20 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export function FeedDetailPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const { data } = feedQuery.useReadFeed(id);
+  if (!id) {
+    return null;
+  }
+
+  const { data, isPending } = feedQuery.useReadFeed({ feedId: id });
 
   const handleGoBack = () => {
     router.back();
   };
+
+  // 스켈레톤 처리 예정
+  if (!data || isPending) return null;
+
+  console.log("data", data);
 
   return (
     <SafeAreaView>
@@ -53,14 +58,7 @@ export function FeedDetailPage() {
         />
         <HStack className="px-6 py-2 border-t border-b justify-between border-outline-light">
           <HStack className="items-center" space="xs">
-            <Button variant="ghost" size="icon" className="w-5 h-5">
-              <ButtonIcon
-                className="w-5 h-5"
-                as={IconHeartFilled}
-                color={colors.brand.primary}
-                fill={colors.brand.primary}
-              />
-            </Button>
+            <FeedLikeButton feedId={data?.id} isLiked={data?.isLiked} />
             <Text className="text-sm font-medium">
               {data?.likeCount ?? 0}개
             </Text>

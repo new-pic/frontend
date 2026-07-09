@@ -1,5 +1,5 @@
 import { ApiInstance, ApiPrivateInstance } from "@shared/api";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   API_QUERY_KEY,
   FeedItemResponse,
@@ -15,24 +15,28 @@ const QUERY_KEY = [API_QUERY_KEY, "feed"];
  */
 export function useReadFeeds(params: FeedListParams) {
   return useQuery({
-    queryKey: [...QUERY_KEY, "list"],
+    queryKey: [...QUERY_KEY, "list", params],
     queryFn: async (): Promise<FeedListResponse> => {
       const response = await ApiInstance.get("/feed", { params });
       return response.data;
     },
+    staleTime: 1000 * 60 * 5, // 5분
   });
 }
 
 /**
  * 피드 상세 조회
  */
-export function useReadFeed(feedId: string) {
+export function useReadFeed({ feedId }: { feedId: string }) {
+  console.log("feedId 상세 조회", feedId);
   return useQuery({
     queryKey: [...QUERY_KEY, "item", feedId],
     queryFn: async (): Promise<FeedItemResponse> => {
-      const response = await ApiInstance.get(`/feed/${feedId}`);
+      const response = await ApiPrivateInstance.get(`/feed/${feedId}`);
       return response.data;
     },
+    enabled: !!feedId, // feedId가 존재할 때만 쿼리 실행
+    staleTime: 1000 * 60 * 5, // 5분
   });
 }
 
@@ -40,11 +44,15 @@ export function useReadFeed(feedId: string) {
  * 피드 작성
  */
 export function useCreateFeed() {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationKey: [...QUERY_KEY, "create"],
     mutationFn: async (data) => {
       const response = await ApiPrivateInstance.post("/feed", data);
       return response.data;
+    },
+    onSuccess: async () => {
+      // 피드 목록 캐시 무효화
+      await queryClient.invalidateQueries({ queryKey: [...QUERY_KEY, "list"] });
     },
   });
 }
@@ -53,11 +61,110 @@ export function useCreateFeed() {
  * 피드 저장
  */
 export function useSaveFeed() {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationKey: [...QUERY_KEY, "save"],
     mutationFn: async (feedId: string) => {
       const response = await ApiPrivateInstance.post(`/feed/${feedId}/pick`);
       return response.data;
+    },
+    onSuccess: async (_, feedId: string) => {
+      // 피드 목록 캐시 무효화
+      await queryClient.invalidateQueries({ queryKey: [...QUERY_KEY, "list"] });
+      await queryClient.invalidateQueries({
+        queryKey: [...QUERY_KEY, "item", feedId],
+      });
+    },
+  });
+}
+
+// 피드 좋아요
+export function useLikeFeed() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (feedId: string) => {
+      const response = await ApiPrivateInstance.post(`/feed/${feedId}/like`);
+      return response.data;
+    },
+    onMutate: async (feedId: string) => {
+      const feedItemKey = [...QUERY_KEY, "item", feedId];
+
+      await queryClient.cancelQueries({
+        queryKey: feedItemKey,
+      });
+
+      const previousFeed =
+        queryClient.getQueryData<FeedItemResponse>(feedItemKey);
+
+      queryClient.setQueryData<FeedItemResponse>(feedItemKey, (old) => {
+        if (!old) return old;
+
+        return {
+          ...old,
+          isLiked: true,
+          likeCount: old.likeCount + 1,
+        };
+      });
+
+      return { previousFeed };
+    },
+    onError: (_, feedId: string, context) => {
+      if (!context) return;
+
+      queryClient.setQueryData(
+        [...QUERY_KEY, "item", feedId],
+        context.previousFeed,
+      );
+    },
+    onSettled: async (_, __, feedId: string) => {
+      await queryClient.invalidateQueries({
+        queryKey: [...QUERY_KEY, "item", feedId],
+      });
+    },
+  });
+}
+
+// 피드 좋아요 취소
+export function useUnlikeFeed() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (feedId: string) => {
+      const response = await ApiPrivateInstance.delete(`/feed/${feedId}/like`);
+      return response.data;
+    },
+    onMutate: async (feedId: string) => {
+      const feedItemKey = [...QUERY_KEY, "item", feedId];
+
+      await queryClient.cancelQueries({
+        queryKey: feedItemKey,
+      });
+
+      const previousFeed =
+        queryClient.getQueryData<FeedItemResponse>(feedItemKey);
+
+      queryClient.setQueryData<FeedItemResponse>(feedItemKey, (old) => {
+        if (!old) return old;
+
+        return {
+          ...old,
+          isLiked: false,
+          likeCount: old.likeCount - 1,
+        };
+      });
+
+      return { previousFeed };
+    },
+    onError: (_, feedId: string, context) => {
+      if (!context) return;
+
+      queryClient.setQueryData(
+        [...QUERY_KEY, "item", feedId],
+        context.previousFeed,
+      );
+    },
+    onSettled: async (_, __, feedId: string) => {
+      await queryClient.invalidateQueries({
+        queryKey: [...QUERY_KEY, "item", feedId],
+      });
     },
   });
 }

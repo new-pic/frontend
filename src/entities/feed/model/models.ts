@@ -41,4 +41,6 @@ export interface FeedItemResponse {
     nickname: string;
     profileImage: string;
   };
+  isLiked: boolean;
+  isPicked: boolean;
 }
