@@ -180,7 +180,7 @@ export function FeedPage() {
         </VStack>
         <PhotoGrid
           images={data?.items || []}
-          onPress={(feedId) => handlePressFeed(feedId)}
+          onPress={(feed) => handlePressFeed(feed.id)}
         />
         <Fab
           className="w-15 h-15 rounded-full bottom-8 right-8"

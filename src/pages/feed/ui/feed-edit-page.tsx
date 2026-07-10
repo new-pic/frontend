@@ -1,3 +1,4 @@
+import { FeedResponse } from "@entities/feed";
 import {
   Box,
   Button,
@@ -19,6 +20,11 @@ type EditStep = "IMAGE" | "CAPTION";
 
 export function FeedEditPage() {
   const [step, setStep] = useState<EditStep>("IMAGE");
+  const [selectedImage, setSelectedImage] = useState<FeedResponse | null>(null);
+
+  const handleSelectImage = (image: FeedResponse) => {
+    setSelectedImage(image);
+  };
 
   const handleGoBack = () => {
     router.back();
@@ -51,14 +57,17 @@ export function FeedEditPage() {
         <Center>
           <Image
             source={{
-              uri: "https://images.unsplash.com/photo-1566125882500-87e10f726cdc?q=80&w=3474&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+              uri: selectedImage?.imageUrl ?? undefined,
             }}
             style={{ width: "60%", borderRadius: 20, aspectRatio: 4 / 5 }}
           />
         </Center>
         <VStack className="flex-1">
           {step === "IMAGE" ? (
-            <ImageSelector />
+            <ImageSelector
+              selectedImages={selectedImage ? [selectedImage] : []}
+              onSelectImage={handleSelectImage}
+            />
           ) : (
             <CaptionContent tags={["여행", "맛집", "추억"]} />
           )}

@@ -1,18 +1,37 @@
 import { FeedResponse } from "@entities/feed";
+import { colors } from "@shared/constants";
+import { IconCircleCheck } from "@tabler/icons-react-native";
 import { useMemo } from "react";
 import { Dimensions, FlatList, Image } from "react-native";
+import { Center } from "../center";
+import { Fab, FabIcon } from "../fab";
 import { Pressable } from "../pressable";
+import { Text } from "../text";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
 export interface PhotoGridProps {
   images: FeedResponse[];
+  selectedImages?: FeedResponse[];
   columns?: number;
-  onPress?: (feedId: string) => void;
+  onPress?: (image: FeedResponse) => void;
 }
 
-export function PhotoGrid({ images, columns = 3, onPress }: PhotoGridProps) {
+export function PhotoGrid({
+  images,
+  selectedImages,
+  columns = 3,
+  onPress,
+}: PhotoGridProps) {
   const imageSize = useMemo(() => SCREEN_WIDTH / columns, [columns]);
+
+  if (!images || images.length === 0) {
+    return (
+      <Center className="flex-1 ">
+        <Text className="text-label-muted">이미지가 존재하지 않습니다...</Text>
+      </Center>
+    );
+  }
 
   return (
     <FlatList
@@ -20,7 +39,7 @@ export function PhotoGrid({ images, columns = 3, onPress }: PhotoGridProps) {
       keyExtractor={(item) => item.id}
       numColumns={columns}
       renderItem={({ item }) => (
-        <Pressable onPress={() => onPress?.(item.id)}>
+        <Pressable onPress={() => onPress?.(item)}>
           <Image
             source={{ uri: item.imageUrl }}
             style={{
@@ -28,6 +47,16 @@ export function PhotoGrid({ images, columns = 3, onPress }: PhotoGridProps) {
               aspectRatio: 4 / 5,
             }}
           />
+          {selectedImages?.some((selected) => selected.id === item.id) && (
+            <Fab className="p-0 h-6 top-1 right-1">
+              <FabIcon
+                className="w-6 h-6"
+                as={IconCircleCheck}
+                fill={colors.brand.primary}
+                color="white"
+              />
+            </Fab>
+          )}
         </Pressable>
       )}
     />
