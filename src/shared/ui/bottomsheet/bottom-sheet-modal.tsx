@@ -36,6 +36,7 @@ export function BottomSheetModal({
       onClose={onClose}
       snapPoints={snapPoints}
       enablePanDownToClose={isPanDownToCloseEnabled}
+      backgroundStyle={{ backgroundColor: "white" }}
     >
       <ExpoBottomSheetView>{children}</ExpoBottomSheetView>
     </ExpoBottomSheetModal>
