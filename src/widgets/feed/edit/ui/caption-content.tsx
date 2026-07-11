@@ -1,6 +1,5 @@
+import { UseSaveFeedFormReturn } from "@features/feed/save-feed/lib/use-save-feed-form";
 import {
-  Badge,
-  BadgeText,
   HStack,
   Icon,
   Pressable,
@@ -10,17 +9,34 @@ import {
   VStack,
 } from "@shared/ui";
 import { IconChevronRight } from "@tabler/icons-react-native";
+import { Controller } from "react-hook-form";
 
 interface CaptionContentProps {
-  tags: string[];
+  form: UseSaveFeedFormReturn;
 }
 
-export function CaptionContent({ tags }: CaptionContentProps) {
+export function CaptionContent({ form }: CaptionContentProps) {
   return (
     <VStack space="md" className="border-t border-outline-light flex-1">
-      <Textarea className="border-0 flex-1 px-8 py-2 ">
-        <TextareaInput placeholder="내용을 입력해주세요." />
-      </Textarea>
+      <Controller
+        name="description"
+        rules={{
+          required: true,
+        }}
+        control={form.control}
+        render={({ field }) => (
+          <Textarea className="border-0 flex-1 px-8 py-2 ">
+            <TextareaInput
+              placeholder="내용을 입력해주세요."
+              value={field.value}
+              onChangeText={field.onChange}
+            />
+          </Textarea>
+        )}
+      />
+      {form.formState.errors.description && (
+        <Text>{form.formState.errors.description.message}</Text>
+      )}
       <Pressable>
         <HStack className="border-t border-outline-light">
           <VStack className="flex-1 px-8 py-4" space="md">
@@ -29,11 +45,11 @@ export function CaptionContent({ tags }: CaptionContentProps) {
               <Icon as={IconChevronRight} />
             </HStack>
             <HStack className="gap-1">
-              {tags.map((tag) => (
+              {/* {tags.map((tag) => (
                 <Badge key={tag}>
                   <BadgeText className="">{tag}</BadgeText>
                 </Badge>
-              ))}
+              ))} */}
             </HStack>
           </VStack>
         </HStack>
