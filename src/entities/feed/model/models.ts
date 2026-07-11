@@ -1,10 +1,16 @@
 import z from "zod";
-import { FeedResponseSchema } from "./schema";
+import {
+  CreateFeedRequestSchema,
+  FeedResponseSchema,
+  UpdateFeedRequestSchema,
+} from "./schema";
 
 export const API_QUERY_KEY = ["feed"];
 
 export type FeedResponse = z.infer<typeof FeedResponseSchema>;
 
+export type CreateFeedRequest = z.infer<typeof CreateFeedRequestSchema>;
+export type UpdateFeedRequest = z.infer<typeof UpdateFeedRequestSchema>;
 export interface FeedListParams {
   take?: number;
   cursor?: string;

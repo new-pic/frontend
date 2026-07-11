@@ -2,6 +2,7 @@ import { ApiInstance, ApiPrivateInstance } from "@shared/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   API_QUERY_KEY,
+  CreateFeedRequest,
   FeedItemResponse,
   FeedListParams,
   FeedListResponse,
@@ -46,8 +47,12 @@ export function useReadFeed({ feedId }: { feedId: string }) {
 export function useCreateFeed() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data) => {
-      const response = await ApiPrivateInstance.post("/feed", data);
+    mutationFn: async (data: CreateFeedRequest) => {
+      const response = await ApiPrivateInstance.post("/feed", data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       return response.data;
     },
     onSuccess: async () => {
