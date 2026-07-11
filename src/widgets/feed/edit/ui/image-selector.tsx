@@ -1,25 +1,19 @@
 import { FeedResponse } from "@entities/feed";
 import {
-  BottomSheet,
-  BottomSheetBackdrop,
-  BottomSheetContent,
-  BottomSheetDragIndicator,
-  BottomSheetItem,
-  BottomSheetPortal,
-  BottomSheetRef,
-  BottomSheetTrigger,
+  BottomSheetModal,
   Button,
   ButtonText,
   Center,
   HStack,
   Icon,
   PhotoGrid,
+  Pressable,
   Text,
   VStack,
 } from "@shared/ui";
 import { IconCheck, IconChevronRight } from "@tabler/icons-react-native";
 import * as MediaLibrary from "expo-media-library";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -39,16 +33,24 @@ function ImageSelectorView({
   selectedImages,
   onSelectImage,
 }: ImageSelectorProps) {
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState<CustomAlbum | null>(null);
   const [images, setImages] = useState<FeedResponse[]>([]);
+
+  console.log("ImageSelectorView isBottomSheetOpen:", isBottomSheetOpen);
 
   const onChangeAlbum = async (album: CustomAlbum) => {
     setSelectedAlbum(album);
   };
 
+  const handleOpenAlbumSheet = () => {
+    setIsBottomSheetOpen(true);
+    console.log("ImageSelectorView isBottomSheetOpen:", isBottomSheetOpen);
+  };
+
   const handleCloseAlbumSheet = () => {
-    bottomSheetRef.current?.close();
+    setIsBottomSheetOpen(false);
+    console.log("ImageSelectorView isBottomSheetOpen:", isBottomSheetOpen);
   };
 
   useEffect(() => {
@@ -86,16 +88,17 @@ function ImageSelectorView({
   }, [selectedAlbum]);
 
   return (
-    <BottomSheet ref={bottomSheetRef}>
+    <>
       <VStack space="md" className="border-t pt-3 border-outline-light flex-1">
-        <BottomSheetTrigger className="mx-6 p-0 border-0 rounded-none">
+        <Pressable className="px-6" onPress={handleOpenAlbumSheet}>
           <HStack className="items-center" space="sm">
             <Text className="font-semibold" size="lg">
               {selectedAlbum?.title ?? "앨범 선택"}
             </Text>
             <Icon as={IconChevronRight} />
           </HStack>
-        </BottomSheetTrigger>
+        </Pressable>
+
         <PhotoGrid
           images={images}
           selectedImages={selectedImages}
@@ -104,21 +107,24 @@ function ImageSelectorView({
         />
       </VStack>
       <AlbumSelectorBottomSheet
+        isOpen={isBottomSheetOpen}
         selectedAlbum={selectedAlbum}
         onSelectAlbum={onChangeAlbum}
         onClose={handleCloseAlbumSheet}
       />
-    </BottomSheet>
+    </>
   );
 }
 
 interface AlbumSelectorBottomSheetProps {
   selectedAlbum: CustomAlbum | null;
   onSelectAlbum: (album: CustomAlbum) => void;
+  isOpen: boolean;
   onClose: () => void;
 }
 
 function AlbumSelectorBottomSheet({
+  isOpen,
   selectedAlbum,
   onSelectAlbum,
   onClose,
@@ -161,39 +167,33 @@ function AlbumSelectorBottomSheet({
   }, []);
 
   return (
-    <BottomSheetPortal
-      snapPoints={["30%", "75%"]}
-      backdropComponent={BottomSheetBackdrop}
-      handleComponent={BottomSheetDragIndicator}
-    >
-      <BottomSheetContent>
-        <VStack className="flex-1">
-          <Text className="font-semibold text-lg px-6 py-3">앨범 선택</Text>
-          <FlatList
-            data={albums}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <BottomSheetItem
-                onPress={() => {
-                  onSelectAlbum(item);
-                  onClose();
-                }}
+    <BottomSheetModal open={isOpen} onClose={onClose}>
+      <VStack className="">
+        <Text className="font-semibold text-lg px-6 py-3">앨범 선택</Text>
+        <FlatList
+          data={albums}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <Pressable
+              onPress={() => {
+                onSelectAlbum(item);
+                onClose();
+              }}
+            >
+              <HStack
+                className="px-6 py-3 items-center justify-between"
+                space="sm"
               >
-                <HStack
-                  className="px-6 py-3 items-center justify-between"
-                  space="sm"
-                >
-                  <Text className="font-medium">{item.title}</Text>
-                  {selectedAlbum?.id === item.id && (
-                    <Icon as={IconCheck} color="primary" />
-                  )}
-                </HStack>
-              </BottomSheetItem>
-            )}
-          />
-        </VStack>
-      </BottomSheetContent>
-    </BottomSheetPortal>
+                <Text className="font-medium">{item.title}</Text>
+                {selectedAlbum?.id === item.id && (
+                  <Icon as={IconCheck} color="primary" />
+                )}
+              </HStack>
+            </Pressable>
+          )}
+        />
+      </VStack>
+    </BottomSheetModal>
   );
 }
 
