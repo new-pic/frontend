@@ -1,11 +1,16 @@
-import { ApiInstance, ApiPrivateInstance } from "@shared/api";
+import {
+  ApiInstance,
+  ApiPrivateInstance,
+  uploadFetchClient,
+} from "@shared/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   API_QUERY_KEY,
-  CreateFeedRequest,
   FeedItemResponse,
   FeedListParams,
   FeedListResponse,
+  FeedTagResponse,
+  UpdateFeedRequest,
 } from "../model";
 
 const QUERY_KEY = [API_QUERY_KEY, "feed"];
@@ -47,12 +52,25 @@ export function useReadFeed({ feedId }: { feedId: string }) {
 export function useCreateFeed() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: CreateFeedRequest) => {
-      const response = await ApiPrivateInstance.post("/feed", data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+    mutationFn: async (formData: FormData) => {
+      const response = await uploadFetchClient.post({ url: "/feed", formData });
+      return response.data;
+    },
+    onSuccess: async () => {
+      // 피드 목록 캐시 무효화
+      await queryClient.invalidateQueries({ queryKey: [...QUERY_KEY, "list"] });
+    },
+  });
+}
+/**
+ * 피드 수정
+ */
+export function useUpdateFeed({ feedId }: { feedId?: string }) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: UpdateFeedRequest) => {
+      if (!feedId) throw new Error("feedId is required for updating feed");
+      const response = await ApiPrivateInstance.patch(`/feed/${feedId}`, data);
       return response.data;
     },
     onSuccess: async () => {
@@ -170,6 +188,16 @@ export function useUnlikeFeed() {
       await queryClient.invalidateQueries({
         queryKey: [...QUERY_KEY, "item", feedId],
       });
+    },
+  });
+}
+
+export function useReadTags() {
+  return useQuery({
+    queryKey: [...QUERY_KEY, "tags"],
+    queryFn: async (): Promise<FeedTagResponse> => {
+      const response = await ApiInstance.get("/feed/tags");
+      return response.data;
     },
   });
 }
