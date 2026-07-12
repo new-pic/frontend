@@ -1,6 +1,5 @@
 import {
   CreateFeedRequest,
-  CreateFeedRequestInput,
   FeedFormValues,
   UpdateFeedRequest,
   UpdateFeedRequestInput,
@@ -11,6 +10,7 @@ import {
   UpdateFeedRequestSchema,
 } from "@entities/feed/model/schema";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
+import { ObjectToFormData } from "@shared/lib/form-data";
 import { uriToFile } from "@shared/lib/file";
 import { useForm } from "react-hook-form";
 import { FeedFormMode } from "../model";
@@ -23,20 +23,29 @@ export type UseSaveFeedFormReturn = ReturnType<typeof useSaveFeedForm>;
 
 async function transformToCreateFeedRequest(
   data: FeedFormValues,
-): Promise<CreateFeedRequestInput> {
-  const { image, ...other } = data;
+): Promise<FormData> {
+  const { image, imageFileName, ...other } = data;
+  const imageFile = await uriToFile({ uri: image, fileName: imageFileName });
 
-  const imageFile = await uriToFile({ uri: image });
-  return {
+  const parsedRequest = CreateFeedRequestSchema.safeParse({
     ...other,
     image: imageFile,
-  };
+  });
+
+  if (!parsedRequest.success) {
+    throw parsedRequest.error;
+  }
+
+  const request: CreateFeedRequest = parsedRequest.data;
+
+  const formData = ObjectToFormData(request);
+  return formData;
 }
 
 function transformToUpdateFeedRequest(
   data: FeedFormValues,
 ): UpdateFeedRequestInput {
-  const { image, ...other } = data;
+  const { image, imageFileName, ...other } = data;
   return {
     ...other,
   };
@@ -51,18 +60,21 @@ export function useSaveFeedForm({ mode }: UseSaveFeedFormProps) {
   });
 
   const handleValidSubmit = (
-    onValidResult: (data: CreateFeedRequest | UpdateFeedRequest) => void,
+    onValidResult: (data: FormData | UpdateFeedRequest) => void,
   ) =>
     form.handleSubmit(async (data) => {
-      if (mode === "CREATE") {
-        const transformedData = await transformToCreateFeedRequest(data);
-        const result = CreateFeedRequestSchema.parse(transformedData);
+      try {
+        if (mode === "CREATE") {
+          const formData = await transformToCreateFeedRequest(data);
+          onValidResult(formData);
+          return;
+        }
+        const transformedData = transformToUpdateFeedRequest(data);
+        const result = UpdateFeedRequestSchema.parse(transformedData);
         onValidResult(result);
-        return;
+      } catch (error) {
+        throw error;
       }
-      const transformedData = transformToUpdateFeedRequest(data);
-      const result = UpdateFeedRequestSchema.parse(transformedData);
-      onValidResult(result);
     });
 
   return { ...form, handleValidSubmit };

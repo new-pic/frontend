@@ -17,10 +17,11 @@ export function SaveFeedButton({ mode, form, feedId }: SaveFeedButtonProps) {
   const mutationToUpdate = feedQuery.useUpdateFeed({ feedId });
 
   const handlePress = form.handleValidSubmit((data) => {
-    if ("image" in data) {
-      mutationToCreate.mutate(data);
+    if (mode === "CREATE") {
+      
+      mutationToCreate.mutate(data as FormData);
     } else {
-      mutationToUpdate.mutate(data);
+      mutationToUpdate.mutate(data as Exclude<typeof data, FormData>);
     }
   });
 
