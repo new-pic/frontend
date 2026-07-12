@@ -38,7 +38,7 @@ export function BottomSheetModal({
       enablePanDownToClose={isPanDownToCloseEnabled}
       backgroundStyle={{ backgroundColor: "white" }}
     >
-      <ExpoBottomSheetView>{children}</ExpoBottomSheetView>
+      <ExpoBottomSheetView style={{ flex: 1 }}>{children}</ExpoBottomSheetView>
     </ExpoBottomSheetModal>
   );
 }
