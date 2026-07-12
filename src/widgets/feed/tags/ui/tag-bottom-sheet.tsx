@@ -3,6 +3,7 @@ import { colors } from "@shared/constants";
 import { useDebouncedValue } from "@shared/hooks";
 import {
   Badge,
+  BadgeIcon,
   BadgeText,
   BottomSheetModal,
   Button,
@@ -15,8 +16,8 @@ import {
   Text,
   VStack,
 } from "@shared/ui";
-import { IconCheck } from "@tabler/icons-react-native";
-import { useState } from "react";
+import { IconCheck, IconX } from "@tabler/icons-react-native";
+import { useEffect, useState } from "react";
 import { FlatList } from "react-native";
 
 interface TagBottomSheetProps {
@@ -38,6 +39,13 @@ export function TagBottomSheet({
   const [localSelectedTags, setLocalSelectedTags] = useState<string[]>(
     selectedTags || [],
   );
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    setLocalSelectedTags(selectedTags || []);
+    setSearchQuery("");
+  }, [isOpen, selectedTags]);
 
   const handleTagPress = (tag: string) => {
     setLocalSelectedTags((previousTags) => {
@@ -64,6 +72,7 @@ export function TagBottomSheet({
             placeholder="검색어를 입력해주세요."
             value={searchQuery}
             onChangeText={setSearchQuery}
+            returnKeyType="search"
           />
         </Input>
         <FlatList
@@ -98,9 +107,12 @@ export function TagBottomSheet({
           </HStack>
           <HStack className="gap-1">
             {localSelectedTags?.map((tag) => (
-              <Badge key={tag}>
-                <BadgeText className="">{tag}</BadgeText>
-              </Badge>
+              <Pressable onPress={() => handleTagPress(tag)} key={tag}>
+                <Badge>
+                  <BadgeText>{tag}</BadgeText>
+                  <BadgeIcon as={IconX} color="white" />
+                </Badge>
+              </Pressable>
             ))}
           </HStack>
         </VStack>
