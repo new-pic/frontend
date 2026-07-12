@@ -2,7 +2,12 @@ import { FeedResponse } from "@entities/feed";
 import { colors } from "@shared/constants";
 import { IconCircleCheck } from "@tabler/icons-react-native";
 import { useMemo } from "react";
-import { Dimensions, FlatList, Image } from "react-native";
+import {
+  ActivityIndicator,
+  Dimensions,
+  FlatList,
+  Image,
+} from "react-native";
 import { Center } from "../center";
 import { Fab, FabIcon } from "../fab";
 import { Pressable } from "../pressable";
@@ -15,6 +20,8 @@ export interface PhotoGridProps {
   selectedImages?: FeedResponse[];
   columns?: number;
   onPress?: (image: FeedResponse) => void;
+  onEndReached?: () => void;
+  isFetchingNextPage?: boolean;
 }
 
 export function PhotoGrid({
@@ -22,6 +29,8 @@ export function PhotoGrid({
   selectedImages,
   columns = 3,
   onPress,
+  onEndReached,
+  isFetchingNextPage = false,
 }: PhotoGridProps) {
   const imageSize = useMemo(() => SCREEN_WIDTH / columns, [columns]);
 
@@ -38,6 +47,15 @@ export function PhotoGrid({
       data={images}
       keyExtractor={(item) => item.id}
       numColumns={columns}
+      onEndReached={onEndReached}
+      onEndReachedThreshold={0.5}
+      ListFooterComponent={
+        isFetchingNextPage ? (
+          <Center className="py-4">
+            <ActivityIndicator color={colors.brand.primary} />
+          </Center>
+        ) : null
+      }
       renderItem={({ item }) => (
         <Pressable onPress={() => onPress?.(item)}>
           <Image
