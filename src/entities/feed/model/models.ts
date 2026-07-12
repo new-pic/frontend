@@ -1,6 +1,7 @@
 import z from "zod";
 import {
   CreateFeedRequestSchema,
+  FeedFormSchema,
   FeedResponseSchema,
   UpdateFeedRequestSchema,
 } from "./schema";
@@ -9,8 +10,13 @@ export const API_QUERY_KEY = ["feed"];
 
 export type FeedResponse = z.infer<typeof FeedResponseSchema>;
 
+export type CreateFeedRequestInput = z.input<typeof CreateFeedRequestSchema>;
+export type UpdateFeedRequestInput = z.input<typeof UpdateFeedRequestSchema>;
+
 export type CreateFeedRequest = z.infer<typeof CreateFeedRequestSchema>;
 export type UpdateFeedRequest = z.infer<typeof UpdateFeedRequestSchema>;
+export type FeedFormValues = z.infer<typeof FeedFormSchema>;
+
 export interface FeedListParams {
   take?: number;
   cursor?: string;
@@ -50,3 +56,10 @@ export interface FeedItemResponse {
   isLiked: boolean;
   isPicked: boolean;
 }
+
+export interface FeedTagData {
+  value: string;
+  label: string;
+}
+
+export type FeedTagResponse = FeedTagData[];
