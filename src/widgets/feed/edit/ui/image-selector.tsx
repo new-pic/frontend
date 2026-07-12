@@ -45,12 +45,10 @@ function ImageSelectorView({
 
   const handleOpenAlbumSheet = () => {
     setIsBottomSheetOpen(true);
-    console.log("ImageSelectorView isBottomSheetOpen:", isBottomSheetOpen);
   };
 
   const handleCloseAlbumSheet = () => {
     setIsBottomSheetOpen(false);
-    console.log("ImageSelectorView isBottomSheetOpen:", isBottomSheetOpen);
   };
 
   useEffect(() => {
@@ -172,7 +170,7 @@ function AlbumSelectorBottomSheet({
 
   return (
     <BottomSheetModal open={isOpen} onClose={onClose}>
-      <VStack className="">
+      <VStack>
         <Text className="font-semibold text-lg px-6 py-3">앨범 선택</Text>
         <FlatList
           data={albums}

@@ -46,6 +46,19 @@ export function useReadFeed({ feedId }: { feedId: string }) {
   });
 }
 
+// 해시태그 목록 조회
+export function useReadTags({ keyword }: { keyword?: string }) {
+  return useQuery({
+    queryKey: [...QUERY_KEY, "tags", keyword],
+    queryFn: async (): Promise<FeedTagResponse> => {
+      const response = await ApiInstance.get("/feed/tags", {
+        params: { keyword },
+      });
+      return response.data.items;
+    },
+  });
+}
+
 /**
  * 피드 작성
  */
@@ -188,16 +201,6 @@ export function useUnlikeFeed() {
       await queryClient.invalidateQueries({
         queryKey: [...QUERY_KEY, "item", feedId],
       });
-    },
-  });
-}
-
-export function useReadTags() {
-  return useQuery({
-    queryKey: [...QUERY_KEY, "tags"],
-    queryFn: async (): Promise<FeedTagResponse> => {
-      const response = await ApiInstance.get("/feed/tags");
-      return response.data;
     },
   });
 }
