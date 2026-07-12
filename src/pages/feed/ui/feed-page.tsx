@@ -29,11 +29,17 @@ export function FeedPage() {
   const [isTagBottomSheetOpen, setIsTagBottomSheetOpen] = useState(false);
   const debouncedSearchQuery = useDebouncedValue(searchQuery.trim(), 400);
 
-  const { data } = feedQuery.useReadFeeds({
-    take: 20,
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = feedQuery.useReadFeeds({
+    take: 24,
     q: debouncedSearchQuery || undefined,
     tag: selectedTags.length > 0 ? selectedTags.join(",") : undefined,
   });
+  const feeds = data?.pages.flatMap((page) => page.items) ?? [];
   const handlePressFeed = async (feedId: string) => {
     router.push(`/feed/${feedId}`);
   };
@@ -52,6 +58,11 @@ export function FeedPage() {
 
   const handleSelectTags = (tags: string[]) => {
     setSelectedTags(tags);
+  };
+
+  const handleEndReached = () => {
+    if (!hasNextPage || isFetchingNextPage) return;
+    void fetchNextPage();
   };
 
   return (
@@ -99,8 +110,10 @@ export function FeedPage() {
             />
           </VStack>
           <PhotoGrid
-            images={data?.items || []}
+            images={feeds}
             onPress={(feed) => handlePressFeed(feed.id)}
+            onEndReached={handleEndReached}
+            isFetchingNextPage={isFetchingNextPage}
           />
           <Fab
             className="w-15 h-15 rounded-full bottom-8 right-8"
