@@ -74,10 +74,14 @@ function ImageSelectorView({
 
       // Promise 비동기 풀기 (Asset 주소 string으로 파싱)
       const promises = fetchedImages.map(async (asset) => {
-        const coverUri = await asset.getUri();
+        const [coverUri, fileName] = await Promise.all([
+          asset.getUri(),
+          asset.getFilename(),
+        ]);
         return {
           id: asset.id,
           imageUrl: coverUri,
+          fileName,
         };
       });
 

@@ -32,6 +32,7 @@ export function FeedEditPage() {
   const handleSelectImage = (image: FeedResponse) => {
     setSelectedImage(image);
     form.setValue("image", image.imageUrl);
+    form.setValue("imageFileName", image.fileName);
   };
 
   const handleGoBack = () => {
