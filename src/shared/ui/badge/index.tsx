@@ -14,7 +14,7 @@ import { Svg } from "react-native-svg";
 const SCOPE = "BADGE";
 
 const badgeStyle = tva({
-  base: "flex-row items-center justify-center rounded-sm px-2 py-0.5",
+  base: "flex-row items-center justify-center rounded-sm px-2 py-1",
   variants: {
     variant: {
       default: "bg-brand",
@@ -26,7 +26,7 @@ const badgeStyle = tva({
 });
 
 const badgeTextStyle = tva({
-  base: "text-xs font-medium tracking-normal uppercase",
+  base: "text-sm font-medium tracking-normal uppercase",
   parentVariants: {
     variant: {
       default: "text-white",
@@ -38,7 +38,7 @@ const badgeTextStyle = tva({
 });
 
 const badgeIconStyle = tva({
-  base: "fill-none h-3 w-3 pointer-events-none",
+  base: "fill-none h-4 w-4 pointer-events-none",
   parentVariants: {
     variant: {
       default: "text-primary-foreground",
@@ -102,13 +102,6 @@ type IBadgeIconProps = React.ComponentPropsWithoutRef<typeof PrimitiveIcon> &
 const StyledUIIcon = styled(UIIcon, {
   className: {
     target: "style",
-    nativeStyleToProp: {
-      height: true,
-      width: true,
-      fill: true,
-      color: "classNameColor",
-      stroke: true,
-    },
   },
 });
 
