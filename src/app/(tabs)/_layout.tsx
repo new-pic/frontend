@@ -43,6 +43,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="feed/edit/[id]"
+        options={{
+          tabBarStyle: { display: "none" },
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="camera"
         options={{
           title: "카메라",
