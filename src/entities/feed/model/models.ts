@@ -1,5 +1,6 @@
 import z from "zod";
 import {
+  CreateFeedCommentRequestSchema,
   CreateFeedRequestSchema,
   FeedFormSchema,
   FeedResponseSchema,
@@ -16,12 +17,39 @@ export type UpdateFeedRequestInput = z.input<typeof UpdateFeedRequestSchema>;
 export type CreateFeedRequest = z.infer<typeof CreateFeedRequestSchema>;
 export type UpdateFeedRequest = z.infer<typeof UpdateFeedRequestSchema>;
 export type FeedFormValues = z.infer<typeof FeedFormSchema>;
+export type CreateFeedCommentRequest = z.infer<
+  typeof CreateFeedCommentRequestSchema
+>;
 
 export interface FeedListParams {
   take?: number;
   cursor?: string;
   tag?: string;
   q?: string;
+}
+
+export interface CommentListParams {
+  take?: number;
+  cursor?: string;
+  feedId: string;
+  sort?: "oldest" | "latest";
+}
+
+export interface FeedCommentResponse {
+  id: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: string;
+    nickname: string;
+    profileImage: string;
+  };
+}
+
+export interface CommentListResponse {
+  items: FeedCommentResponse[];
+  nextCursor?: string | null;
 }
 
 export interface FeedListRequest {
@@ -33,7 +61,7 @@ export interface FeedListRequest {
 
 export interface FeedListResponse {
   items: FeedResponse[];
-  nextCursor?: string;
+  nextCursor?: string | null;
 }
 
 export interface FeedItemResponse {

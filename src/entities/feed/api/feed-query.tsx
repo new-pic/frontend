@@ -3,9 +3,18 @@ import {
   ApiPrivateInstance,
   uploadFetchClient,
 } from "@shared/api";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import {
   API_QUERY_KEY,
+  CommentListParams,
+  CommentListResponse,
+  CreateFeedCommentRequest,
+  FeedCommentResponse,
   FeedItemResponse,
   FeedListParams,
   FeedListResponse,
@@ -20,12 +29,19 @@ const QUERY_KEY = [API_QUERY_KEY, "feed"];
  * @returns
  */
 export function useReadFeeds(params: FeedListParams) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: [...QUERY_KEY, "list", params],
-    queryFn: async (): Promise<FeedListResponse> => {
-      const response = await ApiInstance.get("/feed", { params });
+    queryFn: async ({ pageParam }): Promise<FeedListResponse> => {
+      const response = await ApiInstance.get("/feed", {
+        params: {
+          ...params,
+          cursor: pageParam,
+        },
+      });
       return response.data;
     },
+    initialPageParam: params.cursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 1000 * 60 * 5, // 5분
   });
 }
@@ -43,6 +59,55 @@ export function useReadFeed({ feedId }: { feedId: string }) {
     },
     enabled: !!feedId, // feedId가 존재할 때만 쿼리 실행
     staleTime: 1000 * 60 * 5, // 5분
+  });
+}
+
+// 댓글 목록 조회
+export function useReadFeedComments(params: CommentListParams) {
+  const { feedId, ...queryParams } = params;
+
+  return useInfiniteQuery({
+    queryKey: [...QUERY_KEY, "comments", feedId, queryParams],
+    queryFn: async ({ pageParam }): Promise<CommentListResponse> => {
+      const response = await ApiInstance.get(`/feed/${feedId}/comments`, {
+        params: {
+          ...queryParams,
+          cursor: pageParam,
+        },
+      });
+      return response.data;
+    },
+    initialPageParam: params.cursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: !!feedId,
+    staleTime: 1000 * 60 * 5, // 5분
+  });
+}
+
+// 댓글 작성
+export function useCreateFeedComment({ feedId }: { feedId: string }) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      data: CreateFeedCommentRequest,
+    ): Promise<FeedCommentResponse> => {
+      const response = await ApiPrivateInstance.post(
+        `/feed/${feedId}/comments`,
+        data,
+      );
+      return response.data;
+    },
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: [...QUERY_KEY, "comments", feedId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: [...QUERY_KEY, "item", feedId],
+        }),
+      ]);
+    },
   });
 }
 
@@ -103,9 +168,81 @@ export function useSaveFeed() {
       const response = await ApiPrivateInstance.post(`/feed/${feedId}/pick`);
       return response.data;
     },
-    onSuccess: async (_, feedId: string) => {
-      // 피드 목록 캐시 무효화
-      await queryClient.invalidateQueries({ queryKey: [...QUERY_KEY, "list"] });
+    onMutate: async (feedId: string) => {
+      const feedItemKey = [...QUERY_KEY, "item", feedId];
+
+      await queryClient.cancelQueries({ queryKey: feedItemKey });
+
+      const previousFeed =
+        queryClient.getQueryData<FeedItemResponse>(feedItemKey);
+
+      queryClient.setQueryData<FeedItemResponse>(feedItemKey, (old) => {
+        if (!old) return old;
+
+        return {
+          ...old,
+          isPicked: true,
+          pickCount: old.pickCount + 1,
+        };
+      });
+
+      return { previousFeed };
+    },
+    onError: (_, feedId: string, context) => {
+      if (!context) return;
+
+      queryClient.setQueryData(
+        [...QUERY_KEY, "item", feedId],
+        context.previousFeed,
+      );
+    },
+    onSettled: async (_, __, feedId: string) => {
+      await queryClient.invalidateQueries({
+        queryKey: [...QUERY_KEY, "item", feedId],
+      });
+    },
+  });
+}
+
+/**
+ * 피드 저장 취소
+ */
+export function useUnsaveFeed() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (feedId: string) => {
+      const response = await ApiPrivateInstance.delete(`/feed/${feedId}/pick`);
+      return response.data;
+    },
+    onMutate: async (feedId: string) => {
+      const feedItemKey = [...QUERY_KEY, "item", feedId];
+
+      await queryClient.cancelQueries({ queryKey: feedItemKey });
+
+      const previousFeed =
+        queryClient.getQueryData<FeedItemResponse>(feedItemKey);
+
+      queryClient.setQueryData<FeedItemResponse>(feedItemKey, (old) => {
+        if (!old) return old;
+
+        return {
+          ...old,
+          isPicked: false,
+          pickCount: Math.max(0, old.pickCount - 1),
+        };
+      });
+
+      return { previousFeed };
+    },
+    onError: (_, feedId: string, context) => {
+      if (!context) return;
+
+      queryClient.setQueryData(
+        [...QUERY_KEY, "item", feedId],
+        context.previousFeed,
+      );
+    },
+    onSettled: async (_, __, feedId: string) => {
       await queryClient.invalidateQueries({
         queryKey: [...QUERY_KEY, "item", feedId],
       });
