@@ -73,6 +73,27 @@ export default function TabLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="profile/(feed)/my"
+        options={{
+          tabBarStyle: { display: "none" },
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="profile/(feed)/like"
+        options={{
+          tabBarStyle: { display: "none" },
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="profile/(feed)/save"
+        options={{
+          tabBarStyle: { display: "none" },
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

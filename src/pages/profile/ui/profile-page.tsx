@@ -42,6 +42,18 @@ export function ProfilePage() {
     router.push("/profile/edit");
   };
 
+  const handleGoMyFeed = () => {
+    router.push("/profile/my");
+  };
+
+  const handleGoLikeFeed = () => {
+    router.push("/profile/like");
+  };
+
+  const handleGoSaveFeed = () => {
+    router.push("/profile/save");
+  };
+
   return (
     <SafeAreaView>
       <VStack className="h-full pt-10 px-6 w-full" space="xl">
@@ -75,7 +87,7 @@ export function ProfilePage() {
               space="md"
               className="flex-1 items-center justify-around px-4 py-2"
             >
-              <Button variant="ghost" className="w-25">
+              <Button variant="ghost" className="w-25" onPress={handleGoMyFeed}>
                 <VStack space="sm" className=" items-center">
                   <ButtonIcon
                     as={IconPencilFilled}
@@ -89,7 +101,11 @@ export function ProfilePage() {
                 orientation="vertical"
                 className="h-full w-px bg-white/35"
               />
-              <Button variant="ghost" className="w-25">
+              <Button
+                variant="ghost"
+                className="w-25"
+                onPress={handleGoLikeFeed}
+              >
                 <VStack
                   space="sm"
                   className="flex-1 justify-center items-center"

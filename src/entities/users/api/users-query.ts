@@ -1,9 +1,15 @@
 import { ApiPrivateInstance } from "@shared/api";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import {
   API_QUERY_KEY,
-  GetPhotosResponse,
-  UpdateProfileRequest,
+  PaginationParams,
+  PhotosResponse,
+  ProfileRequest,
 } from "../model";
 
 const QUERY_KEY = [API_QUERY_KEY, "users"];
@@ -29,7 +35,7 @@ export function useReadMe() {
 export function useReadMyPhotos() {
   return useQuery({
     queryKey: [...QUERY_KEY, "me", "photos"],
-    queryFn: async (): Promise<GetPhotosResponse> => {
+    queryFn: async (): Promise<PhotosResponse> => {
       const response = await ApiPrivateInstance.get("/users/me/photos");
       return response.data;
     },
@@ -37,16 +43,45 @@ export function useReadMyPhotos() {
 }
 
 /**
+ * 내가 올린 피드 목록 조회
+ */
+export function useReadMyFeeds(params: PaginationParams) {
+  return useInfiniteQuery({
+    queryKey: [...QUERY_KEY, "me", "feeds", params],
+    queryFn: async ({ pageParam }) => {
+      const response = await ApiPrivateInstance.get("/users/me/feeds", {
+        params: {
+          ...params,
+          cursor: pageParam,
+        },
+      });
+      return response.data;
+    },
+    initialPageParam: params.cursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    staleTime: 1000 * 60 * 5, // 5분
+  });
+}
+
+/**
  * 내가 좋아요한 피드 조회
  * @returns
  */
-export function useReadLikedFeeds() {
-  return useQuery({
+export function useReadLikedFeeds(params: PaginationParams) {
+  return useInfiniteQuery({
     queryKey: [...QUERY_KEY, "me", "liked-feeds"],
-    queryFn: async () => {
-      const response = await ApiPrivateInstance.get("/users/me/liked-feeds");
+    queryFn: async ({ pageParam }) => {
+      const response = await ApiPrivateInstance.get("/users/me/liked-feeds", {
+        params: {
+          ...params,
+          cursor: pageParam,
+        },
+      });
       return response.data;
     },
+    initialPageParam: params.cursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    staleTime: 1000 * 60 * 5, // 5분
   });
 }
 
@@ -91,7 +126,7 @@ export function useFetchMe() {
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: UpdateProfileRequest) => {
+    mutationFn: async (data: ProfileRequest) => {
       const response = await ApiPrivateInstance.patch("/users/me", data);
       await queryClient.invalidateQueries({ queryKey: [...QUERY_KEY, "me"] });
       return response.data;
