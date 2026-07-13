@@ -18,7 +18,6 @@ export function SaveFeedButton({ mode, form, feedId }: SaveFeedButtonProps) {
 
   const handlePress = form.handleValidSubmit((data) => {
     if (mode === "CREATE") {
-      
       mutationToCreate.mutate(data as FormData);
     } else {
       mutationToUpdate.mutate(data as Exclude<typeof data, FormData>);
@@ -26,8 +25,13 @@ export function SaveFeedButton({ mode, form, feedId }: SaveFeedButtonProps) {
   });
 
   return (
-    <Button className="flex-1 h-12.5 p-0 rounded-xl" variant="gradient">
-      <ButtonText size="lg" className="font-semibold" onPress={handlePress}>
+    <Button
+      className="flex-1 h-12.5 p-0 rounded-xl"
+      variant="gradient"
+      disabled={mutationToCreate.isPending || mutationToUpdate.isPending}
+      onPress={handlePress}
+    >
+      <ButtonText size="lg" className="font-semibold">
         {isCreate ? "게시하기" : "수정하기"}
       </ButtonText>
     </Button>

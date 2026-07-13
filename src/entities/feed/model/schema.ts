@@ -24,7 +24,11 @@ const FeedTagsSchema = z
 export const FeedFormSchema = z.object({
   image: z.string(),
   imageFileName: z.string().optional(),
-  description: z.string().max(500),
+  description: z
+    .string()
+    .trim()
+    .min(1, "내용을 입력해주세요.")
+    .max(500, "내용은 최대 500자까지 입력할 수 있습니다."),
   tags: FeedTagsSchema,
 });
 
@@ -34,7 +38,11 @@ export const FeedFormSchema = z.object({
  * @param tags - 피드 태그 (쉼표로 구분된 문자열)
  */
 const FeedTransformedFormSchema = z.object({
-  description: z.string().max(500),
+  description: z
+    .string()
+    .trim()
+    .min(1, "내용을 입력해주세요.")
+    .max(500, "내용은 최대 500자까지 입력할 수 있습니다."),
 });
 
 /**

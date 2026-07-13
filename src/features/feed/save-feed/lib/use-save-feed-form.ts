@@ -10,8 +10,8 @@ import {
   UpdateFeedRequestSchema,
 } from "@entities/feed/model/schema";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
-import { ObjectToFormData } from "@shared/lib/form-data";
 import { uriToFile } from "@shared/lib/file";
+import { ObjectToFormData } from "@shared/lib/form-data";
 import { useForm } from "react-hook-form";
 import { FeedFormMode } from "../model";
 
@@ -54,8 +54,12 @@ function transformToUpdateFeedRequest(
 export function useSaveFeedForm({ mode }: UseSaveFeedFormProps) {
   const form = useForm<FeedFormValues>({
     resolver: standardSchemaResolver(FeedFormSchema),
+    mode: "onChange",
     defaultValues: {
-      tags: ["여행"],
+      image: "",
+      imageFileName: undefined,
+      description: "",
+      tags: [],
     },
   });
 
