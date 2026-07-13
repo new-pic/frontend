@@ -13,7 +13,7 @@ import {
 import { IconChevronRight } from "@tabler/icons-react-native";
 import { TagBottomSheet } from "@widgets/feed/tags";
 import { useState } from "react";
-import { Controller, useWatch } from "react-hook-form";
+import { Controller, useFormState, useWatch } from "react-hook-form";
 
 interface CaptionContentProps {
   form: UseSaveFeedFormReturn;
@@ -26,6 +26,10 @@ export function CaptionContent({ form }: CaptionContentProps) {
     control: form.control,
     name: "tags",
     defaultValue: [],
+  });
+  const { errors } = useFormState({
+    control: form.control,
+    name: ["description", "tags"],
   });
 
   const updateTags = (tags: string[]) => {
@@ -53,9 +57,6 @@ export function CaptionContent({ form }: CaptionContentProps) {
       <VStack space="md" className="border-t border-outline-light flex-1">
         <Controller
           name="description"
-          rules={{
-            required: true,
-          }}
           control={form.control}
           render={({ field }) => (
             <Textarea className="border-0 flex-1 px-8 py-2 ">
@@ -63,27 +64,37 @@ export function CaptionContent({ form }: CaptionContentProps) {
                 placeholder="내용을 입력해주세요."
                 value={field.value}
                 onChangeText={field.onChange}
+                onBlur={field.onBlur}
               />
+              {errors.description?.message ? (
+                <Text className="text-red-500" size="xs">
+                  *{errors.description.message}
+                </Text>
+              ) : null}
             </Textarea>
           )}
         />
-        {form.formState.errors.description && (
-          <Text>{form.formState.errors.description.message}</Text>
-        )}
         <Pressable onPress={handleOpenTagSheet}>
           <HStack className="border-t border-outline-light">
-            <VStack className="flex-1 px-8 py-4" space="md">
+            <VStack className="flex-1 px-8 py-4" space="sm">
               <HStack className="items-center justify-between">
                 <Text># 해시태그 추가하기</Text>
                 <Icon as={IconChevronRight} />
               </HStack>
-              <HStack className="gap-1">
-                {selectedTags?.map((tag) => (
-                  <Badge key={tag}>
-                    <BadgeText className="">{tag}</BadgeText>
-                  </Badge>
-                ))}
-              </HStack>
+              {selectedTags ? (
+                <HStack className="gap-1">
+                  {selectedTags.map((tag) => (
+                    <Badge key={tag}>
+                      <BadgeText className="">{tag}</BadgeText>
+                    </Badge>
+                  ))}
+                </HStack>
+              ) : null}
+              {errors.tags?.message ? (
+                <Text className="text-red-500" size="xs">
+                  *{errors.tags.message}
+                </Text>
+              ) : null}
             </VStack>
           </HStack>
         </Pressable>

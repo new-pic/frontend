@@ -28,6 +28,7 @@ export function FeedEditPage() {
 
   const [selectedImage, setSelectedImage] = useState<FeedResponse | null>(null);
   const [step, setStep] = useState<EditStep>("IMAGE");
+  const [isLoadingAlbum, setIsLoadingAlbum] = useState(false);
 
   const handleSelectImage = (image: FeedResponse) => {
     setSelectedImage(image);
@@ -56,7 +57,12 @@ export function FeedEditPage() {
   };
 
   useEffect(() => {
-    setStep("CAPTION");
+    form.reset();
+    if (isEditMode) {
+      setStep("CAPTION");
+      return;
+    }
+    setStep("IMAGE");
   }, [isEditMode]);
 
   return (
@@ -85,6 +91,7 @@ export function FeedEditPage() {
               <ImageSelector
                 selectedImages={selectedImage ? [selectedImage] : []}
                 onSelectImage={handleSelectImage}
+                onLoadingAlbum={setIsLoadingAlbum}
               />
             ) : (
               <CaptionContent form={form} />
@@ -94,13 +101,11 @@ export function FeedEditPage() {
                 <Button
                   className="flex-1 h-12.5 p-0 rounded-xl"
                   variant="gradient"
+                  disabled={!selectedImage || isLoadingAlbum}
+                  onPress={handlePressButton}
                 >
-                  <ButtonText
-                    size="lg"
-                    className="font-semibold"
-                    onPress={handlePressButton}
-                  >
-                    선택하기
+                  <ButtonText size="lg" className="font-semibold">
+                    {isLoadingAlbum ? "불러오는 중..." : "선택하기"}
                   </ButtonText>
                 </Button>
               ) : (

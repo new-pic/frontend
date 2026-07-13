@@ -13,7 +13,7 @@ import {
 } from "@shared/ui";
 import { IconCheck, IconChevronRight } from "@tabler/icons-react-native";
 import * as MediaLibrary from "expo-media-library";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -27,21 +27,21 @@ interface CustomAlbum {
 export interface ImageSelectorProps {
   selectedImages?: FeedResponse[];
   onSelectImage?: (image: FeedResponse) => void;
+  onLoadingAlbum?: (loading: boolean) => void;
 }
 
 function ImageSelectorView({
   selectedImages,
   onSelectImage,
+  onLoadingAlbum,
 }: ImageSelectorProps) {
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState<CustomAlbum | null>(null);
   const [images, setImages] = useState<FeedResponse[]>([]);
 
-  console.log("ImageSelectorView isBottomSheetOpen:", isBottomSheetOpen);
-
-  const onChangeAlbum = async (album: CustomAlbum) => {
+  const onChangeAlbum = useCallback((album: CustomAlbum) => {
     setSelectedAlbum(album);
-  };
+  }, []);
 
   const handleOpenAlbumSheet = () => {
     setIsBottomSheetOpen(true);
@@ -52,42 +52,59 @@ function ImageSelectorView({
   };
 
   useEffect(() => {
+    let isCancelled = false;
+
     const fetchPhotos = async () => {
       if (!selectedAlbum) return; // 선택된 앨범이 아직 없으면 패스
 
-      // 최신 Query API로 사진 40장 가져오기
-      const queryBase = new MediaLibrary.Query()
-        .eq(MediaLibrary.AssetField.MEDIA_TYPE, MediaLibrary.MediaType.IMAGE)
-        .orderBy({
-          key: MediaLibrary.AssetField.CREATION_TIME,
-          ascending: false,
-        })
-        .limit(40);
+      onLoadingAlbum?.(true);
 
-      if (selectedAlbum.rawAlbum && !selectedAlbum.isRecent) {
-        queryBase.album(selectedAlbum.rawAlbum);
+      try {
+        const queryBase = new MediaLibrary.Query()
+          .eq(MediaLibrary.AssetField.MEDIA_TYPE, MediaLibrary.MediaType.IMAGE)
+          .orderBy({
+            key: MediaLibrary.AssetField.CREATION_TIME,
+            ascending: false,
+          })
+          .limit(40);
+
+        if (selectedAlbum.rawAlbum && !selectedAlbum.isRecent) {
+          queryBase.album(selectedAlbum.rawAlbum);
+        }
+
+        const fetchedImages = await queryBase.exe();
+        const finalizedImages = await Promise.all(
+          fetchedImages.map(async (asset) => {
+            const [coverUri, fileName] = await Promise.all([
+              asset.getUri(),
+              asset.getFilename(),
+            ]);
+            return {
+              id: asset.id,
+              imageUrl: coverUri,
+              fileName,
+            };
+          }),
+        );
+
+        if (!isCancelled) {
+          setImages(finalizedImages);
+        }
+      } catch (error) {
+        console.error("앨범 사진 조회에 실패했습니다.", error);
+      } finally {
+        if (!isCancelled) {
+          onLoadingAlbum?.(false);
+        }
       }
-
-      const fetchedImages = await queryBase.exe();
-
-      // Promise 비동기 풀기 (Asset 주소 string으로 파싱)
-      const promises = fetchedImages.map(async (asset) => {
-        const [coverUri, fileName] = await Promise.all([
-          asset.getUri(),
-          asset.getFilename(),
-        ]);
-        return {
-          id: asset.id,
-          imageUrl: coverUri,
-          fileName,
-        };
-      });
-
-      const finalizedAlbums = await Promise.all(promises);
-      setImages(finalizedAlbums);
     };
-    fetchPhotos();
-  }, [selectedAlbum]);
+
+    void fetchPhotos();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedAlbum, onLoadingAlbum]);
 
   return (
     <>
@@ -134,39 +151,34 @@ function AlbumSelectorBottomSheet({
   const [albums, setAlbums] = useState<CustomAlbum[]>([]);
 
   useEffect(() => {
-    const handleSetRecentAlbum = () => {
+    const loadAlbums = async () => {
       const recentAlbum: CustomAlbum = {
         id: "RECENT_PHOTOS",
         title: "최근 항목",
         rawAlbum: null,
         isRecent: true,
       };
-      return recentAlbum;
-    };
-    handleSetRecentAlbum();
 
-    const handleGetAlbums = async () => {
-      const fetchedAlbums = await MediaLibrary.Album.getAll();
-      const albumPromises = fetchedAlbums.map(async (album) => {
-        const title = await album.getTitle(); // 👈 여기서 await로 string을 뽑아냄
-        return {
-          id: album.id,
-          title: title,
-          rawAlbum: album,
-        };
-      });
-      const finalizedAlbums = await Promise.all(albumPromises);
-
-      return finalizedAlbums;
-    };
-    const handleSetAlbems = async () => {
-      const recentAlbum = handleSetRecentAlbum();
-      const finalizedAlbums = await handleGetAlbums();
-      setAlbums([recentAlbum, ...finalizedAlbums]);
+      setAlbums([recentAlbum]);
       onSelectAlbum(recentAlbum);
+
+      try {
+        const fetchedAlbums = await MediaLibrary.Album.getAll();
+        const finalizedAlbums = await Promise.all(
+          fetchedAlbums.map(async (album) => ({
+            id: album.id,
+            title: await album.getTitle(),
+            rawAlbum: album,
+          })),
+        );
+        setAlbums([recentAlbum, ...finalizedAlbums]);
+      } catch (error) {
+        console.error("앨범 목록 조회에 실패했습니다.", error);
+      }
     };
-    handleSetAlbems();
-  }, []);
+
+    void loadAlbums();
+  }, [onSelectAlbum]);
 
   return (
     <BottomSheetModal open={isOpen} onClose={onClose}>
@@ -202,15 +214,14 @@ function AlbumSelectorBottomSheet({
 export function ImageSelector({ ...props }: ImageSelectorProps) {
   const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
   useEffect(() => {
-    // 권한이 없거나, 권한이 거부되었거나, 권한을 다시 요청할 수 있는 경우 권한 요청
     if (
-      !permissionResponse ||
-      !permissionResponse?.granted ||
+      permissionResponse &&
+      !permissionResponse.granted &&
       permissionResponse.canAskAgain
     ) {
-      requestPermission();
+      void requestPermission();
     }
-  }, [permissionResponse]);
+  }, [permissionResponse, requestPermission]);
 
   // 권한이 거부되었을 때 예외 처리
   if (!permissionResponse?.granted) {
