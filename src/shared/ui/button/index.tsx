@@ -35,7 +35,7 @@ const buttonStyle = tva({
     variant: {
       default:
         "bg-primary data-[hover=true]:bg-primary/90 data-[active=true]:bg-primary/90",
-      gradient: "overflow-hidden",
+      gradient: "overflow-hidden data-[disabled=true]:opacity-100",
       destructive:
         "bg-destructive data-[hover=true]:bg-destructive/90 data-[active=true]:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
       outline:
@@ -146,7 +146,14 @@ const Button = React.forwardRef<
   IButtonProps
 >(
   (
-    { className, variant = "default", size = "default", children, ...props },
+    {
+      className,
+      variant = "default",
+      size = "default",
+      children,
+      disabled,
+      ...props
+    },
     ref,
   ) => {
     if (variant === "gradient") {
@@ -154,11 +161,12 @@ const Button = React.forwardRef<
         <UIButton
           ref={ref}
           {...props}
+          disabled={disabled}
           className={buttonStyle({ variant, size, class: className })}
           context={{ variant, size }}
         >
           <LinearGradient
-            {...gradients.primary}
+            {...(disabled ? gradients.disabled : gradients.primary)}
             pointerEvents="none"
             style={{
               position: "absolute",
@@ -176,6 +184,7 @@ const Button = React.forwardRef<
       <UIButton
         ref={ref}
         {...props}
+        disabled={disabled}
         children={children}
         className={buttonStyle({ variant, size, class: className })}
         context={{ variant, size }}
