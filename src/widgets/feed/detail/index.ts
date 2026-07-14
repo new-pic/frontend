@@ -3,3 +3,4 @@ export {
   FeedCommentsHeader,
   type CommentSort,
 } from "./ui/feed-comments";
+export { FeedDetailContent } from "./ui/feed-detail-content";
