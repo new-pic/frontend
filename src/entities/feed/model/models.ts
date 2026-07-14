@@ -3,13 +3,10 @@ import {
   CreateFeedCommentRequestSchema,
   CreateFeedRequestSchema,
   FeedFormSchema,
-  FeedResponseSchema,
   UpdateFeedRequestSchema,
 } from "./schema";
 
 export const API_QUERY_KEY = ["feed"];
-
-export type FeedResponse = z.infer<typeof FeedResponseSchema>;
 
 export type CreateFeedRequestInput = z.input<typeof CreateFeedRequestSchema>;
 export type UpdateFeedRequestInput = z.input<typeof UpdateFeedRequestSchema>;
@@ -57,6 +54,27 @@ export interface FeedListRequest {
   cursor?: string;
   category?: string;
   q?: string;
+}
+
+export interface FeedResponse {
+  id: string;
+  shareSlug: string;
+  description: string;
+  tags: string[];
+  pickCount: number;
+  likeCount: number;
+  commentCount: number;
+  createdAt: string;
+  updatedAt: string;
+  author: {
+    id: string;
+    nickname: string;
+    profileImage: string;
+  };
+  isLiked: boolean;
+  isPicked: boolean;
+  detailImageUrl: string;
+  thumbnailUrl: string;
 }
 
 export interface FeedListResponse {

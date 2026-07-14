@@ -1,12 +1,5 @@
 import { File } from "expo-file-system";
 import { z } from "zod";
-
-export const FeedResponseSchema = z.object({
-  id: z.string(),
-  imageUrl: z.string(),
-  fileName: z.string().optional(),
-});
-
 // 피드 생성 수정 스키마
 
 const FeedTagsSchema = z
