@@ -1,4 +1,3 @@
-import { FeedResponse } from "@entities/feed";
 import {
   BottomSheetModal,
   Button,
@@ -24,9 +23,16 @@ interface CustomAlbum {
   rawAlbum: MediaLibrary.Album | null; // 원본 객체도 나중에 Query 쓸 때 필요하니 보관
   isRecent?: boolean; // 최근 항목 여부를 나타내는 플래그
 }
+
+export interface ImageParams {
+  id: string;
+  imageUrl: string;
+  fileName: string;
+}
+
 export interface ImageSelectorProps {
-  selectedImages?: FeedResponse[];
-  onSelectImage?: (image: FeedResponse) => void;
+  selectedImages?: ImageParams[];
+  onSelectImage?: (image: ImageParams) => void;
   onLoadingAlbum?: (loading: boolean) => void;
 }
 
@@ -37,7 +43,7 @@ function ImageSelectorView({
 }: ImageSelectorProps) {
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState<CustomAlbum | null>(null);
-  const [images, setImages] = useState<FeedResponse[]>([]);
+  const [images, setImages] = useState<ImageParams[]>([]);
 
   const onChangeAlbum = useCallback((album: CustomAlbum) => {
     setSelectedAlbum(album);
