@@ -18,7 +18,7 @@ export interface PhotoGridProps<T extends PhotoGridImage = PhotoGridImage> {
   images: T[];
   selectedImages?: Array<{ id: string }>;
   columns?: number;
-  onPress?: (image: T) => void;
+  onPress?: (image: T, index: number) => void;
   onEndReached?: () => void;
   isFetchingNextPage?: boolean;
 }
@@ -55,8 +55,8 @@ export function PhotoGrid<T extends PhotoGridImage>({
           </Center>
         ) : null
       }
-      renderItem={({ item }) => (
-        <Pressable onPress={() => onPress?.(item)}>
+      renderItem={({ item, index }) => (
+        <Pressable onPress={() => onPress?.(item, index)}>
           <Image
             source={{ uri: item.imageUrl }}
             style={{

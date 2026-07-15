@@ -63,7 +63,10 @@ export function useReadFeed({ feedId }: { feedId: string }) {
 }
 
 // 댓글 목록 조회
-export function useReadFeedComments(params: CommentListParams) {
+export function useReadFeedComments(
+  params: CommentListParams,
+  options?: { enabled?: boolean },
+) {
   const { feedId, ...queryParams } = params;
 
   return useInfiniteQuery({
@@ -79,7 +82,7 @@ export function useReadFeedComments(params: CommentListParams) {
     },
     initialPageParam: params.cursor,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-    enabled: !!feedId,
+    enabled: !!feedId && options?.enabled !== false,
     staleTime: 1000 * 60 * 5, // 5분
   });
 }
