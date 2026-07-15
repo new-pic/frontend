@@ -1,13 +1,7 @@
-import { FeedResponse } from "@entities/feed";
 import { colors } from "@shared/constants";
 import { IconCircleCheck } from "@tabler/icons-react-native";
 import { useMemo } from "react";
-import {
-  ActivityIndicator,
-  Dimensions,
-  FlatList,
-  Image,
-} from "react-native";
+import { ActivityIndicator, Dimensions, FlatList, Image } from "react-native";
 import { Center } from "../center";
 import { Fab, FabIcon } from "../fab";
 import { Pressable } from "../pressable";
@@ -15,23 +9,28 @@ import { Text } from "../text";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
-export interface PhotoGridProps {
-  images: FeedResponse[];
-  selectedImages?: FeedResponse[];
+export interface PhotoGridImage {
+  id: string;
+  imageUrl: string;
+}
+
+export interface PhotoGridProps<T extends PhotoGridImage = PhotoGridImage> {
+  images: T[];
+  selectedImages?: Array<{ id: string }>;
   columns?: number;
-  onPress?: (image: FeedResponse) => void;
+  onPress?: (image: T) => void;
   onEndReached?: () => void;
   isFetchingNextPage?: boolean;
 }
 
-export function PhotoGrid({
+export function PhotoGrid<T extends PhotoGridImage>({
   images,
   selectedImages,
   columns = 3,
   onPress,
   onEndReached,
   isFetchingNextPage = false,
-}: PhotoGridProps) {
+}: PhotoGridProps<T>) {
   const imageSize = useMemo(() => SCREEN_WIDTH / columns, [columns]);
 
   if (!images || images.length === 0) {

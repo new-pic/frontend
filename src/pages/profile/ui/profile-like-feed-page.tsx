@@ -16,9 +16,13 @@ export function ProfileLikeFeedPage() {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     usersQuery.useReadLikedFeeds({ take: 24 });
   const feeds = data?.pages.flatMap((page) => page.items) ?? [];
+  const feedImages = feeds.map((feed) => ({
+    id: feed.id,
+    imageUrl: feed.thumbnailUrl,
+  }));
 
-  const handleGoBack = () => {
-    router.back();
+  const handleGoProfile = () => {
+    router.replace("/profile");
   };
 
   const handleEndReached = () => {
@@ -30,7 +34,7 @@ export function ProfileLikeFeedPage() {
     <SafeAreaView edges={["top"]}>
       <VStack className="h-full pt-4">
         <HStack className="py-3 px-6 items-center justify-between border-b border-outline-light">
-          <Button variant="ghost" size="icon" onPress={handleGoBack}>
+          <Button variant="ghost" size="icon" onPress={handleGoProfile}>
             <ButtonIcon as={IconChevronLeft} />
           </Button>
           <Text className="font-semibold" size="lg">
@@ -40,7 +44,7 @@ export function ProfileLikeFeedPage() {
         </HStack>
         <VStack className="flex-1">
           <PhotoGrid
-            images={feeds}
+            images={feedImages}
             onEndReached={handleEndReached}
             isFetchingNextPage={isFetchingNextPage}
           />

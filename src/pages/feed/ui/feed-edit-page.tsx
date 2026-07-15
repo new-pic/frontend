@@ -1,4 +1,3 @@
-import { FeedResponse } from "@entities/feed";
 import { SaveFeedButton, useSaveFeedForm } from "@features/feed/save-feed";
 import {
   Box,
@@ -12,7 +11,11 @@ import {
   VStack,
 } from "@shared/ui";
 import { IconChevronLeft } from "@tabler/icons-react-native";
-import { CaptionContent, ImageSelector } from "@widgets/feed/edit";
+import {
+  CaptionContent,
+  ImageSelector,
+  type ImageParams,
+} from "@widgets/feed/edit";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image } from "react-native";
@@ -26,11 +29,11 @@ export function FeedEditPage() {
   const isEditMode = !!id;
   const form = useSaveFeedForm({ mode: isEditMode ? "EDIT" : "CREATE" });
 
-  const [selectedImage, setSelectedImage] = useState<FeedResponse | null>(null);
+  const [selectedImage, setSelectedImage] = useState<ImageParams | null>(null);
   const [step, setStep] = useState<EditStep>("IMAGE");
   const [isLoadingAlbum, setIsLoadingAlbum] = useState(false);
 
-  const handleSelectImage = (image: FeedResponse) => {
+  const handleSelectImage = (image: ImageParams) => {
     setSelectedImage(image);
     form.setValue("image", image.imageUrl);
     form.setValue("imageFileName", image.fileName);
