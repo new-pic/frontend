@@ -1,4 +1,4 @@
-import { SetupButton, useSetupForm } from "@features/profile/use-setup-user";
+import { SetupButton, useSetupForm } from "@features/profile/save-user-setup";
 import {
   Box,
   Button,

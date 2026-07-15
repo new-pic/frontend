@@ -28,3 +28,4 @@ export * from "./textarea";
 export * from "./vstack";
 
 export * from "./keyboard-dismiss-layout";
+export * from "./slide-page-view";

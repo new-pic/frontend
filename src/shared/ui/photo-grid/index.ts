@@ -1,1 +1,5 @@
-export { PhotoGrid, type PhotoGridProps } from "./photo-grid";
+export {
+  PhotoGrid,
+  type PhotoGridImage,
+  type PhotoGridProps,
+} from "./photo-grid";

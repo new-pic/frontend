@@ -43,6 +43,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="feed/edit/[id]"
+        options={{
+          tabBarStyle: { display: "none" },
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="camera"
         options={{
           title: "카메라",
@@ -61,6 +68,27 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="profile/edit"
+        options={{
+          tabBarStyle: { display: "none" },
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="profile/(feed)/my"
+        options={{
+          tabBarStyle: { display: "none" },
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="profile/(feed)/like"
+        options={{
+          tabBarStyle: { display: "none" },
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="profile/(feed)/save"
         options={{
           tabBarStyle: { display: "none" },
           href: null,

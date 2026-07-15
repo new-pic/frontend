@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./global.css";
 
 import "@shared/api/interceptors";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const queryClient = new QueryClient();
 
@@ -26,19 +27,21 @@ export default function RootLayout() {
   if (!loaded) return null;
 
   return (
-    <GluestackUIProvider>
-      <QueryClientProvider client={queryClient}>
-        <ConfirmProvider>
-          <Stack
-            screenOptions={{
-              header: () => <></>,
-              contentStyle: { backgroundColor: "white" },
-            }}
-          >
-            <Stack.Screen name="auth/setup" />
-          </Stack>
-        </ConfirmProvider>
-      </QueryClientProvider>
-    </GluestackUIProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <GluestackUIProvider>
+        <QueryClientProvider client={queryClient}>
+          <ConfirmProvider>
+            <Stack
+              screenOptions={{
+                header: () => <></>,
+                contentStyle: { backgroundColor: "white" },
+              }}
+            >
+              <Stack.Screen name="auth/setup" />
+            </Stack>
+          </ConfirmProvider>
+        </QueryClientProvider>
+      </GluestackUIProvider>
+    </GestureHandlerRootView>
   );
 }

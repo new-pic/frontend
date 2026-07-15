@@ -11,7 +11,12 @@ import { gradients } from "@shared/constants";
 import { LinearGradient } from "expo-linear-gradient";
 import { styled } from "nativewind";
 import React from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 const SCOPE = "BUTTON";
 const Root = withStyleContext(Pressable, SCOPE);
 const StyledUIIcon = styled(UIIcon, {
@@ -30,7 +35,7 @@ const buttonStyle = tva({
     variant: {
       default:
         "bg-primary data-[hover=true]:bg-primary/90 data-[active=true]:bg-primary/90",
-      gradient: "overflow-hidden p-0",
+      gradient: "overflow-hidden data-[disabled=true]:opacity-100",
       destructive:
         "bg-destructive data-[hover=true]:bg-destructive/90 data-[active=true]:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
       outline:
@@ -141,7 +146,14 @@ const Button = React.forwardRef<
   IButtonProps
 >(
   (
-    { className, variant = "default", size = "default", children, ...props },
+    {
+      className,
+      variant = "default",
+      size = "default",
+      children,
+      disabled,
+      ...props
+    },
     ref,
   ) => {
     if (variant === "gradient") {
@@ -149,24 +161,22 @@ const Button = React.forwardRef<
         <UIButton
           ref={ref}
           {...props}
+          disabled={disabled}
           className={buttonStyle({ variant, size, class: className })}
           context={{ variant, size }}
         >
           <LinearGradient
-            {...gradients.primary}
+            {...(disabled ? gradients.disabled : gradients.primary)}
+            pointerEvents="none"
             style={{
-              flex: 1,
-              width: "100%",
-              height: "100%",
-              justifyContent: "center",
-              alignItems: "center",
-              paddingHorizontal: 16,
-              paddingVertical: 8,
-              margin: 0,
+              position: "absolute",
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
             }}
-          >
-            {children}
-          </LinearGradient>
+          />
+          {children}
         </UIButton>
       );
     }
@@ -174,6 +184,7 @@ const Button = React.forwardRef<
       <UIButton
         ref={ref}
         {...props}
+        disabled={disabled}
         children={children}
         className={buttonStyle({ variant, size, class: className })}
         context={{ variant, size }}
