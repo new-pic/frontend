@@ -29,19 +29,28 @@ export function FeedPage() {
   const [isTagBottomSheetOpen, setIsTagBottomSheetOpen] = useState(false);
   const debouncedSearchQuery = useDebouncedValue(searchQuery.trim(), 400);
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = feedQuery.useReadFeeds({
-    take: 24,
-    q: debouncedSearchQuery || undefined,
-    tag: selectedTags.length > 0 ? selectedTags.join(",") : undefined,
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    feedQuery.useReadFeeds({
+      take: 24,
+      q: debouncedSearchQuery || undefined,
+      tag: selectedTags.length > 0 ? selectedTags.join(",") : undefined,
+    });
   const feeds = data?.pages.flatMap((page) => page.items) ?? [];
-  const handlePressFeed = async (feedId: string) => {
-    router.push(`/feed/${feedId}`);
+  const feedImages = feeds.map((feed) => ({
+    id: feed.id,
+    imageUrl: feed.thumbnailUrl,
+  }));
+  const handlePressFeed = async (feedId: string, index: number) => {
+    router.push({
+      pathname: `/feed/[id]`,
+      params: {
+        id: feedId,
+        index: String(index),
+        take: String(24),
+        q: debouncedSearchQuery || undefined,
+        tag: selectedTags.length > 0 ? selectedTags.join(",") : undefined,
+      },
+    });
   };
 
   const handlePressEdit = async () => {
@@ -110,8 +119,8 @@ export function FeedPage() {
             />
           </VStack>
           <PhotoGrid
-            images={feeds}
-            onPress={(feed) => handlePressFeed(feed.id)}
+            images={feedImages}
+            onPress={(feed, index) => handlePressFeed(feed.id, index)}
             onEndReached={handleEndReached}
             isFetchingNextPage={isFetchingNextPage}
           />
