@@ -8,8 +8,7 @@ import {
   Text,
   VStack,
 } from "@shared/ui";
-
-export type CommentSort = "latest" | "oldest";
+import { CommentSort } from "../model";
 
 interface FeedCommentsHeaderProps {
   commentCount: number;
