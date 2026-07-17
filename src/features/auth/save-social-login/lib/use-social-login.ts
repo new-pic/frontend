@@ -7,6 +7,7 @@ import { router } from "expo-router";
 
 export function useSocialLogin() {
   const mutationToServiceLogin = authQuery.useGoogleLogin();
+  const mutationToGuestLogin = authQuery.useGuestLogin();
   const fetchMe = usersQuery.useFetchMe();
 
   // 구글 로그인
@@ -54,9 +55,19 @@ export function useSocialLogin() {
     }
   };
 
+  const loginToGuest = async () => {
+    const response = await mutationToGuestLogin.mutateAsync();
+    if (!response.accessToken) {
+      return;
+    }
+    await setAccessToken(response.accessToken);
+    router.replace("/feed");
+  };
+
   return {
     loginWithGoogle,
     loginWithStoredToken,
+    loginToGuest,
     isLoading: mutationToServiceLogin.isPending,
   };
 }
