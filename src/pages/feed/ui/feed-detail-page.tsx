@@ -31,7 +31,6 @@ export function FeedDetailPage() {
   if (isPending || feeds.length === 0) return null;
 
   const initialPageIndex: number | null = useMemo(() => {
-    console.log("id", id, "index", index);
     const feedIdx = Number(index ?? 0);
     if (!feeds || feeds.length === 0) return 0;
 
