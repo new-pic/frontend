@@ -1,7 +1,6 @@
-import axios from "axios";
-import { env } from "../config";
+import { createApiClient } from "./api-client";
+import { setupInterceptors } from "./interceptors";
 
-export const ApiPrivateInstance = axios.create({
-  baseURL: env.API_URL,
-  timeout: 10000,
-});
+export const privateApiClient = createApiClient();
+
+setupInterceptors({ instance: privateApiClient });

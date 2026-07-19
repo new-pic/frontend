@@ -2,19 +2,19 @@
 // 파일전용 fetch 클라이언트
 
 import { env } from "@shared/config";
-import { getAccessToken } from "@shared/lib";
 import { fetch } from "expo/fetch";
+import { useAuthStore } from "../model/auth-store";
 
 type UPLOAD_METHODS = "POST" | "PUT" | "PATCH";
 
-async function coreUploadFetchClient(
+const coreUploadFetchClient = async (
   url: string,
   method: UPLOAD_METHODS,
   formData: FormData,
-): Promise<{ data: any; status: number }> {
+): Promise<{ data: any; status: number }> => {
   if (!env.API_URL) throw new Error("API_URL is not configured");
 
-  const accessToken = await getAccessToken();
+  const accessToken = useAuthStore.getState().accessToken;
 
   const res = await fetch(`${env.API_URL}${url}`, {
     method,
@@ -34,7 +34,7 @@ async function coreUploadFetchClient(
     data: responseData,
     status: res.status,
   };
-}
+};
 
 interface UploadFetchClientParams {
   url: string;
