@@ -12,12 +12,12 @@ export type GoogleLoginRequest = z.infer<typeof GoogleLoginRequestSchema>;
 export interface GoogleLoginResponse {
   status: SosialLoginStatus;
   accessToken: string;
-  userType: UserType;
+  refreshToken: string;
 }
 
 export interface GuestLoginResponse {
   accessToken: string;
-  userType: UserType;
+  refreshToken: string;
 }
 
 export type SosialLoginStatus = "LOGIN_SUCCESS" | "NEED_NICKNAME";
