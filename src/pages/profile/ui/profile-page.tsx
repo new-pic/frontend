@@ -1,4 +1,4 @@
-import { usersQuery } from "@entities/users";
+import { usersQuery } from "@entities/user";
 import { gradients } from "@shared/constants";
 import { useConfirm } from "@shared/lib";
 import { deleteAccessToken } from "@shared/lib/auth-token";

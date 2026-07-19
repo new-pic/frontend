@@ -1,6 +1,6 @@
 import AppleLogo from "@assets/icons/apple-logo.svg";
 import GoogleLogo from "@assets/icons/google-logo.svg";
-import { useSocialLogin } from "@features/auth/save-social-login";
+import { useSocialLogin } from "@features/user/save-social-login";
 import { Button, ButtonText, Center, Text, VStack } from "@shared/ui";
 import { router } from "expo-router";
 import { useEffect } from "react";

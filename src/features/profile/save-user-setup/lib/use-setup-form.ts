@@ -1,4 +1,4 @@
-import { ProfileRequest, UpdateProfileRequestSchema } from "@entities/users";
+import { ProfileRequest, UpdateProfileRequestSchema } from "@entities/user";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { useForm } from "react-hook-form";
 

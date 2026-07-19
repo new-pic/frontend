@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+export const GoogleLoginRequestSchema = z.object({
+  idToken: z.string(),
+});
+
 export const UpdateProfileRequestSchema = z.object({
   nickname: z
     .string()

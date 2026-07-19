@@ -12,7 +12,7 @@ import {
   ProfileRequest,
 } from "../model";
 
-const QUERY_KEY = [API_QUERY_KEY, "users"];
+const QUERY_KEY = [API_QUERY_KEY, "user"];
 
 /**
  * 내 정보 조회
