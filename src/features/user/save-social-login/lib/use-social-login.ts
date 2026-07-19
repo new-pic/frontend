@@ -1,13 +1,14 @@
-import { authQuery, usersQuery } from "@entities/user";
+import { authQuery } from "@entities/user";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { env } from "@shared/config";
-import { deleteAccessToken, getAccessToken, setAccessToken } from "@shared/lib";
+import { useAuthStore } from "@shared/model";
 import { router } from "expo-router";
 
 export function useSocialLogin() {
   const mutationToServiceLogin = authQuery.useGoogleLogin();
   const mutationToGuestLogin = authQuery.useGuestLogin();
-  const fetchMe = usersQuery.useFetchMe();
+
+  const login = useAuthStore((state) => state.login);
 
   // 구글 로그인
   const loginWithGoogle = async () => {
@@ -30,27 +31,18 @@ export function useSocialLogin() {
 
     const response = await mutationToServiceLogin.mutateAsync({ idToken });
     // 로그인 성공
-    await setAccessToken(response.accessToken);
-    if (response.status === "LOGIN_SUCCESS") {
-      router.replace("/feed");
-    } else if (response.status === "NEED_NICKNAME") {
-      router.push("/profile/edit");
-    }
-  };
-
-  // 소셜 로그인 후 서비스 로그인으로 필요 정보 입력 (닉네임)
-  const loginWithStoredToken = async () => {
-    const accessToken = await getAccessToken();
-    if (!accessToken) {
-      // accessToken이 없는 경우 토스트메시지
-      return;
-    }
     try {
-      await fetchMe();
-
-      router.replace("/feed");
-    } catch {
-      await deleteAccessToken();
+      await login({
+        accessToken: response.accessToken,
+        refreshToken: response.refreshToken,
+      });
+      if (response.status === "LOGIN_SUCCESS") {
+        router.replace("/feed");
+      } else if (response.status === "NEED_NICKNAME") {
+        router.push("/profile/edit");
+      }
+    } catch (error) {
+      console.error("Error during login:", error);
     }
   };
 
@@ -59,13 +51,18 @@ export function useSocialLogin() {
     if (!response.accessToken) {
       return;
     }
-    await setAccessToken(response.accessToken);
-    router.replace("/feed");
+    try {
+      await login({
+        accessToken: response.accessToken,
+        refreshToken: response.refreshToken,
+      });
+    } catch (error) {
+      console.error("Error during guest login:", error);
+    }
   };
 
   return {
     loginWithGoogle,
-    loginWithStoredToken,
     loginToGuest,
     isLoading: mutationToServiceLogin.isPending,
   };

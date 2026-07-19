@@ -3,22 +3,17 @@ import GoogleLogo from "@assets/icons/google-logo.svg";
 import { useSocialLogin } from "@features/user/save-social-login";
 import { Button, ButtonText, Center, Text, VStack } from "@shared/ui";
 import { router } from "expo-router";
-import { useEffect } from "react";
 import { Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function WelcomPage() {
-  const { isLoading, loginWithGoogle, loginWithStoredToken } = useSocialLogin();
+  const { isLoading, loginWithGoogle, loginToGuest } = useSocialLogin();
 
-  useEffect(() => {
-    loginWithStoredToken();
-  }, []);
-
-  const handleNavigateToFeed = () => {
+  const handleGuestLogin = () => {
     router.replace("/feed");
   };
 
-  const handleGoogleLoginPress = async () => {
+  const handleGoogleLogin = async () => {
     await loginWithGoogle();
   };
   return (
@@ -41,7 +36,7 @@ export function WelcomPage() {
             variant="outline"
             className="rounded-full"
             disabled={isLoading}
-            onPress={handleGoogleLoginPress}
+            onPress={handleGoogleLogin}
           >
             <GoogleLogo width={24} height={24} />
             <ButtonText>구글로 시작하기</ButtonText>
@@ -57,7 +52,7 @@ export function WelcomPage() {
           <Button
             variant="ghost"
             disabled={isLoading}
-            onPress={handleNavigateToFeed}
+            onPress={handleGuestLogin}
           >
             <ButtonText>로그인 없이 사용하기</ButtonText>
           </Button>
