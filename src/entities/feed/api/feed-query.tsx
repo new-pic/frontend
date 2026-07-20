@@ -1,8 +1,4 @@
-import {
-  ApiInstance,
-  ApiPrivateInstance,
-  uploadFetchClient,
-} from "@shared/api";
+import { apiClient, privateApiClient, uploadFetchClient } from "@shared/api";
 import {
   useInfiniteQuery,
   useMutation,
@@ -32,7 +28,7 @@ export function useReadFeeds(params: FeedListParams) {
   return useInfiniteQuery({
     queryKey: [...QUERY_KEY, "list", params],
     queryFn: async ({ pageParam }): Promise<FeedListResponse> => {
-      const response = await ApiInstance.get("/feed", {
+      const response = await apiClient.get("/feed", {
         params: {
           ...params,
           cursor: pageParam,
@@ -54,7 +50,7 @@ export function useReadFeed({ feedId }: { feedId: string }) {
   return useQuery({
     queryKey: [...QUERY_KEY, "item", feedId],
     queryFn: async (): Promise<FeedItemResponse> => {
-      const response = await ApiPrivateInstance.get(`/feed/${feedId}`);
+      const response = await privateApiClient.get(`/feed/${feedId}`);
       return response.data;
     },
     enabled: !!feedId, // feedId가 존재할 때만 쿼리 실행
@@ -72,7 +68,7 @@ export function useReadFeedComments(
   return useInfiniteQuery({
     queryKey: [...QUERY_KEY, "comments", feedId, queryParams],
     queryFn: async ({ pageParam }): Promise<CommentListResponse> => {
-      const response = await ApiInstance.get(`/feed/${feedId}/comments`, {
+      const response = await apiClient.get(`/feed/${feedId}/comments`, {
         params: {
           ...queryParams,
           cursor: pageParam,
@@ -95,7 +91,7 @@ export function useCreateFeedComment({ feedId }: { feedId: string }) {
     mutationFn: async (
       data: CreateFeedCommentRequest,
     ): Promise<FeedCommentResponse> => {
-      const response = await ApiPrivateInstance.post(
+      const response = await privateApiClient.post(
         `/feed/${feedId}/comments`,
         data,
       );
@@ -119,7 +115,7 @@ export function useReadTags({ keyword }: { keyword?: string }) {
   return useQuery({
     queryKey: [...QUERY_KEY, "tags", keyword],
     queryFn: async (): Promise<FeedTagResponse> => {
-      const response = await ApiInstance.get("/feed/tags", {
+      const response = await apiClient.get("/feed/tags", {
         params: { keyword },
       });
       return response.data.items;
@@ -151,7 +147,7 @@ export function useUpdateFeed({ feedId }: { feedId?: string }) {
   return useMutation({
     mutationFn: async (data: UpdateFeedRequest) => {
       if (!feedId) throw new Error("feedId is required for updating feed");
-      const response = await ApiPrivateInstance.patch(`/feed/${feedId}`, data);
+      const response = await privateApiClient.patch(`/feed/${feedId}`, data);
       return response.data;
     },
     onSuccess: async () => {
@@ -168,7 +164,7 @@ export function useSaveFeed() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (feedId: string) => {
-      const response = await ApiPrivateInstance.post(`/feed/${feedId}/pick`);
+      const response = await privateApiClient.post(`/feed/${feedId}/pick`);
       return response.data;
     },
     onMutate: async (feedId: string) => {
@@ -214,7 +210,7 @@ export function useUnsaveFeed() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (feedId: string) => {
-      const response = await ApiPrivateInstance.delete(`/feed/${feedId}/pick`);
+      const response = await privateApiClient.delete(`/feed/${feedId}/pick`);
       return response.data;
     },
     onMutate: async (feedId: string) => {
@@ -258,7 +254,7 @@ export function useLikeFeed() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (feedId: string) => {
-      const response = await ApiPrivateInstance.post(`/feed/${feedId}/like`);
+      const response = await privateApiClient.post(`/feed/${feedId}/like`);
       return response.data;
     },
     onMutate: async (feedId: string) => {
@@ -304,7 +300,7 @@ export function useUnlikeFeed() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (feedId: string) => {
-      const response = await ApiPrivateInstance.delete(`/feed/${feedId}/like`);
+      const response = await privateApiClient.delete(`/feed/${feedId}/like`);
       return response.data;
     },
     onMutate: async (feedId: string) => {

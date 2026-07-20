@@ -1,4 +1,4 @@
-import { ApiPrivateInstance } from "@shared/api";
+import { privateApiClient } from "@shared/api";
 import {
   useInfiniteQuery,
   useMutation,
@@ -22,7 +22,7 @@ export function useReadMe() {
   return useQuery({
     queryKey: [...QUERY_KEY, "me"],
     queryFn: async () => {
-      const response = await ApiPrivateInstance.get("/users/me");
+      const response = await privateApiClient.get("/users/me");
       return response.data;
     },
   });
@@ -36,7 +36,7 @@ export function useReadMyPhotos() {
   return useQuery({
     queryKey: [...QUERY_KEY, "me", "photos"],
     queryFn: async (): Promise<PhotosResponse> => {
-      const response = await ApiPrivateInstance.get("/users/me/photos");
+      const response = await privateApiClient.get("/users/me/photos");
       return response.data;
     },
   });
@@ -49,7 +49,7 @@ export function useReadMyFeeds(params: PaginationParams) {
   return useInfiniteQuery({
     queryKey: [...QUERY_KEY, "me", "feeds", params],
     queryFn: async ({ pageParam }) => {
-      const response = await ApiPrivateInstance.get("/users/me/feeds", {
+      const response = await privateApiClient.get("/users/me/feeds", {
         params: {
           ...params,
           cursor: pageParam,
@@ -71,7 +71,7 @@ export function useReadLikedFeeds(params: PaginationParams) {
   return useInfiniteQuery({
     queryKey: [...QUERY_KEY, "me", "liked-feeds"],
     queryFn: async ({ pageParam }) => {
-      const response = await ApiPrivateInstance.get("/users/me/liked-feeds", {
+      const response = await privateApiClient.get("/users/me/liked-feeds", {
         params: {
           ...params,
           cursor: pageParam,
@@ -93,7 +93,7 @@ export function useReadSavedFeeds() {
   return useQuery({
     queryKey: [...QUERY_KEY, "me", "saved-feeds"],
     queryFn: async () => {
-      const response = await ApiPrivateInstance.get("/users/me/references");
+      const response = await privateApiClient.get("/users/me/references");
       return response.data;
     },
   });
@@ -109,7 +109,7 @@ export function useFetchMe() {
     return await queryClient.fetchQuery({
       queryKey: [...QUERY_KEY, "me"],
       queryFn: async () => {
-        const response = await ApiPrivateInstance.get("/users/me");
+        const response = await privateApiClient.get("/users/me");
         return response.data;
       },
       staleTime: 1000 * 60 * 5,
@@ -127,7 +127,7 @@ export function useUpdateProfile() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: ProfileRequest) => {
-      const response = await ApiPrivateInstance.patch("/users/me", data);
+      const response = await privateApiClient.patch("/users/me", data);
       await queryClient.invalidateQueries({ queryKey: [...QUERY_KEY, "me"] });
       return response.data;
     },

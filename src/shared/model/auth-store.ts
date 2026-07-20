@@ -23,7 +23,7 @@ interface AuthStore {
   isLoggedIn: boolean;
   isGuest: boolean;
 
-  login: ({
+  setSession: ({
     accessToken,
     refreshToken,
   }: {
@@ -42,7 +42,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
   isLoggedIn: false,
   isGuest: false,
 
-  login: async ({ accessToken, refreshToken }) => {
+  setSession: async ({ accessToken, refreshToken }) => {
     await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
     await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
     const { userId, isGuest } = parseTokenState(accessToken);

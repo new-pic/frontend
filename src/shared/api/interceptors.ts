@@ -1,22 +1,74 @@
-import { router } from "expo-router";
+import { useAuthStore } from "@shared/model";
+import { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from "axios";
 import * as SecureStore from "expo-secure-store";
-import { ApiPrivateInstance } from "./api-private-instance";
+import { requestTokenRefresh, TokenRefreshResponse } from "./tokens";
 
-ApiPrivateInstance.interceptors.request.use(async (config) => {
-  const token = await SecureStore.getItemAsync("accessToken");
+interface InterceptorProps {
+  instance: AxiosInstance;
+}
 
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+interface RetryableRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
 
-ApiPrivateInstance.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 401) {
-      await SecureStore.deleteItemAsync("accessToken");
-      router.replace("/");
-    }
+let refreshPromise: Promise<TokenRefreshResponse> | null = null;
 
-    return Promise.reject(error);
-  },
-);
+export const setupInterceptors = ({ instance }: InterceptorProps) => {
+  instance.interceptors.request.use(async (config) => {
+    const token = useAuthStore.getState().accessToken;
+
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+  });
+
+  instance.interceptors.response.use(
+    (response) => response,
+    async (error: AxiosError) => {
+      const originalRequest = error.config as
+        | RetryableRequestConfig
+        | undefined;
+      const logout = useAuthStore.getState().logout;
+      const setSession = useAuthStore.getState().setSession;
+
+      if (error.response?.status !== 401 || !originalRequest) {
+        return Promise.reject(error);
+      }
+
+      if (originalRequest._retry) {
+        await logout();
+        return Promise.reject(error);
+      }
+
+      originalRequest._retry = true;
+
+      try {
+        // 진행 중인 refresh 요청이 없으면
+        if (!refreshPromise) {
+          refreshPromise = (async () => {
+            const refreshToken = await SecureStore.getItemAsync("refreshToken");
+            if (!refreshToken) {
+              throw new Error("No refresh token available");
+            }
+
+            const newToken = await requestTokenRefresh(refreshToken);
+            await setSession({
+              accessToken: newToken.accessToken,
+              refreshToken: newToken.refreshToken,
+            });
+
+            return newToken;
+          })().finally(() => {
+            refreshPromise = null;
+          });
+        }
+
+        const newToken = await refreshPromise;
+        originalRequest.headers.Authorization = `Bearer ${newToken.accessToken}`;
+        return instance.request(originalRequest);
+      } catch (refreshError) {
+        await logout();
+        return Promise.reject(refreshError);
+      }
+    },
+  );
+};

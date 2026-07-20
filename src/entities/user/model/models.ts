@@ -9,15 +9,12 @@ export const API_QUERY_KEY = ["user"] as const;
 
 export type GoogleLoginRequest = z.infer<typeof GoogleLoginRequestSchema>;
 
-export interface GoogleLoginResponse {
-  status: SosialLoginStatus;
+export interface TokenResponse {
   accessToken: string;
   refreshToken: string;
 }
-
-export interface GuestLoginResponse {
-  accessToken: string;
-  refreshToken: string;
+export interface GoogleLoginResponse extends TokenResponse {
+  status: SosialLoginStatus;
 }
 
 export type SosialLoginStatus = "LOGIN_SUCCESS" | "NEED_NICKNAME";
