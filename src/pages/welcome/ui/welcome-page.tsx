@@ -2,15 +2,14 @@ import AppleLogo from "@assets/icons/apple-logo.svg";
 import GoogleLogo from "@assets/icons/google-logo.svg";
 import { useSocialLogin } from "@features/user/save-social-login";
 import { Button, ButtonText, Center, Text, VStack } from "@shared/ui";
-import { router } from "expo-router";
 import { Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function WelcomPage() {
   const { isLoading, loginWithGoogle, loginToGuest } = useSocialLogin();
 
-  const handleGuestLogin = () => {
-    router.replace("/feed");
+  const handleGuestLogin = async () => {
+    await loginToGuest();
   };
 
   const handleGoogleLogin = async () => {
