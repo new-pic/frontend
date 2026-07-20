@@ -85,8 +85,6 @@ export interface FeedListResponse {
 export interface FeedItemResponse {
   id: string;
   shareSlug: string;
-  imageUrl: string;
-  title: string;
   description: string;
   tags: string[];
   pickCount: number;
@@ -101,6 +99,8 @@ export interface FeedItemResponse {
   };
   isLiked: boolean;
   isPicked: boolean;
+  detailImageUrl: string;
+  thumbnailUrl: string;
 }
 
 export interface FeedTagData {
