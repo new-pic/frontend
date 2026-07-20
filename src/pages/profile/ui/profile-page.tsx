@@ -103,6 +103,7 @@ export function ProfilePage() {
     const response = await openConfirm({
       title: "로그아웃",
       message: "정말로 로그아웃하시겠습니까?",
+      destructive: true,
     });
     if (response) {
       await logout();
