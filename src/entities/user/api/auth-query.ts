@@ -14,15 +14,14 @@ const QUERY_KEY = [API_QUERY_KEY, "auth"];
 export function useGoogleLogin() {
   return useMutation({
     mutationFn: async ({
-      data,
+      idToken,
       isGuest,
-    }: {
-      data: GoogleLoginRequest;
+    }: GoogleLoginRequest & {
       isGuest: boolean;
     }): Promise<GoogleLoginResponse> => {
       // 게스트 로그인 여부에 따라 적절한 API 클라이언트를 선택합니다.
       const apiClientToUse = isGuest ? privateApiClient : apiClient;
-      const response = await apiClientToUse.post("/auth/google", data);
+      const response = await apiClientToUse.post("/auth/google", { idToken });
       return response.data;
     },
   });

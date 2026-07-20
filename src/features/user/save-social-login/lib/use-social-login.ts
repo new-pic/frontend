@@ -8,6 +8,7 @@ export function useSocialLogin() {
   const mutationToServiceLogin = authQuery.useGoogleLogin();
   const mutationToGuestLogin = authQuery.useGuestLogin();
 
+  const isGuest = useAuthStore((state) => state.isGuest);
   const setSession = useAuthStore((state) => state.setSession);
 
   // 구글 로그인
@@ -29,7 +30,10 @@ export function useSocialLogin() {
       return;
     }
 
-    const response = await mutationToServiceLogin.mutateAsync({ idToken });
+    const response = await mutationToServiceLogin.mutateAsync({
+      idToken,
+      isGuest,
+    });
     // 로그인 성공
     try {
       await setSession({
