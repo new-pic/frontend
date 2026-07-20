@@ -2,7 +2,6 @@ import { GluestackUIProvider } from "@shared/ui/gluestack-ui-provider";
 import { useFonts } from "expo-font";
 import { router, Stack, usePathname } from "expo-router";
 
-import { ConfirmProvider } from "@shared/lib";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./global.css";
 
@@ -57,16 +56,14 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <GluestackUIProvider>
         <QueryClientProvider client={queryClient}>
-          <ConfirmProvider>
-            <Stack
-              screenOptions={{
-                header: () => <></>,
-                contentStyle: { backgroundColor: "white" },
-              }}
-            >
-              <Stack.Screen name="auth/setup" />
-            </Stack>
-          </ConfirmProvider>
+          <Stack
+            screenOptions={{
+              header: () => <></>,
+              contentStyle: { backgroundColor: "white" },
+            }}
+          >
+            <Stack.Screen name="auth/setup" />
+          </Stack>
         </QueryClientProvider>
       </GluestackUIProvider>
     </GestureHandlerRootView>
