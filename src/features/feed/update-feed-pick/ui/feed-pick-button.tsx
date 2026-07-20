@@ -1,5 +1,6 @@
 import { feedQuery } from "@entities/feed";
 import { colors } from "@shared/constants";
+import { useMemberAccess } from "@shared/hooks";
 import { Button, ButtonIcon } from "@shared/ui";
 import { IconBookmarkFilled } from "@tabler/icons-react-native";
 import { useRef } from "react";
@@ -13,17 +14,21 @@ const THROTTLE_DELAY = 500;
 
 export function FeedPickButton({ feedId, isPicked }: FeedPickButtonProps) {
   const lastPressedAtRef = useRef(0);
+  const requireMember = useMemberAccess();
   const mutationToSave = feedQuery.useSaveFeed();
   const mutationToUnsave = feedQuery.useUnsaveFeed();
   const mutation = isPicked ? mutationToUnsave : mutationToSave;
 
-  const handlePress = () => {
+  const handlePress = async () => {
     if (!feedId || mutation.isPending) return;
 
     const now = Date.now();
 
     if (now - lastPressedAtRef.current <= THROTTLE_DELAY) return;
     lastPressedAtRef.current = now;
+
+    if (!(await requireMember())) return;
+
     mutation.mutate(feedId);
   };
 

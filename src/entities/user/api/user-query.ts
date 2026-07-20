@@ -18,13 +18,14 @@ const QUERY_KEY = [API_QUERY_KEY, "user"];
  * 내 정보 조회
  * @returns
  */
-export function useReadMe() {
+export function useReadMe(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: [...QUERY_KEY, "me"],
     queryFn: async () => {
       const response = await privateApiClient.get("/users/me");
       return response.data;
     },
+    enabled: options?.enabled,
   });
 }
 

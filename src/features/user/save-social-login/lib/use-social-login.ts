@@ -68,6 +68,7 @@ export function useSocialLogin() {
   return {
     loginWithGoogle,
     loginToGuest,
-    isLoading: mutationToServiceLogin.isPending,
+    isLoading:
+      mutationToServiceLogin.isPending || mutationToGuestLogin.isPending,
   };
 }
