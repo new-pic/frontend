@@ -1,5 +1,4 @@
 import {
-  BottomSheetModal,
   Button,
   ButtonText,
   Center,
@@ -10,25 +9,14 @@ import {
   Text,
   VStack,
 } from "@shared/ui";
-import { IconCheck, IconChevronRight } from "@tabler/icons-react-native";
+import { IconChevronRight } from "@tabler/icons-react-native";
 import * as MediaLibrary from "expo-media-library";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-interface CustomAlbum {
-  id: string;
-  title: string;
-  rawAlbum: MediaLibrary.Album | null; // 원본 객체도 나중에 Query 쓸 때 필요하니 보관
-  isRecent?: boolean; // 최근 항목 여부를 나타내는 플래그
-}
-
-export interface ImageParams {
-  id: string;
-  imageUrl: string;
-  fileName: string;
-}
+import { mediaLibraryQuery } from "../api";
+import { CustomAlbum, ImageParams } from "../model";
+import { AlbumSelectorBottomSheet } from "./album-selector-bottom-sheet";
 
 export interface ImageSelectorProps {
   selectedImages?: ImageParams[];
@@ -43,7 +31,19 @@ function ImageSelectorView({
 }: ImageSelectorProps) {
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState<CustomAlbum | null>(null);
-  const [images, setImages] = useState<ImageParams[]>([]);
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isError,
+    isFetchingNextPage,
+    isLoading,
+  } = mediaLibraryQuery.useReadAlbumImages(selectedAlbum);
+  const images = useMemo(
+    () => data?.pages.flatMap((page) => page.items) ?? [],
+    [data],
+  );
 
   const onChangeAlbum = useCallback((album: CustomAlbum) => {
     setSelectedAlbum(album);
@@ -58,59 +58,19 @@ function ImageSelectorView({
   };
 
   useEffect(() => {
-    let isCancelled = false;
+    onLoadingAlbum?.(isLoading);
+  }, [isLoading, onLoadingAlbum]);
 
-    const fetchPhotos = async () => {
-      if (!selectedAlbum) return; // 선택된 앨범이 아직 없으면 패스
+  useEffect(() => {
+    if (isError) {
+      console.error("앨범 사진 조회에 실패했습니다.", error);
+    }
+  }, [error, isError]);
 
-      onLoadingAlbum?.(true);
-
-      try {
-        const queryBase = new MediaLibrary.Query()
-          .eq(MediaLibrary.AssetField.MEDIA_TYPE, MediaLibrary.MediaType.IMAGE)
-          .orderBy({
-            key: MediaLibrary.AssetField.CREATION_TIME,
-            ascending: false,
-          })
-          .limit(40);
-
-        if (selectedAlbum.rawAlbum && !selectedAlbum.isRecent) {
-          queryBase.album(selectedAlbum.rawAlbum);
-        }
-
-        const fetchedImages = await queryBase.exe();
-        const finalizedImages = await Promise.all(
-          fetchedImages.map(async (asset) => {
-            const [coverUri, fileName] = await Promise.all([
-              asset.getUri(),
-              asset.getFilename(),
-            ]);
-            return {
-              id: asset.id,
-              imageUrl: coverUri,
-              fileName,
-            };
-          }),
-        );
-
-        if (!isCancelled) {
-          setImages(finalizedImages);
-        }
-      } catch (error) {
-        console.error("앨범 사진 조회에 실패했습니다.", error);
-      } finally {
-        if (!isCancelled) {
-          onLoadingAlbum?.(false);
-        }
-      }
-    };
-
-    void fetchPhotos();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [selectedAlbum, onLoadingAlbum]);
+  const handleEndReached = useCallback(() => {
+    if (!hasNextPage || isFetchingNextPage) return;
+    void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   return (
     <>
@@ -129,6 +89,8 @@ function ImageSelectorView({
           selectedImages={selectedImages}
           columns={4}
           onPress={(image) => onSelectImage?.(image)}
+          onEndReached={handleEndReached}
+          isFetchingNextPage={isFetchingNextPage}
         />
       </VStack>
       <AlbumSelectorBottomSheet
@@ -138,82 +100,6 @@ function ImageSelectorView({
         onClose={handleCloseAlbumSheet}
       />
     </>
-  );
-}
-
-interface AlbumSelectorBottomSheetProps {
-  selectedAlbum: CustomAlbum | null;
-  onSelectAlbum: (album: CustomAlbum) => void;
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-function AlbumSelectorBottomSheet({
-  isOpen,
-  selectedAlbum,
-  onSelectAlbum,
-  onClose,
-}: AlbumSelectorBottomSheetProps) {
-  const [albums, setAlbums] = useState<CustomAlbum[]>([]);
-
-  useEffect(() => {
-    const loadAlbums = async () => {
-      const recentAlbum: CustomAlbum = {
-        id: "RECENT_PHOTOS",
-        title: "최근 항목",
-        rawAlbum: null,
-        isRecent: true,
-      };
-
-      setAlbums([recentAlbum]);
-      onSelectAlbum(recentAlbum);
-
-      try {
-        const fetchedAlbums = await MediaLibrary.Album.getAll();
-        const finalizedAlbums = await Promise.all(
-          fetchedAlbums.map(async (album) => ({
-            id: album.id,
-            title: await album.getTitle(),
-            rawAlbum: album,
-          })),
-        );
-        setAlbums([recentAlbum, ...finalizedAlbums]);
-      } catch (error) {
-        console.error("앨범 목록 조회에 실패했습니다.", error);
-      }
-    };
-
-    void loadAlbums();
-  }, [onSelectAlbum]);
-
-  return (
-    <BottomSheetModal open={isOpen} onClose={onClose}>
-      <VStack>
-        <Text className="font-semibold text-lg px-6 py-3">앨범 선택</Text>
-        <FlatList
-          data={albums}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <Pressable
-              onPress={() => {
-                onSelectAlbum(item);
-                onClose();
-              }}
-            >
-              <HStack
-                className="px-6 py-3 items-center justify-between"
-                space="sm"
-              >
-                <Text className="font-medium">{item.title}</Text>
-                {selectedAlbum?.id === item.id && (
-                  <Icon as={IconCheck} color="primary" />
-                )}
-              </HStack>
-            </Pressable>
-          )}
-        />
-      </VStack>
-    </BottomSheetModal>
   );
 }
 
