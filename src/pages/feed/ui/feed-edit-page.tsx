@@ -1,3 +1,4 @@
+import { feedQuery } from "@entities/feed";
 import { SaveFeedButton, useSaveFeedForm } from "@features/feed/save-feed";
 import {
   Box,
@@ -16,18 +17,23 @@ import {
   ImageSelector,
   type ImageParams,
 } from "@widgets/feed/edit";
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type EditStep = "IMAGE" | "CAPTION";
 
-export function FeedEditPage() {
-  const { id } = useLocalSearchParams<{ id?: string }>();
+interface FeedEditPageProps {
+  id?: string;
+  isEditMode?: boolean;
+}
 
-  const isEditMode = !!id;
-  const form = useSaveFeedForm({ mode: isEditMode ? "EDIT" : "CREATE" });
+export function FeedEditPage({ id, isEditMode }: FeedEditPageProps) {
+  const { data } = feedQuery.useReadFeed({ feedId: id });
+  const form = useSaveFeedForm({
+    mode: isEditMode ? "EDIT" : "CREATE",
+  });
 
   const [selectedImage, setSelectedImage] = useState<ImageParams | null>(null);
   const [step, setStep] = useState<EditStep>("IMAGE");
@@ -68,6 +74,15 @@ export function FeedEditPage() {
     setStep("IMAGE");
   }, [isEditMode]);
 
+  useEffect(() => {
+    if (data) {
+      form.setValue("tags", data.tags);
+      form.setValue("description", data.description);
+    }
+  }, [data]);
+
+  console.log("selectedImage", selectedImage, data);
+
   return (
     <SafeAreaView>
       <KeyboardDismissLayout>
@@ -77,14 +92,14 @@ export function FeedEditPage() {
               <ButtonIcon as={IconChevronLeft} />
             </Button>
             <Text className="font-semibold" size="lg">
-              피드 작성하기
+              {isEditMode ? "피드 수정하기" : "피드 작성하기"}
             </Text>
             <Box className="w-10" />
           </HStack>
           <Center>
             <Image
               source={{
-                uri: selectedImage?.imageUrl,
+                uri: selectedImage?.imageUrl ?? data?.thumbnailUrl,
               }}
               style={{ width: "60%", borderRadius: 20, aspectRatio: 4 / 5 }}
             />
