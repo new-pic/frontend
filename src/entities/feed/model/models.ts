@@ -18,6 +18,13 @@ export type CreateFeedCommentRequest = z.infer<
   typeof CreateFeedCommentRequestSchema
 >;
 
+/**
+ * 피드 목록 조회 파라미터
+ * @property take - 가져올 피드 개수
+ * @property cursor - 가져올 페이지 커서
+ * @property tag - 카테고리 목록 (쉼표로 구분)
+ * @property q - 검색어
+ */
 export interface FeedListParams {
   take?: number;
   cursor?: string;

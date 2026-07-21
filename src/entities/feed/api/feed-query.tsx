@@ -1,5 +1,8 @@
 import { apiClient, privateApiClient, uploadFetchClient } from "@shared/api";
 import {
+  type InfiniteData,
+  type QueryClient,
+  type QueryKey,
   useInfiniteQuery,
   useMutation,
   useQuery,
@@ -14,11 +17,78 @@ import {
   FeedItemResponse,
   FeedListParams,
   FeedListResponse,
+  FeedResponse,
   FeedTagResponse,
   UpdateFeedRequest,
 } from "../model";
 
 const QUERY_KEY = [API_QUERY_KEY, "feed"];
+
+// 피드 목록 쿼리 키
+const FEED_LIST_QUERY_KEY = [...QUERY_KEY, "list"];
+
+// useInfiniteQuery의 반환 data 타입
+type FeedListInfiniteData = InfiniteData<
+  FeedListResponse,
+  FeedListParams["cursor"]
+>;
+
+/**
+ * 피드 목록 캐시들의 복원용 스냅샷(백업) 데이터 타입
+ *
+ * `getQueriesData`의 반환 타입으로, 다양한 검색 조건(파라미터/카테고리)별
+ * `[QueryKey, 캐시 데이터]` 튜플들의 배열 형태입니다.
+ * 낙관적 업데이트 실패 시 원래 상태로 롤백(Rollback)하는 데 사용됩니다.
+ */
+type FeedListCacheSnapshot = Array<
+  [QueryKey, FeedListInfiniteData | undefined]
+>;
+
+/**
+ * @description 피드 목록 낙관적 업데이트 함수
+ * @param queryClient
+ * @param updateItems 피드 목록 내 항목(items)들을 변환/수정하는 콜백 함수
+ * @returns 변환/수정 전 피드 목록
+ */
+async function optimisticallyUpdateFeedLists(
+  queryClient: QueryClient,
+  updateItems: (items: FeedResponse[]) => FeedResponse[],
+) {
+  await queryClient.cancelQueries({ queryKey: FEED_LIST_QUERY_KEY });
+
+  // 쿼리키에 매핑되는 모든 수정 전 캐시 데이터
+  const previousFeedLists = queryClient.getQueriesData<FeedListInfiniteData>({
+    queryKey: FEED_LIST_QUERY_KEY,
+  });
+
+  // 쿼리키에 매핑되는 모든 캐시 데이터를 각각 수정
+  queryClient.setQueriesData<FeedListInfiniteData>(
+    { queryKey: FEED_LIST_QUERY_KEY },
+    (old) => {
+      if (!old) return old;
+
+      return {
+        ...old,
+        pages: old.pages.map((page) => ({
+          ...page,
+          items: updateItems(page.items),
+        })),
+      };
+    },
+  );
+
+  return previousFeedLists;
+}
+
+// 이전 캐시 데이터로 되돌리기
+function rollbackFeedLists(
+  queryClient: QueryClient,
+  snapshot?: FeedListCacheSnapshot,
+) {
+  snapshot?.forEach(([queryKey, data]) => {
+    queryClient.setQueryData(queryKey, data);
+  });
+}
 
 /**
  * 피드 목록 조회
@@ -45,8 +115,7 @@ export function useReadFeeds(params: FeedListParams) {
 /**
  * 피드 상세 조회
  */
-export function useReadFeed({ feedId }: { feedId: string }) {
-  console.log("feedId 상세 조회", feedId);
+export function useReadFeed({ feedId }: { feedId?: string }) {
   return useQuery({
     queryKey: [...QUERY_KEY, "item", feedId],
     queryFn: async (): Promise<FeedItemResponse> => {
@@ -102,9 +171,6 @@ export function useCreateFeedComment({ feedId }: { feedId: string }) {
         queryClient.invalidateQueries({
           queryKey: [...QUERY_KEY, "comments", feedId],
         }),
-        queryClient.invalidateQueries({
-          queryKey: [...QUERY_KEY, "item", feedId],
-        }),
       ]);
     },
   });
@@ -150,9 +216,51 @@ export function useUpdateFeed({ feedId }: { feedId?: string }) {
       const response = await privateApiClient.patch(`/feed/${feedId}`, data);
       return response.data;
     },
-    onSuccess: async () => {
-      // 피드 목록 캐시 무효화
-      await queryClient.invalidateQueries({ queryKey: [...QUERY_KEY, "list"] });
+    onSuccess: async (data: FeedResponse) => {
+      await optimisticallyUpdateFeedLists(queryClient, (items) =>
+        items.map((feed) =>
+          feed.id === data.id
+            ? {
+                ...feed,
+                ...data,
+              }
+            : feed,
+        ),
+      );
+      queryClient.setQueryData([...QUERY_KEY, "item", feedId], data);
+    },
+  });
+}
+
+/**
+ * 피드 삭제
+ */
+export function useDeleteFeed() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (feedId: string) => {
+      const response = await privateApiClient.delete(`/feed/${feedId}`);
+      return response.data;
+    },
+    onMutate: async (feedId: string) => {
+      const previousFeedLists = await optimisticallyUpdateFeedLists(
+        queryClient,
+        (items) => items.filter((feed) => feed.id !== feedId),
+      );
+
+      return { previousFeedLists };
+    },
+    onError: (_, __, context) => {
+      rollbackFeedLists(queryClient, context?.previousFeedLists);
+    },
+    onSuccess: (_, feedId) => {
+      queryClient.removeQueries({
+        queryKey: [...QUERY_KEY, "item", feedId],
+      });
+      queryClient.removeQueries({
+        queryKey: [...QUERY_KEY, "comments", feedId],
+      });
     },
   });
 }
@@ -168,37 +276,24 @@ export function useSaveFeed() {
       return response.data;
     },
     onMutate: async (feedId: string) => {
-      const feedItemKey = [...QUERY_KEY, "item", feedId];
-
-      await queryClient.cancelQueries({ queryKey: feedItemKey });
-
-      const previousFeed =
-        queryClient.getQueryData<FeedItemResponse>(feedItemKey);
-
-      queryClient.setQueryData<FeedItemResponse>(feedItemKey, (old) => {
-        if (!old) return old;
-
-        return {
-          ...old,
-          isPicked: true,
-          pickCount: old.pickCount + 1,
-        };
-      });
-
-      return { previousFeed };
-    },
-    onError: (_, feedId: string, context) => {
-      if (!context) return;
-
-      queryClient.setQueryData(
-        [...QUERY_KEY, "item", feedId],
-        context.previousFeed,
+      const previousFeedLists = await optimisticallyUpdateFeedLists(
+        queryClient,
+        (items) =>
+          items.map((feed) =>
+            feed.id === feedId
+              ? {
+                  ...feed,
+                  isPicked: true,
+                  pickCount: feed.pickCount + 1,
+                }
+              : feed,
+          ),
       );
+
+      return { previousFeedLists };
     },
-    onSettled: async (_, __, feedId: string) => {
-      await queryClient.invalidateQueries({
-        queryKey: [...QUERY_KEY, "item", feedId],
-      });
+    onError: (_, __, context) => {
+      rollbackFeedLists(queryClient, context?.previousFeedLists);
     },
   });
 }
@@ -214,37 +309,24 @@ export function useUnsaveFeed() {
       return response.data;
     },
     onMutate: async (feedId: string) => {
-      const feedItemKey = [...QUERY_KEY, "item", feedId];
-
-      await queryClient.cancelQueries({ queryKey: feedItemKey });
-
-      const previousFeed =
-        queryClient.getQueryData<FeedItemResponse>(feedItemKey);
-
-      queryClient.setQueryData<FeedItemResponse>(feedItemKey, (old) => {
-        if (!old) return old;
-
-        return {
-          ...old,
-          isPicked: false,
-          pickCount: Math.max(0, old.pickCount - 1),
-        };
-      });
-
-      return { previousFeed };
-    },
-    onError: (_, feedId: string, context) => {
-      if (!context) return;
-
-      queryClient.setQueryData(
-        [...QUERY_KEY, "item", feedId],
-        context.previousFeed,
+      const previousFeedLists = await optimisticallyUpdateFeedLists(
+        queryClient,
+        (items) =>
+          items.map((feed) =>
+            feed.id === feedId
+              ? {
+                  ...feed,
+                  isPicked: false,
+                  pickCount: Math.max(0, feed.pickCount - 1),
+                }
+              : feed,
+          ),
       );
+
+      return { previousFeedLists };
     },
-    onSettled: async (_, __, feedId: string) => {
-      await queryClient.invalidateQueries({
-        queryKey: [...QUERY_KEY, "item", feedId],
-      });
+    onError: (_, __, context) => {
+      rollbackFeedLists(queryClient, context?.previousFeedLists);
     },
   });
 }
@@ -258,39 +340,24 @@ export function useLikeFeed() {
       return response.data;
     },
     onMutate: async (feedId: string) => {
-      const feedItemKey = [...QUERY_KEY, "item", feedId];
-
-      await queryClient.cancelQueries({
-        queryKey: feedItemKey,
-      });
-
-      const previousFeed =
-        queryClient.getQueryData<FeedItemResponse>(feedItemKey);
-
-      queryClient.setQueryData<FeedItemResponse>(feedItemKey, (old) => {
-        if (!old) return old;
-
-        return {
-          ...old,
-          isLiked: true,
-          likeCount: old.likeCount + 1,
-        };
-      });
-
-      return { previousFeed };
-    },
-    onError: (_, feedId: string, context) => {
-      if (!context) return;
-
-      queryClient.setQueryData(
-        [...QUERY_KEY, "item", feedId],
-        context.previousFeed,
+      const previousFeedLists = await optimisticallyUpdateFeedLists(
+        queryClient,
+        (items) =>
+          items.map((feed) =>
+            feed.id === feedId
+              ? {
+                  ...feed,
+                  isLiked: true,
+                  likeCount: feed.likeCount + 1,
+                }
+              : feed,
+          ),
       );
+
+      return { previousFeedLists };
     },
-    onSettled: async (_, __, feedId: string) => {
-      await queryClient.invalidateQueries({
-        queryKey: [...QUERY_KEY, "item", feedId],
-      });
+    onError: (_, __, context) => {
+      rollbackFeedLists(queryClient, context?.previousFeedLists);
     },
   });
 }
@@ -304,39 +371,24 @@ export function useUnlikeFeed() {
       return response.data;
     },
     onMutate: async (feedId: string) => {
-      const feedItemKey = [...QUERY_KEY, "item", feedId];
-
-      await queryClient.cancelQueries({
-        queryKey: feedItemKey,
-      });
-
-      const previousFeed =
-        queryClient.getQueryData<FeedItemResponse>(feedItemKey);
-
-      queryClient.setQueryData<FeedItemResponse>(feedItemKey, (old) => {
-        if (!old) return old;
-
-        return {
-          ...old,
-          isLiked: false,
-          likeCount: old.likeCount - 1,
-        };
-      });
-
-      return { previousFeed };
-    },
-    onError: (_, feedId: string, context) => {
-      if (!context) return;
-
-      queryClient.setQueryData(
-        [...QUERY_KEY, "item", feedId],
-        context.previousFeed,
+      const previousFeedLists = await optimisticallyUpdateFeedLists(
+        queryClient,
+        (items) =>
+          items.map((feed) =>
+            feed.id === feedId
+              ? {
+                  ...feed,
+                  isLiked: false,
+                  likeCount: Math.max(0, feed.likeCount - 1),
+                }
+              : feed,
+          ),
       );
+
+      return { previousFeedLists };
     },
-    onSettled: async (_, __, feedId: string) => {
-      await queryClient.invalidateQueries({
-        queryKey: [...QUERY_KEY, "item", feedId],
-      });
+    onError: (_, __, context) => {
+      rollbackFeedLists(queryClient, context?.previousFeedLists);
     },
   });
 }
