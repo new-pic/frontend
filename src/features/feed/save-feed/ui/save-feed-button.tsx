@@ -1,7 +1,9 @@
 // 피드 게시하기 / 수정하기 공통 사용 버튼
 
-import { feedQuery } from "@entities/feed";
-import { Button, ButtonText } from "@shared/ui";
+import { feedQuery, UpdateFeedRequest } from "@entities/feed";
+import { Button, ButtonSpinner, ButtonText } from "@shared/ui";
+import { router } from "expo-router";
+import { Alert } from "react-native";
 import { UseSaveFeedFormReturn } from "../lib/use-save-feed-form";
 import { FeedFormMode } from "../model";
 
@@ -16,24 +18,45 @@ export function SaveFeedButton({ mode, form, feedId }: SaveFeedButtonProps) {
   const mutationToCreate = feedQuery.useCreateFeed();
   const mutationToUpdate = feedQuery.useUpdateFeed({ feedId });
 
-  const handlePress = form.handleValidSubmit((data) => {
-    if (mode === "CREATE") {
-      mutationToCreate.mutate(data as FormData);
+  const actionText = isCreate ? "등록" : "수정";
+  const isPending = form.formState.isSubmitting;
+
+  const onRequestError = () => {
+    Alert.alert(
+      `피드 ${actionText} 실패`,
+      `피드를 ${actionText}하지 못했습니다. 잠시 후 다시 시도해주세요.`,
+    );
+  };
+
+  const onValidResult = async (data: FormData | UpdateFeedRequest) => {
+    if (isCreate) {
+      await mutationToCreate.mutateAsync(data as FormData);
     } else {
-      mutationToUpdate.mutate(data as Exclude<typeof data, FormData>);
+      await mutationToUpdate.mutateAsync(
+        data as Exclude<typeof data, FormData>,
+      );
     }
-  });
+
+    Alert.alert(`피드 ${actionText} 완료`, `피드가 ${actionText}되었습니다.`);
+    router.replace("/feed");
+  };
+
+  const handlePress = form.handleValidSubmit(onValidResult, onRequestError);
 
   return (
     <Button
       className="flex-1 h-12.5 p-0 rounded-xl"
       variant="gradient"
-      disabled={mutationToCreate.isPending || mutationToUpdate.isPending}
+      disabled={isPending}
       onPress={handlePress}
     >
-      <ButtonText size="lg" className="font-semibold">
-        {isCreate ? "게시하기" : "수정하기"}
-      </ButtonText>
+      {isPending ? (
+        <ButtonSpinner />
+      ) : (
+        <ButtonText size="lg" className="font-semibold">
+          {isCreate ? "게시하기" : "수정하기"}
+        </ButtonText>
+      )}
     </Button>
   );
 }

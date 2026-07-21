@@ -1,4 +1,4 @@
-import { usersQuery } from "@entities/users";
+import { usersQuery } from "@entities/user";
 import {
   Box,
   Button,

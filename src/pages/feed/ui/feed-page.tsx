@@ -1,6 +1,7 @@
 import { feedQuery } from "@entities/feed";
 import { gradients } from "@shared/constants";
-import { useDebouncedValue } from "@shared/hooks";
+import { useDebouncedValue, useMemberAccess } from "@shared/hooks";
+import { useAuthStore } from "@shared/model";
 import { TagBottomSheet } from "@widgets/feed/tags";
 
 import {
@@ -24,6 +25,8 @@ import { FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function FeedPage() {
+  const requireMember = useMemberAccess();
+  const isGuest = useAuthStore((state) => state.isGuest);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isTagBottomSheetOpen, setIsTagBottomSheetOpen] = useState(false);
@@ -124,23 +127,25 @@ export function FeedPage() {
             onEndReached={handleEndReached}
             isFetchingNextPage={isFetchingNextPage}
           />
-          <Fab
-            className="w-15 h-15 rounded-full bottom-8 right-8"
-            onPress={handlePressEdit}
-          >
-            <LinearGradient
-              {...gradients.primary}
-              style={{
-                width: 60,
-                height: 60,
-                borderRadius: 30,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+          {!isGuest ? (
+            <Fab
+              className="w-15 h-15 rounded-full bottom-8 right-8"
+              onPress={handlePressEdit}
             >
-              <IconPencil size={36} color="white" />
-            </LinearGradient>
-          </Fab>
+              <LinearGradient
+                {...gradients.primary}
+                style={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: 30,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <IconPencil size={36} color="white" />
+              </LinearGradient>
+            </Fab>
+          ) : null}
         </VStack>
       </SafeAreaView>
       <TagBottomSheet

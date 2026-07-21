@@ -1,4 +1,5 @@
 import { feedQuery, type CreateFeedCommentRequest } from "@entities/feed";
+import { useMemberAccess } from "@shared/hooks";
 import { Button, ButtonSpinner, ButtonText, Text, VStack } from "@shared/ui";
 import { useWatch } from "react-hook-form";
 import type { UseCreateFeedCommentFormReturn } from "../lib/use-create-feed-comment-form";
@@ -12,6 +13,7 @@ export function SaveCommentButton({
   feedId,
   form,
 }: SaveCommentButtonProps) {
+  const requireMember = useMemberAccess();
   const mutationToCreateComment = feedQuery.useCreateFeedComment({ feedId });
   const content = useWatch({
     control: form.control,
@@ -19,7 +21,9 @@ export function SaveCommentButton({
   });
 
   const handlePress = form.handleSubmit(
-    (request: CreateFeedCommentRequest) => {
+    async (request: CreateFeedCommentRequest) => {
+      if (!(await requireMember())) return;
+
       mutationToCreateComment.mutate(request, {
         onSuccess: () => {
           form.reset();

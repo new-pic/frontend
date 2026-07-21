@@ -27,12 +27,14 @@ export function CaptionContent({ form }: CaptionContentProps) {
     name: "tags",
     defaultValue: [],
   });
-  const { errors } = useFormState({
+  const { errors, isSubmitting } = useFormState({
     control: form.control,
     name: ["description", "tags"],
   });
 
   const updateTags = (tags: string[]) => {
+    if (isSubmitting) return;
+
     form.setValue("tags", tags, {
       shouldDirty: true,
       shouldTouch: true,
@@ -59,12 +61,16 @@ export function CaptionContent({ form }: CaptionContentProps) {
           name="description"
           control={form.control}
           render={({ field }) => (
-            <Textarea className="border-0 flex-1 px-8 py-2 ">
+            <Textarea
+              className="border-0 flex-1 px-8 py-2 "
+              isDisabled={isSubmitting}
+            >
               <TextareaInput
                 placeholder="내용을 입력해주세요."
                 value={field.value}
                 onChangeText={field.onChange}
                 onBlur={field.onBlur}
+                editable={!isSubmitting}
               />
               {errors.description?.message ? (
                 <Text className="text-red-500" size="xs">
@@ -74,7 +80,7 @@ export function CaptionContent({ form }: CaptionContentProps) {
             </Textarea>
           )}
         />
-        <Pressable onPress={handleOpenTagSheet}>
+        <Pressable disabled={isSubmitting} onPress={handleOpenTagSheet}>
           <HStack className="border-t border-outline-light">
             <VStack className="flex-1 px-8 py-4" space="sm">
               <HStack className="items-center justify-between">
@@ -101,7 +107,7 @@ export function CaptionContent({ form }: CaptionContentProps) {
       </VStack>
       <TagBottomSheet
         selectedTags={selectedTags}
-        isOpen={isBottomSheetOpen}
+        isOpen={isBottomSheetOpen && !isSubmitting}
         onSelectTag={handleSelectTag}
         onClose={handleCloseTagSheet}
       />

@@ -1,4 +1,4 @@
-import { UpdateProfileRequest, usersQuery } from "@entities/users";
+import { ProfileRequest, usersQuery } from "@entities/user";
 import { Button, ButtonText } from "@shared/ui";
 import { router } from "expo-router";
 import { UseSetupFormReturn } from "../lib/use-setup-form";
@@ -6,7 +6,7 @@ import { UseSetupFormReturn } from "../lib/use-setup-form";
 export function SetupButton({ form }: { form: UseSetupFormReturn }) {
   const mutationToUpdateProfile = usersQuery.useUpdateProfile();
 
-  const onSubmit = async (data: UpdateProfileRequest) => {
+  const onSubmit = async (data: ProfileRequest) => {
     mutationToUpdateProfile.mutate(data, {
       onSuccess: () => {
         router.replace("/feed");

@@ -1,6 +1,2 @@
-export {
-  deleteAccessToken,
-  getAccessToken,
-  setAccessToken,
-} from "./auth-token";
-export { ConfirmProvider, useConfirm } from "./confirm-context";
+export { useConfirm } from "./confirm";
+export type { ConfirmOptions } from "./confirm-types";

@@ -15,7 +15,7 @@ const FeedTagsSchema = z
   );
 
 export const FeedFormSchema = z.object({
-  image: z.string(),
+  image: z.string().min(1, "이미지를 선택해주세요."),
   imageFileName: z.string().optional(),
   description: z
     .string()
