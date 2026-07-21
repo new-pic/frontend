@@ -18,9 +18,10 @@ export function FeedPickButton({ feedId, isPicked }: FeedPickButtonProps) {
   const mutationToSave = feedQuery.useSaveFeed();
   const mutationToUnsave = feedQuery.useUnsaveFeed();
   const mutation = isPicked ? mutationToUnsave : mutationToSave;
+  const isPending = mutationToSave.isPending || mutationToUnsave.isPending;
 
   const handlePress = async () => {
-    if (!feedId || mutation.isPending) return;
+    if (!feedId || isPending) return;
 
     const now = Date.now();
 
@@ -37,6 +38,7 @@ export function FeedPickButton({ feedId, isPicked }: FeedPickButtonProps) {
       variant="ghost"
       size="icon"
       className="w-6 h-6"
+      disabled={isPending}
       onPress={handlePress}
     >
       <ButtonIcon

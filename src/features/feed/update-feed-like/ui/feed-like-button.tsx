@@ -18,9 +18,10 @@ export function FeedLikeButton({ feedId, isLiked }: FeedLikeButtonProps) {
   const mutationToLike = feedQuery.useLikeFeed();
   const mutationToUnlike = feedQuery.useUnlikeFeed();
   const mutation = isLiked ? mutationToUnlike : mutationToLike;
+  const isPending = mutationToLike.isPending || mutationToUnlike.isPending;
 
   const handlePress = async () => {
-    if (!feedId || mutation.isPending) return;
+    if (!feedId || isPending) return;
 
     const now = Date.now();
 
@@ -37,6 +38,7 @@ export function FeedLikeButton({ feedId, isLiked }: FeedLikeButtonProps) {
       variant="ghost"
       size="icon"
       className="w-6 h-6"
+      disabled={isPending}
       onPress={handlePress}
     >
       <ButtonIcon
