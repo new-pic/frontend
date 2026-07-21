@@ -63,22 +63,29 @@ export function TagBottomSheet({
 
   return (
     <BottomSheetModal open={isOpen} onClose={onClose} snapPoints={["100%"]}>
-      <VStack className="px-6 flex-1 py-3" space="xl">
-        <HStack className="justify-center">
-          <Text className="font-semibold text-lg">해시태그 검색</Text>
-        </HStack>
-        <Input>
-          <InputField
-            placeholder="검색어를 입력해주세요."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            returnKeyType="search"
-          />
-        </Input>
+      <VStack style={{ flex: 1, minHeight: 0 }}>
+        <VStack className="px-6 pt-3" space="xl">
+          <HStack className="justify-center">
+            <Text className="font-semibold text-lg">해시태그 검색</Text>
+          </HStack>
+          <Input>
+            <InputField
+              placeholder="검색어를 입력해주세요."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              returnKeyType="search"
+            />
+          </Input>
+        </VStack>
         <FlatList
           data={data}
           extraData={localSelectedTags}
-          style={{ flex: 1 }}
+          nestedScrollEnabled
+          style={{ flex: 1, minHeight: 0 }}
+          contentContainerStyle={{
+            paddingHorizontal: 24,
+            paddingTop: 20,
+          }}
           keyExtractor={(item) => item.label}
           renderItem={({ item }) => (
             <Pressable
@@ -99,39 +106,39 @@ export function TagBottomSheet({
             </Pressable>
           )}
         />
+        <HStack className="border-t border-outline-light">
+          <VStack className="flex-1 px-8 py-4" space="md">
+            <HStack className="items-center justify-between">
+              <Text className="font-semibold">선택한 해시태그</Text>
+            </HStack>
+            <HStack className="gap-1">
+              {localSelectedTags?.map((tag) => (
+                <Pressable onPress={() => handleTagPress(tag)} key={tag}>
+                  <Badge>
+                    <BadgeText>{tag}</BadgeText>
+                    <BadgeIcon as={IconX} color="white" />
+                  </Badge>
+                </Pressable>
+              ))}
+            </HStack>
+          </VStack>
+        </HStack>
+        <HStack className="px-8 py-4 gap-2">
+          <Button className="flex-1 h-10" variant="outline" onPress={onClose}>
+            <ButtonText>취소하기</ButtonText>
+          </Button>
+          <Button
+            className="flex-1 h-10"
+            variant="gradient"
+            onPress={() => {
+              onSelectTag?.(localSelectedTags);
+              onClose();
+            }}
+          >
+            <ButtonText>완료하기</ButtonText>
+          </Button>
+        </HStack>
       </VStack>
-      <HStack className="border-t border-outline-light">
-        <VStack className="flex-1 px-8 py-4" space="md">
-          <HStack className="items-center justify-between">
-            <Text className="font-semibold">선택한 해시태그</Text>
-          </HStack>
-          <HStack className="gap-1">
-            {localSelectedTags?.map((tag) => (
-              <Pressable onPress={() => handleTagPress(tag)} key={tag}>
-                <Badge>
-                  <BadgeText>{tag}</BadgeText>
-                  <BadgeIcon as={IconX} color="white" />
-                </Badge>
-              </Pressable>
-            ))}
-          </HStack>
-        </VStack>
-      </HStack>
-      <HStack className="px-8 py-4 gap-2">
-        <Button className="flex-1 h-10" variant="outline" onPress={onClose}>
-          <ButtonText>취소하기</ButtonText>
-        </Button>
-        <Button
-          className="flex-1 h-10"
-          variant="gradient"
-          onPress={() => {
-            onSelectTag?.(localSelectedTags);
-            onClose();
-          }}
-        >
-          <ButtonText>완료하기</ButtonText>
-        </Button>
-      </HStack>
     </BottomSheetModal>
   );
 }
