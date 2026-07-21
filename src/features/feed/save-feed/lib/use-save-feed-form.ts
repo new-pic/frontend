@@ -64,20 +64,21 @@ export function useSaveFeedForm({ mode }: UseSaveFeedFormProps) {
   });
 
   const handleValidSubmit = (
-    onValidResult: (data: FormData | UpdateFeedRequest) => void,
+    onValidResult: (data: FormData | UpdateFeedRequest) => void | Promise<void>,
+    onErrorResult?: (error: unknown) => void,
   ) =>
     form.handleSubmit(async (data) => {
       try {
         if (mode === "CREATE") {
           const formData = await transformToCreateFeedRequest(data);
-          onValidResult(formData);
+          await onValidResult(formData);
           return;
         }
         const transformedData = transformToUpdateFeedRequest(data);
         const result = UpdateFeedRequestSchema.parse(transformedData);
-        onValidResult(result);
+        await onValidResult(result);
       } catch (error) {
-        throw error;
+        onErrorResult?.(error);
       }
     });
 
