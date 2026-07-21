@@ -1,8 +1,11 @@
 import { feedQuery, FeedResponse } from "@entities/feed";
 import { FeedCommentForm } from "@features/feed/create-feed-comment";
+import { DeleteFeedButton } from "@features/feed/delete-feed";
+import { EditFeedButton } from "@features/feed/edit-feed";
 import { FeedLikeButton } from "@features/feed/update-feed-like";
 import { FeedPickButton } from "@features/feed/update-feed-pick";
 import { colors } from "@shared/constants";
+import { useAuthStore } from "@shared/model";
 import {
   Avatar,
   AvatarFallbackText,
@@ -33,6 +36,9 @@ export function FeedDetailContent({
   setCommentSort,
   handleGoBack,
 }: FeedDetailContentProps) {
+  const userId = useAuthStore((state) => state.userId);
+  const isMyFeed = Boolean(userId) && feed.author.id === userId;
+
   const {
     data: commentData,
     fetchNextPage: fetchNextCommentPage,
@@ -69,9 +75,17 @@ export function FeedDetailContent({
         <>
           <VStack className="pt-3 w-full">
             <VStack className="px-6 items-start border-b border-outline-light">
-              <Button variant="ghost" size="icon" onPress={handleGoBack}>
-                <ButtonIcon as={IconChevronLeft} />
-              </Button>
+              <HStack className="w-full items-center justify-between">
+                <Button variant="ghost" size="icon" onPress={handleGoBack}>
+                  <ButtonIcon as={IconChevronLeft} />
+                </Button>
+                {isMyFeed ? (
+                  <HStack className="items-center" space="xs">
+                    <EditFeedButton feedId={feed.id} />
+                    <DeleteFeedButton feedId={feed.id} />
+                  </HStack>
+                ) : null}
+              </HStack>
               <HStack className="items-center justify-between w-full py-2">
                 <HStack space="md" className="items-center px-1 py-2 ">
                   <Avatar className="h-8 w-8">
