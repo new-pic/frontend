@@ -81,8 +81,6 @@ export function FeedEditPage({ id, isEditMode }: FeedEditPageProps) {
     }
   }, [data]);
 
-  console.log("selectedImage", selectedImage, data);
-
   return (
     <SafeAreaView>
       <KeyboardDismissLayout>

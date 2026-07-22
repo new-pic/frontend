@@ -21,11 +21,11 @@ export function SaveFeedButton({ mode, form, feedId }: SaveFeedButtonProps) {
   const actionText = isCreate ? "등록" : "수정";
   const isPending = form.formState.isSubmitting;
 
-  const onRequestError = () => {
-    Alert.alert(
-      `피드 ${actionText} 실패`,
-      `피드를 ${actionText}하지 못했습니다. 잠시 후 다시 시도해주세요.`,
-    );
+  const onRequestError = (errorMessage?: string) => {
+    const message =
+      errorMessage ??
+      `피드를 ${actionText}하지 못했습니다. 잠시 후 다시 시도해주세요.`;
+    Alert.alert(`피드 ${actionText} 실패`, message);
   };
 
   const onValidResult = async (data: FormData | UpdateFeedRequest) => {

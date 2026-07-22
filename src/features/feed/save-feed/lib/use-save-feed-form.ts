@@ -12,6 +12,7 @@ import {
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { uriToFile } from "@shared/lib/file";
 import { ObjectToFormData } from "@shared/lib/form-data";
+import { AxiosError } from "axios";
 import { useForm } from "react-hook-form";
 import { FeedFormMode } from "../model";
 
@@ -65,10 +66,12 @@ export function useSaveFeedForm({ mode }: UseSaveFeedFormProps) {
 
   const handleValidSubmit = (
     onValidResult: (data: FormData | UpdateFeedRequest) => void | Promise<void>,
-    onErrorResult?: (error: unknown) => void,
+    onErrorResult?: (errorMessage?: string) => void,
   ) =>
     form.handleSubmit(async (data) => {
       try {
+        console.log(data);
+
         if (mode === "CREATE") {
           const formData = await transformToCreateFeedRequest(data);
           await onValidResult(formData);
@@ -78,7 +81,15 @@ export function useSaveFeedForm({ mode }: UseSaveFeedFormProps) {
         const result = UpdateFeedRequestSchema.parse(transformedData);
         await onValidResult(result);
       } catch (error) {
-        onErrorResult?.(error);
+        console.log("useSaveFeedForm.handleValidSubmit", JSON.stringify(error));
+        const errorMessage =
+          error instanceof AxiosError
+            ? error.response?.data?.message
+            : error instanceof Error
+              ? error.message
+              : undefined;
+
+        onErrorResult?.(errorMessage);
       }
     });
 
