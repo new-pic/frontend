@@ -70,7 +70,7 @@ export function FeedDetailContent({
       style={{ flex: 1 }}
       showsVerticalScrollIndicator={false}
       onEndReached={handleReachLastComment}
-      onEndReachedThreshold={0.5}
+      onEndReachedThreshold={0.2}
       ListHeaderComponent={
         <>
           <VStack className="pt-3 w-full">

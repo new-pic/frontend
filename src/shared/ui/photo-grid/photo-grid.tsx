@@ -47,7 +47,7 @@ export function PhotoGrid<T extends PhotoGridImage>({
       keyExtractor={(item) => item.id}
       numColumns={columns}
       onEndReached={onEndReached}
-      onEndReachedThreshold={0.5}
+      onEndReachedThreshold={0.2}
       ListFooterComponent={
         isFetchingNextPage ? (
           <Center className="py-4">

@@ -1,6 +1,6 @@
 import { feedQuery } from "@entities/feed";
 import { gradients } from "@shared/constants";
-import { useDebouncedValue, useMemberAccess } from "@shared/hooks";
+import { useDebouncedValue } from "@shared/hooks";
 import { useAuthStore } from "@shared/model";
 import { TagBottomSheet } from "@widgets/feed/tags";
 
@@ -25,7 +25,6 @@ import { FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function FeedPage() {
-  const requireMember = useMemberAccess();
   const isGuest = useAuthStore((state) => state.isGuest);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);

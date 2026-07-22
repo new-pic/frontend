@@ -1,10 +1,13 @@
 import {
-  BottomSheetModal as ExpoBottomSheetModal,
+  BottomSheet as ExpoBottomSheet,
   BottomSheetView as ExpoBottomSheetView,
 } from "@expo/ui/community/bottom-sheet";
-import { ReactNode, useEffect, useRef } from "react";
+import { ReactNode } from "react";
 
 const DEFAULT_SNAP_POINTS: string[] = ["50%", "100%"];
+const BOTTOM_SHEET_BACKGROUND_STYLE = {
+  backgroundColor: "white",
+};
 
 export interface BottomSheetModalProps {
   open: boolean;
@@ -21,26 +24,24 @@ export function BottomSheetModal({
   snapPoints = DEFAULT_SNAP_POINTS,
   isPanDownToCloseEnabled = true,
 }: BottomSheetModalProps) {
-  const sheetRef = useRef<ExpoBottomSheetModal>(null);
-
-  useEffect(() => {
-    if (open) {
-      sheetRef.current?.present();
-    } else {
-      sheetRef.current?.dismiss();
-    }
-  }, [open]);
   return (
-    <ExpoBottomSheetModal
-      ref={sheetRef}
+    <ExpoBottomSheet
+      index={open ? 0 : -1}
       onClose={onClose}
       snapPoints={snapPoints}
+      enableDynamicSizing={false}
       enablePanDownToClose={isPanDownToCloseEnabled}
-      backgroundStyle={{ backgroundColor: "white" }}
+      backgroundStyle={BOTTOM_SHEET_BACKGROUND_STYLE}
     >
-      <ExpoBottomSheetView style={{ flex: 1, minHeight: 0 }}>
+      <ExpoBottomSheetView
+        style={{
+          flexGrow: 1,
+          height: 0,
+          overflow: "hidden",
+        }}
+      >
         {children}
       </ExpoBottomSheetView>
-    </ExpoBottomSheetModal>
+    </ExpoBottomSheet>
   );
 }
