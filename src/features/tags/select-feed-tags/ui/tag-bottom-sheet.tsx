@@ -18,11 +18,15 @@ import {
 } from "@shared/ui";
 import { IconCheck, IconX } from "@tabler/icons-react-native";
 import { useEffect, useState } from "react";
-import { FlatList } from "react-native";
+import { FlatList, View } from "react-native";
+
+const TAG_BOTTOM_SHEET_SNAP_POINTS: string[] = ["100%"];
+const DEFAULT_MAX_SELECT_COUNT = 3;
 
 interface TagBottomSheetProps {
   isOpen: boolean;
   selectedTags?: string[];
+  maxSelectCount?: number;
   onSelectTag?: (tag: string[]) => void;
   onClose: () => void;
 }
@@ -30,6 +34,7 @@ interface TagBottomSheetProps {
 export function TagBottomSheet({
   isOpen,
   selectedTags,
+  maxSelectCount = DEFAULT_MAX_SELECT_COUNT,
   onSelectTag,
   onClose,
 }: TagBottomSheetProps) {
@@ -53,7 +58,7 @@ export function TagBottomSheet({
 
       if (nextTags.has(tag)) {
         nextTags.delete(tag);
-      } else if (nextTags.size < 3) {
+      } else if (nextTags.size < maxSelectCount) {
         nextTags.add(tag);
       }
 
@@ -62,9 +67,16 @@ export function TagBottomSheet({
   };
 
   return (
-    <BottomSheetModal open={isOpen} onClose={onClose} snapPoints={["100%"]}>
-      <VStack style={{ flex: 1, minHeight: 0 }}>
-        <VStack className="px-6 pt-3" space="xl">
+    <BottomSheetModal
+      open={isOpen}
+      onClose={onClose}
+      snapPoints={TAG_BOTTOM_SHEET_SNAP_POINTS}
+    >
+      <View
+        collapsable={false}
+        style={{ flexGrow: 1, height: 0, overflow: "hidden" }}
+      >
+        <VStack className="px-6 pt-3" style={{ flexShrink: 0 }} space="xl">
           <HStack className="justify-center">
             <Text className="font-semibold text-lg">해시태그 검색</Text>
           </HStack>
@@ -77,36 +89,45 @@ export function TagBottomSheet({
             />
           </Input>
         </VStack>
-        <FlatList
-          data={data}
-          extraData={localSelectedTags}
-          nestedScrollEnabled
-          style={{ flex: 1, minHeight: 0 }}
-          contentContainerStyle={{
-            paddingHorizontal: 24,
-            paddingTop: 20,
-          }}
-          keyExtractor={(item) => item.label}
-          renderItem={({ item }) => (
-            <Pressable
-              disabled={
-                !localSelectedTags.includes(item.label) &&
-                localSelectedTags.length >= 3
-              }
-              onPress={() => {
-                handleTagPress(item.label);
-              }}
-            >
-              <HStack className="px-2 py-3 items-center justify-between">
-                <Text className="font-medium"># {item.label}</Text>
-                {localSelectedTags?.includes(item.label) && (
-                  <Icon as={IconCheck} color={colors.brand.primary} />
-                )}
-              </HStack>
-            </Pressable>
-          )}
-        />
-        <HStack className="border-t border-outline-light">
+        <View
+          collapsable={false}
+          style={{ flexGrow: 1, height: 0, overflow: "hidden" }}
+        >
+          <FlatList
+            data={data}
+            extraData={localSelectedTags}
+            nestedScrollEnabled
+            style={{ flex: 1 }}
+            contentContainerStyle={{
+              paddingHorizontal: 24,
+              paddingTop: 20,
+            }}
+            keyExtractor={(item) => item.label}
+            renderItem={({ item }) => (
+              <Pressable
+                disabled={
+                  !localSelectedTags.includes(item.label) &&
+                  localSelectedTags.length >= maxSelectCount
+                }
+                onPress={() => {
+                  handleTagPress(item.label);
+                }}
+              >
+                <HStack className="px-2 py-3 items-center justify-between">
+                  <Text className="font-medium"># {item.label}</Text>
+                  {localSelectedTags?.includes(item.label) && (
+                    <Icon as={IconCheck} color={colors.brand.primary} />
+                  )}
+                </HStack>
+              </Pressable>
+            )}
+          />
+        </View>
+
+        <HStack
+          className="border-t border-outline-light"
+          style={{ flexShrink: 0 }}
+        >
           <VStack className="flex-1 px-8 py-4" space="md">
             <HStack className="items-center justify-between">
               <Text className="font-semibold">선택한 해시태그</Text>
@@ -123,7 +144,7 @@ export function TagBottomSheet({
             </HStack>
           </VStack>
         </HStack>
-        <HStack className="px-8 py-4 gap-2">
+        <HStack className="px-8 py-4 gap-2" style={{ flexShrink: 0 }}>
           <Button className="flex-1 h-10" variant="outline" onPress={onClose}>
             <ButtonText>취소하기</ButtonText>
           </Button>
@@ -138,7 +159,7 @@ export function TagBottomSheet({
             <ButtonText>완료하기</ButtonText>
           </Button>
         </HStack>
-      </VStack>
+      </View>
     </BottomSheetModal>
   );
 }

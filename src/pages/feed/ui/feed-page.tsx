@@ -1,27 +1,15 @@
 import { feedQuery } from "@entities/feed";
+import { TagBottomSheet, TagList } from "@features/tags/select-feed-tags";
 import { gradients } from "@shared/constants";
 import { useDebouncedValue } from "@shared/hooks";
 import { useAuthStore } from "@shared/model";
-import { TagBottomSheet } from "@widgets/feed/tags";
 
-import {
-  Badge,
-  BadgeText,
-  Fab,
-  HStack,
-  Icon,
-  Input,
-  InputField,
-  Pressable,
-  Text,
-  VStack,
-} from "@shared/ui";
+import { Fab, Input, InputField, Text, VStack } from "@shared/ui";
 import { PhotoGrid } from "@shared/ui/photo-grid";
-import { IconPencil, IconPlus } from "@tabler/icons-react-native";
+import { IconPencil } from "@tabler/icons-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useState } from "react";
-import { FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function FeedPage() {
@@ -71,6 +59,20 @@ export function FeedPage() {
     setSelectedTags(tags);
   };
 
+  const handleTagPress = (tag: string) => {
+    setSelectedTags((previousTags) => {
+      const nextTags = new Set(previousTags);
+
+      if (nextTags.has(tag)) {
+        nextTags.delete(tag);
+      } else {
+        nextTags.add(tag);
+      }
+
+      return [...nextTags];
+    });
+  };
+
   const handleEndReached = () => {
     if (!hasNextPage || isFetchingNextPage) return;
     void fetchNextPage();
@@ -94,30 +96,10 @@ export function FeedPage() {
                 />
               </Input>
             </VStack>
-            <FlatList
-              horizontal
-              data={selectedTags}
-              keyExtractor={(tag) => tag}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                alignItems: "center",
-                gap: 4,
-                paddingHorizontal: 24,
-                paddingVertical: 12,
-              }}
-              renderItem={({ item }) => (
-                <Badge>
-                  <BadgeText># {item}</BadgeText>
-                </Badge>
-              )}
-              ListFooterComponent={
-                <Pressable onPress={handleOpenTagBottomSheet}>
-                  <HStack className="h-8 px-3 items-center gap-1 rounded-full border border-outline-light">
-                    <Icon as={IconPlus} size="sm" />
-                    <Text size="sm">태그 선택</Text>
-                  </HStack>
-                </Pressable>
-              }
+            <TagList
+              tags={selectedTags}
+              readOnly={false}
+              onTagPress={handleTagPress}
             />
           </VStack>
           <PhotoGrid
