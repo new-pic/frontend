@@ -1,3 +1,4 @@
+import * as crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
 
 const DEVICE_UUID_KEY = "deviceUUID";
