@@ -11,6 +11,7 @@ const coreUploadFetchClient = async (
   url: string,
   method: UPLOAD_METHODS,
   formData: FormData,
+  headers?: Record<string, string>,
 ): Promise<{ data: any; status: number }> => {
   if (!env.API_URL) throw new Error("API_URL is not configured");
 
@@ -19,7 +20,10 @@ const coreUploadFetchClient = async (
   const res = await fetch(`${env.API_URL}${url}`, {
     method,
     headers: {
-      Authorization: `Bearer ${accessToken}`,
+      ...(accessToken
+        ? { Authorization: `Bearer ${accessToken}` }
+        : undefined),
+      ...headers,
     },
     body: formData,
   });
@@ -39,16 +43,17 @@ const coreUploadFetchClient = async (
 interface UploadFetchClientParams {
   url: string;
   formData: FormData;
+  headers?: Record<string, string>;
 }
 
 export const uploadFetchClient = {
-  post: async ({ url, formData }: UploadFetchClientParams) => {
-    return coreUploadFetchClient(url, "POST", formData);
+  post: async ({ url, formData, headers }: UploadFetchClientParams) => {
+    return coreUploadFetchClient(url, "POST", formData, headers);
   },
-  put: async ({ url, formData }: UploadFetchClientParams) => {
-    return coreUploadFetchClient(url, "PUT", formData);
+  put: async ({ url, formData, headers }: UploadFetchClientParams) => {
+    return coreUploadFetchClient(url, "PUT", formData, headers);
   },
-  patch: async ({ url, formData }: UploadFetchClientParams) => {
-    return coreUploadFetchClient(url, "PATCH", formData);
+  patch: async ({ url, formData, headers }: UploadFetchClientParams) => {
+    return coreUploadFetchClient(url, "PATCH", formData, headers);
   },
 };
