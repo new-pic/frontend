@@ -1,7 +1,7 @@
-import React, { forwardRef } from 'react';
-import type { VariantProps } from '@gluestack-ui/utils/nativewind-utils';
-import { View } from 'react-native';
-import { skeletonStyle, skeletonTextStyle } from './styles';
+import type { VariantProps } from "@gluestack-ui/utils/nativewind-utils";
+import React, { forwardRef } from "react";
+import { View } from "react-native";
+import { skeletonStyle, skeletonTextStyle } from "./styles";
 
 type ISkeletonProps = React.ComponentProps<typeof View> &
   VariantProps<typeof skeletonStyle> & {
@@ -23,12 +23,12 @@ const Skeleton = forwardRef<React.ComponentRef<typeof View>, ISkeletonProps>(
       className,
       variant,
       children,
-      startColor = 'bg-accent',
+      startColor = "bg-outline",
       isLoaded = false,
       speed = 4,
       ...props
     },
-    ref
+    ref,
   ) {
     if (!isLoaded) {
       return (
@@ -45,7 +45,7 @@ const Skeleton = forwardRef<React.ComponentRef<typeof View>, ISkeletonProps>(
     } else {
       return children;
     }
-  }
+  },
 );
 
 const SkeletonText = forwardRef<
@@ -56,12 +56,12 @@ const SkeletonText = forwardRef<
     className,
     _lines,
     isLoaded = false,
-    startColor = 'bg-accent',
+    startColor = "bg-outline",
     gap = 2,
     children,
     ...props
   },
-  ref
+  ref,
 ) {
   if (!isLoaded) {
     if (_lines) {
@@ -99,7 +99,7 @@ const SkeletonText = forwardRef<
   }
 });
 
-Skeleton.displayName = 'Skeleton';
-SkeletonText.displayName = 'SkeletonText';
+Skeleton.displayName = "Skeleton";
+SkeletonText.displayName = "SkeletonText";
 
 export { Skeleton, SkeletonText };

@@ -19,7 +19,7 @@ export function FeedPage() {
   const [isTagBottomSheetOpen, setIsTagBottomSheetOpen] = useState(false);
   const debouncedSearchQuery = useDebouncedValue(searchQuery.trim(), 400);
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, isPending, fetchNextPage, hasNextPage, isFetchingNextPage } =
     feedQuery.useReadFeeds({
       take: 24,
       q: debouncedSearchQuery || undefined,
@@ -106,6 +106,7 @@ export function FeedPage() {
             images={feedImages}
             onPress={(feed, index) => handlePressFeed(feed.id, index)}
             onEndReached={handleEndReached}
+            isPending={isPending}
             isFetchingNextPage={isFetchingNextPage}
           />
           {!isGuest ? (

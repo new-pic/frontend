@@ -2,9 +2,11 @@ import { colors } from "@shared/constants";
 import { IconCircleCheck } from "@tabler/icons-react-native";
 import { useMemo } from "react";
 import { ActivityIndicator, Dimensions, FlatList, Image } from "react-native";
+import { Box } from "../box";
 import { Center } from "../center";
 import { Fab, FabIcon } from "../fab";
 import { Pressable } from "../pressable";
+import { Skeleton } from "../skeleton";
 import { Text } from "../text";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -14,12 +16,38 @@ export interface PhotoGridImage {
   imageUrl: string;
 }
 
+function PhotoGridSkeleton({ columns = 3 }: { columns?: number }) {
+  const imageSize = useMemo(() => SCREEN_WIDTH / columns, [columns]);
+  const skeletonItems = Array.from({ length: 20 }, (_, index) => index);
+
+  return (
+    <FlatList
+      data={skeletonItems}
+      keyExtractor={(item) => item.toString()}
+      numColumns={columns}
+      style={{ gap: 4 }}
+      renderItem={() => (
+        <Box
+          style={{
+            flex: 1,
+            width: imageSize,
+            aspectRatio: 4 / 5,
+          }}
+        >
+          <Skeleton variant="sharp" />
+        </Box>
+      )}
+    />
+  );
+}
+
 export interface PhotoGridProps<T extends PhotoGridImage = PhotoGridImage> {
   images: T[];
   selectedImages?: Array<{ id: string }>;
   columns?: number;
   onPress?: (image: T, index: number) => void;
   onEndReached?: () => void;
+  isPending?: boolean;
   isFetchingNextPage?: boolean;
 }
 
@@ -29,9 +57,14 @@ export function PhotoGrid<T extends PhotoGridImage>({
   columns = 3,
   onPress,
   onEndReached,
+  isPending = false,
   isFetchingNextPage = false,
 }: PhotoGridProps<T>) {
   const imageSize = useMemo(() => SCREEN_WIDTH / columns, [columns]);
+
+  if (isPending) {
+    return <PhotoGridSkeleton columns={columns} />;
+  }
 
   if (!images || images.length === 0) {
     return (
