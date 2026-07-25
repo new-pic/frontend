@@ -1,6 +1,10 @@
 // 피드 게시하기 / 수정하기 공통 사용 버튼
 
-import { feedQuery, UpdateFeedRequest } from "@entities/feed";
+import {
+  CreateFeedRequest,
+  feedQuery,
+  UpdateFeedRequest,
+} from "@entities/feed";
 import { Button, ButtonSpinner, ButtonText } from "@shared/ui";
 import { router } from "expo-router";
 import { Alert } from "react-native";
@@ -28,20 +32,28 @@ export function SaveFeedButton({ mode, form, feedId }: SaveFeedButtonProps) {
     Alert.alert(`피드 ${actionText} 실패`, message);
   };
 
-  const onValidResult = async (data: FormData | UpdateFeedRequest) => {
-    if (isCreate) {
-      await mutationToCreate.mutateAsync(data as FormData);
-    } else {
-      await mutationToUpdate.mutateAsync(
-        data as Exclude<typeof data, FormData>,
-      );
-    }
-
+  const handleRequestSuccess = () => {
     Alert.alert(`피드 ${actionText} 완료`, `피드가 ${actionText}되었습니다.`);
     router.replace("/feed");
   };
 
-  const handlePress = form.handleValidSubmit(onValidResult, onRequestError);
+  const handleCreate = async (request: CreateFeedRequest) => {
+    await mutationToCreate.mutateAsync(request);
+    handleRequestSuccess();
+  };
+
+  const handleUpdate = async (request: UpdateFeedRequest) => {
+    await mutationToUpdate.mutateAsync(request);
+    handleRequestSuccess();
+  };
+
+  const handlePress = form.handleValidSubmit(
+    {
+      onCreate: handleCreate,
+      onUpdate: handleUpdate,
+    },
+    onRequestError,
+  );
 
   return (
     <Button

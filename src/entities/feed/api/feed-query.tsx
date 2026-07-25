@@ -1,4 +1,5 @@
 import { apiClient, privateApiClient, uploadFetchClient } from "@shared/api";
+import { ObjectToFormData } from "@shared/lib";
 import {
   type InfiniteData,
   type QueryClient,
@@ -13,6 +14,7 @@ import {
   CommentListParams,
   CommentListResponse,
   CreateFeedCommentRequest,
+  CreateFeedRequest,
   FeedCommentResponse,
   FeedItemResponse,
   FeedListParams,
@@ -195,7 +197,8 @@ export function useReadTags({ keyword }: { keyword?: string }) {
 export function useCreateFeed() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (formData: FormData) => {
+    mutationFn: async (request: CreateFeedRequest) => {
+      const formData = ObjectToFormData(request);
       const response = await uploadFetchClient.post({ url: "/feed", formData });
       return response.data;
     },
