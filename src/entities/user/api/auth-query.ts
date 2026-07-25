@@ -7,7 +7,7 @@ import {
   GoogleLoginResponse,
   TokenResponse,
 } from "../model";
-import { getAndCreateDeviceUUID } from "../model/device-uuid";
+import { getAndCreateDeviceUUID } from "../../../shared/lib/device-uuid";
 
 const QUERY_KEY = [API_QUERY_KEY, "auth"];
 
