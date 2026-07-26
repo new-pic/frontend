@@ -22,6 +22,7 @@ interface AuthStore {
   userId: string | null;
   isLoggedIn: boolean;
   isGuest: boolean;
+  isInitialized: boolean;
 
   setSession: ({
     accessToken,
@@ -41,6 +42,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
   userId: null,
   isLoggedIn: false,
   isGuest: false,
+  isInitialized: false,
 
   setSession: async ({ accessToken, refreshToken }) => {
     await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
@@ -52,6 +54,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       userId,
       isGuest,
       isLoggedIn: true,
+      isInitialized: true,
     }));
   },
   setUserId: (userId) => set(() => ({ userId })),
@@ -63,6 +66,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       userId: null,
       isLoggedIn: false,
       isGuest: false,
+      isInitialized: true,
     }));
   },
   prepareGoogleLink: () => set(() => ({ isGuest: true, isLoggedIn: false })),
@@ -77,6 +81,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
           accessToken: token,
           userId,
           isGuest,
+          isInitialized: true,
         });
       } else {
         // 토큰이 없다면 게스트 상태이거나 첫 진입
@@ -85,6 +90,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
           accessToken: null,
           userId: null,
           isGuest,
+          isInitialized: true,
         });
       }
     } catch {
@@ -93,6 +99,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
         accessToken: null,
         userId: null,
         isGuest: false,
+        isInitialized: true,
       });
     }
   },

@@ -1,4 +1,5 @@
 import { GluestackUIProvider } from "@shared/ui/gluestack-ui-provider";
+import { registerGlobals } from "@livekit/react-native";
 import { useFonts } from "expo-font";
 import { router, Stack, usePathname } from "expo-router";
 
@@ -8,7 +9,12 @@ import "./global.css";
 import "@shared/api/interceptors";
 import { useAuthStore } from "@shared/model";
 import { useEffect } from "react";
+import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+
+if (Platform.OS !== "web") {
+  registerGlobals();
+}
 
 const queryClient = new QueryClient();
 
@@ -19,6 +25,7 @@ export default function RootLayout() {
     (state) => state.initializeAuthState,
   );
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const isInitialized = useAuthStore((state) => state.isInitialized);
 
   const [loaded] = useFonts({
     "Paperlogy-1Thin": require("@assets/fonts/Paperlogy-1Thin.ttf"),
@@ -40,15 +47,20 @@ export default function RootLayout() {
   }, [initializeAuthState]);
 
   useEffect(() => {
+    if (!isInitialized) return;
+
+    const isPublicRtcPath =
+      pathname === "/rtc/join" || pathname === "/rtc/viewer";
+
     // 로그인 되어있지 않고 루트 경로가 아닌 경우, 루트 경로로 이동
-    if (!isLoggedIn && pathname !== "/") {
+    if (!isLoggedIn && pathname !== "/" && !isPublicRtcPath) {
       router.replace("/");
     }
     // 로그인 되어있고 루트 경로인 경우, 피드 페이지로 이동
     else if (isLoggedIn && pathname === "/") {
       router.replace("/feed");
     }
-  }, [isLoggedIn]);
+  }, [isInitialized, isLoggedIn, pathname]);
 
   if (!loaded) return null;
 
