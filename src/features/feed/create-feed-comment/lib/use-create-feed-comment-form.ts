@@ -1,5 +1,7 @@
-import type { CreateFeedCommentRequest } from "@entities/feed";
-import { CreateFeedCommentRequestSchema } from "@entities/feed/model/schema";
+import {
+  CreateFeedCommentRequest,
+  CreateFeedCommentRequestSchema,
+} from "@entities/feed";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { useForm } from "react-hook-form";
 

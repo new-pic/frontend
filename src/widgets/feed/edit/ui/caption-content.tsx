@@ -1,4 +1,4 @@
-import { UseSaveFeedFormReturn } from "@features/feed/save-feed/lib/use-save-feed-form";
+import type { UseSaveFeedFormReturn } from "@features/feed/save-feed";
 import { TagBottomSheet, TagList } from "@features/tags/select-feed-tags";
 import {
   HStack,

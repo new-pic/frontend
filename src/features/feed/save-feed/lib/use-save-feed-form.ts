@@ -1,16 +1,14 @@
 import {
   CreateFeedRequest,
+  CreateFeedRequestSchema,
   FeedFormValues,
+  FeedFormSchema,
   UpdateFeedRequest,
   UpdateFeedRequestInput,
-} from "@entities/feed";
-import {
-  CreateFeedRequestSchema,
-  FeedFormSchema,
   UpdateFeedRequestSchema,
-} from "@entities/feed/model/schema";
+} from "@entities/feed";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
-import { uriToFile } from "@shared/lib/file";
+import { uriToFile } from "@shared/lib";
 import { AxiosError } from "axios";
 import { useForm } from "react-hook-form";
 import { FeedFormMode } from "../model";
