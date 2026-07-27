@@ -17,12 +17,14 @@ import { SessionPhoto } from "../model/models";
  */
 interface CameraControlsProps {
   thumbnail?: SessionPhoto | null;
+  isTakePhotoDisabled?: boolean;
   onTakePhoto: () => void;
   onChangePosition: () => void;
 }
 
 export function CameraControls({
   thumbnail,
+  isTakePhotoDisabled = false,
   onTakePhoto,
   onChangePosition,
 }: CameraControlsProps) {
@@ -47,7 +49,13 @@ export function CameraControls({
         <Button
           variant="outline"
           className="w-20 h-20 rounded-full"
+          disabled={isTakePhotoDisabled}
           onPress={onTakePhoto}
+          accessibilityLabel={
+            isTakePhotoDisabled
+              ? "사진 촬영 한도에 도달함"
+              : "사진 촬영"
+          }
         />
         <Button
           variant="ghost"
