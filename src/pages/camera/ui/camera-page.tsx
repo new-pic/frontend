@@ -1,15 +1,479 @@
-import { VStack } from "@shared/ui";
-import { Camera } from "@widgets/camera";
+import {
+  RTC_MAX_CAPTURED_PHOTOS,
+  rtcHostQuery,
+  RtcEndRoomResponse,
+  RtcLiveKitConnection,
+  useRtcStore,
+} from "@entities/rtc";
+import {
+  Camera,
+  SessionPhoto,
+} from "@features/camera/capture-photo";
+import { visionCameraRtcFrameSink } from "@newpic/vision-camera-rtc";
+import {
+  RTC_NAVIGATION,
+  RtcNavigationSearchParams,
+} from "@shared/config";
+import { uriToFile } from "@shared/lib";
+import { Box, VStack } from "@shared/ui";
+import { CameraHeader } from "@widgets/camera-header";
+import { RtcJoinSheet } from "@widgets/rtc-join-sheet";
+import * as Linking from "expo-linking";
+import {
+  router,
+  useFocusEffect,
+  useLocalSearchParams,
+} from "expo-router";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { RtcHostLiveKitPage } from "./rtc-livekit-page";
+import { SharingCameraSheet } from "./sharing-camera-page";
+import { SharingEndSelectionPage } from "./sharing-end-selection-page";
+import { SharingResultPage } from "./sharing-result-page";
+
+type CameraMode = "VISION_CAMERA" | "RESULT";
+
+interface ResultImage {
+  id: string;
+  imageUrl: string;
+}
+
+interface EndPhotoSelectionRequest {
+  resolve: (photos: SessionPhoto[]) => void;
+  reject: (reason: Error) => void;
+}
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error
+    ? error.message
+    : "잠시 후 다시 시도해주세요.";
 
 export function CameraPage() {
-  console.log("CameraPage");
+  const searchParams =
+    useLocalSearchParams<RtcNavigationSearchParams>();
+  const joinCodeParam =
+    searchParams[RTC_NAVIGATION.params.code];
+  const joinSheetParam =
+    searchParams[RTC_NAVIGATION.params.joinSheet];
+  const returnJoinCode = Array.isArray(joinCodeParam)
+    ? joinCodeParam[0]
+    : joinCodeParam;
+  const shouldRestoreJoinSheet =
+    (Array.isArray(joinSheetParam)
+      ? joinSheetParam[0]
+      : joinSheetParam) ===
+    RTC_NAVIGATION.values.joinSheetOpen;
+  const hostSession = useRtcStore((state) => state.hostSession);
+  const clearHostSession = useRtcStore(
+    (state) => state.clearHostSession,
+  );
+  const clearLiveKitConnection = useRtcStore(
+    (state) => state.clearLiveKitConnection,
+  );
+  const createRoomMutation = rtcHostQuery.useCreateRtcRoom();
+  const createHostTokenMutation =
+    rtcHostQuery.useCreateHostLiveKitToken();
+  const endRoomMutation = rtcHostQuery.useEndRtcRoom();
+  const [cameraMode, setCameraMode] =
+    useState<CameraMode>("VISION_CAMERA");
+  const [isShareSheetOpen, setIsShareSheetOpen] =
+    useState(false);
+  const [isJoinSheetOpen, setIsJoinSheetOpen] =
+    useState(false);
+  const [joinInitialCode, setJoinInitialCode] =
+    useState<string | undefined>();
+  const [isCameraPageFocused, setIsCameraPageFocused] =
+    useState(false);
+  const [isVisionCameraActive, setIsVisionCameraActive] =
+    useState(true);
+  const [isVisionCameraRunning, setIsVisionCameraRunning] =
+    useState(false);
+  const [broadcastConnection, setBroadcastConnection] =
+    useState<RtcLiveKitConnection | null>(null);
+  const [capturedPhotos, setCapturedPhotos] = useState<
+    SessionPhoto[]
+  >([]);
+  const [resultImages, setResultImages] = useState<
+    ResultImage[] | null
+  >(null);
+  const [isEndPhotoSelectionOpen, setIsEndPhotoSelectionOpen] =
+    useState(false);
+  const isVisionCameraRunningRef = useRef(false);
+  const isCameraPageFocusedRef = useRef(false);
+  const endPhotoSelectionRequestRef =
+    useRef<EndPhotoSelectionRequest | null>(null);
+  const selectedEndPhotosRef = useRef<SessionPhoto[] | null>(
+    null,
+  );
+
+  useEffect(() => {
+    return () => {
+      endPhotoSelectionRequestRef.current?.reject(
+        new Error("화면을 벗어나 사진 선택이 취소되었습니다."),
+      );
+      endPhotoSelectionRequestRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!shouldRestoreJoinSheet) return;
+
+    setJoinInitialCode(returnJoinCode);
+    setIsJoinSheetOpen(true);
+  }, [returnJoinCode, shouldRestoreJoinSheet]);
+
+  useFocusEffect(
+    useCallback(() => {
+      isCameraPageFocusedRef.current = true;
+      setIsCameraPageFocused(true);
+
+      if (cameraMode === "VISION_CAMERA") {
+        setIsVisionCameraActive(true);
+      }
+
+      return () => {
+        isCameraPageFocusedRef.current = false;
+        setIsCameraPageFocused(false);
+        // Tab/Stack에 화면 instance가 남아 있어도 카메라 session이
+        // background에서 계속 실행되지 않도록 focus 수명에 묶습니다.
+        setIsVisionCameraActive(false);
+      };
+    }, [cameraMode]),
+  );
+
+  const roomId = hostSession?.roomId ?? "";
+  const roomQuery = rtcHostQuery.useReadRtcRoom(roomId, {
+    enabled: isShareSheetOpen,
+  });
+  const participants = roomQuery.data?.participants ?? [];
+  const qrValue = useMemo(
+    () =>
+      hostSession
+        ? Linking.createURL(RTC_NAVIGATION.paths.join, {
+            queryParams: {
+              [RTC_NAVIGATION.params.code]:
+                hostSession.joinCode,
+            },
+          })
+        : "",
+    [hostSession],
+  );
+
+  const handleVisionCameraStopped = () => {
+    isVisionCameraRunningRef.current = false;
+    setIsVisionCameraRunning(false);
+  };
+
+  const handleOpenShare = async () => {
+    if (createRoomMutation.isPending) return;
+
+    try {
+      setIsJoinSheetOpen(false);
+      await createRoomMutation.mutateAsync({
+        expiresInMinutes: 60,
+      });
+      setCapturedPhotos([]);
+      selectedEndPhotosRef.current = null;
+      setIsShareSheetOpen(true);
+    } catch (error) {
+      Alert.alert("RTC 방 생성 실패", getErrorMessage(error));
+    }
+  };
+
+  const handleOpenJoinSheet = () => {
+    setJoinInitialCode(undefined);
+    setIsJoinSheetOpen(true);
+    router.setParams({
+      [RTC_NAVIGATION.params.joinSheet]:
+        RTC_NAVIGATION.values.joinSheetOpen,
+    });
+  };
+
+  const handleCloseJoinSheet = () => {
+    setIsJoinSheetOpen(false);
+    setJoinInitialCode(undefined);
+
+    if (shouldRestoreJoinSheet) {
+      router.replace(RTC_NAVIGATION.paths.camera);
+    }
+  };
+
+  const handleCancelShare = async () => {
+    if (!hostSession || endRoomMutation.isPending) return;
+
+    try {
+      await endRoomMutation.mutateAsync({
+        roomId: hostSession.roomId,
+      });
+      clearHostSession();
+      clearLiveKitConnection();
+      setIsShareSheetOpen(false);
+    } catch (error) {
+      Alert.alert("RTC 방 종료 실패", getErrorMessage(error));
+    }
+  };
+
+  const handleStartShare = async () => {
+    if (
+      !hostSession ||
+      createHostTokenMutation.isPending ||
+      broadcastConnection
+    ) {
+      return;
+    }
+    if (
+      !isCameraPageFocusedRef.current ||
+      !isVisionCameraRunningRef.current
+    ) {
+      Alert.alert(
+        "카메라 준비 중",
+        "카메라가 시작된 뒤 다시 공유해주세요.",
+      );
+      return;
+    }
+
+    try {
+      const response =
+        await createHostTokenMutation.mutateAsync({
+          roomId: hostSession.roomId,
+        });
+      if (
+        !isCameraPageFocusedRef.current ||
+        !isVisionCameraRunningRef.current
+      ) {
+        clearLiveKitConnection();
+        Alert.alert(
+          "카메라 상태 변경",
+          "카메라가 중지되어 LiveKit 송출을 시작하지 않았습니다.",
+        );
+        return;
+      }
+      const connection: RtcLiveKitConnection = {
+        role: "HOST",
+        url: response.url,
+        token: response.token,
+        expiresAt: response.expiresAt,
+      };
+
+      // VisionCamera는 그대로 실행됩니다. HOST RTC 계층은 같은
+      // CameraSession의 FrameOutput으로 만든 외부 track만 publish합니다.
+      setBroadcastConnection(connection);
+      setIsShareSheetOpen(false);
+    } catch (error) {
+      Alert.alert(
+        "실시간 공유 시작 실패",
+        getErrorMessage(error),
+      );
+    }
+  };
+
+  const handlePrepareEndRoom = async (): Promise<void> => {
+    if (!hostSession) {
+      throw new Error(
+        "RTC 방 정보가 없습니다. 방 종료를 다시 시도해주세요.",
+      );
+    }
+
+    if (selectedEndPhotosRef.current) return;
+
+    const selectedPhotos = await new Promise<SessionPhoto[]>(
+      (resolve, reject) => {
+        endPhotoSelectionRequestRef.current = {
+          resolve,
+          reject,
+        };
+        setIsEndPhotoSelectionOpen(true);
+      },
+    );
+    selectedEndPhotosRef.current = selectedPhotos;
+  };
+
+  const handleEndRoom = async (): Promise<RtcEndRoomResponse> => {
+    if (!hostSession) {
+      throw new Error(
+        "RTC 방 정보가 없습니다. 방 종료를 다시 시도해주세요.",
+      );
+    }
+    if (!selectedEndPhotosRef.current) {
+      throw new Error(
+        "방에 저장할 사진 선택을 완료하지 못했습니다.",
+      );
+    }
+
+    const images = await Promise.all(
+      selectedEndPhotosRef.current.map(({ uri }) =>
+        uriToFile({ uri }),
+      ),
+    );
+
+    return endRoomMutation.mutateAsync({
+      roomId: hostSession.roomId,
+      request: images.length > 0 ? { images } : undefined,
+    });
+  };
+
+  const handleConfirmEndPhotoSelection = (
+    selectedPhotos: SessionPhoto[],
+  ) => {
+    const request = endPhotoSelectionRequestRef.current;
+    if (!request) return;
+
+    endPhotoSelectionRequestRef.current = null;
+    selectedEndPhotosRef.current = selectedPhotos;
+    setIsEndPhotoSelectionOpen(false);
+    request.resolve(selectedPhotos);
+  };
+
+  const handleHostStopped = (result: RtcEndRoomResponse) => {
+    const savedImages = result.savedImages.map(({ id, url }) => ({
+      id,
+      imageUrl: url,
+    }));
+    const localImages = (selectedEndPhotosRef.current ?? []).map(
+      ({ id, uri }) => ({
+        id,
+        imageUrl: uri,
+      }),
+    );
+
+    clearHostSession();
+    clearLiveKitConnection();
+    setBroadcastConnection(null);
+    selectedEndPhotosRef.current = null;
+    isVisionCameraRunningRef.current = false;
+    setIsVisionCameraRunning(false);
+    setIsVisionCameraActive(false);
+    setResultImages(
+      savedImages.length > 0 ? savedImages : localImages,
+    );
+    setCameraMode("RESULT");
+  };
+
+  const handleCloseResult = () => {
+    setResultImages(null);
+    setCapturedPhotos([]);
+    isVisionCameraRunningRef.current = false;
+    setIsVisionCameraRunning(false);
+    setCameraMode("VISION_CAMERA");
+    setIsVisionCameraActive(true);
+  };
+
+  const handlePhotoLimitReached = useCallback((maxPhotos: number) => {
+    Alert.alert(
+      "사진 촬영 한도",
+      `한 방에서 사진은 최대 ${maxPhotos}장까지 촬영할 수 있습니다.`,
+    );
+  }, []);
+
+  if (cameraMode === "RESULT" && resultImages) {
+    return (
+      <SharingResultPage
+        images={resultImages}
+        onDone={handleCloseResult}
+      />
+    );
+  }
 
   return (
-    <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
-      <VStack className="h-full">
-        <Camera />
-      </VStack>
-    </SafeAreaView>
+    <>
+      <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
+        <VStack className="h-full">
+          <Camera
+            isActive={isVisionCameraActive}
+            onClose={() => router.back()}
+            renderHeader={({ onChangeFlashMode }) => (
+              <CameraHeader
+                onBackPress={() => router.back()}
+                onChangeFlashMode={onChangeFlashMode}
+                onSharePress={() => void handleOpenShare()}
+                onJoinPress={handleOpenJoinSheet}
+                isCreatingRoom={
+                  createRoomMutation.isPending ||
+                  Boolean(broadcastConnection)
+                }
+                isCameraReady={isVisionCameraRunning}
+              />
+            )}
+            onStarted={() => {
+              isVisionCameraRunningRef.current = true;
+              setIsVisionCameraRunning(true);
+            }}
+            onStopped={handleVisionCameraStopped}
+            photos={capturedPhotos}
+            maxPhotos={RTC_MAX_CAPTURED_PHOTOS}
+            onPhotoTaken={(photo) =>
+              setCapturedPhotos((previous) =>
+                previous.length >= RTC_MAX_CAPTURED_PHOTOS
+                  ? previous
+                  : [...previous, photo],
+              )
+            }
+            onPhotoLimitReached={handlePhotoLimitReached}
+            videoFrameSink={visionCameraRtcFrameSink}
+          />
+        </VStack>
+      </SafeAreaView>
+
+      {broadcastConnection ? (
+        <RtcHostLiveKitPage
+          connection={broadcastConnection}
+          isActive={
+            isCameraPageFocused && isVisionCameraActive
+          }
+          onPrepareEndRoom={handlePrepareEndRoom}
+          onEndRoom={handleEndRoom}
+          onStopped={handleHostStopped}
+        />
+      ) : null}
+
+      <RtcJoinSheet
+        open={isJoinSheetOpen}
+        initialCode={joinInitialCode}
+        onClose={handleCloseJoinSheet}
+      />
+
+      {isShareSheetOpen && hostSession ? (
+        <SharingCameraSheet
+          joinCode={hostSession.joinCode}
+          qrValue={qrValue}
+          participantCount={participants.length}
+          participantNames={participants.map(
+            ({ nickname }) => nickname,
+          )}
+          canStart={isVisionCameraRunning}
+          isStarting={
+            createHostTokenMutation.isPending ||
+            endRoomMutation.isPending
+          }
+          onCancel={() => void handleCancelShare()}
+          onStart={() => void handleStartShare()}
+        />
+      ) : null}
+
+      {isEndPhotoSelectionOpen ? (
+        <Box
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            zIndex: 50,
+          }}
+        >
+          <SharingEndSelectionPage
+            photos={capturedPhotos}
+            onConfirm={handleConfirmEndPhotoSelection}
+          />
+        </Box>
+      ) : null}
+    </>
   );
 }
