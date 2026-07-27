@@ -1,15 +1,25 @@
 import { ProfileRequest, usersQuery } from "@entities/user";
+import { normalizeAuthReturnTo } from "@shared/lib";
 import { Button, ButtonText } from "@shared/ui";
-import { router } from "expo-router";
+import {
+  Href,
+  router,
+  useLocalSearchParams,
+} from "expo-router";
 import { UseSetupFormReturn } from "../lib/use-setup-form";
 
 export function SetupButton({ form }: { form: UseSetupFormReturn }) {
+  const { returnTo: returnToParam } = useLocalSearchParams<{
+    returnTo?: string | string[];
+  }>();
   const mutationToUpdateProfile = usersQuery.useUpdateProfile();
 
   const onSubmit = async (data: ProfileRequest) => {
     mutationToUpdateProfile.mutate(data, {
       onSuccess: () => {
-        router.replace("/feed");
+        router.replace(
+          normalizeAuthReturnTo(returnToParam) as Href,
+        );
       },
     });
   };

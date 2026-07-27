@@ -1,7 +1,23 @@
-import { GluestackUIProvider } from "@shared/ui/gluestack-ui-provider";
 import { registerGlobals } from "@livekit/react-native";
+import {
+  createCameraJoinPath,
+  createRtcJoinPath,
+  RTC_NAVIGATION,
+  RtcNavigationSearchParams,
+} from "@shared/config";
+import {
+  getFirstSearchParam,
+  normalizeAuthReturnTo,
+} from "@shared/lib";
+import { GluestackUIProvider } from "@shared/ui/gluestack-ui-provider";
 import { useFonts } from "expo-font";
-import { router, Stack, usePathname } from "expo-router";
+import {
+  Href,
+  router,
+  Stack,
+  useGlobalSearchParams,
+  usePathname,
+} from "expo-router";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./global.css";
@@ -20,11 +36,23 @@ const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const pathname = usePathname();
+  const searchParams = useGlobalSearchParams<
+    RtcNavigationSearchParams & {
+      returnTo?: string | string[];
+    }
+  >();
+  const codeParam =
+    searchParams[RTC_NAVIGATION.params.code];
+  const joinSheetParam =
+    searchParams[RTC_NAVIGATION.params.joinSheet];
+  const returnToParam = searchParams.returnTo;
 
   const initializeAuthState = useAuthStore(
     (state) => state.initializeAuthState,
   );
-  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const accessToken = useAuthStore(
+    (state) => state.accessToken,
+  );
   const isInitialized = useAuthStore((state) => state.isInitialized);
 
   const [loaded] = useFonts({
@@ -49,18 +77,43 @@ export default function RootLayout() {
   useEffect(() => {
     if (!isInitialized) return;
 
-    const isPublicRtcPath =
-      pathname === "/rtc/join" || pathname === "/rtc/viewer";
+    const code = getFirstSearchParam(codeParam);
+    const joinSheet = getFirstSearchParam(joinSheetParam);
+    let currentReturnTo = pathname;
 
-    // 로그인 되어있지 않고 루트 경로가 아닌 경우, 루트 경로로 이동
-    if (!isLoggedIn && pathname !== "/" && !isPublicRtcPath) {
-      router.replace("/");
+    if (pathname === RTC_NAVIGATION.paths.join && code) {
+      currentReturnTo = createRtcJoinPath(code);
+    } else if (
+      pathname === RTC_NAVIGATION.paths.camera &&
+      joinSheet === RTC_NAVIGATION.values.joinSheetOpen
+    ) {
+      currentReturnTo = createCameraJoinPath(code);
     }
-    // 로그인 되어있고 루트 경로인 경우, 피드 페이지로 이동
-    else if (isLoggedIn && pathname === "/") {
-      router.replace("/feed");
+
+    // 앱 access token이 없으면 RTC 경로도 포함해 로그인 화면으로 이동하고,
+    // 로그인 완료 뒤 현재 내부 경로로 복귀합니다.
+    if (!accessToken && pathname !== "/") {
+      router.replace({
+        pathname: "/",
+        params: {
+          returnTo: normalizeAuthReturnTo(currentReturnTo),
+        },
+      } as Href);
     }
-  }, [isInitialized, isLoggedIn, pathname]);
+    // 이미 인증된 사용자가 로그인 화면에 진입하면 요청했던 화면으로 복귀합니다.
+    else if (accessToken && pathname === "/") {
+      router.replace(
+        normalizeAuthReturnTo(returnToParam) as Href,
+      );
+    }
+  }, [
+    accessToken,
+    codeParam,
+    isInitialized,
+    joinSheetParam,
+    pathname,
+    returnToParam,
+  ]);
 
   if (!loaded) return null;
 
@@ -70,7 +123,7 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <Stack
             screenOptions={{
-              header: () => <></>,
+              headerShown: false,
               contentStyle: { backgroundColor: "white" },
             }}
           >

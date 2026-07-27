@@ -1,15 +1,24 @@
 import { authQuery } from "@entities/user";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { env } from "@shared/config";
+import { normalizeAuthReturnTo } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
-import { router } from "expo-router";
+import {
+  Href,
+  router,
+  useLocalSearchParams,
+} from "expo-router";
 
 export function useSocialLogin() {
+  const { returnTo: returnToParam } = useLocalSearchParams<{
+    returnTo?: string | string[];
+  }>();
   const mutationToServiceLogin = authQuery.useGoogleLogin();
   const mutationToGuestLogin = authQuery.useGuestLogin();
 
   const isGuest = useAuthStore((state) => state.isGuest);
   const setSession = useAuthStore((state) => state.setSession);
+  const returnTo = normalizeAuthReturnTo(returnToParam);
 
   // 구글 로그인
   const loginWithGoogle = async () => {
@@ -41,9 +50,12 @@ export function useSocialLogin() {
         refreshToken: response.refreshToken,
       });
       if (response.status === "LOGIN_SUCCESS") {
-        router.replace("/feed");
+        router.replace(returnTo as Href);
       } else if (response.status === "NEED_NICKNAME") {
-        router.push("/profile/edit");
+        router.replace({
+          pathname: "/profile/edit",
+          params: { returnTo },
+        } as Href);
       }
     } catch (error) {
       console.error("Error during login:", error);
@@ -60,6 +72,7 @@ export function useSocialLogin() {
         accessToken: response.accessToken,
         refreshToken: response.refreshToken,
       });
+      router.replace(returnTo as Href);
     } catch (error) {
       console.error("Error during guest login:", error);
     }
