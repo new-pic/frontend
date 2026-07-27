@@ -1,27 +1,123 @@
 import { z } from "zod";
 import {
-  RtcCaptureModeSchema,
+  RtcCreateRoomRequestSchema,
   RtcEndRoomRequestSchema,
+  RtcEndRoomResponseSchema,
+  RtcJoinRoomRequestSchema,
+  RtcRoomPhotoListQuerySchema,
+  RtcRoomPhotoListResponseSchema,
+  RtcSavedImageSchema,
 } from "./schema";
 
 export const API_QUERY_KEY = ["rtc"];
 
-/**
- * RTC 방 생성 요청
- * @property code - 방 코드
- * @property displayName - 참여자 이름
- * @property isGuest - 비회원 여부
- */
-export interface RtcJoinRoomRequest {
-  code: string;
-  displayName: string;
-  isGuest?: boolean;
+export type RtcCreateRoomRequest = z.input<typeof RtcCreateRoomRequestSchema>;
+
+export interface RtcCreateRoomResponse {
+  roomId: string;
+  joinCode: string;
+  rtcHostAccessToken: string;
+  expiresAt: string;
 }
 
-export type RtcCaptureMode = z.infer<typeof RtcCaptureModeSchema>;
+export interface RtcRoomHost {
+  nickname: string;
+  profileImage: string | null;
+}
 
-export type RtcEndRoomRequestInput = z.input<
-  typeof RtcEndRoomRequestSchema
+export interface RtcRoomParticipant {
+  nickname: string;
+  role: string;
+  profileImage: string | null;
+}
+
+export interface RtcRoomResponse {
+  roomId: string;
+  status: string;
+  expiresAt: string;
+  host: RtcRoomHost;
+  participants: RtcRoomParticipant[];
+}
+
+export interface RtcHostLiveKitTokenResponse {
+  url: string;
+  token: string;
+  expiresAt: string;
+}
+
+export interface RtcHostLiveKitTokenRequest {
+  roomId: string;
+}
+
+export interface RtcViewerLiveKitTokenResponse {
+  url: string;
+  token: string;
+}
+
+export interface RtcViewerLiveKitTokenRequest {
+  roomId: string;
+}
+
+export type RtcJoinRoomRequest = z.input<typeof RtcJoinRoomRequestSchema>;
+
+export interface RtcJoinRoomResponse {
+  roomId: string;
+  participantId: string;
+}
+
+export interface RtcFeedbackEmoji {
+  id: string;
+  label: string;
+  symbol: string;
+}
+
+export interface RtcFeedbackEmojiListResponse {
+  items: RtcFeedbackEmoji[];
+}
+
+export type RtcSavedImage = z.infer<typeof RtcSavedImageSchema>;
+
+export type RtcRoomPhotoListQuery = z.input<
+  typeof RtcRoomPhotoListQuerySchema
 >;
 
+export interface RtcRoomPhotoListParams
+  extends RtcRoomPhotoListQuery {
+  roomId: string;
+}
+
+export type RtcRoomPhotoListResponse = z.infer<
+  typeof RtcRoomPhotoListResponseSchema
+>;
+
+export type RtcEndRoomResponse = z.infer<typeof RtcEndRoomResponseSchema>;
+
+export interface RtcHostSession {
+  roomId: string;
+  joinCode: string;
+  hostAccessToken: string;
+  expiresAt: string;
+}
+
+export interface RtcViewerSession {
+  roomId: string;
+  participantId: string;
+}
+
+export type RtcLiveKitRole = "HOST" | "VIEWER";
+
+export interface RtcLiveKitConnection {
+  role: RtcLiveKitRole;
+  url: string;
+  token: string;
+  expiresAt?: string;
+}
+
+export type RtcEndRoomRequestInput = z.input<typeof RtcEndRoomRequestSchema>;
+
 export type RtcEndRoomRequest = z.infer<typeof RtcEndRoomRequestSchema>;
+
+export interface RtcEndRoomMutationRequest {
+  roomId: string;
+  request?: RtcEndRoomRequestInput;
+}

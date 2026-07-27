@@ -1,183 +1,83 @@
-import { apiClient, privateApiClient, uploadFetchClient } from "@shared/api";
-import { getAndCreateDeviceUUID, ObjectToFormData } from "@shared/lib";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { apiClient, privateApiClient } from "@shared/api";
+import { useAuthStore } from "@shared/model";
+import {
+  useInfiniteQuery,
+  useQuery,
+} from "@tanstack/react-query";
+import { verifyRtcId } from "../lib";
 import {
   API_QUERY_KEY,
-  RtcEndRoomRequest,
-  RtcEndRoomRequestSchema,
-  RtcJoinRoomRequest,
-  useRtcStore,
+  RTC_MAX_PHOTO_LIST_TAKE,
+  RtcFeedbackEmojiListResponse,
+  RtcRoomPhotoListParams,
+  RtcRoomPhotoListQuerySchema,
+  RtcRoomPhotoListResponse,
+  RtcRoomPhotoListResponseSchema,
 } from "../model";
 
-const QUERY_KEY = [API_QUERY_KEY, "rtc"];
+const QUERY_KEY = [API_QUERY_KEY, "global"] as const;
 
 /**
- * RTC 방 생성 (비회원도 가능)
+ * RTC 피드백 이모지 목록 조회
  */
-
-export const useCreateRtcRoom = () => {
-  return useMutation({
-    mutationFn: async () => {
-      const response = await privateApiClient.post("/rtc/rooms");
+export const useReadFeedbackEmojis = () => {
+  return useQuery({
+    queryKey: [...QUERY_KEY, "emojis"],
+    queryFn: async () => {
+      const response =
+        await apiClient.get<RtcFeedbackEmojiListResponse>("/rtc/emojis");
       return response.data;
     },
   });
 };
 
+export interface RtcRoomPhotoListQueryOptions {
+  enabled?: boolean;
+}
+
 /**
- * RTC 방 상세 조회 (호스트만 가능)
- * @param roomId RTC 방 ID
+ * RTC 촬영 결과 사진 목록 조회
+ *
+ * 방을 생성한 호스트와 실제 참여자만 조회할 수 있는 인증 API입니다.
+ * 다음 페이지는 서버가 내려준 nextCursor를 그대로 전달합니다.
  */
-export const useReadRtcRoom = (roomId: string) => {
-  const rtcToken = useRtcStore((state) => state.hostAccessToken);
-  return useQuery({
-    queryKey: [...QUERY_KEY, "room", roomId],
-    queryFn: async () => {
-      const response = await privateApiClient.get(`/rtc/rooms/${roomId}`, {
-        headers: {
-          "x-rtc-host-access-token": rtcToken,
-        },
+export const useReadRtcRoomPhotos = (
+  {
+    roomId,
+    take = RTC_MAX_PHOTO_LIST_TAKE,
+    cursor,
+  }: RtcRoomPhotoListParams,
+  options: RtcRoomPhotoListQueryOptions = {},
+) => {
+  const normalizedRoomId = roomId.trim();
+  const appAccessToken = useAuthStore((state) => state.accessToken);
+
+  return useInfiniteQuery({
+    queryKey: [
+      ...QUERY_KEY,
+      "room",
+      normalizedRoomId,
+      "photos",
+      { take, cursor },
+    ],
+    queryFn: async ({ pageParam }): Promise<RtcRoomPhotoListResponse> => {
+      const id = verifyRtcId(normalizedRoomId, "RTC 방 ID");
+      const query = RtcRoomPhotoListQuerySchema.parse({
+        take,
+        cursor: pageParam,
       });
-      return response.data;
-    },
-    enabled: !!roomId && !!rtcToken,
-    staleTime: 1000 * 60 * 5, // 5분
-  });
-};
-
-/**
- *  RTC 방 참여 (QR 또는 6자리 코드로 참여)
- */
-export const useJoinRtcRoom = () => {
-  return useMutation({
-    mutationFn: async ({
-      code,
-      displayName,
-      isGuest = false,
-    }: RtcJoinRoomRequest) => {
-      const deviceUUID = isGuest ? await getAndCreateDeviceUUID() : undefined;
-      const response = await privateApiClient.post(
-        `/rtc/rooms/code/${code}/join`,
-        {
-          displayName,
-          deviceUUID,
-        },
-      );
-      return response.data;
-    },
-  });
-};
-
-/**
- * RTC 참여자 목록 조회 (호스트만 가능)
- */
-export const useReadRtcParticipants = (roomId: string) => {
-  const rtcToken = useRtcStore((state) => state.hostAccessToken);
-  return useQuery({
-    queryKey: [...QUERY_KEY, "participants", roomId],
-    queryFn: async () => {
       const response = await privateApiClient.get(
-        `/rtc/rooms/${roomId}/participants`,
-        {
-          headers: {
-            "x-rtc-host-access-token": rtcToken,
-          },
-        },
+        `/rtc/rooms/${id}/photos`,
+        { params: query },
       );
-      return response.data;
+
+      return RtcRoomPhotoListResponseSchema.parse(response.data);
     },
-    enabled: !!roomId && !!rtcToken,
-  });
-};
-
-/**
- *
- * 촬영자 LiveKit 토큰 발급
- */
-export const useCreateHostLiveKitToken = (roomId: string) => {
-  if (!roomId) return;
-  return useMutation({
-    mutationFn: async ({ isGuest }: { isGuest?: boolean }) => {
-      const rtcToken = useRtcStore((state) => state.hostAccessToken);
-      const headers: Record<string, string> = {};
-      if (isGuest) {
-        if (!rtcToken) return;
-        headers["x-rtc-host-access-token"] = rtcToken;
-      }
-      const response = await apiClient.post(
-        `/rtc/rooms/${roomId}/livekit-token`,
-        {},
-        {
-          headers,
-        },
-      );
-      return response.data;
-    },
-  });
-};
-
-/**
- * RTC 세션 유지 확인
- * @description RTC 방 참여 후, 일정 시간마다 서버에 세션 유지 요청 -> 세션 연장
- * @description (host만 가능)
- */
-export const useKeepRtcSession = (roomId: string) => {
-  if (!roomId) return;
-  return useMutation({
-    mutationFn: async () => {
-      const rtcToken = useRtcStore.getState().hostAccessToken;
-      if (!rtcToken) return;
-      const response = await privateApiClient.post(
-        `/rtc/rooms/${roomId}/keep-alive`,
-        {},
-        {
-          headers: {
-            "x-rtc-host-access-token": rtcToken,
-          },
-        },
-      );
-      return response.data;
-    },
-  });
-};
-
-/**
- *
- * 뷰어 LiveKit 토큰 발급
- */
-export const useCreateViewerLiveKitToken = (roomId: string) => {
-  if (!roomId) return;
-  return useMutation({
-    mutationFn: async ({ isGuest }: { isGuest?: boolean }) => {
-      const response = await privateApiClient.post(
-        `/rtc/rooms/${roomId}/livekit-token`,
-      );
-      return response.data;
-    },
-  });
-};
-
-/**
- * RTC 방 종료 (호스트만 가능)
- */
-export const useEndRtcRoom = (roomId: string) => {
-  if (!roomId) return;
-  return useMutation({
-    mutationFn: async (request: RtcEndRoomRequest = {}) => {
-      const rtcToken = useRtcStore.getState().hostAccessToken;
-      if (!rtcToken) return;
-
-      const parsedRequest = RtcEndRoomRequestSchema.parse(request);
-      const formData = ObjectToFormData(parsedRequest);
-
-      const response = await uploadFetchClient.post({
-        url: `/rtc/rooms/${roomId}/end`,
-        formData,
-        headers: {
-          "x-rtc-host-access-token": rtcToken,
-        },
-      });
-      return response.data;
-    },
+    initialPageParam: cursor,
+    getNextPageParam: (lastPage) =>
+      lastPage.nextCursor ?? undefined,
+    enabled:
+      Boolean(normalizedRoomId && appAccessToken) &&
+      (options.enabled ?? true),
   });
 };
