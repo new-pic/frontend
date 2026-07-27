@@ -153,7 +153,7 @@ export function RtcJoinForm({
               paddingVertical: 4,
               textAlign: "center",
               fontSize: 20,
-              letterSpacing: 4,
+              letterSpacing: code.length > 0 ? 4 : 0,
             }}
             accessibilityLabel="6자리 공유 코드"
           />
