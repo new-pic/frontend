@@ -86,6 +86,7 @@ export function TagBottomSheet({
               value={searchQuery}
               onChangeText={setSearchQuery}
               returnKeyType="search"
+              style={{ letterSpacing: 0 }}
             />
           </Input>
         </VStack>

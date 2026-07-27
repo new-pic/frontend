@@ -93,6 +93,7 @@ export function FeedPage() {
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                   returnKeyType="search"
+                  style={{ letterSpacing: 0 }}
                 />
               </Input>
             </VStack>
@@ -100,6 +101,12 @@ export function FeedPage() {
               tags={selectedTags}
               readOnly={false}
               onTagPress={handleTagPress}
+              onPressAddTag={handleOpenTagBottomSheet}
+              contentContainerStyle={{
+                alignItems: "center",
+                paddingHorizontal: 24,
+                paddingVertical: 12,
+              }}
             />
           </VStack>
           <PhotoGrid
