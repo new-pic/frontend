@@ -126,9 +126,7 @@ export default function RootLayout() {
               headerShown: false,
               contentStyle: { backgroundColor: "white" },
             }}
-          >
-            <Stack.Screen name="auth/setup" />
-          </Stack>
+          />
         </QueryClientProvider>
       </GluestackUIProvider>
     </GestureHandlerRootView>
