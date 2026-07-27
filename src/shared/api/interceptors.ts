@@ -53,7 +53,7 @@ export const setupInterceptors = ({ instance }: InterceptorProps) => {
             const newToken = await requestTokenRefresh(refreshToken);
             await setSession({
               accessToken: newToken.accessToken,
-              refreshToken: newToken.refreshToken,
+              refreshToken,
             });
 
             return newToken;
