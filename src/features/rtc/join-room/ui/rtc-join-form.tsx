@@ -7,11 +7,11 @@ import {
 import { normalizeAuthReturnTo } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import {
+  Box,
   Button,
   ButtonSpinner,
   ButtonText,
   HStack,
-  Input,
   Text,
   VStack,
 } from "@shared/ui";
@@ -134,7 +134,7 @@ export function RtcJoinForm({
 
       <VStack className="gap-2">
         <Text bold>공유 코드</Text>
-        <Input className="min-h-14">
+        <Box className="min-h-14 w-full flex-row items-center overflow-hidden rounded-md border border-outline px-3">
           <TextInput
             value={code}
             onChangeText={(value) =>
@@ -147,10 +147,17 @@ export function RtcJoinForm({
             textContentType="oneTimeCode"
             returnKeyType="join"
             onSubmitEditing={() => void handleJoin()}
-            className="h-full flex-1 text-center text-xl tracking-widest text-foreground"
+            style={{
+              height: "100%",
+              flex: 1,
+              paddingVertical: 4,
+              textAlign: "center",
+              fontSize: 20,
+              letterSpacing: 4,
+            }}
             accessibilityLabel="6자리 공유 코드"
           />
-        </Input>
+        </Box>
       </VStack>
 
       <HStack className="gap-3">
