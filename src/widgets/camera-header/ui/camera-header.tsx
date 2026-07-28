@@ -1,8 +1,17 @@
+import type { CameraPhotoFlashMode } from "@features/camera/capture-photo";
 import { Button, ButtonIcon, ButtonText, HStack } from "@shared/ui";
 import { IconBolt, IconChevronLeft } from "@tabler/icons-react-native";
 
+const FLASH_MODE_LABELS: Record<CameraPhotoFlashMode, string> = {
+  off: "끔",
+  on: "켬",
+  auto: "자동",
+};
+
 interface CameraHeaderProps {
   onBackPress: () => void;
+  flashMode: CameraPhotoFlashMode;
+  isFlashAvailable: boolean;
   onChangeFlashMode: () => void;
   onSharePress?: () => void;
   onJoinPress?: () => void;
@@ -12,6 +21,8 @@ interface CameraHeaderProps {
 
 export function CameraHeader({
   onBackPress,
+  flashMode,
+  isFlashAvailable,
   onChangeFlashMode,
   onSharePress,
   onJoinPress,
@@ -48,11 +59,21 @@ export function CameraHeader({
         </Button>
         <Button
           variant="ghost"
-          size="icon"
-          className="h-7 w-7"
+          className="h-8 min-w-16 flex-row px-2"
+          disabled={!isFlashAvailable}
           onPress={onChangeFlashMode}
+          accessibilityLabel={
+            isFlashAvailable
+              ? `사진 플래시 ${FLASH_MODE_LABELS[flashMode]}`
+              : "사진 플래시를 지원하지 않는 카메라"
+          }
         >
-          <ButtonIcon className="h-7 w-7" as={IconBolt} />
+          <ButtonIcon className="h-5 w-5" as={IconBolt} />
+          <ButtonText className="ml-1 text-xs">
+            {isFlashAvailable
+              ? FLASH_MODE_LABELS[flashMode]
+              : "없음"}
+          </ButtonText>
         </Button>
       </HStack>
     </HStack>

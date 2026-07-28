@@ -388,9 +388,15 @@ export function CameraPage() {
           <Camera
             isActive={isVisionCameraActive}
             onClose={() => router.back()}
-            renderHeader={({ onChangeFlashMode }) => (
+            renderHeader={({
+              flashMode,
+              isFlashAvailable,
+              onChangeFlashMode,
+            }) => (
               <CameraHeader
                 onBackPress={() => router.back()}
+                flashMode={flashMode}
+                isFlashAvailable={isFlashAvailable}
                 onChangeFlashMode={onChangeFlashMode}
                 onSharePress={() => void handleOpenShare()}
                 onJoinPress={handleOpenJoinSheet}

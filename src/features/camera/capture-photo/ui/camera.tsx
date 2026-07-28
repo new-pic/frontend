@@ -25,15 +25,27 @@ import {
   CameraRef,
   CommonResolutions,
   Constraint,
-  FlashMode,
   Frame,
-  Size,
   useCameraDevice,
   useCameraPermission,
   useFrameOutput,
   usePhotoOutput,
 } from "react-native-vision-camera";
-import { SessionPhoto } from "../model/models";
+import {
+  DEFAULT_CAMERA_CAPTURE_SETTINGS,
+  getEffectivePhotoFlashMode,
+  getNextPhotoFlashMode,
+  getPhotoTargetResolution,
+  getPortraitPreviewAspectRatio,
+  isResolutionMatchingAspectRatio,
+} from "../lib";
+import type {
+  CameraAspectRatio,
+  CameraCaptureSettings,
+  CameraPhotoFlashMode,
+  SessionPhoto,
+} from "../model/models";
+import { CameraAspectRatioControl } from "./camera-aspect-ratio-control";
 import { CameraControls } from "./camera-controls";
 import { ZoomControls } from "./zoom-control";
 
@@ -106,6 +118,8 @@ export interface NativeCameraFrameSink
 }
 
 export interface CameraHeaderRenderProps {
+  flashMode: CameraPhotoFlashMode;
+  isFlashAvailable: boolean;
   onChangeFlashMode: () => void;
 }
 
@@ -147,18 +161,24 @@ function CameraView({
   const hasReachedPhotoLimit =
     maxPhotos !== undefined &&
     sessionPhotos.length >= maxPhotos;
-  const [flashMode, setFlashMode] = useState<FlashMode>("off");
-  const [targetResolution, setTargetResolution] = useState<Size>(
-    CommonResolutions.UHD_4_3,
+  const [captureSettings, setCaptureSettings] =
+    useState<CameraCaptureSettings>(
+      DEFAULT_CAMERA_CAPTURE_SETTINGS,
+    );
+  const [isPhotoOutputConfigured, setIsPhotoOutputConfigured] =
+    useState(false);
+  const targetResolution = getPhotoTargetResolution(
+    captureSettings.aspectRatio,
   );
-  const [aspectRatio, setAspectRatio] = useState(
-    targetResolution.width / targetResolution.height,
+  const previewAspectRatio = getPortraitPreviewAspectRatio(
+    captureSettings.aspectRatio,
   );
 
   const [cameraDevice, setCameraDevice] = useState<CameraPosition>("back");
   const device = useCameraDevice(cameraDevice, {
     physicalDevices: ["ultra-wide-angle", "wide-angle", "telephoto"],
   });
+  const hasPhysicalFlash = device?.hasFlash ?? false;
   const initialMinZoom = device?.minZoom ?? DEFAULT_DISPLAY_ZOOM;
   const initialMaxZoom = Math.max(
     initialMinZoom,
@@ -258,6 +278,21 @@ function CameraView({
     pinchStartZoom,
     zoom,
   ]);
+
+  useEffect(() => {
+    if (device?.hasFlash !== false) return;
+
+    setCaptureSettings((currentSettings) => {
+      if (currentSettings.flashMode === "off") {
+        return currentSettings;
+      }
+
+      return {
+        ...currentSettings,
+        flashMode: "off",
+      };
+    });
+  }, [device]);
 
   const handleCameraStarted = useCallback(() => {
     const controller = cameraRef.current?.controller;
@@ -384,6 +419,7 @@ function CameraView({
       max: DEFAULT_DISPLAY_ZOOM,
     });
     setDisplayZoom(DEFAULT_DISPLAY_ZOOM);
+    setIsPhotoOutputConfigured(false);
 
     if (cameraDevice === "back") {
       setCameraDevice("front");
@@ -395,20 +431,61 @@ function CameraView({
   /**
    * @description 플래시 모드 전환
    * - 플래시 모드는 off -> on -> auto 순으로 전환
-   * - Camera 컴포넌트에 flashMode prop을 전달하여 적용
+   * - 촬영 시점의 Photo capture settings에만 전달
    */
   const handleChangeFlashMode = () => {
-    switch (flashMode) {
-      case "off":
-        setFlashMode("on");
-        break;
-      case "on":
-        setFlashMode("auto");
-        break;
-      case "auto":
-        setFlashMode("off");
-        break;
+    setCaptureSettings((currentSettings) => ({
+      ...currentSettings,
+      flashMode: getNextPhotoFlashMode(
+        currentSettings.flashMode,
+        hasPhysicalFlash,
+      ),
+    }));
+  };
+
+  const handleChangeAspectRatio = (
+    aspectRatio: CameraAspectRatio,
+  ) => {
+    if (
+      !isPhotoOutputConfigured ||
+      captureSettings.aspectRatio === aspectRatio
+    ) {
+      return;
     }
+
+    setIsPhotoOutputConfigured(false);
+    setCaptureSettings((currentSettings) => ({
+      ...currentSettings,
+      aspectRatio,
+    }));
+  };
+
+  const handleCameraConfigured = () => {
+    const currentResolution = photoOutput.currentResolution;
+
+    if (
+      currentResolution &&
+      !isResolutionMatchingAspectRatio(
+        currentResolution,
+        captureSettings.aspectRatio,
+      )
+    ) {
+      console.warn(
+        "PhotoOutput resolution differs from the selected aspect ratio.",
+        {
+          selectedAspectRatio: captureSettings.aspectRatio,
+          targetResolution,
+          currentResolution,
+        },
+      );
+    }
+
+    setIsPhotoOutputConfigured(true);
+  };
+
+  const handleCameraError = (error: Error) => {
+    setIsPhotoOutputConfigured(false);
+    console.error("Camera error:", error);
   };
 
   /**
@@ -423,11 +500,24 @@ function CameraView({
       }
       return;
     }
-    if (!cameraRef.current || isTakingPhotoRef.current) return;
+    if (
+      !cameraRef.current ||
+      !isPhotoOutputConfigured ||
+      isTakingPhotoRef.current
+    ) {
+      return;
+    }
 
     isTakingPhotoRef.current = true;
     try {
-      const photo = await photoOutput.capturePhotoToFile({ flashMode }, {});
+      const flashMode = getEffectivePhotoFlashMode(
+        captureSettings.flashMode,
+        hasPhysicalFlash,
+      );
+      const photo = await photoOutput.capturePhotoToFile(
+        { flashMode },
+        {},
+      );
       const photoUri = photo.filePath.startsWith("file://")
         ? photo.filePath
         : `file://${photo.filePath}`;
@@ -483,23 +573,38 @@ function CameraView({
   return (
     <VStack className="h-full bg-white">
       {renderHeader?.({
+        flashMode: captureSettings.flashMode,
+        isFlashAvailable: hasPhysicalFlash,
         onChangeFlashMode: handleChangeFlashMode,
       })}
       <VStack className="flex-1 justify-center">
         <VStack className="h-fit relative">
           <GestureDetector gesture={pinchGesture}>
-            <View collapsable={false} style={{ aspectRatio }}>
+            <View
+              collapsable={false}
+              style={{
+                aspectRatio: previewAspectRatio,
+                overflow: "hidden",
+              }}
+            >
               <Camera
                 ref={cameraRef}
                 style={StyleSheet.absoluteFill}
-                resizeMode="contain"
+                resizeMode="cover"
                 isActive={isActive}
                 zoom={zoom}
                 device={device}
                 outputs={cameraOutputs}
                 constraints={cameraConstraints}
+                onConfigured={handleCameraConfigured}
+                onError={handleCameraError}
                 onStarted={handleCameraStarted}
                 onStopped={onStopped}
+              />
+              <CameraAspectRatioControl
+                aspectRatio={captureSettings.aspectRatio}
+                disabled={!isPhotoOutputConfigured}
+                onChange={handleChangeAspectRatio}
               />
             </View>
           </GestureDetector>
@@ -516,7 +621,9 @@ function CameraView({
             ? sessionPhotos[sessionPhotos.length - 1]
             : null
         }
-        isTakePhotoDisabled={hasReachedPhotoLimit}
+        isTakePhotoDisabled={
+          hasReachedPhotoLimit || !isPhotoOutputConfigured
+        }
         onTakePhoto={handleTakePhoto}
         onChangePosition={handleChangePosition}
       />
