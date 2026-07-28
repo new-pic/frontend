@@ -8,7 +8,10 @@ import {
   useState,
 } from "react";
 import type { CameraRuntimeGeometry } from "../../capture-photo";
-import { useLivePoseDetection } from "../../pose-detection";
+import {
+  type DetectedPoseFrame,
+  useLivePoseDetection,
+} from "../../pose-detection";
 import {
   adaptDWPoseResult,
   matchPoseScene,
@@ -21,6 +24,7 @@ import {
   cameraGuideReducer,
   INITIAL_CAMERA_GUIDE_STATE,
 } from "./guide-state";
+import { usePoseGuideAlignment } from "./use-pose-guide-alignment";
 import type {
   CameraGuideErrors,
   CameraGuideMatching,
@@ -221,6 +225,7 @@ export function useCameraGuideController({
   const canProjectToCurrentCapture =
     geometry !== null &&
     state.active !== null &&
+    state.active.selection.feedId === selectedFeedId &&
     geometry.aspectRatio === state.active.cameraAspectRatio;
   const targetPoses = useMemo(() => {
     if (
@@ -242,39 +247,77 @@ export function useCameraGuideController({
     );
   }, [canProjectToCurrentCapture, geometry, state.active]);
 
+  const targetReady =
+    canProjectToCurrentCapture && targetPoses.length > 0;
+  const { snapshot: alignment, observe: observeAlignment } =
+    usePoseGuideAlignment({
+      guideId: selectedFeedId ?? null,
+      targetReady,
+    });
+  const matchingInputRef = useRef<{
+    geometry: CameraRuntimeGeometry;
+    targetPoses: typeof targetPoses;
+  } | null>(null);
+  matchingInputRef.current =
+    targetReady && geometry
+      ? {
+          geometry,
+          targetPoses,
+        }
+      : null;
+  const latestMatchingRef = useRef<CameraGuideMatching>({
+    targetPoses: [],
+    currentPoses: [],
+    result: null,
+  });
+  if (
+    latestMatchingRef.current.targetPoses !== targetPoses &&
+    matchingInputRef.current === null
+  ) {
+    latestMatchingRef.current = {
+      targetPoses,
+      currentPoses: [],
+      result: null,
+    };
+  }
+  const handlePoseFrame = useCallback(
+    (frame: DetectedPoseFrame) => {
+      const matchingInput = matchingInputRef.current;
+      if (!matchingInput) return;
+
+      const currentPoses = prepareLivePoses(frame, {
+        captureSize: matchingInput.geometry.captureSize,
+        mirrorX: frame.sourceFrame.isMirrored,
+        captureResizeMode: "cover",
+      });
+      const result = matchPoseScene(
+        matchingInput.targetPoses,
+        currentPoses,
+      );
+      latestMatchingRef.current = {
+        targetPoses: matchingInput.targetPoses,
+        currentPoses,
+        result,
+      };
+      observeAlignment({
+        result,
+        targetPersonCount: matchingInput.targetPoses.length,
+        livePersonCount: currentPoses.length,
+      });
+    },
+    [observeAlignment],
+  );
   const livePoseDetection = useLivePoseDetection({
     enabled:
       cameraActive &&
       canProjectToCurrentCapture &&
-      targetPoses.length > 0,
+      Boolean(state.active?.mask),
+    targetPersonCount: targetReady
+      ? targetPoses.length
+      : undefined,
+    exposeFrame: false,
+    onFrame: handlePoseFrame,
   });
-  const currentPoses = useMemo(() => {
-    if (
-      !canProjectToCurrentCapture ||
-      !geometry ||
-      !livePoseDetection.frame
-    ) {
-      return [];
-    }
-
-    return prepareLivePoses(livePoseDetection.frame, {
-      captureSize: geometry.captureSize,
-      mirrorX:
-        livePoseDetection.frame.sourceFrame.isMirrored,
-      captureResizeMode: "cover",
-    });
-  }, [
-    canProjectToCurrentCapture,
-    geometry,
-    livePoseDetection.frame,
-  ]);
-  const matchResult = useMemo(
-    () =>
-      targetPoses.length > 0
-        ? matchPoseScene(targetPoses, currentPoses)
-        : null,
-    [currentPoses, targetPoses],
-  );
 
   const errors: CameraGuideErrors = {
     reference: referenceError,
@@ -286,15 +329,27 @@ export function useCameraGuideController({
       targetPreparationError ??
       (poseQuery.error ? getErrorMessage(poseQuery.error) : null),
   };
-  const matching: CameraGuideMatching = {
-    targetPoses,
-    currentPoses,
-    result: matchResult,
-  };
+  const latestMatching = latestMatchingRef.current;
+  const matching: CameraGuideMatching =
+    latestMatching.targetPoses === targetPoses
+      ? latestMatching
+      : {
+          targetPoses,
+          currentPoses: [],
+          result: null,
+        };
+  const reportMaskRenderError = useCallback(
+    () => setMaskRenderError("Mask 이미지를 표시하지 못했습니다."),
+    [],
+  );
 
   return {
     selectedGuide: state.selected,
     activeGuide: state.active,
+    presentedGuide:
+      state.active?.selection.feedId === selectedFeedId
+        ? state.active
+        : null,
     isPreparing:
       state.selected !== null &&
       state.active?.selection.feedId !== state.selected.feedId,
@@ -302,12 +357,12 @@ export function useCameraGuideController({
     isTargetLoading: Boolean(state.selected) && poseQuery.isPending,
     errors,
     matching,
+    alignment,
     poseDetection: livePoseDetection,
     selectGuide,
     clearGuide,
     retrySelectedGuide,
     renderVersion: retryVersion,
-    reportMaskRenderError: () =>
-      setMaskRenderError("Mask 이미지를 표시하지 못했습니다."),
+    reportMaskRenderError,
   };
 }

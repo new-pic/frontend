@@ -25,11 +25,19 @@ export type UseLivePoseDetectionOptions =
      */
     enabled: boolean;
     debug?: boolean;
+    /**
+     * Receives latest-only native results without requiring React state to
+     * update at inference FPS.
+     */
+    onFrame?: (frame: DetectedPoseFrame) => void;
+    exposeFrame?: boolean;
   };
 
 export function useLivePoseDetection({
   enabled,
   debug = false,
+  onFrame,
+  exposeFrame = true,
   ...config
 }: UseLivePoseDetectionOptions): LivePoseDetection {
   const [appState, setAppState] = useState(
@@ -43,7 +51,11 @@ export function useLivePoseDetection({
     useState<PoseDetectionStatus>("idle");
   const shouldAcceptResultsRef = useRef(false);
   const debugRef = useRef(debug);
+  const onFrameRef = useRef(onFrame);
+  const exposeFrameRef = useRef(exposeFrame);
   debugRef.current = debug;
+  onFrameRef.current = onFrame;
+  exposeFrameRef.current = exposeFrame;
   const resolvedConfig = useMemo(
     () => resolvePoseDetectionConfig(config),
     [
@@ -72,7 +84,10 @@ export function useLivePoseDetection({
 
       const detectedFrame =
         adaptNativeDetectedPoseFrame(nativeFrame);
-      setFrame(detectedFrame);
+      onFrameRef.current?.(detectedFrame);
+      if (exposeFrameRef.current) {
+        setFrame(detectedFrame);
+      }
       setError(null);
       setStatus("running");
 
