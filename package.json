@@ -84,7 +84,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test:pose-match": "node --test src/features/camera/pose-matching/__tests__/pose-matching.test.cjs"
   },
   "private": true,
   "pnpm": {
