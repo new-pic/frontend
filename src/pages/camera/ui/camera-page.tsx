@@ -11,6 +11,7 @@ import {
   SessionPhoto,
 } from "@features/camera/capture-photo";
 import {
+  CameraGuideFeedbackBanner,
   CameraGuideOverlay,
   GuideFeedBottomSheet,
   GuideSelectionControl,
@@ -467,34 +468,43 @@ export function CameraPage() {
             videoFrameSink={visionCameraRtcFrameSink}
             poseFrameSink={cameraGuide.poseDetection.frameSink}
             guideAspectRatio={
-              cameraGuide.activeGuide?.cameraAspectRatio
+              cameraGuide.presentedGuide?.cameraAspectRatio
             }
             onRuntimeGeometryChange={handleCameraGeometryChange}
             previewOverlay={
               cameraGeometry &&
-              cameraGuide.activeGuide?.mask &&
+              cameraGuide.presentedGuide?.mask &&
               cameraGeometry.aspectRatio ===
-                cameraGuide.activeGuide.cameraAspectRatio ? (
+                cameraGuide.presentedGuide.cameraAspectRatio ? (
                 <CameraGuideOverlay
-                  key={`${cameraGuide.activeGuide.mask.imageUrl}-${cameraGuide.renderVersion}`}
+                  key={`${cameraGuide.presentedGuide.mask.imageUrl}-${cameraGuide.renderVersion}`}
                   geometry={cameraGeometry}
-                  mask={cameraGuide.activeGuide.mask}
+                  mask={cameraGuide.presentedGuide.mask}
+                  warning={
+                    cameraGuide.alignment.alignmentState ===
+                    "MISALIGNED"
+                  }
                   onError={cameraGuide.reportMaskRenderError}
                 />
               ) : null
             }
             previewControl={
-              <GuideSelectionControl
-                selectedGuide={cameraGuide.selectedGuide}
-                isPreparing={
-                  cameraGuide.isPreparing ||
-                  cameraGuide.isTargetLoading ||
-                  cameraGuide.isMaskLoading
-                }
-                hasError={hasGuideError}
-                onOpen={() => setIsGuideSheetOpen(true)}
-                onRetry={cameraGuide.retrySelectedGuide}
-              />
+              <>
+                <CameraGuideFeedbackBanner
+                  feedback={cameraGuide.alignment.feedback}
+                />
+                <GuideSelectionControl
+                  selectedGuide={cameraGuide.selectedGuide}
+                  isPreparing={
+                    cameraGuide.isPreparing ||
+                    cameraGuide.isTargetLoading ||
+                    cameraGuide.isMaskLoading
+                  }
+                  hasError={hasGuideError}
+                  onOpen={() => setIsGuideSheetOpen(true)}
+                  onRetry={cameraGuide.retrySelectedGuide}
+                />
+              </>
             }
           />
         </VStack>

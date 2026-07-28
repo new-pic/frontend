@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import type { CameraRuntimeGeometry } from "../../capture-photo";
 import { projectSourceCanvasToPreviewRect } from "../../pose-matching";
@@ -8,12 +8,17 @@ import type { CameraGuideMask } from "../model";
 interface CameraGuideOverlayProps {
   geometry: CameraRuntimeGeometry;
   mask: CameraGuideMask;
+  warning: boolean;
   onError?: () => void;
 }
 
-export function CameraGuideOverlay({
+const MASK_WARNING_TINT = "#FF3B30";
+const MASK_WARNING_OPACITY = 0.42;
+
+export const CameraGuideOverlay = memo(function CameraGuideOverlay({
   geometry,
   mask,
+  warning,
   onError,
 }: CameraGuideOverlayProps) {
   const renderRect = useMemo(
@@ -44,6 +49,22 @@ export function CameraGuideOverlay({
           height: renderRect.height,
         }}
       />
+      {warning ? (
+        <Image
+          source={mask.imageUrl}
+          recyclingKey={`${mask.imageUrl}:warning`}
+          contentFit="fill"
+          tintColor={MASK_WARNING_TINT}
+          style={{
+            position: "absolute",
+            left: renderRect.x,
+            top: renderRect.y,
+            width: renderRect.width,
+            height: renderRect.height,
+            opacity: MASK_WARNING_OPACITY,
+          }}
+        />
+      ) : null}
     </View>
   );
-}
+});
