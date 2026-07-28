@@ -77,6 +77,7 @@ export function PhotoGrid<T extends PhotoGridImage>({
   return (
     <FlatList
       data={images}
+      nestedScrollEnabled
       keyExtractor={(item) => item.id}
       numColumns={columns}
       onEndReached={onEndReached}

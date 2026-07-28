@@ -7,8 +7,15 @@ import {
 } from "@entities/rtc";
 import {
   Camera,
+  CameraRuntimeGeometry,
   SessionPhoto,
 } from "@features/camera/capture-photo";
+import {
+  CameraGuideOverlay,
+  GuideFeedBottomSheet,
+  GuideSelectionControl,
+  useCameraGuideController,
+} from "@features/camera/guide-feed";
 import { visionCameraRtcFrameSink } from "@newpic/vision-camera-rtc";
 import {
   RTC_NAVIGATION,
@@ -87,6 +94,10 @@ export function CameraPage() {
     useState(false);
   const [isJoinSheetOpen, setIsJoinSheetOpen] =
     useState(false);
+  const [isGuideSheetOpen, setIsGuideSheetOpen] =
+    useState(false);
+  const [cameraGeometry, setCameraGeometry] =
+    useState<CameraRuntimeGeometry | null>(null);
   const [joinInitialCode, setJoinInitialCode] =
     useState<string | undefined>();
   const [isCameraPageFocused, setIsCameraPageFocused] =
@@ -111,6 +122,17 @@ export function CameraPage() {
     useRef<EndPhotoSelectionRequest | null>(null);
   const selectedEndPhotosRef = useRef<SessionPhoto[] | null>(
     null,
+  );
+  const cameraGuide = useCameraGuideController({
+    cameraActive:
+      cameraMode === "VISION_CAMERA" &&
+      isCameraPageFocused &&
+      isVisionCameraActive &&
+      isVisionCameraRunning,
+    geometry: cameraGeometry,
+  });
+  const hasGuideError = Object.values(cameraGuide.errors).some(
+    Boolean,
   );
 
   useEffect(() => {
@@ -170,6 +192,25 @@ export function CameraPage() {
     isVisionCameraRunningRef.current = false;
     setIsVisionCameraRunning(false);
   };
+
+  const handleCameraGeometryChange = useCallback(
+    (geometry: CameraRuntimeGeometry | null) => {
+      setCameraGeometry((current) => {
+        if (current === geometry) return current;
+        if (!current || !geometry) return geometry;
+
+        const isSame =
+          current.aspectRatio === geometry.aspectRatio &&
+          current.cameraPosition === geometry.cameraPosition &&
+          current.captureSize.width === geometry.captureSize.width &&
+          current.captureSize.height === geometry.captureSize.height &&
+          current.previewSize.width === geometry.previewSize.width &&
+          current.previewSize.height === geometry.previewSize.height;
+        return isSame ? current : geometry;
+      });
+    },
+    [],
+  );
 
   const handleOpenShare = async () => {
     if (createRoomMutation.isPending) return;
@@ -346,6 +387,7 @@ export function CameraPage() {
     clearHostSession();
     clearLiveKitConnection();
     setBroadcastConnection(null);
+    setIsGuideSheetOpen(false);
     selectedEndPhotosRef.current = null;
     isVisionCameraRunningRef.current = false;
     setIsVisionCameraRunning(false);
@@ -423,9 +465,48 @@ export function CameraPage() {
             }
             onPhotoLimitReached={handlePhotoLimitReached}
             videoFrameSink={visionCameraRtcFrameSink}
+            poseFrameSink={cameraGuide.poseDetection.frameSink}
+            guideAspectRatio={
+              cameraGuide.activeGuide?.cameraAspectRatio
+            }
+            onRuntimeGeometryChange={handleCameraGeometryChange}
+            previewOverlay={
+              cameraGeometry &&
+              cameraGuide.activeGuide?.mask &&
+              cameraGeometry.aspectRatio ===
+                cameraGuide.activeGuide.cameraAspectRatio ? (
+                <CameraGuideOverlay
+                  key={`${cameraGuide.activeGuide.mask.imageUrl}-${cameraGuide.renderVersion}`}
+                  geometry={cameraGeometry}
+                  mask={cameraGuide.activeGuide.mask}
+                  onError={cameraGuide.reportMaskRenderError}
+                />
+              ) : null
+            }
+            previewControl={
+              <GuideSelectionControl
+                selectedGuide={cameraGuide.selectedGuide}
+                isPreparing={
+                  cameraGuide.isPreparing ||
+                  cameraGuide.isTargetLoading ||
+                  cameraGuide.isMaskLoading
+                }
+                hasError={hasGuideError}
+                onOpen={() => setIsGuideSheetOpen(true)}
+                onRetry={cameraGuide.retrySelectedGuide}
+              />
+            }
           />
         </VStack>
       </SafeAreaView>
+
+      <GuideFeedBottomSheet
+        open={isGuideSheetOpen}
+        selectedFeedId={cameraGuide.selectedGuide?.feedId}
+        onSelect={cameraGuide.selectGuide}
+        onClear={cameraGuide.clearGuide}
+        onClose={() => setIsGuideSheetOpen(false)}
+      />
 
       {broadcastConnection ? (
         <RtcHostLiveKitPage
