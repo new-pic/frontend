@@ -110,6 +110,38 @@ export interface FeedItemResponse {
   thumbnailUrl: string;
 }
 
+export interface FeedPoseLandmark {
+  index: number;
+  x: number;
+  y: number;
+  visibility: number;
+}
+
+export interface FeedPoseAnalysis {
+  model: "dwpose";
+  source: "feed_upload";
+  poseAnalyzed: boolean;
+  posePersonCount: number;
+  keypointFormat: "dwpose_xy_score";
+  storageShape: "single_person";
+  truncatedToKeypoints: number;
+}
+
+export interface FeedPoseResponse {
+  feedId: string;
+  imageUrl: string;
+  poseLandmarks: FeedPoseLandmark[];
+  poseAnalysis: FeedPoseAnalysis;
+  poseUpdatedAt: string;
+}
+
+export interface FeedBackgroundRemovalResponse {
+  feedId: string;
+  model: "RMBG-2.0";
+  sourceImageUrl: string;
+  backgroundRemovedImageUrl: string;
+}
+
 export interface FeedTagData {
   value: string;
   label: string;
