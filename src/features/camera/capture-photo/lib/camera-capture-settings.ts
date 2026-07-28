@@ -55,10 +55,19 @@ export function getNextPhotoFlashMode(
   return FLASH_MODE_ORDER[(currentIndex + 1) % FLASH_MODE_ORDER.length];
 }
 
-function getOrientationIndependentAspectRatio({
+export function getOrientationIndependentAspectRatio({
   width,
   height,
 }: CameraResolution): number {
+  if (
+    !Number.isFinite(width) ||
+    !Number.isFinite(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
+    throw new Error("Camera resolution must have positive dimensions.");
+  }
+
   const longSide = Math.max(width, height);
   const shortSide = Math.min(width, height);
   return longSide / shortSide;
