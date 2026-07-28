@@ -29,8 +29,21 @@ export interface CommonPosePoint {
   confidence: number;
 }
 
+export interface PoseJointMap {
+  joints: Partial<Record<CommonJoint, CommonPosePoint>>;
+}
+
 export interface CommonPose {
   joints: Partial<Record<CommonJoint, CommonPosePoint>>;
+}
+
+export interface DWPoseSourcePose extends PoseJointMap {
+  coordinateSpace: "dwpose_source_normalized";
+  sourcePersonIndex: number;
+}
+
+export interface MediaPipeInputPose extends PoseJointMap {
+  coordinateSpace: "mediapipe_input_normalized";
 }
 
 export interface PoseBoundingBox {
@@ -65,6 +78,7 @@ export type PoseFeedback =
   | "ADJUST_LEFT_LEG"
   | "ADJUST_RIGHT_LEG"
   | "ADJUST_TORSO"
+  | "LOW_CONFIDENCE"
   | "ALIGNED";
 
 export interface PoseMatchScore {
@@ -110,7 +124,8 @@ export type PoseMismatchCause =
   | "LEFT_ARM"
   | "RIGHT_ARM"
   | "LEFT_LEG"
-  | "RIGHT_LEG";
+  | "RIGHT_LEG"
+  | "CONFIDENCE";
 
 export interface WorstPoseMatch {
   targetIndex: number;
@@ -130,7 +145,6 @@ export interface PoseSceneMatchResult {
   largestMismatch: PoseMismatchCause | null;
 }
 
-export type CoordinateUnit = "normalized" | "pixel";
 export type QuarterTurn = 0 | 90 | 180 | 270;
 export type ResizeMode = "cover" | "contain";
 export type CaptureAspectRatio = "4:3" | "16:9";
@@ -140,18 +154,27 @@ export interface CoordinateSize {
   height: number;
 }
 
-export interface RawToCaptureTransform {
+export interface SourcePoseToCaptureTransform {
   sourceSize: CoordinateSize;
   captureSize: CoordinateSize;
-  coordinateUnit: CoordinateUnit;
   /**
-   * Clockwise rotation needed to put the raw model frame into the final
-   * capture orientation. Derive this from native frame/capture metadata.
+   * The server DWPose coordinates already use the upright source image.
+   * This flag is only for an explicitly mirrored final reference canvas.
    */
-  rotationDegrees: QuarterTurn;
+  mirrorX: boolean;
+  captureResizeMode: ResizeMode;
+}
+
+export interface MediaPipePoseToCaptureTransform {
   /**
-   * Whether the final saved capture is horizontally mirrored.
-   * Preview-only mirroring belongs to CaptureToPreviewTransform instead.
+   * The native Pose input is already physically rotated upright before
+   * MediaPipe runs. Do not apply sourceFrame.rotationDegrees again.
+   */
+  inputSize: CoordinateSize;
+  captureSize: CoordinateSize;
+  /**
+   * Whether the final saved capture differs horizontally from the
+   * unmirrored MediaPipe input. Preview-only mirroring is separate.
    */
   mirrorX: boolean;
   captureResizeMode: ResizeMode;

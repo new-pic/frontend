@@ -4,9 +4,14 @@ import type {
   CommonPose,
   CommonPosePoint,
   CoordinateSize,
+  DWPoseSourcePose,
+  MediaPipeInputPose,
+  MediaPipePoseToCaptureTransform,
+  PoseJointMap,
   PreviewPoint,
-  RawToCaptureTransform,
+  QuarterTurn,
   ResizeMode,
+  SourcePoseToCaptureTransform,
 } from "../model";
 
 function assertPositiveSize(size: CoordinateSize, label: string) {
@@ -20,41 +25,33 @@ function assertPositiveSize(size: CoordinateSize, label: string) {
   }
 }
 
+/**
+ * CameraOutput.currentResolution is sensor-native and unrotated. Use the
+ * output orientation delta to obtain the final capture canvas dimensions.
+ */
+export function orientCoordinateSize(
+  size: CoordinateSize,
+  rotationDegrees: QuarterTurn,
+): CoordinateSize {
+  assertPositiveSize(size, "Coordinate");
+  return rotationDegrees === 90 || rotationDegrees === 270
+    ? { width: size.height, height: size.width }
+    : size;
+}
+
 export function createCaptureCanvasSize(
   aspectRatio: CaptureAspectRatio,
-  width: number,
+  longEdge: number,
+  orientation: "landscape" | "portrait" = "landscape",
 ): CoordinateSize {
-  if (!Number.isFinite(width) || width <= 0) {
-    throw new Error("Capture canvas width must be positive");
+  if (!Number.isFinite(longEdge) || longEdge <= 0) {
+    throw new Error("Capture canvas long edge must be positive");
   }
 
   const ratio = aspectRatio === "4:3" ? 4 / 3 : 16 / 9;
-  return { width, height: width / ratio };
-}
-
-function getOrientedSize(
-  sourceSize: CoordinateSize,
-  rotationDegrees: RawToCaptureTransform["rotationDegrees"],
-): CoordinateSize {
-  return rotationDegrees === 90 || rotationDegrees === 270
-    ? { width: sourceSize.height, height: sourceSize.width }
-    : sourceSize;
-}
-
-function rotateNormalizedPoint(
-  point: CommonPosePoint,
-  rotationDegrees: RawToCaptureTransform["rotationDegrees"],
-): CommonPosePoint {
-  switch (rotationDegrees) {
-    case 0:
-      return point;
-    case 90:
-      return { ...point, x: 1 - point.y, y: point.x };
-    case 180:
-      return { ...point, x: 1 - point.x, y: 1 - point.y };
-    case 270:
-      return { ...point, x: point.y, y: 1 - point.x };
-  }
+  return orientation === "landscape"
+    ? { width: longEdge, height: longEdge / ratio }
+    : { width: longEdge / ratio, height: longEdge };
 }
 
 function mapNormalizedPointBetweenCanvases(
@@ -89,57 +86,89 @@ function mapNormalizedPointBetweenCanvases(
   };
 }
 
-/**
- * RawModelCoordinate -> CaptureNormalizedCoordinate.
- *
- * Cover-cropped points are not clamped. A point outside the actual capture
- * region therefore remains outside 0...1 and can be excluded by consumers.
- */
-export function rawPointToCaptureNormalized(
+function projectNormalizedPointToCapture(
   point: CommonPosePoint,
-  transform: RawToCaptureTransform,
+  sourceSize: CoordinateSize,
+  captureSize: CoordinateSize,
+  mirrorX: boolean,
+  resizeMode: ResizeMode,
 ): CommonPosePoint {
-  assertPositiveSize(transform.sourceSize, "Source");
-  assertPositiveSize(transform.captureSize, "Capture");
+  assertPositiveSize(sourceSize, "Source");
+  assertPositiveSize(captureSize, "Capture");
 
-  const normalizedPoint =
-    transform.coordinateUnit === "pixel"
-      ? {
-          ...point,
-          x: point.x / transform.sourceSize.width,
-          y: point.y / transform.sourceSize.height,
-        }
-      : point;
-  const rotatedPoint = rotateNormalizedPoint(
-    normalizedPoint,
-    transform.rotationDegrees,
-  );
-  const orientedPoint = transform.mirrorX
-    ? { ...rotatedPoint, x: 1 - rotatedPoint.x }
-    : rotatedPoint;
+  const orientedPoint = mirrorX
+    ? { ...point, x: 1 - point.x }
+    : point;
 
   return mapNormalizedPointBetweenCanvases(
     orientedPoint,
-    getOrientedSize(transform.sourceSize, transform.rotationDegrees),
-    transform.captureSize,
-    transform.captureResizeMode,
+    sourceSize,
+    captureSize,
+    resizeMode,
   );
 }
 
-export function rawPoseToCaptureNormalized(
-  pose: CommonPose,
-  transform: RawToCaptureTransform,
+function projectPoseToCapture(
+  pose: PoseJointMap,
+  sourceSize: CoordinateSize,
+  captureSize: CoordinateSize,
+  mirrorX: boolean,
+  resizeMode: ResizeMode,
 ): CommonPose {
   return {
     joints: Object.fromEntries(
       Object.entries(pose.joints).map(([joint, point]) => [
         joint,
         point
-          ? rawPointToCaptureNormalized(point, transform)
+          ? projectNormalizedPointToCapture(
+              point,
+              sourceSize,
+              captureSize,
+              mirrorX,
+              resizeMode,
+            )
           : undefined,
       ]),
     ),
   };
+}
+
+/**
+ * DWPose source-image normalized coordinate -> Capture normalized coordinate.
+ *
+ * Cover-cropped points are intentionally not clamped. Consumers can exclude
+ * joints outside 0...1 without losing the crop geometry.
+ */
+export function projectDWPosePoseToCapture(
+  pose: DWPoseSourcePose,
+  transform: SourcePoseToCaptureTransform,
+): CommonPose {
+  return projectPoseToCapture(
+    pose,
+    transform.sourceSize,
+    transform.captureSize,
+    transform.mirrorX,
+    transform.captureResizeMode,
+  );
+}
+
+/**
+ * MediaPipe input normalized coordinate -> Capture normalized coordinate.
+ *
+ * The native input adapter has already physically rotated the frame upright.
+ * `sourceFrame.rotationDegrees` must not be applied at this stage.
+ */
+export function projectMediaPipePoseToCapture(
+  pose: MediaPipeInputPose,
+  transform: MediaPipePoseToCaptureTransform,
+): CommonPose {
+  return projectPoseToCapture(
+    pose,
+    transform.inputSize,
+    transform.captureSize,
+    transform.mirrorX,
+    transform.captureResizeMode,
+  );
 }
 
 /**

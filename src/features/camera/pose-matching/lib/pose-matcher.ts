@@ -30,6 +30,10 @@ function getLowestJointGroup(
 function getLargestPairMismatch(
   match: PosePairMatch,
 ): PoseMismatchCause {
+  if (!match.isComparable) {
+    return "CONFIDENCE";
+  }
+
   const componentScores = [
     ["POSITION", match.score.position],
     ["SCALE", match.score.scale],
@@ -87,6 +91,10 @@ function getFeedback(
   cause: PoseMismatchCause,
   config: PoseMatchConfig,
 ): PoseFeedback {
+  if (cause === "CONFIDENCE") {
+    return "LOW_CONFIDENCE";
+  }
+
   const metrics = match.metrics;
   if (!metrics) return "ADJUST_TORSO";
 

@@ -62,7 +62,8 @@ export const DEFAULT_POSE_MATCH_CONFIG: PoseMatchConfig = {
   minimumJointGroupScore: 65,
   directionDeadZone: 0.035,
   scaleDeadZoneLog: 0.12,
-  maxExactAssignmentPeople: 8,
+  // Current on-device Pose Landmarker is capped at four people (4! = 24).
+  maxExactAssignmentPeople: 4,
   jointGroupWeights: {
     TORSO: 1.4,
     LEFT_ARM: 1,
