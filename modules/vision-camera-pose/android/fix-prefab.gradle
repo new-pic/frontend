@@ -1,0 +1,6 @@
+afterEvaluate {
+  tasks.matching { it.name.startsWith("configureCMake") }.configureEach {
+    dependsOn(":react-native-nitro-modules:prefabReleasePackage")
+    dependsOn(":react-native-vision-camera:prefabReleasePackage")
+  }
+}

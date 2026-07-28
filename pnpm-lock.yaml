@@ -44,6 +44,9 @@ importers:
       '@livekit/react-native-webrtc':
         specifier: 144.1.2
         version: 144.1.2(react-native@0.85.3(@babel/core@7.29.7)(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))
+      '@newpic/vision-camera-pose':
+        specifier: link:modules/vision-camera-pose
+        version: link:modules/vision-camera-pose
       '@newpic/vision-camera-rtc':
         specifier: link:modules/vision-camera-rtc
         version: link:modules/vision-camera-rtc

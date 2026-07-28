@@ -14,6 +14,7 @@
     "@livekit/react-native": "2.12.0",
     "@livekit/react-native-expo-plugin": "^1.0.2",
     "@livekit/react-native-webrtc": "144.1.2",
+    "@newpic/vision-camera-pose": "link:modules/vision-camera-pose",
     "@newpic/vision-camera-rtc": "link:modules/vision-camera-rtc",
     "@react-native-google-signin/google-signin": "^16.1.2",
     "@tabler/icons-react-native": "^3.44.0",
@@ -86,6 +87,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "test:camera-settings": "node --test src/features/camera/capture-photo/__tests__/camera-capture-settings.test.cjs",
+    "test:pose-detection": "node --test src/features/camera/pose-detection/__tests__/pose-detection.test.cjs",
     "test:pose-match": "node --test src/features/camera/pose-matching/__tests__/pose-matching.test.cjs"
   },
   "private": true,

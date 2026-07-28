@@ -1,0 +1,37 @@
+{
+  "name": "@newpic/vision-camera-pose",
+  "version": "0.1.0",
+  "description": "VisionCamera FrameOutput to MediaPipe Pose Landmarker adapter for Newpic",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "types": "src/index.ts",
+  "react-native": "src/index.ts",
+  "source": "src/index.ts",
+  "files": [
+    "src",
+    "models",
+    "nitrogen",
+    "android",
+    "ios",
+    "nitro.json",
+    "react-native.config.js",
+    "VisionCameraPose.podspec"
+  ],
+  "scripts": {
+    "specs": "nitrogen",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*",
+    "react-native-nitro-modules": "0.35.10",
+    "react-native-vision-camera": "5.0.11"
+  },
+  "devDependencies": {
+    "nitrogen": "0.35.10",
+    "typescript": "6.0.3"
+  },
+  "private": true,
+  "license": "UNLICENSED",
+  "author": "Newpic"
+}

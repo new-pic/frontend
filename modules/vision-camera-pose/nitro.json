@@ -1,0 +1,24 @@
+{
+  "$schema": "https://nitro.margelo.com/nitro.schema.json",
+  "cxxNamespace": ["newpic", "visioncamerapose"],
+  "ios": {
+    "iosModuleName": "VisionCameraPose"
+  },
+  "android": {
+    "androidNamespace": ["newpic", "visioncamerapose"],
+    "androidCxxLibName": "VisionCameraPose"
+  },
+  "autolinking": {
+    "VisionCameraPoseFrameSink": {
+      "ios": {
+        "language": "swift",
+        "implementationClassName": "HybridVisionCameraPoseFrameSink"
+      },
+      "android": {
+        "language": "kotlin",
+        "implementationClassName": "HybridVisionCameraPoseFrameSink"
+      }
+    }
+  },
+  "ignorePaths": ["**/node_modules"]
+}
