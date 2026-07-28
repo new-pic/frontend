@@ -110,28 +110,41 @@ export interface FeedItemResponse {
   thumbnailUrl: string;
 }
 
-export interface FeedPoseLandmark {
+export interface NormalizedPoseLandmark {
   index: number;
   x: number;
   y: number;
-  visibility: number;
+  visibility?: number;
 }
 
-export interface FeedPoseAnalysis {
-  model: "dwpose";
-  source: "feed_upload";
-  poseAnalyzed: boolean;
-  posePersonCount: number;
-  keypointFormat: "dwpose_xy_score";
-  storageShape: "single_person";
-  truncatedToKeypoints: number;
+export interface NormalizedPosePerson {
+  personIndex: number;
+  landmarks: NormalizedPoseLandmark[];
 }
+
+export interface NormalizedPoseResult {
+  landmarks: NormalizedPoseLandmark[] | NormalizedPosePerson[];
+  analysis: {
+    poseAnalyzed: boolean;
+    posePersonCount: number;
+    rawPersonCount: number;
+    keypointFormat: "dwpose_xy_score";
+    keypointCountsPerPerson: number[];
+    scoreCountsPerPerson: number[];
+    averageScorePerPerson: number[];
+    storageShape: "single_person" | "multi_person";
+    truncatedToKeypoints: number;
+  };
+}
+
+export type FeedPoseLandmark = NormalizedPoseLandmark;
+export type FeedPoseAnalysis = NormalizedPoseResult["analysis"];
 
 export interface FeedPoseResponse {
   feedId: string;
   imageUrl: string;
-  poseLandmarks: FeedPoseLandmark[];
-  poseAnalysis: FeedPoseAnalysis;
+  poseLandmarks: NormalizedPoseResult["landmarks"];
+  poseAnalysis: NormalizedPoseResult["analysis"];
   poseUpdatedAt: string;
 }
 
