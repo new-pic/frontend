@@ -18,18 +18,21 @@ require.extensions[".ts"] = (module, filename) => {
 
 const {
   adaptDWPosePose,
+  adaptDWPoseResult,
   adaptMediaPipePose,
   capturePointToPreview,
+  createFeedPoseTargetPreparer,
   createCaptureCanvasSize,
   matchPoseScene,
-  rawPointToCaptureNormalized,
+  normalizeDWPosePeople,
+  orientCoordinateSize,
+  projectDWPosePoseToCapture,
+  projectMediaPipePoseToCapture,
 } = require("../index.ts");
 
 const IDENTITY_TRANSFORM = {
   sourceSize: { width: 400, height: 300 },
   captureSize: { width: 400, height: 300 },
-  coordinateUnit: "normalized",
-  rotationDegrees: 0,
   mirrorX: false,
   captureResizeMode: "cover",
 };
@@ -195,17 +198,19 @@ test("low-confidence landmarks are excluded from pose error", () => {
 });
 
 test("4:3 and 16:9 cover transforms map into capture coordinates", () => {
-  const sourceSize = { width: 400, height: 300 };
-  const rawPoint = point(0.25, 0.25);
-  const fourByThree = rawPointToCaptureNormalized(rawPoint, {
+  const sourcePose = {
+    coordinateSpace: "dwpose_source_normalized",
+    sourcePersonIndex: 0,
+    joints: { NOSE: point(0.25, 0.25) },
+  };
+  const fourByThree = projectDWPosePoseToCapture(sourcePose, {
     ...IDENTITY_TRANSFORM,
     captureSize: createCaptureCanvasSize("4:3", 1200),
-  });
-  const sixteenByNine = rawPointToCaptureNormalized(rawPoint, {
+  }).joints.NOSE;
+  const sixteenByNine = projectDWPosePoseToCapture(sourcePose, {
     ...IDENTITY_TRANSFORM,
-    sourceSize,
     captureSize: createCaptureCanvasSize("16:9", 1600),
-  });
+  }).joints.NOSE;
 
   assert.ok(Math.abs(fourByThree.x - 0.25) < 1e-9);
   assert.ok(Math.abs(fourByThree.y - 0.25) < 1e-9);
@@ -213,17 +218,73 @@ test("4:3 and 16:9 cover transforms map into capture coordinates", () => {
   assert.ok(Math.abs(sixteenByNine.y - 1 / 6) < 1e-9);
 });
 
-test("device rotation and front-camera mirroring are capture transforms", () => {
-  const transformed = rawPointToCaptureNormalized(point(0.2, 0.3), {
-    ...IDENTITY_TRANSFORM,
-    sourceSize: { width: 300, height: 400 },
-    captureSize: { width: 400, height: 300 },
-    rotationDegrees: 90,
-    mirrorX: true,
-  });
+test("upright MediaPipe input is not rotated again and can be mirrored", () => {
+  const transformed = projectMediaPipePoseToCapture(
+    {
+      coordinateSpace: "mediapipe_input_normalized",
+      joints: { NOSE: point(0.2, 0.3) },
+    },
+    {
+      inputSize: { width: 400, height: 300 },
+      captureSize: { width: 400, height: 300 },
+      captureResizeMode: "cover",
+      mirrorX: true,
+    },
+  ).joints.NOSE;
 
-  assert.ok(Math.abs(transformed.x - 0.3) < 1e-9);
-  assert.ok(Math.abs(transformed.y - 0.2) < 1e-9);
+  assert.ok(Math.abs(transformed.x - 0.8) < 1e-9);
+  assert.ok(Math.abs(transformed.y - 0.3) < 1e-9);
+});
+
+test("capture canvas size supports portrait 4:3 and 16:9", () => {
+  assert.deepEqual(
+    createCaptureCanvasSize("4:3", 1200, "portrait"),
+    { width: 900, height: 1200 },
+  );
+  assert.deepEqual(
+    createCaptureCanvasSize("16:9", 1600, "portrait"),
+    { width: 900, height: 1600 },
+  );
+});
+
+test("sensor-native capture size follows output orientation", () => {
+  assert.deepEqual(
+    orientCoordinateSize({ width: 4032, height: 3024 }, 90),
+    { width: 3024, height: 4032 },
+  );
+  assert.deepEqual(
+    orientCoordinateSize({ width: 4032, height: 3024 }, 0),
+    { width: 4032, height: 3024 },
+  );
+});
+
+test("insufficient comparable confidence is explicit feedback", () => {
+  const live = mapPose(createPose(), (value, joint) => ({
+    ...value,
+    confidence:
+      joint === "NOSE" || joint === "LEFT_SHOULDER" ? 1 : 0,
+  }));
+  const result = matchPoseScene([createPose()], [live]);
+
+  assert.equal(result.aligned, false);
+  assert.equal(result.feedback, "LOW_CONFIDENCE");
+  assert.equal(result.largestMismatch, "CONFIDENCE");
+});
+
+test("front-camera mirroring stays out of preview-only transforms", () => {
+  const transformed = projectDWPosePoseToCapture(
+    {
+      coordinateSpace: "dwpose_source_normalized",
+      sourcePersonIndex: 0,
+      joints: { NOSE: point(0.2, 0.3) },
+    },
+    {
+      ...IDENTITY_TRANSFORM,
+      mirrorX: true,
+    },
+  ).joints.NOSE;
+
+  assert.ok(Math.abs(transformed.x - 0.8) < 1e-9);
 });
 
 test("preview cover crop stays separate from capture matching", () => {
@@ -248,18 +309,271 @@ test("DWPose and MediaPipe adapters use their own verified mappings", () => {
   const mediapipe = Array.from({ length: 29 }, (_, index) => ({
     x: index / 40,
     y: index / 40,
-    visibility: 0.8,
+    confidence: 0.8,
   }));
-  const commonDWPose = adaptDWPosePose(dwpose, {
-    keypointFormat: "dwpose_xy_score",
-    coordinateTransform: IDENTITY_TRANSFORM,
+  const commonDWPose = adaptDWPosePose({
+    personIndex: 3,
+    landmarks: dwpose,
   });
-  const commonMediaPipe = adaptMediaPipePose(mediapipe, {
-    coordinateTransform: IDENTITY_TRANSFORM,
-  });
+  const commonMediaPipe = adaptMediaPipePose(mediapipe);
 
+  assert.equal(commonDWPose.sourcePersonIndex, 3);
   assert.equal(commonDWPose.joints.LEFT_SHOULDER.x, 5 / 20);
   assert.equal(commonDWPose.joints.LEFT_HIP.x, 11 / 20);
   assert.equal(commonMediaPipe.joints.LEFT_SHOULDER.x, 11 / 40);
   assert.equal(commonMediaPipe.joints.LEFT_HIP.x, 23 / 40);
+  assert.equal(commonMediaPipe.joints.LEFT_HIP.confidence, 0.8);
+});
+
+function createNormalizedPoseResult(storageShape, people) {
+  const normalizedPeople =
+    storageShape === "single_person"
+      ? people[0]?.landmarks ?? []
+      : people;
+  return {
+    landmarks: normalizedPeople,
+    analysis: {
+      poseAnalyzed: people.length > 0,
+      posePersonCount: people.length,
+      rawPersonCount: people.length,
+      keypointFormat: "dwpose_xy_score",
+      keypointCountsPerPerson: people.map(
+        ({ landmarks }) => landmarks.length,
+      ),
+      scoreCountsPerPerson: people.map(
+        ({ landmarks }) =>
+          landmarks.filter(
+            ({ visibility }) => visibility !== undefined,
+          ).length,
+      ),
+      averageScorePerPerson: people.map(() => 0.9),
+      storageShape,
+      truncatedToKeypoints: 33,
+    },
+  };
+}
+
+test("single-person server storage normalizes to one person", () => {
+  const landmarks = Array.from({ length: 17 }, (_, index) => ({
+    index,
+    x: index / 20,
+    y: index / 20,
+    visibility: 0.9,
+  }));
+  const people = normalizeDWPosePeople(
+    createNormalizedPoseResult("single_person", [
+      { personIndex: 0, landmarks },
+    ]),
+  );
+
+  assert.equal(people.length, 1);
+  assert.equal(people[0].personIndex, 0);
+  assert.equal(people[0].landmarks.length, 17);
+});
+
+test("multi-person server storage preserves each source person", () => {
+  const makePerson = (personIndex, offset) => ({
+    personIndex,
+    landmarks: Array.from({ length: 17 }, (_, index) => ({
+      index,
+      x: (index + offset) / 40,
+      y: index / 40,
+      visibility: 0.9,
+    })),
+  });
+  const result = createNormalizedPoseResult("multi_person", [
+    makePerson(4, 0),
+    makePerson(9, 2),
+  ]);
+  const poses = adaptDWPoseResult(result);
+
+  assert.deepEqual(
+    poses.map(({ sourcePersonIndex }) => sourcePersonIndex),
+    [4, 9],
+  );
+});
+
+test("server per-person metadata mismatch is rejected", () => {
+  const result = createNormalizedPoseResult("multi_person", [
+    {
+      personIndex: 0,
+      landmarks: [
+        { index: 0, x: 0.5, y: 0.2, visibility: 0.9 },
+      ],
+    },
+  ]);
+  result.analysis.keypointCountsPerPerson = [2];
+
+  assert.throws(
+    () => normalizeDWPosePeople(result),
+    /keypoint count does not match truncation analysis/,
+  );
+});
+
+test("server raw keypoint diagnostics may exceed stored truncation", () => {
+  const person = {
+    personIndex: 0,
+    landmarks: Array.from({ length: 33 }, (_, index) => ({
+      index,
+      x: index / 40,
+      y: index / 40,
+      visibility: 0.9,
+    })),
+  };
+  const result = createNormalizedPoseResult("multi_person", [
+    person,
+  ]);
+  result.analysis.keypointCountsPerPerson = [133];
+  result.analysis.scoreCountsPerPerson = [133];
+
+  assert.equal(normalizeDWPosePeople(result)[0].landmarks.length, 33);
+});
+
+test("missing DWPose visibility becomes zero confidence", () => {
+  const pose = adaptDWPosePose({
+    personIndex: 0,
+    landmarks: [{ index: 0, x: 0.5, y: 0.2 }],
+  });
+
+  assert.equal(pose.joints.NOSE.confidence, 0);
+});
+
+function createFeedPoseResponse(feedId, imageUrl, offset = 0) {
+  const poseResult = createNormalizedPoseResult("single_person", [
+    {
+      personIndex: 0,
+      landmarks: Array.from({ length: 17 }, (_, index) => ({
+        index,
+        x: (index + offset) / 40,
+        y: index / 40,
+        visibility: 0.9,
+      })),
+    },
+  ]);
+
+  return {
+    feedId,
+    imageUrl,
+    poseLandmarks: poseResult.landmarks,
+    poseAnalysis: poseResult.analysis,
+    poseUpdatedAt: "2026-07-29T00:00:00.000Z",
+  };
+}
+
+function deferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+}
+
+test("new Feed target commits only after image and pose are ready", async () => {
+  const poseGate = deferred();
+  const imageGate = deferred();
+  const preparer = createFeedPoseTargetPreparer({
+    loadPose: () => poseGate.promise,
+    loadImage: () => imageGate.promise,
+  });
+  const preparation = preparer.prepare({
+    feedId: "feed-a",
+    imageUrl: "https://example.com/feed-a.webp",
+  });
+
+  assert.equal(preparer.getActiveTarget(), null);
+  poseGate.resolve(
+    createFeedPoseResponse(
+      "feed-a",
+      "https://example.com/feed-a.webp",
+    ),
+  );
+  await Promise.resolve();
+  assert.equal(preparer.getActiveTarget(), null);
+
+  imageGate.resolve({
+    image: { key: "feed-a-image" },
+    size: { width: 1200, height: 1600 },
+  });
+  const result = await preparation;
+
+  assert.equal(result.status, "committed");
+  assert.equal(result.target.cameraAspectRatio, "4:3");
+  assert.equal(preparer.getActiveTarget().feedId, "feed-a");
+});
+
+test("late Feed preparation cannot replace the latest selection", async () => {
+  const slowPose = deferred();
+  const preparer = createFeedPoseTargetPreparer({
+    loadPose: (feedId) =>
+      feedId === "feed-b"
+        ? slowPose.promise
+        : Promise.resolve(
+            createFeedPoseResponse(
+              feedId,
+              `https://example.com/${feedId}.webp`,
+            ),
+          ),
+    loadImage: (imageUrl) =>
+      Promise.resolve({
+        image: { imageUrl },
+        size: { width: 1080, height: 1920 },
+      }),
+  });
+  const slowPreparation = preparer.prepare({
+    feedId: "feed-b",
+    imageUrl: "https://example.com/feed-b.webp",
+  });
+  const latestPreparation = preparer.prepare({
+    feedId: "feed-c",
+    imageUrl: "https://example.com/feed-c.webp",
+  });
+
+  const latestResult = await latestPreparation;
+  slowPose.resolve(
+    createFeedPoseResponse(
+      "feed-b",
+      "https://example.com/feed-b.webp",
+    ),
+  );
+  const slowResult = await slowPreparation;
+
+  assert.equal(latestResult.status, "committed");
+  assert.equal(latestResult.target.cameraAspectRatio, "16:9");
+  assert.equal(slowResult.status, "stale");
+  assert.equal(preparer.getActiveTarget().feedId, "feed-c");
+});
+
+test("failed next Feed preparation keeps the current target", async () => {
+  const preparer = createFeedPoseTargetPreparer({
+    loadPose: (feedId) =>
+      feedId === "feed-error"
+        ? Promise.reject(new Error("pose unavailable"))
+        : Promise.resolve(
+            createFeedPoseResponse(
+              feedId,
+              `https://example.com/${feedId}.webp`,
+            ),
+          ),
+    loadImage: (imageUrl) =>
+      Promise.resolve({
+        image: { imageUrl },
+        size: { width: 1200, height: 1600 },
+      }),
+  });
+
+  await preparer.prepare({
+    feedId: "feed-a",
+    imageUrl: "https://example.com/feed-a.webp",
+  });
+  await assert.rejects(
+    preparer.prepare({
+      feedId: "feed-error",
+      imageUrl: "https://example.com/feed-error.webp",
+    }),
+    /pose unavailable/,
+  );
+
+  assert.equal(preparer.getActiveTarget().feedId, "feed-a");
 });

@@ -36,6 +36,9 @@ const {
   getPortraitPreviewAspectRatio,
   isResolutionMatchingAspectRatio,
 } = require("../lib/camera-capture-settings.ts");
+const {
+  resolveFeedCameraAspectRatio,
+} = require("../lib/feed-camera-aspect-ratio.ts");
 
 Module._load = originalLoad;
 
@@ -76,6 +79,29 @@ test("resolved resolution comparison is orientation independent", () => {
       "16:9",
     ),
     false,
+  );
+});
+
+test("following-feed mode chooses and locks the closest supported ratio", () => {
+  assert.equal(
+    resolveFeedCameraAspectRatio({ width: 1200, height: 1600 }),
+    "4:3",
+  );
+  assert.equal(
+    resolveFeedCameraAspectRatio({ width: 1080, height: 1920 }),
+    "16:9",
+  );
+  assert.equal(
+    resolveFeedCameraAspectRatio({ width: 2000, height: 3000 }),
+    "4:3",
+  );
+});
+
+test("feed ratio selection rejects missing image geometry", () => {
+  assert.throws(
+    () =>
+      resolveFeedCameraAspectRatio({ width: 0, height: 0 }),
+    /positive dimensions/,
   );
 });
 
