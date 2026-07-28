@@ -13,3 +13,10 @@ export interface CameraResolution {
   width: number;
   height: number;
 }
+
+export interface CameraRuntimeGeometry {
+  aspectRatio: CameraAspectRatio;
+  captureSize: CameraResolution;
+  previewSize: CameraResolution;
+  cameraPosition: "front" | "back";
+}

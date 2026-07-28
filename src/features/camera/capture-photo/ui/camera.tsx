@@ -21,7 +21,6 @@ import {
   Camera,
   CameraController,
   CameraDevice,
-  CameraPosition,
   CameraRef,
   CommonResolutions,
   Constraint,
@@ -38,11 +37,13 @@ import {
   getPhotoTargetResolution,
   getPortraitPreviewAspectRatio,
   isResolutionMatchingAspectRatio,
+  orientCameraResolution,
 } from "../lib";
 import type {
   CameraAspectRatio,
   CameraCaptureSettings,
   CameraPhotoFlashMode,
+  CameraRuntimeGeometry,
   SessionPhoto,
 } from "../model/models";
 import { CameraAspectRatioControl } from "./camera-aspect-ratio-control";
@@ -135,6 +136,12 @@ interface CustomCameraProps {
   onPhotoLimitReached?: (maxPhotos: number) => void;
   videoFrameSink?: NativeCameraFrameSink;
   poseFrameSink?: NativeCameraFrameSink;
+  guideAspectRatio?: CameraAspectRatio;
+  previewOverlay?: ReactNode;
+  previewControl?: ReactNode;
+  onRuntimeGeometryChange?: (
+    geometry: CameraRuntimeGeometry | null,
+  ) => void;
 }
 
 // 실제 카메라와 무거운 훅들을 담당하는 내부 컴포넌트
@@ -150,6 +157,10 @@ function CameraView({
   onPhotoLimitReached,
   videoFrameSink,
   poseFrameSink,
+  guideAspectRatio,
+  previewOverlay,
+  previewControl,
+  onRuntimeGeometryChange,
 }: CustomCameraProps) {
   const cameraRef = useRef<CameraRef>(null);
   const isTakingPhotoRef = useRef(false);
@@ -167,6 +178,10 @@ function CameraView({
     );
   const [isPhotoOutputConfigured, setIsPhotoOutputConfigured] =
     useState(false);
+  const [previewSize, setPreviewSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
   const targetResolution = getPhotoTargetResolution(
     captureSettings.aspectRatio,
   );
@@ -174,7 +189,9 @@ function CameraView({
     captureSettings.aspectRatio,
   );
 
-  const [cameraDevice, setCameraDevice] = useState<CameraPosition>("back");
+  const [cameraDevice, setCameraDevice] = useState<"front" | "back">(
+    "back",
+  );
   const device = useCameraDevice(cameraDevice, {
     physicalDevices: ["ultra-wide-angle", "wide-angle", "telephoto"],
   });
@@ -241,6 +258,41 @@ function CameraView({
     () => [{ fps: 30 }],
     [],
   );
+  const currentPhotoResolution = photoOutput.currentResolution;
+  const currentPhotoWidth = currentPhotoResolution?.width;
+  const currentPhotoHeight = currentPhotoResolution?.height;
+  const photoOutputOrientation = photoOutput.outputOrientation;
+  const runtimeGeometry = useMemo<CameraRuntimeGeometry | null>(() => {
+    if (
+      !isPhotoOutputConfigured ||
+      currentPhotoWidth === undefined ||
+      currentPhotoHeight === undefined ||
+      !previewSize
+    ) {
+      return null;
+    }
+
+    return {
+      aspectRatio: captureSettings.aspectRatio,
+      captureSize: orientCameraResolution(
+        {
+          width: currentPhotoWidth,
+          height: currentPhotoHeight,
+        },
+        photoOutputOrientation,
+      ),
+      previewSize,
+      cameraPosition: cameraDevice,
+    };
+  }, [
+    cameraDevice,
+    captureSettings.aspectRatio,
+    currentPhotoHeight,
+    currentPhotoWidth,
+    isPhotoOutputConfigured,
+    photoOutputOrientation,
+    previewSize,
+  ]);
   const updateDisplayZoom = useCallback((nextZoom: number) => {
     setDisplayZoom(nextZoom);
   }, []);
@@ -301,6 +353,32 @@ function CameraView({
       };
     });
   }, [device]);
+
+  useEffect(() => {
+    if (
+      !guideAspectRatio ||
+      guideAspectRatio === captureSettings.aspectRatio
+    ) {
+      return;
+    }
+
+    setIsPhotoOutputConfigured(false);
+    setCaptureSettings((currentSettings) => ({
+      ...currentSettings,
+      aspectRatio: guideAspectRatio,
+    }));
+  }, [captureSettings.aspectRatio, guideAspectRatio]);
+
+  useEffect(() => {
+    onRuntimeGeometryChange?.(runtimeGeometry);
+  }, [onRuntimeGeometryChange, runtimeGeometry]);
+
+  useEffect(
+    () => () => {
+      onRuntimeGeometryChange?.(null);
+    },
+    [onRuntimeGeometryChange],
+  );
 
   const handleCameraStarted = useCallback(() => {
     const controller = cameraRef.current?.controller;
@@ -590,6 +668,15 @@ function CameraView({
           <GestureDetector gesture={pinchGesture}>
             <View
               collapsable={false}
+              onLayout={({ nativeEvent }) => {
+                const { width, height } = nativeEvent.layout;
+                setPreviewSize((current) =>
+                  current?.width === width &&
+                  current.height === height
+                    ? current
+                    : { width, height },
+                );
+              }}
               style={{
                 aspectRatio: previewAspectRatio,
                 overflow: "hidden",
@@ -609,11 +696,16 @@ function CameraView({
                 onStarted={handleCameraStarted}
                 onStopped={onStopped}
               />
+              {previewOverlay}
               <CameraAspectRatioControl
                 aspectRatio={captureSettings.aspectRatio}
-                disabled={!isPhotoOutputConfigured}
+                disabled={
+                  !isPhotoOutputConfigured ||
+                  guideAspectRatio !== undefined
+                }
                 onChange={handleChangeAspectRatio}
               />
+              {previewControl}
             </View>
           </GestureDetector>
           <ZoomControls
@@ -651,6 +743,10 @@ export function CustomCamera({
   onPhotoLimitReached,
   videoFrameSink,
   poseFrameSink,
+  guideAspectRatio,
+  previewOverlay,
+  previewControl,
+  onRuntimeGeometryChange,
 }: CustomCameraProps) {
   const { hasPermission, requestPermission } = useCameraPermission();
 
@@ -681,6 +777,10 @@ export function CustomCamera({
       onPhotoLimitReached={onPhotoLimitReached}
       videoFrameSink={videoFrameSink}
       poseFrameSink={poseFrameSink}
+      guideAspectRatio={guideAspectRatio}
+      previewOverlay={previewOverlay}
+      previewControl={previewControl}
+      onRuntimeGeometryChange={onRuntimeGeometryChange}
     />
   );
 }

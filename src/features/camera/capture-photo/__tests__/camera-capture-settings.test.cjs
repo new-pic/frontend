@@ -35,6 +35,7 @@ const {
   getPhotoTargetResolution,
   getPortraitPreviewAspectRatio,
   isResolutionMatchingAspectRatio,
+  orientCameraResolution,
 } = require("../lib/camera-capture-settings.ts");
 const {
   resolveFeedCameraAspectRatio,
@@ -79,6 +80,23 @@ test("resolved resolution comparison is orientation independent", () => {
       "16:9",
     ),
     false,
+  );
+});
+
+test("sensor-native resolution follows the configured output orientation", () => {
+  assert.deepEqual(
+    orientCameraResolution(
+      { width: 4032, height: 3024 },
+      "right",
+    ),
+    { width: 3024, height: 4032 },
+  );
+  assert.deepEqual(
+    orientCameraResolution(
+      { width: 1920, height: 1080 },
+      "up",
+    ),
+    { width: 1920, height: 1080 },
   );
 });
 

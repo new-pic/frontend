@@ -73,6 +73,18 @@ export function getOrientationIndependentAspectRatio({
   return longSide / shortSide;
 }
 
+export function orientCameraResolution(
+  resolution: CameraResolution,
+  orientation: "up" | "right" | "down" | "left",
+): CameraResolution {
+  return orientation === "right" || orientation === "left"
+    ? {
+        width: resolution.height,
+        height: resolution.width,
+      }
+    : resolution;
+}
+
 export function isResolutionMatchingAspectRatio(
   resolution: CameraResolution,
   aspectRatio: CameraAspectRatio,
