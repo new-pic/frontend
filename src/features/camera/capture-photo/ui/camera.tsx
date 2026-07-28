@@ -218,8 +218,16 @@ function CameraView({
       try {
         // 미송출 중에는 native sink가 프레임을 보관하지 않고 즉시
         // false를 반환합니다. Frame 소유권은 항상 이 callback에 있습니다.
-        videoFrameSink?.pushFrame(frame);
-        poseFrameSink?.pushFrame(frame);
+        try {
+          videoFrameSink?.pushFrame(frame);
+        } catch {
+          // RTC 실패가 Pose 소비와 Frame 해제를 막지 않습니다.
+        }
+        try {
+          poseFrameSink?.pushFrame(frame);
+        } catch {
+          // Pose 실패가 RTC와 CameraSession을 중단하지 않습니다.
+        }
       } finally {
         frame.dispose();
       }
