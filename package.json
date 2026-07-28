@@ -85,6 +85,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
+    "test:camera-settings": "node --test src/features/camera/capture-photo/__tests__/camera-capture-settings.test.cjs",
     "test:pose-match": "node --test src/features/camera/pose-matching/__tests__/pose-matching.test.cjs"
   },
   "private": true,
