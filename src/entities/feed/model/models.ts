@@ -148,11 +148,26 @@ export interface FeedPoseResponse {
   poseUpdatedAt: string;
 }
 
+export interface FeedBackgroundRemovalContour {
+  contourIndex: number;
+  closed: boolean;
+  areaRatio: number;
+  points: Array<{
+    x: number;
+    y: number;
+  }>;
+}
+
 export interface FeedBackgroundRemovalResponse {
-  feedId: string;
-  model: "RMBG-2.0";
-  sourceImageUrl: string;
-  backgroundRemovedImageUrl: string;
+  output: {
+    success: boolean;
+    result: {
+      backgroundRemovedImage: string;
+      imageWidth: number | null;
+      imageHeight: number | null;
+      contours: FeedBackgroundRemovalContour[];
+    };
+  };
 }
 
 export interface FeedTagData {

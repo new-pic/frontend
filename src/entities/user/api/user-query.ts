@@ -1,4 +1,5 @@
 import { privateApiClient } from "@shared/api";
+import type { FeedListResponse } from "@entities/feed";
 import {
   useInfiniteQuery,
   useMutation,
@@ -90,13 +91,30 @@ export function useReadLikedFeeds(params: PaginationParams) {
  * 내가 저장한 피드 조회 (카메라 오버레이로 사용할 수 있는 레퍼런스 이미지)
  * @returns
  */
-export function useReadSavedFeeds() {
-  return useQuery({
-    queryKey: [...QUERY_KEY, "me", "saved-feeds"],
-    queryFn: async () => {
-      const response = await privateApiClient.get("/users/me/references");
+export function useReadSavedFeeds(
+  params: PaginationParams,
+  options?: { enabled?: boolean },
+) {
+  return useInfiniteQuery({
+    queryKey: [...QUERY_KEY, "me", "saved-feeds", params],
+    queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
+      const response = await privateApiClient.get(
+        "/users/me/references",
+        {
+          params: {
+            ...params,
+            cursor: pageParam,
+          },
+          signal,
+        },
+      );
       return response.data;
     },
+    initialPageParam: params.cursor,
+    getNextPageParam: (lastPage) =>
+      lastPage.nextCursor ?? undefined,
+    enabled: options?.enabled,
+    staleTime: 1000 * 60 * 5,
   });
 }
 

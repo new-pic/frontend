@@ -12,14 +12,21 @@ const BACKGROUND_REMOVAL_QUERY_KEY = [
   "background-removal",
 ] as const;
 
+export interface FeedBackgroundRemovalQueryResult {
+  feedId: string;
+  response: FeedBackgroundRemovalResponse;
+}
+
 /**
  * 피드 촬영 비교용 pose 데이터 조회
  */
 export function useReadFeedPose({ feedId }: { feedId?: string }) {
   return useQuery({
     queryKey: [...QUERY_KEY, feedId],
-    queryFn: async (): Promise<FeedPoseResponse> => {
-      const response = await apiClient.get(`/feed/${feedId}/pose`);
+    queryFn: async ({ signal }): Promise<FeedPoseResponse> => {
+      const response = await apiClient.get(`/feed/${feedId}/pose`, {
+        signal,
+      });
       return response.data;
     },
     enabled: !!feedId,
@@ -37,11 +44,20 @@ export function useReadFeedBackgroundRemoval({
 }) {
   return useQuery({
     queryKey: [...BACKGROUND_REMOVAL_QUERY_KEY, feedId],
-    queryFn: async (): Promise<FeedBackgroundRemovalResponse> => {
+    queryFn: async ({
+      signal,
+    }): Promise<FeedBackgroundRemovalQueryResult> => {
+      if (!feedId) {
+        throw new Error("feedId is required");
+      }
       const response = await apiClient.get(
         `/feed/${feedId}/background-removal`,
+        { signal },
       );
-      return response.data;
+      return {
+        feedId,
+        response: response.data,
+      };
     },
     enabled: !!feedId,
     staleTime: 1000 * 60 * 5,
