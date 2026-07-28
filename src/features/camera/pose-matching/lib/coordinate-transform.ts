@@ -1,6 +1,7 @@
 import type {
   CaptureAspectRatio,
   CaptureToPreviewTransform,
+  CanvasRenderRect,
   CommonPose,
   CommonPosePoint,
   CoordinateSize,
@@ -60,6 +61,31 @@ function mapNormalizedPointBetweenCanvases(
   destinationSize: CoordinateSize,
   resizeMode: ResizeMode,
 ): CommonPosePoint {
+  const renderedRect = calculateCanvasRenderRect(
+    sourceSize,
+    destinationSize,
+    resizeMode,
+  );
+
+  return {
+    ...point,
+    x:
+      (point.x * renderedRect.width + renderedRect.x) /
+      destinationSize.width,
+    y:
+      (point.y * renderedRect.height + renderedRect.y) /
+      destinationSize.height,
+  };
+}
+
+export function calculateCanvasRenderRect(
+  sourceSize: CoordinateSize,
+  destinationSize: CoordinateSize,
+  resizeMode: ResizeMode,
+): CanvasRenderRect {
+  assertPositiveSize(sourceSize, "Source");
+  assertPositiveSize(destinationSize, "Destination");
+
   const scale =
     resizeMode === "cover"
       ? Math.max(
@@ -76,13 +102,48 @@ function mapNormalizedPointBetweenCanvases(
   const offsetY = (destinationSize.height - renderedHeight) / 2;
 
   return {
-    ...point,
-    x:
-      (point.x * sourceSize.width * scale + offsetX) /
-      destinationSize.width,
-    y:
-      (point.y * sourceSize.height * scale + offsetY) /
-      destinationSize.height,
+    x: offsetX,
+    y: offsetY,
+    width: renderedWidth,
+    height: renderedHeight,
+  };
+}
+
+/**
+ * Composes Source -> Capture and Capture -> Preview rendering without
+ * bypassing the capture-normalized coordinate contract.
+ */
+export function projectSourceCanvasToPreviewRect(
+  sourceSize: CoordinateSize,
+  transform: CaptureToPreviewTransform,
+  sourceResizeMode: ResizeMode = "cover",
+): CanvasRenderRect {
+  const sourceInCapture = calculateCanvasRenderRect(
+    sourceSize,
+    transform.captureSize,
+    sourceResizeMode,
+  );
+  const captureInPreview = calculateCanvasRenderRect(
+    transform.captureSize,
+    transform.previewSize,
+    transform.previewResizeMode,
+  );
+  const captureScaleX =
+    captureInPreview.width / transform.captureSize.width;
+  const captureScaleY =
+    captureInPreview.height / transform.captureSize.height;
+  const width = sourceInCapture.width * captureScaleX;
+  const height = sourceInCapture.height * captureScaleY;
+  const unmirroredX =
+    captureInPreview.x + sourceInCapture.x * captureScaleX;
+
+  return {
+    x: transform.mirrorX
+      ? transform.previewSize.width - unmirroredX - width
+      : unmirroredX,
+    y: captureInPreview.y + sourceInCapture.y * captureScaleY,
+    width,
+    height,
   };
 }
 

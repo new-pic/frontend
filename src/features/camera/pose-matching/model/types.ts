@@ -194,3 +194,10 @@ export interface PreviewPoint {
   x: number;
   y: number;
 }
+
+export interface CanvasRenderRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}

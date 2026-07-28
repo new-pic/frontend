@@ -18,3 +18,18 @@ export async function loadExpoFeedReferenceImage(
     },
   };
 }
+
+/**
+ * Reads decoded dimensions without retaining a native ImageRef in React
+ * state or the React Query cache.
+ */
+export async function readExpoFeedReferenceImageSize(
+  imageUrl: string,
+) {
+  const loaded = await loadExpoFeedReferenceImage(imageUrl);
+  try {
+    return loaded.size;
+  } finally {
+    loaded.image.release();
+  }
+}

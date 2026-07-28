@@ -26,9 +26,43 @@ const {
   matchPoseScene,
   normalizeDWPosePeople,
   orientCoordinateSize,
+  projectSourceCanvasToPreviewRect,
   projectDWPosePoseToCapture,
   projectMediaPipePoseToCapture,
 } = require("../index.ts");
+
+test("mask source composes through capture space before preview", () => {
+  const rect = projectSourceCanvasToPreviewRect(
+    { width: 3, height: 4 },
+    {
+      captureSize: { width: 3, height: 4 },
+      previewSize: { width: 300, height: 400 },
+      previewResizeMode: "cover",
+      mirrorX: false,
+    },
+  );
+
+  assert.deepEqual(rect, {
+    x: 0,
+    y: 0,
+    width: 300,
+    height: 400,
+  });
+
+  const cropped = projectSourceCanvasToPreviewRect(
+    { width: 9, height: 16 },
+    {
+      captureSize: { width: 3, height: 4 },
+      previewSize: { width: 300, height: 400 },
+      previewResizeMode: "cover",
+      mirrorX: false,
+    },
+  );
+  assert.equal(cropped.width, 300);
+  assert.ok(Math.abs(cropped.height - 533.3333333333333) < 1e-9);
+  assert.equal(cropped.x, 0);
+  assert.ok(Math.abs(cropped.y - -66.66666666666663) < 1e-9);
+});
 
 const IDENTITY_TRANSFORM = {
   sourceSize: { width: 400, height: 300 },
