@@ -1,3 +1,4 @@
+import { feedQuery } from "@entities/feed";
 import {
   RTC_MAX_CAPTURED_PHOTOS,
   rtcHostQuery,
@@ -11,6 +12,9 @@ import {
   SessionPhoto,
 } from "@features/camera/capture-photo";
 import {
+  adaptFeedToGuideSelection,
+  CAMERA_GUIDE_NAVIGATION,
+  CameraGuideNavigationSearchParams,
   CameraGuideFeedbackBanner,
   CameraGuideOverlay,
   GuideFeedBottomSheet,
@@ -27,6 +31,7 @@ import {
   RTC_NAVIGATION,
   RtcNavigationSearchParams,
 } from "@shared/config";
+import { getFirstSearchParam } from "@shared/lib";
 import { Box, VStack } from "@shared/ui";
 import { CameraHeader } from "@widgets/camera-header";
 import { RtcJoinSheet } from "@widgets/rtc-join-sheet";
@@ -52,6 +57,9 @@ import { SharingEndSelectionPage } from "./sharing-end-selection-page";
 import { SharingResultPage } from "./sharing-result-page";
 
 type CameraMode = "VISION_CAMERA" | "RESULT";
+type CameraPageSearchParams =
+  RtcNavigationSearchParams &
+    CameraGuideNavigationSearchParams;
 
 interface ResultImage {
   id: string;
@@ -70,11 +78,24 @@ const getErrorMessage = (error: unknown) =>
 
 export function CameraPage() {
   const searchParams =
-    useLocalSearchParams<RtcNavigationSearchParams>();
+    useLocalSearchParams<CameraPageSearchParams>();
   const joinCodeParam =
     searchParams[RTC_NAVIGATION.params.code];
   const joinSheetParam =
     searchParams[RTC_NAVIGATION.params.joinSheet];
+  const initialGuideFeedId = getFirstSearchParam(
+    searchParams[CAMERA_GUIDE_NAVIGATION.params.feedId],
+  )?.trim();
+  const initialGuideQuery = feedQuery.useReadFeed({
+    feedId: initialGuideFeedId,
+  });
+  const initialGuideSelection = useMemo(
+    () =>
+      initialGuideQuery.data
+        ? adaptFeedToGuideSelection(initialGuideQuery.data)
+        : null,
+    [initialGuideQuery.data],
+  );
   const returnJoinCode = Array.isArray(joinCodeParam)
     ? joinCodeParam[0]
     : joinCodeParam;
@@ -131,6 +152,9 @@ export function CameraPage() {
     null,
   );
   const preparedEndImagesRef = useRef<File[] | null>(null);
+  const appliedInitialGuideFeedIdRef = useRef<string | null>(
+    null,
+  );
   const cameraGuide = useCameraGuideController({
     cameraActive:
       cameraMode === "VISION_CAMERA" &&
@@ -142,6 +166,28 @@ export function CameraPage() {
   const hasGuideError = Object.values(cameraGuide.errors).some(
     Boolean,
   );
+  const initialGuideNotApplied =
+    Boolean(initialGuideFeedId) &&
+    appliedInitialGuideFeedIdRef.current !== initialGuideFeedId;
+  const hasInitialGuideError =
+    initialGuideNotApplied && initialGuideQuery.isError;
+
+  useEffect(() => {
+    if (
+      !initialGuideFeedId ||
+      !initialGuideSelection ||
+      appliedInitialGuideFeedIdRef.current === initialGuideFeedId
+    ) {
+      return;
+    }
+
+    appliedInitialGuideFeedIdRef.current = initialGuideFeedId;
+    cameraGuide.selectGuide(initialGuideSelection);
+  }, [
+    cameraGuide.selectGuide,
+    initialGuideFeedId,
+    initialGuideSelection,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -449,6 +495,29 @@ export function CameraPage() {
     );
   }, []);
 
+  const handleSelectGuide = useCallback(
+    (selection: Parameters<typeof cameraGuide.selectGuide>[0]) => {
+      if (initialGuideFeedId) {
+        appliedInitialGuideFeedIdRef.current =
+          initialGuideFeedId;
+      }
+      cameraGuide.selectGuide(selection);
+    },
+    [cameraGuide.selectGuide, initialGuideFeedId],
+  );
+
+  const handleRetryGuide = useCallback(() => {
+    if (hasInitialGuideError) {
+      void initialGuideQuery.refetch();
+      return;
+    }
+    cameraGuide.retrySelectedGuide();
+  }, [
+    cameraGuide.retrySelectedGuide,
+    hasInitialGuideError,
+    initialGuideQuery.refetch,
+  ]);
+
   if (cameraMode === "RESULT" && resultImages) {
     return (
       <SharingResultPage
@@ -539,13 +608,17 @@ export function CameraPage() {
                 <GuideSelectionControl
                   selectedGuide={cameraGuide.selectedGuide}
                   isPreparing={
+                    (initialGuideNotApplied &&
+                      initialGuideQuery.isPending) ||
                     cameraGuide.isPreparing ||
                     cameraGuide.isTargetLoading ||
                     cameraGuide.isOutlineLoading
                   }
-                  hasError={hasGuideError}
+                  hasError={
+                    hasInitialGuideError || hasGuideError
+                  }
                   onOpen={() => setIsGuideSheetOpen(true)}
-                  onRetry={cameraGuide.retrySelectedGuide}
+                  onRetry={handleRetryGuide}
                 />
               </>
             }
@@ -556,7 +629,7 @@ export function CameraPage() {
       <GuideFeedBottomSheet
         open={isGuideSheetOpen}
         selectedFeedId={cameraGuide.selectedGuide?.feedId}
-        onSelect={cameraGuide.selectGuide}
+        onSelect={handleSelectGuide}
         onClear={cameraGuide.clearGuide}
         onClose={() => setIsGuideSheetOpen(false)}
       />

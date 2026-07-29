@@ -24,6 +24,13 @@ const {
   adaptFeedBackgroundRemoval,
 } = require("../lib/feed-guide-contour-adapter.ts");
 const {
+  adaptFeedToGuideSelection,
+} = require("../lib/feed-guide-selection-adapter.ts");
+const {
+  createCameraGuideHref,
+  createCameraGuidePath,
+} = require("../model/camera-guide-navigation.ts");
+const {
   createGuideContourPath,
   projectGuideOutlineToPreview,
 } = require("../lib/guide-contour-projection.ts");
@@ -50,6 +57,31 @@ const FEED_B = {
   thumbnailUrl: "https://example.com/b-thumb.webp",
   detailImageUrl: "https://example.com/b.webp",
 };
+
+test("피드 상세 FAB은 feedId만 Camera route contract로 전달한다", () => {
+  assert.deepEqual(createCameraGuideHref(" feed-a "), {
+    pathname: "/camera",
+    params: {
+      guideFeedId: "feed-a",
+    },
+  });
+  assert.equal(
+    createCameraGuidePath("feed/a"),
+    "/camera?guideFeedId=feed%2Fa",
+  );
+});
+
+test("Feed DTO는 Camera Guide selection 경계에서 필요한 필드만 남긴다", () => {
+  assert.deepEqual(
+    adaptFeedToGuideSelection({
+      id: "feed-a",
+      thumbnailUrl: "https://example.com/a-thumb.webp",
+      detailImageUrl: "https://example.com/a.webp",
+      description: "Camera domain에는 전달하지 않는 값",
+    }),
+    FEED_A,
+  );
+});
 
 function createMatchResult({
   score,

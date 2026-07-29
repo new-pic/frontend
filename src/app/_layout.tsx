@@ -4,6 +4,11 @@ import {
   FeedProcessingCoordinator,
 } from "@features/feed/feed-processing";
 import {
+  CAMERA_GUIDE_NAVIGATION,
+  CameraGuideNavigationSearchParams,
+  createCameraGuidePath,
+} from "@features/camera/guide-feed/model/camera-guide-navigation";
+import {
   createCameraJoinPath,
   createRtcJoinPath,
   RTC_NAVIGATION,
@@ -41,7 +46,8 @@ const queryClient = new QueryClient();
 export default function RootLayout() {
   const pathname = usePathname();
   const searchParams = useGlobalSearchParams<
-    RtcNavigationSearchParams & {
+    RtcNavigationSearchParams &
+      CameraGuideNavigationSearchParams & {
       returnTo?: string | string[];
     }
   >();
@@ -50,6 +56,8 @@ export default function RootLayout() {
   const joinSheetParam =
     searchParams[RTC_NAVIGATION.params.joinSheet];
   const returnToParam = searchParams.returnTo;
+  const guideFeedIdParam =
+    searchParams[CAMERA_GUIDE_NAVIGATION.params.feedId];
 
   const initializeAuthState = useAuthStore(
     (state) => state.initializeAuthState,
@@ -83,6 +91,7 @@ export default function RootLayout() {
 
     const code = getFirstSearchParam(codeParam);
     const joinSheet = getFirstSearchParam(joinSheetParam);
+    const guideFeedId = getFirstSearchParam(guideFeedIdParam);
     let currentReturnTo = pathname;
 
     if (pathname === RTC_NAVIGATION.paths.join && code) {
@@ -92,6 +101,11 @@ export default function RootLayout() {
       joinSheet === RTC_NAVIGATION.values.joinSheetOpen
     ) {
       currentReturnTo = createCameraJoinPath(code);
+    } else if (
+      pathname === RTC_NAVIGATION.paths.camera &&
+      guideFeedId
+    ) {
+      currentReturnTo = createCameraGuidePath(guideFeedId);
     }
 
     // 앱 access token이 없으면 RTC 경로도 포함해 로그인 화면으로 이동하고,
@@ -113,6 +127,7 @@ export default function RootLayout() {
   }, [
     accessToken,
     codeParam,
+    guideFeedIdParam,
     isInitialized,
     joinSheetParam,
     pathname,

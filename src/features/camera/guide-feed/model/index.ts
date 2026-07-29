@@ -1,3 +1,4 @@
+export * from "./camera-guide-navigation";
 export * from "./guide-state";
 export * from "./pose-guide-alignment-policy";
 export * from "./pose-guide-feedback-config";
