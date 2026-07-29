@@ -64,6 +64,7 @@
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.8.3",
     "react-stately": "^3.48.0",
+    "socket.io-client": "4.8.3",
     "tailwind-variants": "^0.1.20",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"
@@ -89,7 +90,8 @@
     "test:camera-settings": "node --test src/features/camera/capture-photo/__tests__/camera-capture-settings.test.cjs",
     "test:pose-detection": "node --test src/features/camera/pose-detection/__tests__/pose-detection.test.cjs",
     "test:pose-match": "node --test src/features/camera/pose-matching/__tests__/pose-matching.test.cjs",
-    "test:camera-guide": "node --test src/features/camera/guide-feed/__tests__/camera-guide-state.test.cjs"
+    "test:camera-guide": "node --test src/features/camera/guide-feed/__tests__/camera-guide-state.test.cjs",
+    "test:rtc-reactions": "node --test src/features/rtc/reactions/__tests__/rtc-reaction-domain.test.cjs"
   },
   "private": true,
   "pnpm": {

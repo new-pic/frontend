@@ -17,6 +17,7 @@ import {
   GuideSelectionControl,
   useCameraGuideController,
 } from "@features/camera/guide-feed";
+import { RtcHostReactionBubbles } from "@features/rtc/reactions";
 import { visionCameraRtcFrameSink } from "@newpic/vision-camera-rtc";
 import {
   RTC_NAVIGATION,
@@ -472,19 +473,30 @@ export function CameraPage() {
             }
             onRuntimeGeometryChange={handleCameraGeometryChange}
             previewOverlay={
-              cameraGeometry &&
-              cameraGuide.presentedGuide?.outline &&
-              cameraGeometry.aspectRatio ===
-                cameraGuide.presentedGuide.cameraAspectRatio ? (
-                <CameraGuideOverlay
-                  geometry={cameraGeometry}
-                  outline={cameraGuide.presentedGuide.outline}
-                  warning={
-                    cameraGuide.alignment.alignmentState ===
-                    "MISALIGNED"
-                  }
-                />
-              ) : null
+              <>
+                {cameraGeometry &&
+                cameraGuide.presentedGuide?.outline &&
+                cameraGeometry.aspectRatio ===
+                  cameraGuide.presentedGuide.cameraAspectRatio ? (
+                  <CameraGuideOverlay
+                    geometry={cameraGeometry}
+                    outline={cameraGuide.presentedGuide.outline}
+                    warning={
+                      cameraGuide.alignment.alignmentState ===
+                      "MISALIGNED"
+                    }
+                  />
+                ) : null}
+                {broadcastConnection && hostSession ? (
+                  <RtcHostReactionBubbles
+                    active={
+                      isCameraPageFocused &&
+                      isVisionCameraActive
+                    }
+                    roomId={hostSession.roomId}
+                  />
+                ) : null}
+              </>
             }
             previewControl={
               <>

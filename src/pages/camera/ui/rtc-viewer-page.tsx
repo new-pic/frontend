@@ -5,6 +5,7 @@ import {
   RtcEndRoomResponse,
   useRtcStore,
 } from "@entities/rtc";
+import { RtcViewerReactionPicker } from "@features/rtc/reactions";
 import { RTC_NAVIGATION } from "@shared/config";
 import {
   Button,
@@ -151,11 +152,17 @@ export function RtcViewerPage() {
   }
 
   return (
-    <RtcViewerLiveKitPage
-      connection={liveKitConnection}
-      roomId={viewerSession.roomId}
-      onCancel={leaveViewer}
-      onRoomEnded={handleRoomEnded}
-    />
+    <>
+      <RtcViewerLiveKitPage
+        connection={liveKitConnection}
+        roomId={viewerSession.roomId}
+        onCancel={leaveViewer}
+        onRoomEnded={handleRoomEnded}
+      />
+      <RtcViewerReactionPicker
+        active
+        roomId={viewerSession.roomId}
+      />
+    </>
   );
 }
