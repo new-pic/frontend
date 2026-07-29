@@ -1,10 +1,12 @@
 import {
-  rtcQuery,
-  RTC_MAX_PHOTO_LIST_TAKE,
   RTC_MAX_SELECTED_PHOTOS,
   RtcEndRoomResponse,
   useRtcStore,
 } from "@entities/rtc";
+import {
+  rtcStoredPhotoQuery,
+  RTC_STORED_PHOTO_MAX_TAKE,
+} from "@entities/rtc-stored-photo";
 import { RtcViewerReactionPicker } from "@features/rtc/reactions";
 import { RTC_NAVIGATION } from "@shared/config";
 import {
@@ -30,10 +32,11 @@ function RtcViewerResultPage({
   roomId,
   onDone,
 }: RtcViewerResultPageProps) {
-  const photosQuery = rtcQuery.useReadRtcRoomPhotos({
-    roomId,
-    take: RTC_MAX_PHOTO_LIST_TAKE,
-  });
+  const photosQuery =
+    rtcStoredPhotoQuery.useReadRoomRtcStoredPhotos({
+      roomId,
+      take: RTC_STORED_PHOTO_MAX_TAKE,
+    });
   const images = useMemo(() => {
     const uniqueImages = new Map<
       string,
@@ -44,7 +47,7 @@ function RtcViewerResultPage({
       for (const photo of page.items) {
         uniqueImages.set(photo.id, {
           id: photo.id,
-          imageUrl: photo.url,
+          imageUrl: photo.imageUrl,
         });
       }
     }

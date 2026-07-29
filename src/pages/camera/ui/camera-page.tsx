@@ -18,16 +18,20 @@ import {
   useCameraGuideController,
 } from "@features/camera/guide-feed";
 import { RtcHostReactionBubbles } from "@features/rtc/reactions";
+import {
+  prepareRtcEndImages,
+  useResetMyRtcStoredPhotos,
+} from "@features/rtc/finalize-session";
 import { visionCameraRtcFrameSink } from "@newpic/vision-camera-rtc";
 import {
   RTC_NAVIGATION,
   RtcNavigationSearchParams,
 } from "@shared/config";
-import { uriToFile } from "@shared/lib";
 import { Box, VStack } from "@shared/ui";
 import { CameraHeader } from "@widgets/camera-header";
 import { RtcJoinSheet } from "@widgets/rtc-join-sheet";
 import * as Linking from "expo-linking";
+import type { File } from "expo-file-system";
 import {
   router,
   useFocusEffect,
@@ -90,6 +94,7 @@ export function CameraPage() {
   const createHostTokenMutation =
     rtcHostQuery.useCreateHostLiveKitToken();
   const endRoomMutation = rtcHostQuery.useEndRtcRoom();
+  const resetMyRtcStoredPhotos = useResetMyRtcStoredPhotos();
   const [cameraMode, setCameraMode] =
     useState<CameraMode>("VISION_CAMERA");
   const [isShareSheetOpen, setIsShareSheetOpen] =
@@ -125,6 +130,7 @@ export function CameraPage() {
   const selectedEndPhotosRef = useRef<SessionPhoto[] | null>(
     null,
   );
+  const preparedEndImagesRef = useRef<File[] | null>(null);
   const cameraGuide = useCameraGuideController({
     cameraActive:
       cameraMode === "VISION_CAMERA" &&
@@ -224,6 +230,7 @@ export function CameraPage() {
       });
       setCapturedPhotos([]);
       selectedEndPhotosRef.current = null;
+      preparedEndImagesRef.current = null;
       setIsShareSheetOpen(true);
     } catch (error) {
       Alert.alert("RTC 방 생성 실패", getErrorMessage(error));
@@ -257,6 +264,8 @@ export function CameraPage() {
       });
       clearHostSession();
       clearLiveKitConnection();
+      selectedEndPhotosRef.current = null;
+      preparedEndImagesRef.current = null;
       setIsShareSheetOpen(false);
     } catch (error) {
       Alert.alert("RTC 방 종료 실패", getErrorMessage(error));
@@ -324,18 +333,24 @@ export function CameraPage() {
       );
     }
 
-    if (selectedEndPhotosRef.current) return;
+    if (preparedEndImagesRef.current) return;
 
-    const selectedPhotos = await new Promise<SessionPhoto[]>(
-      (resolve, reject) => {
-        endPhotoSelectionRequestRef.current = {
-          resolve,
-          reject,
-        };
-        setIsEndPhotoSelectionOpen(true);
-      },
+    if (!selectedEndPhotosRef.current) {
+      const selectedPhotos = await new Promise<SessionPhoto[]>(
+        (resolve, reject) => {
+          endPhotoSelectionRequestRef.current = {
+            resolve,
+            reject,
+          };
+          setIsEndPhotoSelectionOpen(true);
+        },
+      );
+      selectedEndPhotosRef.current = selectedPhotos;
+    }
+
+    preparedEndImagesRef.current = await prepareRtcEndImages(
+      selectedEndPhotosRef.current,
     );
-    selectedEndPhotosRef.current = selectedPhotos;
   };
 
   const handleEndRoom = async (): Promise<RtcEndRoomResponse> => {
@@ -344,22 +359,25 @@ export function CameraPage() {
         "RTC 방 정보가 없습니다. 방 종료를 다시 시도해주세요.",
       );
     }
-    if (!selectedEndPhotosRef.current) {
+    if (!preparedEndImagesRef.current) {
       throw new Error(
-        "방에 저장할 사진 선택을 완료하지 못했습니다.",
+        "방에 저장할 사진 준비를 완료하지 못했습니다.",
       );
     }
 
-    const images = await Promise.all(
-      selectedEndPhotosRef.current.map(({ uri }) =>
-        uriToFile({ uri }),
-      ),
-    );
-
-    return endRoomMutation.mutateAsync({
-      roomId: hostSession.roomId,
-      request: images.length > 0 ? { images } : undefined,
-    });
+    try {
+      return await endRoomMutation.mutateAsync({
+        roomId: hostSession.roomId,
+        request:
+          preparedEndImagesRef.current.length > 0
+            ? { images: preparedEndImagesRef.current }
+            : undefined,
+      });
+    } catch {
+      throw new Error(
+        "사진 저장 및 RTC 방 종료 요청에 실패했습니다. 종료 처리를 다시 시도해주세요.",
+      );
+    }
   };
 
   const handleConfirmEndPhotoSelection = (
@@ -370,11 +388,12 @@ export function CameraPage() {
 
     endPhotoSelectionRequestRef.current = null;
     selectedEndPhotosRef.current = selectedPhotos;
+    preparedEndImagesRef.current = null;
     setIsEndPhotoSelectionOpen(false);
     request.resolve(selectedPhotos);
   };
 
-  const handleHostStopped = (result: RtcEndRoomResponse) => {
+  const handleHostStopped = async (result: RtcEndRoomResponse) => {
     const savedImages = result.savedImages.map(({ id, url }) => ({
       id,
       imageUrl: url,
@@ -391,6 +410,7 @@ export function CameraPage() {
     setBroadcastConnection(null);
     setIsGuideSheetOpen(false);
     selectedEndPhotosRef.current = null;
+    preparedEndImagesRef.current = null;
     isVisionCameraRunningRef.current = false;
     setIsVisionCameraRunning(false);
     setIsVisionCameraActive(false);
@@ -398,11 +418,24 @@ export function CameraPage() {
       savedImages.length > 0 ? savedImages : localImages,
     );
     setCameraMode("RESULT");
+
+    if (savedImages.length > 0) {
+      try {
+        await resetMyRtcStoredPhotos();
+      } catch {
+        Alert.alert(
+          "촬영 사진 목록 갱신 실패",
+          "사진은 저장됐지만 프로필 목록을 갱신하지 못했습니다. 프로필에서 다시 시도해주세요.",
+        );
+      }
+    }
   };
 
   const handleCloseResult = () => {
     setResultImages(null);
     setCapturedPhotos([]);
+    selectedEndPhotosRef.current = null;
+    preparedEndImagesRef.current = null;
     isVisionCameraRunningRef.current = false;
     setIsVisionCameraRunning(false);
     setCameraMode("VISION_CAMERA");

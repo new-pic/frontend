@@ -132,15 +132,15 @@ export const useEndRtcRoom = () => {
   return useMutation({
     mutationFn: async ({ roomId, request = {} }: RtcEndRoomMutationRequest) => {
       const id = verifyRtcId(roomId, "RTC 방 ID");
+      assertRtcAppAccessToken();
       const parsedRequest = RtcEndRoomRequestSchema.parse(request);
-      const formData = ObjectToFormData(parsedRequest);
+      const body = parsedRequest.images?.length
+        ? ObjectToFormData(parsedRequest)
+        : undefined;
 
       const response = await privateApiClient.patch(
         `/rtc/rooms/${id}/end`,
-        formData,
-        {
-          headers: createRtcHostHeaders(id),
-        },
+        body,
       );
       return RtcEndRoomResponseSchema.parse(response.data);
     },

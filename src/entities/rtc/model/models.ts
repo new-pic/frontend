@@ -4,8 +4,6 @@ import {
   RtcEndRoomRequestSchema,
   RtcEndRoomResponseSchema,
   RtcJoinRoomRequestSchema,
-  RtcRoomPhotoListQuerySchema,
-  RtcRoomPhotoListResponseSchema,
   RtcSavedImageSchema,
 } from "./schema";
 
@@ -76,19 +74,6 @@ export interface RtcFeedbackEmojiListResponse {
 }
 
 export type RtcSavedImage = z.infer<typeof RtcSavedImageSchema>;
-
-export type RtcRoomPhotoListQuery = z.input<
-  typeof RtcRoomPhotoListQuerySchema
->;
-
-export interface RtcRoomPhotoListParams
-  extends RtcRoomPhotoListQuery {
-  roomId: string;
-}
-
-export type RtcRoomPhotoListResponse = z.infer<
-  typeof RtcRoomPhotoListResponseSchema
->;
 
 export type RtcEndRoomResponse = z.infer<typeof RtcEndRoomResponseSchema>;
 

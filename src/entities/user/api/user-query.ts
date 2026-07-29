@@ -9,7 +9,6 @@ import {
 import {
   API_QUERY_KEY,
   PaginationParams,
-  PhotosResponse,
   ProfileRequest,
 } from "../model";
 
@@ -33,20 +32,6 @@ export function useReadMe(options?: { enabled?: boolean }) {
       return response.data;
     },
     enabled: options?.enabled,
-  });
-}
-
-/**
- * 내 사진 앨범 목록 조회
- * @returns
- */
-export function useReadMyPhotos() {
-  return useQuery({
-    queryKey: [...QUERY_KEY, "me", "photos"],
-    queryFn: async (): Promise<PhotosResponse> => {
-      const response = await privateApiClient.get("/users/me/photos");
-      return response.data;
-    },
   });
 }
 

@@ -1,6 +1,5 @@
 import { z } from "zod";
 import {
-  GetPhotosResponseSchema,
   GoogleLoginRequestSchema,
   UpdateProfileRequestSchema,
 } from "./schema";
@@ -21,8 +20,6 @@ export type SosialLoginStatus = "LOGIN_SUCCESS" | "NEED_NICKNAME";
 export type UserType = "GUEST" | "NORMAL" | "ADMIN";
 
 export type ProfileRequest = z.infer<typeof UpdateProfileRequestSchema>;
-
-export type PhotosResponse = z.infer<typeof GetPhotosResponseSchema>;
 
 export interface PaginationParams {
   take?: number;

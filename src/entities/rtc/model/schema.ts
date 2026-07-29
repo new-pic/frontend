@@ -3,7 +3,6 @@ import { z } from "zod";
 
 export const RTC_MAX_CAPTURED_PHOTOS = 100;
 export const RTC_MAX_SELECTED_PHOTOS = 20;
-export const RTC_MAX_PHOTO_LIST_TAKE = 50;
 
 export const RtcCreateRoomRequestSchema = z.object({
   expiresInMinutes: z
@@ -46,20 +45,3 @@ export const RtcEndRoomResponseSchema = z
       .max(RTC_MAX_SELECTED_PHOTOS),
   })
   .strict();
-
-export const RtcRoomPhotoListQuerySchema = z.object({
-  take: z
-    .number()
-    .int()
-    .min(1)
-    .max(RTC_MAX_PHOTO_LIST_TAKE)
-    .optional(),
-  cursor: z.string().trim().min(1).optional(),
-});
-
-export const RtcRoomPhotoListResponseSchema = z.object({
-  items: z
-    .array(RtcSavedImageSchema)
-    .max(RTC_MAX_PHOTO_LIST_TAKE),
-  nextCursor: z.string().trim().min(1).nullable().optional(),
-});
