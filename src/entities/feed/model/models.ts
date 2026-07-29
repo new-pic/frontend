@@ -176,3 +176,33 @@ export interface FeedTagData {
 }
 
 export type FeedTagResponse = FeedTagData[];
+
+export type FeedAiJobStatus =
+  | "QUEUED"
+  | "PROCESSING"
+  | "COMPLETED"
+  | "FAILED";
+
+export interface FeedAiJobResponseDto {
+  jobId: string;
+  feedId: string;
+  status: FeedAiJobStatus;
+  progressPercent: number;
+  estimatedRemainingSeconds: number;
+  estimatedCompletedAt: string;
+  isCompleted: boolean;
+}
+
+export interface FeedAiJobStatusResponseDto {
+  status: FeedAiJobStatus;
+  progressPercent: number;
+  isCompleted: boolean;
+}
+
+export interface FeedAiJobProgressEventDto {
+  jobId: string;
+  status: FeedAiJobStatus;
+  progressPercent: number;
+  estimatedRemainingSeconds: number;
+  isCompleted: boolean;
+}

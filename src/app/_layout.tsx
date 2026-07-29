@@ -1,5 +1,9 @@
 import { registerGlobals } from "@livekit/react-native";
 import {
+  FeedProcessingBadge,
+  FeedProcessingCoordinator,
+} from "@features/feed/feed-processing";
+import {
   createCameraJoinPath,
   createRtcJoinPath,
   RTC_NAVIGATION,
@@ -121,12 +125,14 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <GluestackUIProvider>
         <QueryClientProvider client={queryClient}>
+          <FeedProcessingCoordinator />
           <Stack
             screenOptions={{
               headerShown: false,
               contentStyle: { backgroundColor: "white" },
             }}
           />
+          <FeedProcessingBadge />
         </QueryClientProvider>
       </GluestackUIProvider>
     </GestureHandlerRootView>

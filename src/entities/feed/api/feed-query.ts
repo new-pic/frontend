@@ -15,6 +15,7 @@ import {
   CommentListResponse,
   CreateFeedCommentRequest,
   CreateFeedRequest,
+  FeedAiJobResponseDto,
   FeedCommentResponse,
   FeedItemResponse,
   FeedListParams,
@@ -24,10 +25,17 @@ import {
   UpdateFeedRequest,
 } from "../model";
 
-const QUERY_KEY = [API_QUERY_KEY, "feed"];
+const QUERY_KEY = [API_QUERY_KEY, "feed"] as const;
 
 // 피드 목록 쿼리 키
-const FEED_LIST_QUERY_KEY = [...QUERY_KEY, "list"];
+const FEED_LIST_QUERY_KEY = [...QUERY_KEY, "list"] as const;
+
+export const feedQueryKeys = {
+  all: QUERY_KEY,
+  lists: FEED_LIST_QUERY_KEY,
+  list: (params: FeedListParams) => [...FEED_LIST_QUERY_KEY, params] as const,
+  item: (feedId?: string) => [...QUERY_KEY, "item", feedId] as const,
+} as const;
 
 // useInfiniteQuery의 반환 data 타입
 type FeedListInfiniteData = InfiniteData<
@@ -98,7 +106,7 @@ function rollbackFeedLists(
  */
 export function useReadFeeds(params: FeedListParams) {
   return useInfiniteQuery({
-    queryKey: [...QUERY_KEY, "list", params],
+    queryKey: feedQueryKeys.list(params),
     queryFn: async ({ pageParam }): Promise<FeedListResponse> => {
       const response = await apiClient.get("/feed", {
         params: {
@@ -119,7 +127,7 @@ export function useReadFeeds(params: FeedListParams) {
  */
 export function useReadFeed({ feedId }: { feedId?: string }) {
   return useQuery({
-    queryKey: [...QUERY_KEY, "item", feedId],
+    queryKey: feedQueryKeys.item(feedId),
     queryFn: async (): Promise<FeedItemResponse> => {
       const response = await privateApiClient.get(`/feed/${feedId}`);
       return response.data;
@@ -195,16 +203,13 @@ export function useReadTags({ keyword }: { keyword?: string }) {
  * 피드 작성
  */
 export function useCreateFeed() {
-  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (request: CreateFeedRequest) => {
+    mutationFn: async (
+      request: CreateFeedRequest,
+    ): Promise<FeedAiJobResponseDto> => {
       const formData = ObjectToFormData(request);
       const response = await uploadFetchClient.post({ url: "/feed", formData });
       return response.data;
-    },
-    onSuccess: async () => {
-      // 피드 목록 캐시 무효화
-      await queryClient.invalidateQueries({ queryKey: [...QUERY_KEY, "list"] });
     },
   });
 }

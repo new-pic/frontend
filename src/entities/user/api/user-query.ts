@@ -13,7 +13,13 @@ import {
   ProfileRequest,
 } from "../model";
 
-const QUERY_KEY = [API_QUERY_KEY, "user"];
+const QUERY_KEY = [API_QUERY_KEY, "user"] as const;
+
+export const userQueryKeys = {
+  all: QUERY_KEY,
+  me: [...QUERY_KEY, "me"] as const,
+  myFeeds: [...QUERY_KEY, "me", "feeds"] as const,
+} as const;
 
 /**
  * 내 정보 조회
@@ -21,7 +27,7 @@ const QUERY_KEY = [API_QUERY_KEY, "user"];
  */
 export function useReadMe(options?: { enabled?: boolean }) {
   return useQuery({
-    queryKey: [...QUERY_KEY, "me"],
+    queryKey: userQueryKeys.me,
     queryFn: async () => {
       const response = await privateApiClient.get("/users/me");
       return response.data;
@@ -49,7 +55,7 @@ export function useReadMyPhotos() {
  */
 export function useReadMyFeeds(params: PaginationParams) {
   return useInfiniteQuery({
-    queryKey: [...QUERY_KEY, "me", "feeds", params],
+    queryKey: [...userQueryKeys.myFeeds, params],
     queryFn: async ({ pageParam }) => {
       const response = await privateApiClient.get("/users/me/feeds", {
         params: {

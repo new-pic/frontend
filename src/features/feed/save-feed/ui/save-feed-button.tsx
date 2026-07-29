@@ -5,6 +5,7 @@ import {
   feedQuery,
   UpdateFeedRequest,
 } from "@entities/feed";
+import { useFeedProcessingStore } from "@features/feed/feed-processing";
 import { Button, ButtonSpinner, ButtonText } from "@shared/ui";
 import { router } from "expo-router";
 import { Alert } from "react-native";
@@ -21,6 +22,9 @@ export function SaveFeedButton({ mode, form, feedId }: SaveFeedButtonProps) {
   const isCreate = mode === "CREATE";
   const mutationToCreate = feedQuery.useCreateFeed();
   const mutationToUpdate = feedQuery.useUpdateFeed({ feedId });
+  const startFeedProcessing = useFeedProcessingStore(
+    (state) => state.start,
+  );
 
   const actionText = isCreate ? "등록" : "수정";
   const isPending = form.formState.isSubmitting;
@@ -32,19 +36,20 @@ export function SaveFeedButton({ mode, form, feedId }: SaveFeedButtonProps) {
     Alert.alert(`피드 ${actionText} 실패`, message);
   };
 
-  const handleRequestSuccess = () => {
-    Alert.alert(`피드 ${actionText} 완료`, `피드가 ${actionText}되었습니다.`);
+  const handleUpdateSuccess = () => {
+    Alert.alert("피드 수정 완료", "피드가 수정되었습니다.");
     router.replace("/feed");
   };
 
   const handleCreate = async (request: CreateFeedRequest) => {
-    await mutationToCreate.mutateAsync(request);
-    handleRequestSuccess();
+    const job = await mutationToCreate.mutateAsync(request);
+    startFeedProcessing(job);
+    router.replace("/feed");
   };
 
   const handleUpdate = async (request: UpdateFeedRequest) => {
     await mutationToUpdate.mutateAsync(request);
-    handleRequestSuccess();
+    handleUpdateSuccess();
   };
 
   const handlePress = form.handleValidSubmit(
