@@ -2,7 +2,7 @@ import { resolveFeedCameraAspectRatio } from "../../capture-photo/lib/feed-camer
 import type { CoordinateSize, DWPoseSourcePose } from "../../pose-matching";
 import type {
   ActiveCameraGuide,
-  CameraGuideMask,
+  CameraGuideOutline,
   GuideFeedSelection,
 } from "./types";
 
@@ -29,10 +29,10 @@ export type CameraGuideAction =
       sourceSize: CoordinateSize;
     }
   | {
-      type: "MASK_READY";
+      type: "OUTLINE_READY";
       requestId: number;
       selection: GuideFeedSelection;
-      mask: CameraGuideMask;
+      outline: CameraGuideOutline;
     }
   | {
       type: "TARGET_READY";
@@ -75,7 +75,7 @@ function upsertActiveGuide(
     selection,
     referenceSize: sourceSize,
     cameraAspectRatio: resolveFeedCameraAspectRatio(sourceSize),
-    mask: null,
+    outline: null,
     target: null,
   };
 }
@@ -124,7 +124,7 @@ export function cameraGuideReducer(
         },
       };
     }
-    case "MASK_READY": {
+    case "OUTLINE_READY": {
       if (
         !isCurrentSelection(
           state,
@@ -138,13 +138,13 @@ export function cameraGuideReducer(
       const active = upsertActiveGuide(
         state,
         action.selection,
-        action.mask.sourceSize,
+        action.outline.sourceSize,
       );
       return {
         ...state,
         active: {
           ...active,
-          mask: action.mask,
+          outline: action.outline,
         },
       };
     }

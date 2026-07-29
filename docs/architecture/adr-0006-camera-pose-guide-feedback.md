@@ -1,5 +1,8 @@
 # ADR-0006: Camera Pose Guide Feedback 정책
 
+> Mask warning 렌더링 방식은 ADR-0007에서 수정되었다. 현재는 RGBA
+> 이미지 tint가 아니라 동일한 SVG contour의 stroke 색을 변경한다.
+
 ## Decision
 
 기존 `PoseSceneMatchResult`와 카메라 UI 사이에 공통

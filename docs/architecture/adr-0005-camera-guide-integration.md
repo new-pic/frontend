@@ -1,5 +1,8 @@
 # ADR-0005: Camera Guide 선택과 Pose Matching 연결
 
+> 윤곽선 표시 방식은 ADR-0007에서 수정되었다. 이 문서의 `Mask Image`
+> 표현은 현재 서버 contour 기반 SVG outline으로 대체되었다.
+
 ## Decision
 
 공통 `camera-guide` feature controller를 `CameraPage`에서 한 번

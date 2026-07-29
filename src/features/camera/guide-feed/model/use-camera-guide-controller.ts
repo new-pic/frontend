@@ -19,7 +19,7 @@ import {
   projectDWPosePoseToCapture,
   readExpoFeedReferenceImageSize,
 } from "../../pose-matching";
-import { adaptFeedBackgroundRemoval } from "../lib/feed-guide-mask-adapter";
+import { adaptFeedBackgroundRemoval } from "../lib/feed-guide-contour-adapter";
 import {
   cameraGuideReducer,
   INITIAL_CAMERA_GUIDE_STATE,
@@ -54,51 +54,45 @@ export function useCameraGuideController({
   const [referenceError, setReferenceError] = useState<string | null>(
     null,
   );
-  const [maskPreparationError, setMaskPreparationError] = useState<
+  const [outlinePreparationError, setOutlinePreparationError] = useState<
     string | null
   >(null);
   const [targetPreparationError, setTargetPreparationError] =
     useState<string | null>(null);
-  const [maskRenderError, setMaskRenderError] = useState<string | null>(
-    null,
-  );
   const requestIdRef = useRef(0);
 
   const selectedFeedId = state.selected?.feedId;
   const poseQuery = feedPoseQuery.useReadFeedPose({
     feedId: selectedFeedId,
   });
-  const maskQuery = feedPoseQuery.useReadFeedBackgroundRemoval({
+  const outlineQuery = feedPoseQuery.useReadFeedBackgroundRemoval({
     feedId: selectedFeedId,
   });
 
   const selectGuide = useCallback((selection: GuideFeedSelection) => {
     const requestId = ++requestIdRef.current;
     setReferenceError(null);
-    setMaskPreparationError(null);
+    setOutlinePreparationError(null);
     setTargetPreparationError(null);
-    setMaskRenderError(null);
     dispatch({ type: "SELECT", requestId, selection });
   }, []);
 
   const clearGuide = useCallback(() => {
     const requestId = ++requestIdRef.current;
     setReferenceError(null);
-    setMaskPreparationError(null);
+    setOutlinePreparationError(null);
     setTargetPreparationError(null);
-    setMaskRenderError(null);
     dispatch({ type: "CLEAR", requestId });
   }, []);
 
   const retrySelectedGuide = useCallback(() => {
     setReferenceError(null);
-    setMaskPreparationError(null);
+    setOutlinePreparationError(null);
     setTargetPreparationError(null);
-    setMaskRenderError(null);
     setRetryVersion((current) => current + 1);
     void poseQuery.refetch();
-    void maskQuery.refetch();
-  }, [maskQuery, poseQuery]);
+    void outlineQuery.refetch();
+  }, [outlineQuery, poseQuery]);
 
   useEffect(() => {
     const selection = state.selected;
@@ -129,7 +123,7 @@ export function useCameraGuideController({
 
   useEffect(() => {
     const selection = state.selected;
-    const queryResult = maskQuery.data;
+    const queryResult = outlineQuery.data;
     if (
       !selection ||
       !queryResult ||
@@ -139,37 +133,29 @@ export function useCameraGuideController({
     }
 
     const requestId = state.requestId;
-    let cancelled = false;
-    void (async () => {
-      try {
-        const rawMask = adaptFeedBackgroundRemoval(
-          queryResult.response,
-        );
-        const sourceSize =
-          rawMask.sourceSize ??
-          (await readExpoFeedReferenceImageSize(rawMask.imageUrl));
-        if (cancelled || requestIdRef.current !== requestId) return;
+    try {
+      const outline = adaptFeedBackgroundRemoval(
+        queryResult.response,
+      );
+      if (requestIdRef.current !== requestId) return;
 
-        setMaskPreparationError(null);
-        dispatch({
-          type: "MASK_READY",
-          requestId,
-          selection,
-          mask: {
-            imageUrl: rawMask.imageUrl,
-            sourceSize,
-          },
-        });
-      } catch (error) {
-        if (cancelled || requestIdRef.current !== requestId) return;
-        setMaskPreparationError(getErrorMessage(error));
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [maskQuery.data, retryVersion, state.requestId, state.selected]);
+      setOutlinePreparationError(null);
+      dispatch({
+        type: "OUTLINE_READY",
+        requestId,
+        selection,
+        outline,
+      });
+    } catch (error) {
+      if (requestIdRef.current !== requestId) return;
+      setOutlinePreparationError(getErrorMessage(error));
+    }
+  }, [
+    outlineQuery.data,
+    retryVersion,
+    state.requestId,
+    state.selected,
+  ]);
 
   useEffect(() => {
     const selection = state.selected;
@@ -215,12 +201,6 @@ export function useCameraGuideController({
       cancelled = true;
     };
   }, [poseQuery.data, retryVersion, state.requestId, state.selected]);
-
-  useEffect(() => {
-    if (!state.active?.mask) {
-      setMaskRenderError(null);
-    }
-  }, [state.active?.mask]);
 
   const canProjectToCurrentCapture =
     geometry !== null &&
@@ -311,7 +291,7 @@ export function useCameraGuideController({
     enabled:
       cameraActive &&
       canProjectToCurrentCapture &&
-      Boolean(state.active?.mask),
+      Boolean(state.active?.outline),
     targetPersonCount: targetReady
       ? targetPoses.length
       : undefined,
@@ -321,10 +301,11 @@ export function useCameraGuideController({
 
   const errors: CameraGuideErrors = {
     reference: referenceError,
-    mask:
-      maskRenderError ??
-      maskPreparationError ??
-      (maskQuery.error ? getErrorMessage(maskQuery.error) : null),
+    outline:
+      outlinePreparationError ??
+      (outlineQuery.error
+        ? getErrorMessage(outlineQuery.error)
+        : null),
     target:
       targetPreparationError ??
       (poseQuery.error ? getErrorMessage(poseQuery.error) : null),
@@ -338,11 +319,6 @@ export function useCameraGuideController({
           currentPoses: [],
           result: null,
         };
-  const reportMaskRenderError = useCallback(
-    () => setMaskRenderError("Mask 이미지를 표시하지 못했습니다."),
-    [],
-  );
-
   return {
     selectedGuide: state.selected,
     activeGuide: state.active,
@@ -353,7 +329,8 @@ export function useCameraGuideController({
     isPreparing:
       state.selected !== null &&
       state.active?.selection.feedId !== state.selected.feedId,
-    isMaskLoading: Boolean(state.selected) && maskQuery.isPending,
+    isOutlineLoading:
+      Boolean(state.selected) && outlineQuery.isPending,
     isTargetLoading: Boolean(state.selected) && poseQuery.isPending,
     errors,
     matching,
@@ -362,7 +339,5 @@ export function useCameraGuideController({
     selectGuide,
     clearGuide,
     retrySelectedGuide,
-    renderVersion: retryVersion,
-    reportMaskRenderError,
   };
 }

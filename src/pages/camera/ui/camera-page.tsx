@@ -473,18 +473,16 @@ export function CameraPage() {
             onRuntimeGeometryChange={handleCameraGeometryChange}
             previewOverlay={
               cameraGeometry &&
-              cameraGuide.presentedGuide?.mask &&
+              cameraGuide.presentedGuide?.outline &&
               cameraGeometry.aspectRatio ===
                 cameraGuide.presentedGuide.cameraAspectRatio ? (
                 <CameraGuideOverlay
-                  key={`${cameraGuide.presentedGuide.mask.imageUrl}-${cameraGuide.renderVersion}`}
                   geometry={cameraGeometry}
-                  mask={cameraGuide.presentedGuide.mask}
+                  outline={cameraGuide.presentedGuide.outline}
                   warning={
                     cameraGuide.alignment.alignmentState ===
                     "MISALIGNED"
                   }
-                  onError={cameraGuide.reportMaskRenderError}
                 />
               ) : null
             }
@@ -498,7 +496,7 @@ export function CameraPage() {
                   isPreparing={
                     cameraGuide.isPreparing ||
                     cameraGuide.isTargetLoading ||
-                    cameraGuide.isMaskLoading
+                    cameraGuide.isOutlineLoading
                   }
                   hasError={hasGuideError}
                   onOpen={() => setIsGuideSheetOpen(true)}

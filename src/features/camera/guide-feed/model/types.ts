@@ -12,9 +12,21 @@ export interface GuideFeedSelection {
   detailImageUrl: string;
 }
 
-export interface CameraGuideMask {
-  imageUrl: string;
+export interface CameraGuideContourPoint {
+  x: number;
+  y: number;
+}
+
+export interface CameraGuideContour {
+  contourIndex: number;
+  closed: boolean;
+  areaRatio: number;
+  points: CameraGuideContourPoint[];
+}
+
+export interface CameraGuideOutline {
   sourceSize: CoordinateSize;
+  contours: CameraGuideContour[];
 }
 
 export interface CameraGuideTarget {
@@ -26,13 +38,13 @@ export interface ActiveCameraGuide {
   selection: GuideFeedSelection;
   referenceSize: CoordinateSize;
   cameraAspectRatio: CameraAspectRatio;
-  mask: CameraGuideMask | null;
+  outline: CameraGuideOutline | null;
   target: CameraGuideTarget | null;
 }
 
 export interface CameraGuideErrors {
   reference: string | null;
-  mask: string | null;
+  outline: string | null;
   target: string | null;
 }
 

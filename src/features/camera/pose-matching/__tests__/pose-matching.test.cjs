@@ -31,7 +31,7 @@ const {
   projectMediaPipePoseToCapture,
 } = require("../index.ts");
 
-test("mask source composes through capture space before preview", () => {
+test("guide source composes through capture space before preview", () => {
   const rect = projectSourceCanvasToPreviewRect(
     { width: 3, height: 4 },
     {

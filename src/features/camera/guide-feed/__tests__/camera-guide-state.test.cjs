@@ -22,7 +22,11 @@ const {
 } = require("../model/guide-state.ts");
 const {
   adaptFeedBackgroundRemoval,
-} = require("../lib/feed-guide-mask-adapter.ts");
+} = require("../lib/feed-guide-contour-adapter.ts");
+const {
+  createGuideContourPath,
+  projectGuideOutlineToPreview,
+} = require("../lib/guide-contour-projection.ts");
 const {
   mapPoseFeedbackMessage,
 } = require("../lib/pose-feedback-message.ts");
@@ -124,7 +128,7 @@ function observe(
   );
 }
 
-test("operational background-removal DTO adapts to a guide mask", () => {
+test("background-removal DTO adapts normalized contours to a guide outline", () => {
   assert.deepEqual(
     adaptFeedBackgroundRemoval({
       output: {
@@ -134,14 +138,73 @@ test("operational background-removal DTO adapts to a guide mask", () => {
             "https://example.com/mask.png",
           imageWidth: 511,
           imageHeight: 1024,
-          contours: [],
+          contours: [
+            {
+              contourIndex: 0,
+              closed: true,
+              areaRatio: 0.3821,
+              points: [
+                { x: 0.1, y: 0.2 },
+                { x: 0.8, y: 0.2 },
+                { x: 0.5, y: 0.9 },
+              ],
+            },
+          ],
         },
       },
     }),
     {
-      imageUrl: "https://example.com/mask.png",
       sourceSize: { width: 511, height: 1024 },
+      contours: [
+        {
+          contourIndex: 0,
+          closed: true,
+          areaRatio: 0.3821,
+          points: [
+            { x: 0.1, y: 0.2 },
+            { x: 0.8, y: 0.2 },
+            { x: 0.5, y: 0.9 },
+          ],
+        },
+      ],
     },
+  );
+});
+
+test("guide contour uses the same source-cover-preview geometry as pose", () => {
+  const outline = {
+    sourceSize: { width: 9, height: 16 },
+    contours: [
+      {
+        contourIndex: 2,
+        closed: true,
+        areaRatio: 0.5,
+        points: [
+          { x: 0, y: 0 },
+          { x: 1, y: 0 },
+          { x: 1, y: 1 },
+        ],
+      },
+    ],
+  };
+  const [projected] = projectGuideOutlineToPreview(outline, {
+    aspectRatio: "4:3",
+    captureSize: { width: 3, height: 4 },
+    previewSize: { width: 300, height: 400 },
+    cameraPosition: "back",
+  });
+
+  assert.equal(projected.points[0].x, 0);
+  assert.ok(
+    Math.abs(projected.points[0].y - -66.66666666666667) < 1e-9,
+  );
+  assert.equal(projected.points[1].x, 300);
+  assert.ok(
+    Math.abs(projected.points[1].y - -66.66666666666667) < 1e-9,
+  );
+  assert.equal(
+    createGuideContourPath(projected),
+    "M 0 -66.667 L 300 -66.667 L 300 466.667 Z",
   );
 });
 
@@ -189,23 +252,33 @@ test("a stale response cannot replace the latest selected guide", () => {
   assert.equal(state.active, null);
 });
 
-test("mask and target can become ready independently for one guide", () => {
+test("outline and target can become ready independently for one guide", () => {
   let state = cameraGuideReducer(INITIAL_CAMERA_GUIDE_STATE, {
     type: "SELECT",
     requestId: 3,
     selection: FEED_B,
   });
   state = cameraGuideReducer(state, {
-    type: "MASK_READY",
+    type: "OUTLINE_READY",
     requestId: 3,
     selection: FEED_B,
-    mask: {
-      imageUrl: "https://example.com/b-mask.png",
+    outline: {
       sourceSize: { width: 511, height: 1024 },
+      contours: [
+        {
+          contourIndex: 0,
+          closed: true,
+          areaRatio: 0.4,
+          points: [
+            { x: 0.1, y: 0.1 },
+            { x: 0.9, y: 0.9 },
+          ],
+        },
+      ],
     },
   });
 
-  assert.equal(state.active.mask.imageUrl.includes("b-mask"), true);
+  assert.equal(state.active.outline.contours.length, 1);
   assert.equal(state.active.target, null);
 
   state = cameraGuideReducer(state, {
@@ -216,12 +289,12 @@ test("mask and target can become ready independently for one guide", () => {
     sourcePoses: [],
   });
 
-  assert.equal(state.active.mask.imageUrl.includes("b-mask"), true);
+  assert.equal(state.active.outline.contours.length, 1);
   assert.deepEqual(state.active.target.sourcePoses, []);
   assert.equal(state.active.cameraAspectRatio, "16:9");
 });
 
-test("clearing a guide removes mask and target immediately", () => {
+test("clearing a guide removes outline and target immediately", () => {
   let state = cameraGuideReducer(INITIAL_CAMERA_GUIDE_STATE, {
     type: "SELECT",
     requestId: 1,
