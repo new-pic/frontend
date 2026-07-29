@@ -32,7 +32,7 @@ Pod::Spec.new do |s|
   add_nitrogen_files(s)
 
   s.dependency "VisionCamera", "5.0.11"
-  s.dependency "MediaPipeTasksVision", "0.10.35"
+  s.dependency "MediaPipeTasksVision", "0.10.21"
   s.dependency "React-Core"
   s.dependency "React-jsi"
   s.dependency "React-callinvoker"
