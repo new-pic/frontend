@@ -92,7 +92,8 @@
     "test:pose-match": "node --test src/features/camera/pose-matching/__tests__/pose-matching.test.cjs",
     "test:camera-guide": "node --test src/features/camera/guide-feed/__tests__/camera-guide-state.test.cjs",
     "test:rtc-reactions": "node --test src/features/rtc/reactions/__tests__/rtc-reaction-domain.test.cjs",
-    "test:feed-processing": "node --test src/features/feed/feed-processing/__tests__/feed-processing.test.cjs"
+    "test:feed-processing": "node --test src/features/feed/feed-processing/__tests__/feed-processing.test.cjs",
+    "test:rtc-stored-photos": "node --test src/features/rtc-photo/browse-stored-photos/__tests__/rtc-stored-photo.test.cjs"
   },
   "private": true,
   "pnpm": {

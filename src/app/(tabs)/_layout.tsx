@@ -74,6 +74,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="profile/rtc-photos"
+        options={{
+          tabBarStyle: { display: "none" },
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="profile/(feed)/my"
         options={{
           tabBarStyle: { display: "none" },

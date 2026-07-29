@@ -1,7 +1,11 @@
 import { colors } from "@shared/constants";
-import { IconCircleCheck } from "@tabler/icons-react-native";
-import { useMemo } from "react";
-import { ActivityIndicator, Dimensions, FlatList, Image } from "react-native";
+import { Image } from "expo-image";
+import {
+  IconCircleCheck,
+  IconPhotoOff,
+} from "@tabler/icons-react-native";
+import { memo, useMemo, useState } from "react";
+import { ActivityIndicator, Dimensions, FlatList } from "react-native";
 import { Box } from "../box";
 import { Center } from "../center";
 import { Fab, FabIcon } from "../fab";
@@ -15,6 +19,72 @@ export interface PhotoGridImage {
   id: string;
   imageUrl: string;
 }
+
+interface PhotoGridImageTileProps {
+  image: PhotoGridImage;
+  imageSize: number;
+  selected: boolean;
+  onPress: () => void;
+}
+
+const PhotoGridImageTile = memo(function PhotoGridImageTile({
+  image,
+  imageSize,
+  selected,
+  onPress,
+}: PhotoGridImageTileProps) {
+  const [loadState, setLoadState] = useState<
+    "loading" | "loaded" | "failed"
+  >("loading");
+
+  return (
+    <Pressable onPress={onPress}>
+      <Box
+        style={{
+          width: imageSize,
+          aspectRatio: 4 / 5,
+          overflow: "hidden",
+        }}
+      >
+        {loadState === "loading" ? (
+          <Skeleton variant="sharp" />
+        ) : null}
+        <Image
+          source={image.imageUrl}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          transition={150}
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            opacity: loadState === "failed" ? 0 : 1,
+          }}
+          onLoadStart={() => setLoadState("loading")}
+          onDisplay={() => setLoadState("loaded")}
+          onError={() => setLoadState("failed")}
+        />
+        {loadState === "failed" ? (
+          <Center className="h-full w-full bg-background-muted">
+            <IconPhotoOff size={24} color={colors.outline} />
+          </Center>
+        ) : null}
+        {selected ? (
+          <Fab className="p-0 h-6 top-1 right-1">
+            <FabIcon
+              className="w-6 h-6"
+              as={IconCircleCheck}
+              fill={colors.brand.primary}
+              color="white"
+            />
+          </Fab>
+        ) : null}
+      </Box>
+    </Pressable>
+  );
+});
 
 function PhotoGridSkeleton({ columns = 3 }: { columns?: number }) {
   const imageSize = useMemo(() => SCREEN_WIDTH / columns, [columns]);
@@ -49,6 +119,7 @@ export interface PhotoGridProps<T extends PhotoGridImage = PhotoGridImage> {
   onEndReached?: () => void;
   onRefresh?: () => void;
   refreshing?: boolean;
+  emptyMessage?: string;
   isPending?: boolean;
   isFetchingNextPage?: boolean;
 }
@@ -61,6 +132,7 @@ export function PhotoGrid<T extends PhotoGridImage>({
   onEndReached,
   onRefresh,
   refreshing = false,
+  emptyMessage = "이미지가 존재하지 않습니다...",
   isPending = false,
   isFetchingNextPage = false,
 }: PhotoGridProps<T>) {
@@ -83,7 +155,7 @@ export function PhotoGrid<T extends PhotoGridImage>({
       ListEmptyComponent={
         <Center className="flex-1 py-20">
           <Text className="text-label-muted">
-            이미지가 존재하지 않습니다...
+            {emptyMessage}
           </Text>
         </Center>
       }
@@ -95,25 +167,16 @@ export function PhotoGrid<T extends PhotoGridImage>({
         ) : null
       }
       renderItem={({ item, index }) => (
-        <Pressable onPress={() => onPress?.(item, index)}>
-          <Image
-            source={{ uri: item.imageUrl }}
-            style={{
-              width: imageSize,
-              aspectRatio: 4 / 5,
-            }}
-          />
-          {selectedImages?.some((selected) => selected.id === item.id) && (
-            <Fab className="p-0 h-6 top-1 right-1">
-              <FabIcon
-                className="w-6 h-6"
-                as={IconCircleCheck}
-                fill={colors.brand.primary}
-                color="white"
-              />
-            </Fab>
-          )}
-        </Pressable>
+        <PhotoGridImageTile
+          image={item}
+          imageSize={imageSize}
+          selected={
+            selectedImages?.some(
+              (selected) => selected.id === item.id,
+            ) ?? false
+          }
+          onPress={() => onPress?.(item, index)}
+        />
       )}
     />
   );

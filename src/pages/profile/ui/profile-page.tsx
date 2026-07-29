@@ -22,8 +22,10 @@ import {
   IconPencilFilled,
   IconUserFilled,
 } from "@tabler/icons-react-native";
+import { ProfileRtcPhotoPreview } from "@widgets/profile/rtc-photo-preview";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
+import { ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 function ProfileButtonMenu() {
@@ -128,56 +130,65 @@ export function ProfilePage() {
   };
 
   return (
-    <SafeAreaView>
-      <VStack className="h-full pt-10 px-6 w-full" space="xl">
-        <HStack space="xl" className="items-center px-1 py-2 ">
-          <Avatar
-            className={`h-20 w-20 ${isGuest ? "bg-brand-light border-brand" : ""}`}
-          >
-            {isGuest ? (
-              <IconUserFilled size={42} color={colors.brand.primary} />
-            ) : (
-              <>
-                <AvatarFallbackText>{data?.nickname}</AvatarFallbackText>
-                {data?.profileImage ? (
-                  <AvatarImage source={{ uri: data.profileImage }} />
-                ) : null}
-              </>
-            )}
-          </Avatar>
-          <VStack className="justify-center">
-            <Text className="font-medium">
-              {isGuest ? "로그인이 필요합니다." : data?.nickname}
-            </Text>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="justify-start p-0"
-              onPress={handlePressProfile}
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingTop: 40,
+          paddingBottom: 40,
+        }}
+      >
+        <VStack className="w-full" space="xl">
+          <HStack space="xl" className="items-center px-1 py-2 ">
+            <Avatar
+              className={`h-20 w-20 ${isGuest ? "bg-brand-light border-brand" : ""}`}
             >
-              <ButtonText className="text-link-text">
-                {isGuest ? "로그인 하러가기" : "프로필 변경"}
-              </ButtonText>
-            </Button>
+              {isGuest ? (
+                <IconUserFilled size={42} color={colors.brand.primary} />
+              ) : (
+                <>
+                  <AvatarFallbackText>{data?.nickname}</AvatarFallbackText>
+                  {data?.profileImage ? (
+                    <AvatarImage source={{ uri: data.profileImage }} />
+                  ) : null}
+                </>
+              )}
+            </Avatar>
+            <VStack className="justify-center">
+              <Text className="font-medium">
+                {isGuest ? "로그인이 필요합니다." : data?.nickname}
+              </Text>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="justify-start p-0"
+                onPress={handlePressProfile}
+              >
+                <ButtonText className="text-link-text">
+                  {isGuest ? "로그인 하러가기" : "프로필 변경"}
+                </ButtonText>
+              </Button>
+            </VStack>
+          </HStack>
+
+          {!isGuest ? <ProfileButtonMenu /> : null}
+          {!isGuest ? <ProfileRtcPhotoPreview /> : null}
+
+          <VStack className="rounded-3xl border border-outline">
+            <Pressable className="p-6">
+              <Text size="sm">버그 제보하기</Text>
+            </Pressable>
+            <Divider className="bg-outline" />
+            <Pressable className="p-6">
+              <Text size="sm">서비스 약관</Text>
+            </Pressable>
+            <Divider className="bg-outline" />
+            <Pressable className="p-6" onPress={handleLogout}>
+              <Text size="sm">로그아웃</Text>
+            </Pressable>
           </VStack>
-        </HStack>
-
-        {!isGuest ? <ProfileButtonMenu /> : null}
-
-        <VStack className="rounded-3xl border border-outline">
-          <Pressable className="p-6">
-            <Text size="sm">버그 제보하기</Text>
-          </Pressable>
-          <Divider className="bg-outline" />
-          <Pressable className="p-6">
-            <Text size="sm">서비스 약관</Text>
-          </Pressable>
-          <Divider className="bg-outline" />
-          <Pressable className="p-6" onPress={handleLogout}>
-            <Text size="sm">로그아웃</Text>
-          </Pressable>
         </VStack>
-      </VStack>
+      </ScrollView>
     </SafeAreaView>
   );
 }
