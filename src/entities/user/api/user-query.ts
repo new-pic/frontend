@@ -1,6 +1,7 @@
 import { privateApiClient } from "@shared/api";
 import type { FeedListResponse } from "@entities/feed";
 import {
+  infiniteQueryOptions,
   useInfiniteQuery,
   useMutation,
   useQuery,
@@ -18,6 +19,9 @@ export const userQueryKeys = {
   all: QUERY_KEY,
   me: [...QUERY_KEY, "me"] as const,
   myFeeds: [...QUERY_KEY, "me", "feeds"] as const,
+  savedFeeds: [...QUERY_KEY, "me", "saved-feeds"] as const,
+  savedFeedList: (params: PaginationParams) =>
+    [...QUERY_KEY, "me", "saved-feeds", params] as const,
 } as const;
 
 /**
@@ -87,7 +91,16 @@ export function useReadSavedFeeds(
   options?: { enabled?: boolean },
 ) {
   return useInfiniteQuery({
-    queryKey: [...QUERY_KEY, "me", "saved-feeds", params],
+    ...savedFeedsInfiniteQueryOptions(params),
+    enabled: options?.enabled,
+  });
+}
+
+export function savedFeedsInfiniteQueryOptions(
+  params: PaginationParams,
+) {
+  return infiniteQueryOptions({
+    queryKey: userQueryKeys.savedFeedList(params),
     queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
       const response = await privateApiClient.get(
         "/users/me/references",
@@ -104,7 +117,6 @@ export function useReadSavedFeeds(
     initialPageParam: params.cursor,
     getNextPageParam: (lastPage) =>
       lastPage.nextCursor ?? undefined,
-    enabled: options?.enabled,
     staleTime: 1000 * 60 * 5,
   });
 }
