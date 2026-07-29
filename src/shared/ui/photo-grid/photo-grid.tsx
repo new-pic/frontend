@@ -47,6 +47,8 @@ export interface PhotoGridProps<T extends PhotoGridImage = PhotoGridImage> {
   columns?: number;
   onPress?: (image: T, index: number) => void;
   onEndReached?: () => void;
+  onRefresh?: () => void;
+  refreshing?: boolean;
   isPending?: boolean;
   isFetchingNextPage?: boolean;
 }
@@ -57,6 +59,8 @@ export function PhotoGrid<T extends PhotoGridImage>({
   columns = 3,
   onPress,
   onEndReached,
+  onRefresh,
+  refreshing = false,
   isPending = false,
   isFetchingNextPage = false,
 }: PhotoGridProps<T>) {
@@ -64,14 +68,6 @@ export function PhotoGrid<T extends PhotoGridImage>({
 
   if (isPending) {
     return <PhotoGridSkeleton columns={columns} />;
-  }
-
-  if (!images || images.length === 0) {
-    return (
-      <Center className="flex-1 ">
-        <Text className="text-label-muted">이미지가 존재하지 않습니다...</Text>
-      </Center>
-    );
   }
 
   return (
@@ -82,6 +78,15 @@ export function PhotoGrid<T extends PhotoGridImage>({
       numColumns={columns}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.2}
+      onRefresh={onRefresh}
+      refreshing={refreshing}
+      ListEmptyComponent={
+        <Center className="flex-1 py-20">
+          <Text className="text-label-muted">
+            이미지가 존재하지 않습니다...
+          </Text>
+        </Center>
+      }
       ListFooterComponent={
         isFetchingNextPage ? (
           <Center className="py-4">

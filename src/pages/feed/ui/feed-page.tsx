@@ -1,4 +1,5 @@
 import { feedQuery } from "@entities/feed";
+import { useRefreshPublishedFeeds } from "@features/feed/feed-processing";
 import { TagBottomSheet, TagList } from "@features/tags/select-feed-tags";
 import { gradients } from "@shared/constants";
 import { useDebouncedValue } from "@shared/hooks";
@@ -9,7 +10,8 @@ import { PhotoGrid } from "@shared/ui/photo-grid";
 import { IconPencil } from "@tabler/icons-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function FeedPage() {
@@ -19,17 +21,39 @@ export function FeedPage() {
   const [isTagBottomSheetOpen, setIsTagBottomSheetOpen] = useState(false);
   const debouncedSearchQuery = useDebouncedValue(searchQuery.trim(), 400);
 
-  const { data, isPending, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    feedQuery.useReadFeeds({
-      take: 24,
-      q: debouncedSearchQuery || undefined,
-      tag: selectedTags.length > 0 ? selectedTags.join(",") : undefined,
-    });
+  const {
+    data,
+    isPending,
+    isFetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = feedQuery.useReadFeeds({
+    take: 24,
+    q: debouncedSearchQuery || undefined,
+    tag: selectedTags.length > 0 ? selectedTags.join(",") : undefined,
+  });
+  const refreshFeeds = useRefreshPublishedFeeds();
   const feeds = data?.pages.flatMap((page) => page.items) ?? [];
-  const feedImages = feeds.map((feed) => ({
+  const currentFeedImages = feeds.map((feed) => ({
     id: feed.id,
     imageUrl: feed.thumbnailUrl,
   }));
+  const [refreshSnapshot, setRefreshSnapshot] = useState(
+    currentFeedImages,
+  );
+  const feedImages = data ? currentFeedImages : refreshSnapshot;
+  const selectedTagKey = selectedTags.join(",");
+
+  useEffect(() => {
+    if (data && !refreshFeeds.isPending) {
+      setRefreshSnapshot([]);
+    }
+  }, [data, refreshFeeds.isPending]);
+
+  useEffect(() => {
+    setRefreshSnapshot([]);
+  }, [debouncedSearchQuery, selectedTagKey]);
   const handlePressFeed = async (feedId: string, index: number) => {
     router.push({
       pathname: `/feed/[id]`,
@@ -74,8 +98,22 @@ export function FeedPage() {
   };
 
   const handleEndReached = () => {
-    if (!hasNextPage || isFetchingNextPage) return;
+    if (!hasNextPage || isFetching || isFetchingNextPage) return;
     void fetchNextPage();
+  };
+
+  const handleRefresh = async () => {
+    if (refreshFeeds.isPending) return;
+    setRefreshSnapshot(currentFeedImages);
+
+    try {
+      await refreshFeeds.mutateAsync();
+    } catch {
+      Alert.alert(
+        "피드 새로고침 실패",
+        "목록을 새로고침하지 못했습니다. 다시 시도해주세요.",
+      );
+    }
   };
 
   return (
@@ -113,7 +151,9 @@ export function FeedPage() {
             images={feedImages}
             onPress={(feed, index) => handlePressFeed(feed.id, index)}
             onEndReached={handleEndReached}
-            isPending={isPending}
+            onRefresh={() => void handleRefresh()}
+            refreshing={refreshFeeds.isPending}
+            isPending={isPending && refreshSnapshot.length === 0}
             isFetchingNextPage={isFetchingNextPage}
           />
           {!isGuest ? (
