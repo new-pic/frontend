@@ -1,1 +1,1 @@
-export { EditFeedButton } from "./ui/edit-feed-button";
+export { useEditFeed } from "./model/use-edit-feed";

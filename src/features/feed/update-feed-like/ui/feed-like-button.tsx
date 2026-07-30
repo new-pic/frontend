@@ -8,17 +8,29 @@ import { useRef } from "react";
 interface FeedLikeButtonProps {
   feedId?: string;
   isLiked?: boolean;
+  tone?: "default" | "on-image";
 }
 
 const THROTTLE_DELAY = 500; // 0.5초
 
-export function FeedLikeButton({ feedId, isLiked }: FeedLikeButtonProps) {
+export function FeedLikeButton({
+  feedId,
+  isLiked,
+  tone = "default",
+}: FeedLikeButtonProps) {
   const lastPressedAtRef = useRef<number>(0);
   const requireMember = useMemberAccess();
   const mutationToLike = feedQuery.useLikeFeed();
   const mutationToUnlike = feedQuery.useUnlikeFeed();
   const mutation = isLiked ? mutationToUnlike : mutationToLike;
   const isPending = mutationToLike.isPending || mutationToUnlike.isPending;
+  const isOnImage = tone === "on-image";
+  const iconColor = isOnImage ? "white" : colors.brand.primary;
+  const iconFill = isLiked
+    ? colors.brand.primary
+    : isOnImage
+      ? "transparent"
+      : "white";
 
   const handlePress = async () => {
     if (!feedId || isPending) return;
@@ -37,15 +49,16 @@ export function FeedLikeButton({ feedId, isLiked }: FeedLikeButtonProps) {
     <Button
       variant="ghost"
       size="icon"
-      className="w-6 h-6"
+      className={isOnImage ? "w-8 h-8" : "w-6 h-6"}
       disabled={isPending}
+      accessibilityLabel={isLiked ? "좋아요 취소" : "좋아요"}
       onPress={handlePress}
     >
       <ButtonIcon
-        className="w-6 h-6"
+        className={isOnImage ? "w-8 h-8" : "w-6 h-6"}
         as={IconHeartFilled}
-        color={colors.brand.primary}
-        fill={isLiked ? colors.brand.primary : "white"}
+        color={iconColor}
+        fill={iconFill}
       />
     </Button>
   );

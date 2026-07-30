@@ -1,8 +1,6 @@
 import { feedQuery, FeedResponse } from "@entities/feed";
 import { FeedCameraGuideFab } from "@features/camera/guide-feed";
 import { FeedCommentForm } from "@features/feed/create-feed-comment";
-import { DeleteFeedButton } from "@features/feed/delete-feed";
-import { EditFeedButton } from "@features/feed/edit-feed";
 import { FeedLikeButton } from "@features/feed/update-feed-like";
 import { FeedPickButton } from "@features/feed/update-feed-pick";
 import { colors } from "@shared/constants";
@@ -17,7 +15,8 @@ import {
   Text,
   VStack,
 } from "@shared/ui";
-import { IconChevronLeft, IconShare } from "@tabler/icons-react-native";
+import { IconChevronLeft } from "@tabler/icons-react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   ActivityIndicator,
   FlatList,
@@ -26,6 +25,7 @@ import {
 } from "react-native";
 import { CommentSort } from "../model";
 import { FeedCommentItem, FeedCommentsHeader } from "./feed-comments";
+import { FeedOwnerActionsMenu } from "./feed-owner-actions-menu";
 
 interface FeedDetailContentProps {
   feed: FeedResponse;
@@ -92,10 +92,7 @@ export function FeedDetailContent({
                     <ButtonIcon as={IconChevronLeft} />
                   </Button>
                   {isMyFeed ? (
-                    <HStack className="items-center" space="xs">
-                      <EditFeedButton feedId={feed.id} />
-                      <DeleteFeedButton feedId={feed.id} />
-                    </HStack>
+                    <FeedOwnerActionsMenu feedId={feed.id} />
                   ) : null}
                 </HStack>
                 <HStack className="items-center justify-between w-full py-2">
@@ -121,32 +118,74 @@ export function FeedDetailContent({
                   />
                 </HStack>
               </VStack>
-              <Image
-                source={{ uri: feed.detailImageUrl }}
-                style={{ width: "100%", aspectRatio: 4 / 5 }}
-              />
-              <HStack className="px-6 py-2 border-t border-b justify-between border-outline-light">
-                <HStack className="items-center" space="xs">
+              <View
+                style={{
+                  width: "100%",
+                  aspectRatio: 4 / 5,
+                  position: "relative",
+                }}
+              >
+                <Image
+                  source={{ uri: feed.detailImageUrl }}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    left: 0,
+                  }}
+                />
+                <LinearGradient
+                  colors={[
+                    "rgba(0,0,0,0)",
+                    "rgba(0,0,0,0.32)",
+                  ]}
+                  pointerEvents="none"
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    bottom: 0,
+                    left: 0,
+                    height: 96,
+                  }}
+                />
+                <HStack
+                  className="items-center"
+                  space="xs"
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    paddingHorizontal: 24,
+                    paddingVertical: 14,
+                  }}
+                >
                   <FeedLikeButton
                     feedId={feed.id}
                     isLiked={feed.isLiked}
+                    tone="on-image"
                   />
-                  <Text className="text-sm font-medium">
+                  <Text
+                    className="font-semibold text-white"
+                    size="md"
+                    style={{
+                      textShadowColor: "rgba(0,0,0,0.55)",
+                      textShadowOffset: { width: 0, height: 1 },
+                      textShadowRadius: 4,
+                    }}
+                  >
                     {feed.likeCount ?? 0}개
                   </Text>
                 </HStack>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-5 h-5"
-                >
-                  <ButtonIcon
-                    className="w-5 h-5"
-                    as={IconShare}
-                  />
-                </Button>
-              </HStack>
-              <VStack className="px-6 py-2 ">
+              </View>
+              <VStack
+                className="px-6"
+                space="xs"
+                style={{
+                  minHeight: 120,
+                  paddingVertical: 20,
+                }}
+              >
                 <Text className="text-sm text-link-text mb-1">
                   {feed.tags
                     .map((tag: string) => `#${tag} `)
