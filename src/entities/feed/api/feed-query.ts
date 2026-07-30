@@ -4,6 +4,7 @@ import {
   type InfiniteData,
   type QueryClient,
   type QueryKey,
+  infiniteQueryOptions,
   useInfiniteQuery,
   useMutation,
   useQuery,
@@ -105,14 +106,19 @@ function rollbackFeedLists(
  * @returns
  */
 export function useReadFeeds(params: FeedListParams) {
-  return useInfiniteQuery({
+  return useInfiniteQuery(feedsInfiniteQueryOptions(params));
+}
+
+export function feedsInfiniteQueryOptions(params: FeedListParams) {
+  return infiniteQueryOptions({
     queryKey: feedQueryKeys.list(params),
-    queryFn: async ({ pageParam }): Promise<FeedListResponse> => {
+    queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
       const response = await apiClient.get("/feed", {
         params: {
           ...params,
           cursor: pageParam,
         },
+        signal,
       });
       return response.data;
     },

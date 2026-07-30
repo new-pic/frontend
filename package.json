@@ -95,6 +95,8 @@
     "test:feed-processing": "node --test src/features/feed/feed-processing/__tests__/feed-processing.test.cjs",
     "test:saved-feed-sync": "node --test src/features/feed/update-feed-pick/__tests__/saved-feed-sync.test.cjs",
     "test:feed-detail": "node --test src/widgets/feed/detail/__tests__/feed-detail-layout.test.cjs",
+    "test:feed-browse": "node --test src/features/feed/browse-feed-detail/__tests__/feed-detail-navigation.test.cjs",
+    "test:photo-grid": "node --test src/shared/ui/photo-grid/__tests__/photo-grid-layout.test.cjs",
     "test:guest-account-link": "node --test src/shared/model/__tests__/guest-account-linking.test.cjs",
     "test:profile-flow": "node --test src/pages/profile/__tests__/profile-flow.test.cjs",
     "test:rtc-stored-photos": "node --test src/features/rtc-photo/browse-stored-photos/__tests__/rtc-stored-photo.test.cjs"

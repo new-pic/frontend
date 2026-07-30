@@ -27,6 +27,11 @@ export const userQueryKeys = {
       getUserQueryIdentity(userId),
     ] as const,
   myFeeds: [...QUERY_KEY, "me", "feeds"] as const,
+  myFeedList: (params: PaginationParams) =>
+    [...QUERY_KEY, "me", "feeds", params] as const,
+  likedFeeds: [...QUERY_KEY, "me", "liked-feeds"] as const,
+  likedFeedList: (params: PaginationParams) =>
+    [...QUERY_KEY, "me", "liked-feeds", params] as const,
   savedFeeds: [...QUERY_KEY, "me", "saved-feeds"] as const,
   savedFeedList: (params: PaginationParams) =>
     [...QUERY_KEY, "me", "saved-feeds", params] as const,
@@ -55,14 +60,19 @@ export function useReadMe(options?: { enabled?: boolean }) {
  * 내가 올린 피드 목록 조회
  */
 export function useReadMyFeeds(params: PaginationParams) {
-  return useInfiniteQuery({
-    queryKey: [...userQueryKeys.myFeeds, params],
-    queryFn: async ({ pageParam }) => {
+  return useInfiniteQuery(myFeedsInfiniteQueryOptions(params));
+}
+
+export function myFeedsInfiniteQueryOptions(params: PaginationParams) {
+  return infiniteQueryOptions({
+    queryKey: userQueryKeys.myFeedList(params),
+    queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
       const response = await privateApiClient.get("/users/me/feeds", {
         params: {
           ...params,
           cursor: pageParam,
         },
+        signal,
       });
       return response.data;
     },
@@ -77,14 +87,19 @@ export function useReadMyFeeds(params: PaginationParams) {
  * @returns
  */
 export function useReadLikedFeeds(params: PaginationParams) {
-  return useInfiniteQuery({
-    queryKey: [...QUERY_KEY, "me", "liked-feeds"],
-    queryFn: async ({ pageParam }) => {
+  return useInfiniteQuery(likedFeedsInfiniteQueryOptions(params));
+}
+
+export function likedFeedsInfiniteQueryOptions(params: PaginationParams) {
+  return infiniteQueryOptions({
+    queryKey: userQueryKeys.likedFeedList(params),
+    queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
       const response = await privateApiClient.get("/users/me/liked-feeds", {
         params: {
           ...params,
           cursor: pageParam,
         },
+        signal,
       });
       return response.data;
     },

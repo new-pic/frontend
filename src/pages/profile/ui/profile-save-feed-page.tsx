@@ -1,4 +1,5 @@
 import { usersQuery } from "@entities/user";
+import { createFeedDetailHref } from "@features/feed/browse-feed-detail";
 import {
   Box,
   Button,
@@ -13,8 +14,13 @@ import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function ProfileSaveFeedPage() {
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    usersQuery.useReadSavedFeeds({ take: 24 });
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isPending,
+  } = usersQuery.useReadSavedFeeds({ take: 24 });
   const feeds = data?.pages.flatMap((page) => page.items) ?? [];
   const feedImages = feeds.map((feed) => ({
     id: feed.id,
@@ -45,8 +51,19 @@ export function ProfileSaveFeedPage() {
         <VStack className="flex-1">
           <PhotoGrid
             images={feedImages}
+            isPending={isPending}
             onEndReached={handleEndReached}
             isFetchingNextPage={isFetchingNextPage}
+            onPress={(feed, index) => {
+              router.push(
+                createFeedDetailHref({
+                  feedId: feed.id,
+                  index,
+                  source: "saved",
+                  take: 24,
+                }),
+              );
+            }}
           />
         </VStack>
       </VStack>
