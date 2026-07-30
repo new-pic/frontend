@@ -26,12 +26,16 @@ interface FeedDetailPagerProps {
   feeds: FeedResponse[];
   initialPageIndex: number;
   onReachLastPage: () => void;
+  onBack?: () => void;
+  onGuidePress?: (feed: FeedResponse) => void;
 }
 
 export function FeedDetailPager({
   feeds,
   initialPageIndex,
   onReachLastPage,
+  onBack,
+  onGuidePress,
 }: FeedDetailPagerProps) {
   const [commentSort, setCommentSort] = useState<CommentSort>("latest");
   const [activePageIndex, setActivePageIndex] =
@@ -71,7 +75,7 @@ export function FeedDetailPager({
                 commentSort={commentSort}
                 setCommentSort={setCommentSort}
                 isActivePage={activePageIndex === feedIndex}
-                handleGoBack={() => router.back()}
+                handleGoBack={onBack ?? (() => router.back())}
               />
             ) : null}
           </SlidePageView.Item>
@@ -82,6 +86,11 @@ export function FeedDetailPager({
           feed={activeFeed}
           bottomOffset={fabBottomOffset}
           size={FEED_DETAIL_GUIDE_FAB_SIZE}
+          onPress={
+            onGuidePress
+              ? () => onGuidePress(activeFeed)
+              : undefined
+          }
         />
       ) : null}
     </View>

@@ -1,4 +1,4 @@
-import { feedQuery } from "@entities/feed";
+import { feedQuery, type FeedResponse } from "@entities/feed";
 import {
   RTC_MAX_CAPTURED_PHOTOS,
   rtcHostQuery,
@@ -51,6 +51,7 @@ import {
 } from "react";
 import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { CameraGuideFeedDetailModal } from "./camera-guide-feed-detail-modal";
 import { RtcHostLiveKitPage } from "./rtc-livekit-page";
 import { SharingCameraSheet } from "./sharing-camera-page";
 import { SharingEndSelectionPage } from "./sharing-end-selection-page";
@@ -69,6 +70,11 @@ interface ResultImage {
 interface EndPhotoSelectionRequest {
   resolve: (photos: SessionPhoto[]) => void;
   reject: (reason: Error) => void;
+}
+
+interface GuideFeedDetailRequest {
+  feedId: string;
+  initialIndex: number;
 }
 
 const getErrorMessage = (error: unknown) =>
@@ -124,6 +130,8 @@ export function CameraPage() {
     useState(false);
   const [isGuideSheetOpen, setIsGuideSheetOpen] =
     useState(false);
+  const [guideFeedDetailRequest, setGuideFeedDetailRequest] =
+    useState<GuideFeedDetailRequest | null>(null);
   const [cameraGeometry, setCameraGeometry] =
     useState<CameraRuntimeGeometry | null>(null);
   const [joinInitialCode, setJoinInitialCode] =
@@ -506,6 +514,15 @@ export function CameraPage() {
     [cameraGuide.selectGuide, initialGuideFeedId],
   );
 
+  const handleSelectGuideFromDetail = useCallback(
+    (feed: FeedResponse) => {
+      handleSelectGuide(adaptFeedToGuideSelection(feed));
+      setGuideFeedDetailRequest(null);
+      setIsGuideSheetOpen(false);
+    },
+    [handleSelectGuide],
+  );
+
   const handleRetryGuide = useCallback(() => {
     if (hasInitialGuideError) {
       void initialGuideQuery.refetch();
@@ -629,9 +646,19 @@ export function CameraPage() {
       <GuideFeedBottomSheet
         open={isGuideSheetOpen}
         selectedFeedId={cameraGuide.selectedGuide?.feedId}
-        onSelect={handleSelectGuide}
+        onOpenDetail={(feedId, initialIndex) =>
+          setGuideFeedDetailRequest({ feedId, initialIndex })
+        }
         onClear={cameraGuide.clearGuide}
         onClose={() => setIsGuideSheetOpen(false)}
+      />
+
+      <CameraGuideFeedDetailModal
+        feedId={guideFeedDetailRequest?.feedId}
+        initialIndex={guideFeedDetailRequest?.initialIndex ?? 0}
+        open={guideFeedDetailRequest !== null}
+        onClose={() => setGuideFeedDetailRequest(null)}
+        onSelect={handleSelectGuideFromDetail}
       />
 
       {broadcastConnection ? (

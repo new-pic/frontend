@@ -10,14 +10,13 @@ import {
   VStack,
 } from "@shared/ui";
 import { View } from "react-native";
-import type { GuideFeedSelection } from "../model";
 
 const GUIDE_SHEET_SNAP_POINTS = ["70%", "100%"];
 
 interface GuideFeedBottomSheetProps {
   open: boolean;
   selectedFeedId?: string;
-  onSelect: (selection: GuideFeedSelection) => void;
+  onOpenDetail: (feedId: string, index: number) => void;
   onClear: () => void;
   onClose: () => void;
 }
@@ -25,7 +24,7 @@ interface GuideFeedBottomSheetProps {
 export function GuideFeedBottomSheet({
   open,
   selectedFeedId,
-  onSelect,
+  onOpenDetail,
   onClear,
   onClose,
 }: GuideFeedBottomSheetProps) {
@@ -102,14 +101,9 @@ export function GuideFeedBottomSheet({
                 savedFeedsQuery.isFetchingNextPage
               }
               onEndReached={handleEndReached}
-              onPress={(feed) => {
-                onSelect({
-                  feedId: feed.id,
-                  thumbnailUrl: feed.thumbnailUrl,
-                  detailImageUrl: feed.detailImageUrl,
-                });
-                onClose();
-              }}
+              onPress={(feed, index) =>
+                onOpenDetail(feed.id, index)
+              }
             />
           )}
         </VStack>
