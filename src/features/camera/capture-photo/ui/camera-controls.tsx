@@ -18,6 +18,7 @@ import { SessionPhoto } from "../model/models";
 interface CameraControlsProps {
   thumbnail?: SessionPhoto | null;
   isTakePhotoDisabled?: boolean;
+  onThumbnailPress?: () => void;
   onTakePhoto: () => void;
   onChangePosition: () => void;
 }
@@ -25,13 +26,24 @@ interface CameraControlsProps {
 export function CameraControls({
   thumbnail,
   isTakePhotoDisabled = false,
+  onThumbnailPress,
   onTakePhoto,
   onChangePosition,
 }: CameraControlsProps) {
   return (
     <VStack className="w-full py-6 px-6 pb-12 bg-white">
       <HStack className="items-center justify-around">
-        <Pressable>
+        <Pressable
+          disabled={!thumbnail || !onThumbnailPress}
+          onPress={onThumbnailPress}
+          accessibilityRole="button"
+          accessibilityLabel={
+            thumbnail
+              ? "촬영한 사진 목록 열기"
+              : "촬영한 사진 없음"
+          }
+          accessibilityState={{ disabled: !thumbnail }}
+        >
           {thumbnail ? (
             <Image
               source={{ uri: thumbnail.uri }}

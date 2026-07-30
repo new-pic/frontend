@@ -18,10 +18,14 @@ import {
   RtcHostLiveKitTokenRequest,
   RtcHostLiveKitTokenResponse,
   RtcRoomResponse,
+  RtcRoomResponseSchema,
   useRtcStore,
 } from "../model";
 
 const QUERY_KEY = [API_QUERY_KEY, "host"] as const;
+
+export const rtcHostRoomQueryKey = (roomId: string) =>
+  [...QUERY_KEY, "room", roomId.trim()] as const;
 
 export interface RtcRoomQueryOptions {
   enabled?: boolean;
@@ -76,7 +80,7 @@ export const useReadRtcRoom = (
   );
 
   return useQuery({
-    queryKey: [...QUERY_KEY, "room", normalizedRoomId],
+    queryKey: rtcHostRoomQueryKey(normalizedRoomId),
     queryFn: async () => {
       const id = verifyRtcId(normalizedRoomId, "RTC 방 ID");
       const response = await privateApiClient.get<RtcRoomResponse>(
@@ -85,7 +89,7 @@ export const useReadRtcRoom = (
           headers: createRtcHostHeaders(id),
         },
       );
-      return response.data;
+      return RtcRoomResponseSchema.parse(response.data);
     },
     enabled:
       Boolean(normalizedRoomId && appAccessToken && hostAccessToken) &&

@@ -19,6 +19,7 @@ export * from "./icon";
 export * from "./image-viewer";
 export * from "./input";
 export * from "./photo-grid";
+export * from "./photo-gallery";
 export * from "./pressable";
 export * from "./skeleton";
 export * from "./spinner";

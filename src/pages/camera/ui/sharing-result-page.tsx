@@ -4,6 +4,7 @@ import {
   ButtonSpinner,
   ButtonText,
   HStack,
+  PhotoGalleryModal,
   PhotoGrid,
   Pressable,
   Text,
@@ -96,6 +97,9 @@ export function SharingResultPage({
     () => new Set(),
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState<number | null>(
+    null,
+  );
   const [permissionResponse, requestPermission] =
     MediaLibrary.usePermissions({
       writeOnly: true,
@@ -270,7 +274,8 @@ export function SharingResultPage({
             images={images}
             selectedImages={selectedImages}
             columns={3}
-            onPress={handleToggleImage}
+            onPress={(_, index) => setGalleryIndex(index)}
+            onSelectionPress={handleToggleImage}
             onEndReached={onEndReached}
             isPending={isPending}
             isFetchingNextPage={isFetchingNextPage}
@@ -306,6 +311,14 @@ export function SharingResultPage({
           </Button>
         </VStack>
       </VStack>
+      <PhotoGalleryModal
+        open={galleryIndex !== null}
+        images={images}
+        initialIndex={galleryIndex ?? 0}
+        selectedImageIds={selectedImageIds}
+        onToggleSelection={handleToggleImage}
+        onClose={() => setGalleryIndex(null)}
+      />
     </SafeAreaView>
   );
 }

@@ -23,6 +23,12 @@ import {
 } from "@features/camera/guide-feed";
 import { RtcHostReactionBubbles } from "@features/rtc/reactions";
 import {
+  isRtcFinalizationPending,
+  RtcCameraRoomMenu,
+  type RtcHostFinalizationState,
+  useRtcRoomEvents,
+} from "@features/rtc/host-controls";
+import {
   prepareRtcEndImages,
   useResetMyRtcStoredPhotos,
 } from "@features/rtc/finalize-session";
@@ -31,7 +37,7 @@ import {
   RTC_NAVIGATION,
   RtcNavigationSearchParams,
 } from "@shared/config";
-import { getFirstSearchParam } from "@shared/lib";
+import { getFirstSearchParam, useConfirm } from "@shared/lib";
 import { Box, VStack } from "@shared/ui";
 import { CameraHeader } from "@widgets/camera-header";
 import { RtcJoinSheet } from "@widgets/rtc-join-sheet";
@@ -52,6 +58,7 @@ import {
 import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraGuideFeedDetailModal } from "./camera-guide-feed-detail-modal";
+import { CapturedPhotosModal } from "./captured-photos-modal";
 import { RtcHostLiveKitPage } from "./rtc-livekit-page";
 import { SharingCameraSheet } from "./sharing-camera-page";
 import { SharingEndSelectionPage } from "./sharing-end-selection-page";
@@ -152,6 +159,11 @@ export function CameraPage() {
   >(null);
   const [isEndPhotoSelectionOpen, setIsEndPhotoSelectionOpen] =
     useState(false);
+  const [isCapturedPhotosOpen, setIsCapturedPhotosOpen] =
+    useState(false);
+  const [endRequestId, setEndRequestId] = useState(0);
+  const [finalizationState, setFinalizationState] =
+    useState<RtcHostFinalizationState>("IDLE");
   const isVisionCameraRunningRef = useRef(false);
   const isCameraPageFocusedRef = useRef(false);
   const endPhotoSelectionRequestRef =
@@ -179,6 +191,7 @@ export function CameraPage() {
     appliedInitialGuideFeedIdRef.current !== initialGuideFeedId;
   const hasInitialGuideError =
     initialGuideNotApplied && initialGuideQuery.isError;
+  const openConfirm = useConfirm();
 
   useEffect(() => {
     if (
@@ -234,7 +247,12 @@ export function CameraPage() {
 
   const roomId = hostSession?.roomId ?? "";
   const roomQuery = rtcHostQuery.useReadRtcRoom(roomId, {
-    enabled: isShareSheetOpen,
+    enabled: Boolean(hostSession) && isCameraPageFocused,
+    refetchInterval: false,
+  });
+  useRtcRoomEvents({
+    roomId,
+    enabled: Boolean(hostSession) && isCameraPageFocused,
   });
   const participants = roomQuery.data?.participants ?? [];
   const qrValue = useMemo(
@@ -290,6 +308,27 @@ export function CameraPage() {
       Alert.alert("RTC 방 생성 실패", getErrorMessage(error));
     }
   };
+
+  const handleRequestEndRoom = useCallback(async () => {
+    if (
+      !broadcastConnection ||
+      isRtcFinalizationPending(finalizationState)
+    ) {
+      return;
+    }
+
+    const confirmed = await openConfirm({
+      title: "실시간 공유를 종료할까요?",
+      message:
+        "종료 전에 방에 저장할 촬영 사진을 선택할 수 있습니다.",
+      confirmText: "종료하기",
+      cancelText: "계속 공유",
+      destructive: true,
+    });
+    if (!confirmed) return;
+
+    setEndRequestId((current) => current + 1);
+  }, [broadcastConnection, finalizationState, openConfirm]);
 
   const handleOpenJoinSheet = () => {
     setJoinInitialCode(undefined);
@@ -462,7 +501,10 @@ export function CameraPage() {
     clearHostSession();
     clearLiveKitConnection();
     setBroadcastConnection(null);
+    setFinalizationState("IDLE");
+    setEndRequestId(0);
     setIsGuideSheetOpen(false);
+    setIsCapturedPhotosOpen(false);
     selectedEndPhotosRef.current = null;
     preparedEndImagesRef.current = null;
     isVisionCameraRunningRef.current = false;
@@ -551,23 +593,30 @@ export function CameraPage() {
           <Camera
             isActive={isVisionCameraActive}
             onClose={() => router.back()}
-            renderHeader={({
-              flashMode,
-              isFlashAvailable,
-              onChangeFlashMode,
-            }) => (
+            renderHeader={({ onOpenSettings }) => (
               <CameraHeader
                 onBackPress={() => router.back()}
-                flashMode={flashMode}
-                isFlashAvailable={isFlashAvailable}
-                onChangeFlashMode={onChangeFlashMode}
-                onSharePress={() => void handleOpenShare()}
-                onJoinPress={handleOpenJoinSheet}
-                isCreatingRoom={
-                  createRoomMutation.isPending ||
-                  Boolean(broadcastConnection)
+                onSettingsPress={onOpenSettings}
+                rtcControl={
+                  <RtcCameraRoomMenu
+                    participants={participants}
+                    isLive={Boolean(broadcastConnection)}
+                    isBusy={
+                      createRoomMutation.isPending ||
+                      createHostTokenMutation.isPending ||
+                      endRoomMutation.isPending ||
+                      isRtcFinalizationPending(
+                        finalizationState,
+                      )
+                    }
+                    isCameraReady={isVisionCameraRunning}
+                    onSharePress={() => void handleOpenShare()}
+                    onJoinPress={handleOpenJoinSheet}
+                    onEndRoomPress={() =>
+                      void handleRequestEndRoom()
+                    }
+                  />
                 }
-                isCameraReady={isVisionCameraRunning}
               />
             )}
             onStarted={() => {
@@ -585,6 +634,7 @@ export function CameraPage() {
               )
             }
             onPhotoLimitReached={handlePhotoLimitReached}
+            onOpenPhotos={() => setIsCapturedPhotosOpen(true)}
             videoFrameSink={visionCameraRtcFrameSink}
             poseFrameSink={cameraGuide.poseDetection.frameSink}
             guideAspectRatio={
@@ -670,6 +720,8 @@ export function CameraPage() {
           onPrepareEndRoom={handlePrepareEndRoom}
           onEndRoom={handleEndRoom}
           onStopped={handleHostStopped}
+          endRequestId={endRequestId}
+          onFinalizationStateChange={setFinalizationState}
         />
       ) : null}
 
@@ -714,6 +766,12 @@ export function CameraPage() {
           />
         </Box>
       ) : null}
+
+      <CapturedPhotosModal
+        open={isCapturedPhotosOpen}
+        photos={capturedPhotos}
+        onClose={() => setIsCapturedPhotosOpen(false)}
+      />
     </>
   );
 }

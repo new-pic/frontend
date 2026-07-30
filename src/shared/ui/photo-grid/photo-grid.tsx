@@ -1,6 +1,7 @@
 import { colors } from "@shared/constants";
 import { Image } from "expo-image";
 import {
+  IconCircle,
   IconCircleCheck,
   IconPhotoOff,
 } from "@tabler/icons-react-native";
@@ -13,7 +14,7 @@ import {
 } from "react-native";
 import { Box } from "../box";
 import { Center } from "../center";
-import { Fab, FabIcon } from "../fab";
+import { Icon } from "../icon";
 import { Pressable } from "../pressable";
 import { Skeleton } from "../skeleton";
 import { Text } from "../text";
@@ -34,6 +35,7 @@ interface PhotoGridImageTileProps {
   imageSize: number;
   selected: boolean;
   onPress: () => void;
+  onSelectionPress?: () => void;
 }
 
 const PhotoGridImageTile = memo(function PhotoGridImageTile({
@@ -41,57 +43,83 @@ const PhotoGridImageTile = memo(function PhotoGridImageTile({
   imageSize,
   selected,
   onPress,
+  onSelectionPress,
 }: PhotoGridImageTileProps) {
   const [loadState, setLoadState] = useState<
     "loading" | "loaded" | "failed"
   >("loading");
 
   return (
-    <Pressable onPress={onPress}>
-      <Box
-        style={{
-          width: imageSize,
-          aspectRatio: 4 / 5,
-          overflow: "hidden",
-        }}
-      >
-        {loadState === "loading" ? (
-          <Skeleton variant="sharp" />
-        ) : null}
-        <Image
-          source={image.imageUrl}
-          contentFit="cover"
-          cachePolicy="memory-disk"
-          transition={150}
+    <View
+      style={{
+        width: imageSize,
+        aspectRatio: 4 / 5,
+      }}
+    >
+      <Pressable onPress={onPress}>
+        <Box
+          style={{
+            width: imageSize,
+            aspectRatio: 4 / 5,
+            overflow: "hidden",
+          }}
+        >
+          {loadState === "loading" ? (
+            <Skeleton variant="sharp" />
+          ) : null}
+          <Image
+            source={image.imageUrl}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={150}
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+              opacity: loadState === "failed" ? 0 : 1,
+            }}
+            onLoadStart={() => setLoadState("loading")}
+            onDisplay={() => setLoadState("loaded")}
+            onError={() => setLoadState("failed")}
+          />
+          {loadState === "failed" ? (
+            <Center className="h-full w-full bg-background-muted">
+              <IconPhotoOff size={24} color={colors.outline} />
+            </Center>
+          ) : null}
+        </Box>
+      </Pressable>
+      {onSelectionPress ? (
+        <Pressable
+          accessibilityRole="checkbox"
+          accessibilityLabel={
+            selected ? "사진 선택 해제" : "사진 선택"
+          }
+          accessibilityState={{ checked: selected }}
+          onPress={onSelectionPress}
           style={{
             position: "absolute",
-            top: 0,
-            right: 0,
-            bottom: 0,
-            left: 0,
-            opacity: loadState === "failed" ? 0 : 1,
+            top: 5,
+            right: 5,
+            width: 32,
+            height: 32,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 16,
+            backgroundColor: "rgba(0,0,0,0.24)",
           }}
-          onLoadStart={() => setLoadState("loading")}
-          onDisplay={() => setLoadState("loaded")}
-          onError={() => setLoadState("failed")}
-        />
-        {loadState === "failed" ? (
-          <Center className="h-full w-full bg-background-muted">
-            <IconPhotoOff size={24} color={colors.outline} />
-          </Center>
-        ) : null}
-        {selected ? (
-          <Fab className="p-0 h-6 top-1 right-1">
-            <FabIcon
-              className="w-6 h-6"
-              as={IconCircleCheck}
-              fill={colors.brand.primary}
-              color="white"
-            />
-          </Fab>
-        ) : null}
-      </Box>
-    </Pressable>
+        >
+          <Icon
+            className="h-7 w-7"
+            as={selected ? IconCircleCheck : IconCircle}
+            fill={selected ? colors.brand.primary : "transparent"}
+            color="white"
+          />
+        </Pressable>
+      ) : null}
+    </View>
   );
 });
 
@@ -137,6 +165,7 @@ export interface PhotoGridProps<T extends PhotoGridImage = PhotoGridImage> {
   columns?: number;
   gap?: number;
   onPress?: (image: T, index: number) => void;
+  onSelectionPress?: (image: T, index: number) => void;
   onEndReached?: () => void;
   onRefresh?: () => void;
   refreshing?: boolean;
@@ -151,6 +180,7 @@ export function PhotoGrid<T extends PhotoGridImage>({
   columns = 3,
   gap = DEFAULT_GRID_GAP,
   onPress,
+  onSelectionPress,
   onEndReached,
   onRefresh,
   refreshing = false,
@@ -211,6 +241,11 @@ export function PhotoGrid<T extends PhotoGridImage>({
             ) ?? false
           }
           onPress={() => onPress?.(item, index)}
+          onSelectionPress={
+            onSelectionPress
+              ? () => onSelectionPress(item, index)
+              : undefined
+          }
         />
       )}
     />

@@ -33,7 +33,6 @@ import {
 import {
   DEFAULT_CAMERA_CAPTURE_SETTINGS,
   getEffectivePhotoFlashMode,
-  getNextPhotoFlashMode,
   getPhotoTargetResolution,
   getPortraitPreviewAspectRatio,
   isResolutionMatchingAspectRatio,
@@ -46,8 +45,8 @@ import type {
   CameraRuntimeGeometry,
   SessionPhoto,
 } from "../model/models";
-import { CameraAspectRatioControl } from "./camera-aspect-ratio-control";
 import { CameraControls } from "./camera-controls";
+import { CameraSettingsBottomSheet } from "./camera-settings-bottom-sheet";
 import { ZoomControls } from "./zoom-control";
 
 const DEFAULT_DISPLAY_ZOOM = 1;
@@ -119,9 +118,7 @@ export interface NativeCameraFrameSink
 }
 
 export interface CameraHeaderRenderProps {
-  flashMode: CameraPhotoFlashMode;
-  isFlashAvailable: boolean;
-  onChangeFlashMode: () => void;
+  onOpenSettings: () => void;
 }
 
 interface CustomCameraProps {
@@ -134,6 +131,7 @@ interface CustomCameraProps {
   maxPhotos?: number;
   onPhotoTaken?: (photo: SessionPhoto) => void;
   onPhotoLimitReached?: (maxPhotos: number) => void;
+  onOpenPhotos?: () => void;
   videoFrameSink?: NativeCameraFrameSink;
   poseFrameSink?: NativeCameraFrameSink;
   guideAspectRatio?: CameraAspectRatio;
@@ -155,6 +153,7 @@ function CameraView({
   maxPhotos,
   onPhotoTaken,
   onPhotoLimitReached,
+  onOpenPhotos,
   videoFrameSink,
   poseFrameSink,
   guideAspectRatio,
@@ -176,6 +175,7 @@ function CameraView({
     useState<CameraCaptureSettings>(
       DEFAULT_CAMERA_CAPTURE_SETTINGS,
     );
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isPhotoOutputConfigured, setIsPhotoOutputConfigured] =
     useState(false);
   const [previewSize, setPreviewSize] = useState<{
@@ -519,13 +519,15 @@ function CameraView({
    * - 플래시 모드는 off -> on -> auto 순으로 전환
    * - 촬영 시점의 Photo capture settings에만 전달
    */
-  const handleChangeFlashMode = () => {
+  const handleChangeFlashMode = (
+    flashMode: CameraPhotoFlashMode,
+  ) => {
     setCaptureSettings((currentSettings) => ({
       ...currentSettings,
-      flashMode: getNextPhotoFlashMode(
-        currentSettings.flashMode,
-        hasPhysicalFlash,
-      ),
+      flashMode:
+        hasPhysicalFlash || flashMode === "off"
+          ? flashMode
+          : "off",
     }));
   };
 
@@ -657,77 +659,83 @@ function CameraView({
   }
 
   return (
-    <VStack className="h-full bg-white">
-      {renderHeader?.({
-        flashMode: captureSettings.flashMode,
-        isFlashAvailable: hasPhysicalFlash,
-        onChangeFlashMode: handleChangeFlashMode,
-      })}
-      <VStack className="flex-1 justify-center">
-        <VStack className="h-fit relative">
-          <GestureDetector gesture={pinchGesture}>
-            <View
-              collapsable={false}
-              onLayout={({ nativeEvent }) => {
-                const { width, height } = nativeEvent.layout;
-                setPreviewSize((current) =>
-                  current?.width === width &&
-                  current.height === height
-                    ? current
-                    : { width, height },
-                );
-              }}
-              style={{
-                aspectRatio: previewAspectRatio,
-                overflow: "hidden",
-              }}
-            >
-              <Camera
-                ref={cameraRef}
-                style={StyleSheet.absoluteFill}
-                resizeMode="cover"
-                isActive={isActive}
-                zoom={zoom}
-                device={device}
-                outputs={cameraOutputs}
-                constraints={cameraConstraints}
-                onConfigured={handleCameraConfigured}
-                onError={handleCameraError}
-                onStarted={handleCameraStarted}
-                onStopped={onStopped}
-              />
-              {previewOverlay}
-              <CameraAspectRatioControl
-                aspectRatio={captureSettings.aspectRatio}
-                disabled={
-                  !isPhotoOutputConfigured ||
-                  guideAspectRatio !== undefined
-                }
-                onChange={handleChangeAspectRatio}
-              />
-              {previewControl}
-            </View>
-          </GestureDetector>
-          <ZoomControls
-            zoomLevel={displayZoom}
-            zoomLevels={zoomButtonLevels}
-            onZoomChange={handleZoomChange}
-          />
+    <>
+      <VStack className="h-full bg-white">
+        {renderHeader?.({
+          onOpenSettings: () => setIsSettingsOpen(true),
+        })}
+        <VStack className="flex-1 justify-center">
+          <VStack className="h-fit relative">
+            <GestureDetector gesture={pinchGesture}>
+              <View
+                collapsable={false}
+                onLayout={({ nativeEvent }) => {
+                  const { width, height } = nativeEvent.layout;
+                  setPreviewSize((current) =>
+                    current?.width === width &&
+                    current.height === height
+                      ? current
+                      : { width, height },
+                  );
+                }}
+                style={{
+                  aspectRatio: previewAspectRatio,
+                  overflow: "hidden",
+                }}
+              >
+                <Camera
+                  ref={cameraRef}
+                  style={StyleSheet.absoluteFill}
+                  resizeMode="cover"
+                  isActive={isActive}
+                  zoom={zoom}
+                  device={device}
+                  outputs={cameraOutputs}
+                  constraints={cameraConstraints}
+                  onConfigured={handleCameraConfigured}
+                  onError={handleCameraError}
+                  onStarted={handleCameraStarted}
+                  onStopped={onStopped}
+                />
+                {previewOverlay}
+                {previewControl}
+              </View>
+            </GestureDetector>
+            <ZoomControls
+              zoomLevel={displayZoom}
+              zoomLevels={zoomButtonLevels}
+              onZoomChange={handleZoomChange}
+            />
+          </VStack>
         </VStack>
+        <CameraControls
+          thumbnail={
+            sessionPhotos.length > 0
+              ? sessionPhotos[sessionPhotos.length - 1]
+              : null
+          }
+          isTakePhotoDisabled={
+            hasReachedPhotoLimit || !isPhotoOutputConfigured
+          }
+          onTakePhoto={handleTakePhoto}
+          onChangePosition={handleChangePosition}
+          onThumbnailPress={
+            sessionPhotos.length > 0 ? onOpenPhotos : undefined
+          }
+        />
       </VStack>
-      <CameraControls
-        thumbnail={
-          sessionPhotos.length > 0
-            ? sessionPhotos[sessionPhotos.length - 1]
-            : null
-        }
-        isTakePhotoDisabled={
-          hasReachedPhotoLimit || !isPhotoOutputConfigured
-        }
-        onTakePhoto={handleTakePhoto}
-        onChangePosition={handleChangePosition}
+
+      <CameraSettingsBottomSheet
+        open={isSettingsOpen}
+        settings={captureSettings}
+        isFlashAvailable={hasPhysicalFlash}
+        isAspectRatioLocked={guideAspectRatio !== undefined}
+        isAspectRatioReady={isPhotoOutputConfigured}
+        onClose={() => setIsSettingsOpen(false)}
+        onFlashModeChange={handleChangeFlashMode}
+        onAspectRatioChange={handleChangeAspectRatio}
       />
-    </VStack>
+    </>
   );
 }
 
@@ -741,6 +749,7 @@ export function CustomCamera({
   maxPhotos,
   onPhotoTaken,
   onPhotoLimitReached,
+  onOpenPhotos,
   videoFrameSink,
   poseFrameSink,
   guideAspectRatio,
@@ -775,6 +784,7 @@ export function CustomCamera({
       maxPhotos={maxPhotos}
       onPhotoTaken={onPhotoTaken}
       onPhotoLimitReached={onPhotoLimitReached}
+      onOpenPhotos={onOpenPhotos}
       videoFrameSink={videoFrameSink}
       poseFrameSink={poseFrameSink}
       guideAspectRatio={guideAspectRatio}

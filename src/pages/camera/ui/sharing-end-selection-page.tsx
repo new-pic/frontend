@@ -4,6 +4,7 @@ import {
   Button,
   ButtonText,
   HStack,
+  PhotoGalleryModal,
   PhotoGrid,
   Pressable,
   Text,
@@ -26,6 +27,9 @@ export function SharingEndSelectionPage({
     () => new Set(),
   );
   const [isConfirming, setIsConfirming] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState<number | null>(
+    null,
+  );
 
   const images = useMemo(
     () =>
@@ -138,7 +142,8 @@ export function SharingEndSelectionPage({
             images={images}
             selectedImages={selectedPhotos}
             columns={3}
-            onPress={handleTogglePhoto}
+            onPress={(_, index) => setGalleryIndex(index)}
+            onSelectionPress={handleTogglePhoto}
           />
         </VStack>
 
@@ -157,6 +162,14 @@ export function SharingEndSelectionPage({
           </Button>
         </VStack>
       </VStack>
+      <PhotoGalleryModal
+        open={galleryIndex !== null}
+        images={images}
+        initialIndex={galleryIndex ?? 0}
+        selectedImageIds={selectedPhotoIds}
+        onToggleSelection={handleTogglePhoto}
+        onClose={() => setGalleryIndex(null)}
+      />
     </SafeAreaView>
   );
 }

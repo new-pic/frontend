@@ -45,3 +45,10 @@ export const RtcEndRoomResponseSchema = z
       .max(RTC_MAX_SELECTED_PHOTOS),
   })
   .strict();
+
+export {
+  RtcRoomEventPayloadSchema,
+  RtcRoomHostSchema,
+  RtcRoomParticipantSchema,
+  RtcRoomResponseSchema,
+} from "./rtc-room-schema";

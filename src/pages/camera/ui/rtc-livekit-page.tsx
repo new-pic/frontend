@@ -9,6 +9,7 @@ import {
   RtcVideoPublisher,
   RtcVideoPublisherFactory,
 } from "@entities/rtc";
+import type { RtcHostFinalizationState } from "@features/rtc/host-controls";
 import {
   LiveKitRoom,
   RoomContext,
@@ -21,9 +22,7 @@ import {
 import {
   Box,
   Button,
-  ButtonSpinner,
   ButtonText,
-  Center,
   HStack,
   Text,
   VStack,
@@ -41,12 +40,7 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  ActivityIndicator,
-  BackHandler,
-  StyleSheet,
-  View,
-} from "react-native";
+import { BackHandler, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SharingWaitingPage } from "./sharing-waiting-page";
 
@@ -61,6 +55,10 @@ interface RtcHostLiveKitPageProps {
   onStopped: (
     result: RtcEndRoomResponse,
   ) => void | Promise<void>;
+  endRequestId?: number;
+  onFinalizationStateChange?: (
+    state: RtcHostFinalizationState,
+  ) => void;
   publisherFactory?: RtcVideoPublisherFactory;
 }
 
@@ -83,6 +81,10 @@ interface HostRoomContentProps {
   onStopped: (
     result: RtcEndRoomResponse,
   ) => void | Promise<void>;
+  endRequestId: number;
+  onFinalizationStateChange?: (
+    state: RtcHostFinalizationState,
+  ) => void;
   publisher: RtcVideoPublisher;
 }
 
@@ -94,11 +96,12 @@ function HostRoomContent({
   onPrepareEndRoom,
   onEndRoom,
   onStopped,
+  endRequestId,
+  onFinalizationStateChange,
   publisher,
 }: HostRoomContentProps) {
   const room = useRoomContext();
   const connectionState = useConnectionState();
-  const remoteParticipants = useRemoteParticipants();
   const isMountedRef = useRef(true);
   const isActiveRef = useRef(isActive);
   const canPublishRef = useRef(canPublish);
@@ -107,6 +110,7 @@ function HostRoomContent({
   const hasStopBeenRequestedRef = useRef(false);
   const completedResultRef =
     useRef<RtcEndRoomResponse | null>(null);
+  const handledEndRequestIdRef = useRef(endRequestId);
   const [publisherError, setPublisherError] = useState<string | null>(
     null,
   );
@@ -237,6 +241,7 @@ function HostRoomContent({
     isStoppingRef.current = true;
     hasStopBeenRequestedRef.current = true;
     setIsStopping(true);
+    onFinalizationStateChange?.("PREPARING_PHOTOS");
     setPublisherError(null);
     setIsFinalizationError(false);
 
@@ -250,6 +255,7 @@ function HostRoomContent({
 
       // publisher 내부에서 frame sink 차단 → unpublish → raw track
       // stop/release 순서로 정리합니다.
+      onFinalizationStateChange?.("ENDING_ROOM");
       await publisher.stop();
 
       if (!result) {
@@ -261,6 +267,7 @@ function HostRoomContent({
       // 연결하지 않습니다. 아래 finally에서 마지막 disconnect만 보장합니다.
       if (!isMountedRef.current) return;
 
+      onFinalizationStateChange?.("DELIVERING_RESULT");
       await deliverResult(result);
     } catch (error) {
       finalizationError = error;
@@ -287,6 +294,7 @@ function HostRoomContent({
         );
         setIsFinalizationError(true);
         setIsStopping(false);
+        onFinalizationStateChange?.("FAILED");
       }
       isStoppingRef.current = false;
       return;
@@ -298,6 +306,7 @@ function HostRoomContent({
       isStoppingRef.current = false;
       if (isMountedRef.current) {
         setIsStopping(false);
+        onFinalizationStateChange?.("IDLE");
       }
     }
   }, [
@@ -305,9 +314,22 @@ function HostRoomContent({
     onPrepareEndRoom,
     onEndRoom,
     onStopped,
+    onFinalizationStateChange,
     publisher,
     room,
   ]);
+
+  useEffect(() => {
+    if (
+      endRequestId <= handledEndRequestIdRef.current ||
+      endRequestId <= 0
+    ) {
+      return;
+    }
+
+    handledEndRequestIdRef.current = endRequestId;
+    void handleStop();
+  }, [endRequestId, handleStop]);
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener(
@@ -321,17 +343,6 @@ function HostRoomContent({
     return () => subscription.remove();
   }, [handleStop]);
 
-  const statusMessage =
-    connectionState === ConnectionState.Connected
-      ? isPublishing
-        ? "VisionCamera 영상 연결 중"
-        : "LIVE"
-      : connectionState === ConnectionState.Reconnecting ||
-          connectionState === ConnectionState.SignalReconnecting
-        ? "다시 연결하는 중..."
-        : connectionState === ConnectionState.Disconnected
-          ? "연결 종료됨"
-          : "연결 중...";
   const errorMessage = publisherError ?? connectionError;
 
   return (
@@ -341,37 +352,6 @@ function HostRoomContent({
         style={StyleSheet.absoluteFill}
       >
         <View pointerEvents="box-none" style={styles.hostControls}>
-          <HStack className="items-center justify-between rounded-2xl bg-black/55 px-4 py-3">
-            <HStack className="items-center gap-2">
-              <Box className="h-2.5 w-2.5 rounded-full bg-red-500" />
-              <Text bold className="text-white">
-                {statusMessage}
-              </Text>
-            </HStack>
-            <HStack className="items-center gap-3">
-              <Text className="text-white">
-                참여자 {remoteParticipants.length}명
-              </Text>
-              <Button
-                variant="destructive"
-                size="sm"
-                disabled={isStopping}
-                onPress={() => void handleStop()}
-              >
-                {isStopping ? (
-                  <ButtonSpinner color="white" />
-                ) : null}
-                <ButtonText>
-                  {isStopping
-                    ? "종료 중"
-                    : completedResultRef.current
-                      ? "결과 재전송"
-                      : "공유 종료"}
-                </ButtonText>
-              </Button>
-            </HStack>
-          </HStack>
-
           {errorMessage ? (
             <VStack className="mt-3 items-center gap-3 rounded-2xl bg-black/70 p-4">
               <Text className="text-center text-white">
@@ -411,6 +391,8 @@ export function RtcHostLiveKitPage({
   onPrepareEndRoom,
   onEndRoom,
   onStopped,
+  endRequestId = 0,
+  onFinalizationStateChange,
   publisherFactory = createVisionCameraVideoPublisher,
 }: RtcHostLiveKitPageProps) {
   const room = useMemo(
@@ -606,6 +588,8 @@ export function RtcHostLiveKitPage({
         onPrepareEndRoom={onPrepareEndRoom}
         onEndRoom={onEndRoom}
         onStopped={onStopped}
+        endRequestId={endRequestId}
+        onFinalizationStateChange={onFinalizationStateChange}
         publisher={publisher}
       />
     </RoomContext.Provider>

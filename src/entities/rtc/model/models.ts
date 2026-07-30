@@ -6,6 +6,12 @@ import {
   RtcJoinRoomRequestSchema,
   RtcSavedImageSchema,
 } from "./schema";
+import {
+  RtcRoomEventPayloadSchema,
+  RtcRoomHostSchema,
+  RtcRoomParticipantSchema,
+  RtcRoomResponseSchema,
+} from "./rtc-room-schema";
 
 export const API_QUERY_KEY = ["rtc"];
 
@@ -18,24 +24,32 @@ export interface RtcCreateRoomResponse {
   expiresAt: string;
 }
 
-export interface RtcRoomHost {
-  nickname: string;
-  profileImage: string | null;
-}
+export type RtcRoomHost = z.infer<typeof RtcRoomHostSchema>;
 
-export interface RtcRoomParticipant {
-  nickname: string;
-  role: string;
-  profileImage: string | null;
-}
+export type RtcRoomParticipant = z.infer<
+  typeof RtcRoomParticipantSchema
+>;
 
-export interface RtcRoomResponse {
-  roomId: string;
-  status: string;
-  expiresAt: string;
-  host: RtcRoomHost;
-  participants: RtcRoomParticipant[];
-}
+export type RtcRoomResponse = z.infer<typeof RtcRoomResponseSchema>;
+
+export type RtcRoomEventPayload = z.infer<
+  typeof RtcRoomEventPayloadSchema
+>;
+
+export type RtcRoomEventType =
+  | "snapshot"
+  | "participants"
+  | "status"
+  | "ended";
+
+export type RtcRoomEvent =
+  | {
+      type: RtcRoomEventType;
+      payload: RtcRoomEventPayload;
+    }
+  | {
+      type: "heartbeat";
+    };
 
 export interface RtcHostLiveKitTokenResponse {
   url: string;

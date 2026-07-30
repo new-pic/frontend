@@ -42,8 +42,8 @@ export function GuideSelectionControl({
           onPress={onRetry}
           style={{
             position: "absolute",
-            left: 12,
-            bottom: 72,
+            right: 12,
+            top: 120,
             borderRadius: 16,
             backgroundColor: "rgba(0,0,0,0.72)",
             paddingHorizontal: 12,
@@ -67,9 +67,10 @@ export function GuideSelectionControl({
         onPress={onOpen}
         style={{
           position: "absolute",
-          left: 12,
-          bottom: 12,
-          minWidth: 104,
+          right: 12,
+          top: 64,
+          minWidth: selectedGuide ? 48 : 104,
+          width: selectedGuide ? 48 : undefined,
           height: 48,
           borderRadius: 24,
           borderWidth: selectedGuide ? 2 : 1,
@@ -77,7 +78,7 @@ export function GuideSelectionControl({
             ? colors.brand.primary
             : "rgba(255,255,255,0.8)",
           backgroundColor: "rgba(0,0,0,0.62)",
-          paddingHorizontal: selectedGuide ? 4 : 14,
+          paddingHorizontal: selectedGuide ? 3 : 14,
           flexDirection: "row",
           alignItems: "center",
           gap: 8,
@@ -89,18 +90,32 @@ export function GuideSelectionControl({
             recyclingKey={selectedGuide.feedId}
             contentFit="cover"
             style={{
-              width: 38,
-              height: 38,
-              borderRadius: 19,
+              width: 40,
+              height: 40,
+              borderRadius: 20,
             }}
           />
         ) : null}
         {isPreparing ? (
-          <ActivityIndicator size="small" color="white" />
+          <ActivityIndicator
+            size="small"
+            color="white"
+            style={
+              selectedGuide
+                ? {
+                    position: "absolute",
+                    top: 12,
+                    left: 12,
+                  }
+                : undefined
+            }
+          />
         ) : (
-          <Text className="font-semibold text-xs text-white">
-            {selectedGuide ? "가이드 변경" : "가이드 선택"}
-          </Text>
+          !selectedGuide && (
+            <Text className="font-semibold text-xs text-white">
+              가이드 선택
+            </Text>
+          )
         )}
       </Pressable>
     </View>
