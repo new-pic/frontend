@@ -648,7 +648,7 @@ export function CameraPage() {
                 cameraGeometry.aspectRatio ===
                   cameraGuide.presentedGuide.cameraAspectRatio ? (
                   <CameraGuideOverlay
-                    geometry={cameraGeometry}
+                    previewSize={cameraGeometry.previewSize}
                     outline={cameraGuide.presentedGuide.outline}
                     warning={
                       cameraGuide.alignment.alignmentState ===

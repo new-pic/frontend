@@ -1,6 +1,6 @@
-import type { CameraRuntimeGeometry } from "../../capture-photo";
 import {
-  projectSourceCanvasToPreviewRect,
+  calculateCanvasRenderRect,
+  type CoordinateSize,
   type PreviewPoint,
 } from "../../pose-matching";
 import type {
@@ -15,18 +15,12 @@ export interface ProjectedCameraGuideContour
 
 export function projectGuideOutlineToPreview(
   outline: CameraGuideOutline,
-  geometry: CameraRuntimeGeometry,
+  previewSize: CoordinateSize,
 ): ProjectedCameraGuideContour[] {
-  const renderRect = projectSourceCanvasToPreviewRect(
+  const renderRect = calculateCanvasRenderRect(
     outline.sourceSize,
-    {
-      captureSize: geometry.captureSize,
-      previewSize: geometry.previewSize,
-      previewResizeMode: "cover",
-      // VisionCamera preview and PhotoOutput use the same automatic
-      // mirroring policy. The server contour is already in output space.
-      mirrorX: false,
-    },
+    previewSize,
+    "cover",
   );
 
   return outline.contours.map((contour) => ({

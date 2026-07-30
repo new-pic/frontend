@@ -203,7 +203,7 @@ test("background-removal DTO adapts normalized contours to a guide outline", () 
   );
 });
 
-test("guide contour uses the same source-cover-preview geometry as pose", () => {
+test("guide contour applies source cover directly to the preview", () => {
   const outline = {
     sourceSize: { width: 9, height: 16 },
     contours: [
@@ -220,10 +220,8 @@ test("guide contour uses the same source-cover-preview geometry as pose", () => 
     ],
   };
   const [projected] = projectGuideOutlineToPreview(outline, {
-    aspectRatio: "4:3",
-    captureSize: { width: 3, height: 4 },
-    previewSize: { width: 300, height: 400 },
-    cameraPosition: "back",
+    width: 300,
+    height: 400,
   });
 
   assert.equal(projected.points[0].x, 0);
@@ -238,6 +236,31 @@ test("guide contour uses the same source-cover-preview geometry as pose", () => 
     createGuideContourPath(projected),
     "M 0 -66.667 L 300 -66.667 L 300 466.667 Z",
   );
+});
+
+test("matching source and preview ratios map normalized contour points directly", () => {
+  const outline = {
+    sourceSize: { width: 576, height: 1024 },
+    contours: [
+      {
+        contourIndex: 0,
+        closed: true,
+        areaRatio: 0.368974,
+        points: [
+          { x: 0.033333, y: 0.532292 },
+          { x: 0.8, y: 0.2 },
+        ],
+      },
+    ],
+  };
+
+  const [projected] = projectGuideOutlineToPreview(outline, {
+    width: 324,
+    height: 576,
+  });
+
+  assert.ok(Math.abs(projected.points[0].x - 10.799892) < 1e-9);
+  assert.ok(Math.abs(projected.points[0].y - 306.600192) < 1e-9);
 });
 
 test("current guide remains active while the next selection is preparing", () => {

@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import type { CameraRuntimeGeometry } from "../../capture-photo";
+import type { CoordinateSize } from "../../pose-matching";
 import {
   createGuideContourPath,
   projectGuideOutlineToPreview,
@@ -9,7 +9,7 @@ import {
 import type { CameraGuideOutline } from "../model";
 
 interface CameraGuideOverlayProps {
-  geometry: CameraRuntimeGeometry;
+  previewSize: CoordinateSize;
   outline: CameraGuideOutline;
   warning: boolean;
 }
@@ -21,28 +21,28 @@ const GUIDE_OUTLINE_WIDTH = 3;
 const GUIDE_OUTLINE_SHADOW_WIDTH = 5;
 
 export const CameraGuideOverlay = memo(function CameraGuideOverlay({
-  geometry,
+  previewSize,
   outline,
   warning,
 }: CameraGuideOverlayProps) {
   const paths = useMemo(
     () =>
-      projectGuideOutlineToPreview(outline, geometry).map(
+      projectGuideOutlineToPreview(outline, previewSize).map(
         (contour) => ({
           key: contour.contourIndex,
           path: createGuideContourPath(contour),
         }),
       ),
-    [geometry, outline],
+    [outline, previewSize],
   );
 
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       <Svg
         pointerEvents="none"
-        width={geometry.previewSize.width}
-        height={geometry.previewSize.height}
-        viewBox={`0 0 ${geometry.previewSize.width} ${geometry.previewSize.height}`}
+        width={previewSize.width}
+        height={previewSize.height}
+        viewBox={`0 0 ${previewSize.width} ${previewSize.height}`}
         style={StyleSheet.absoluteFill}
       >
         {paths.map(({ key, path }) => (

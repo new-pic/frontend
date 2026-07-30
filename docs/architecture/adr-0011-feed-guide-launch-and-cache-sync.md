@@ -111,11 +111,16 @@ Camera Guide Sheet
 
 2026-07-29 실제 공개 API 응답을 확인한 결과, 최신 contour 일부는 원본
 프레임 경계에 붙어 있었고 한 폐곡선에는 normalized 거리 약 `0.999`의
-직선 segment가 포함돼 있었다. 현재 client projection은 서버 points를
+직선 segment가 포함돼 있었다. 당시 client projection은 서버 points를
 Source → Capture → Preview로 선형 투영하고 `closed: true`일 때 `Z`만
-추가하므로 스크린샷의 긴 선은 client 좌표 변환에서 새로 생성된 점이
-아니다. 같은 샘플의 실제 WebP와 contour `imageWidth/imageHeight` 비율도
+추가했으므로 스크린샷의 긴 선은 client 좌표 변환에서 새로 생성된 점이
+아니었다. 같은 샘플의 실제 WebP와 contour `imageWidth/imageHeight` 비율도
 일치해 width/height 반전 문제는 아니었다.
+
+2026-07-31에는 PhotoOutput orientation과 Preview 방향이 다를 때 발생할
+수 있는 중복 cover 확대를 제거하기 위해 ADR-0007의 contour projection을
+Source → Preview 단일 cover로 변경했다. 이는 서버가 제공한 점의 형태를
+바꾸지 않고 Preview 목적지 canvas 계산만 단순화한 결정이다.
 
 경계 contour를 client에서 숨기거나 분할하면 실제로 화면 밖에서 잘린
 사람의 윤곽도 잃을 수 있다. 따라서 이번 결정에서는 임의 threshold를
