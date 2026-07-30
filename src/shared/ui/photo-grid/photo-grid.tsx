@@ -5,15 +5,24 @@ import {
   IconPhotoOff,
 } from "@tabler/icons-react-native";
 import { memo, useMemo, useState } from "react";
-import { ActivityIndicator, Dimensions, FlatList } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { Box } from "../box";
 import { Center } from "../center";
 import { Fab, FabIcon } from "../fab";
 import { Pressable } from "../pressable";
 import { Skeleton } from "../skeleton";
 import { Text } from "../text";
+import {
+  calculatePhotoGridItemWidth,
+  resolvePhotoGridContentState,
+} from "./photo-grid-layout";
 
-const SCREEN_WIDTH = Dimensions.get("window").width;
+const DEFAULT_GRID_GAP = 1;
 
 export interface PhotoGridImage {
   id: string;
@@ -86,8 +95,18 @@ const PhotoGridImageTile = memo(function PhotoGridImageTile({
   );
 });
 
-function PhotoGridSkeleton({ columns = 3 }: { columns?: number }) {
-  const imageSize = useMemo(() => SCREEN_WIDTH / columns, [columns]);
+function PhotoGridSkeleton({
+  columns = 3,
+  gap = DEFAULT_GRID_GAP,
+}: {
+  columns?: number;
+  gap?: number;
+}) {
+  const { width } = useWindowDimensions();
+  const imageSize = useMemo(
+    () => calculatePhotoGridItemWidth(width, columns, gap),
+    [columns, gap, width],
+  );
   const skeletonItems = Array.from({ length: 20 }, (_, index) => index);
 
   return (
@@ -95,7 +114,8 @@ function PhotoGridSkeleton({ columns = 3 }: { columns?: number }) {
       data={skeletonItems}
       keyExtractor={(item) => item.toString()}
       numColumns={columns}
-      style={{ gap: 4 }}
+      columnWrapperStyle={columns > 1 ? { gap } : undefined}
+      ItemSeparatorComponent={() => <View style={{ height: gap }} />}
       renderItem={() => (
         <Box
           style={{
@@ -115,6 +135,7 @@ export interface PhotoGridProps<T extends PhotoGridImage = PhotoGridImage> {
   images: T[];
   selectedImages?: Array<{ id: string }>;
   columns?: number;
+  gap?: number;
   onPress?: (image: T, index: number) => void;
   onEndReached?: () => void;
   onRefresh?: () => void;
@@ -128,6 +149,7 @@ export function PhotoGrid<T extends PhotoGridImage>({
   images,
   selectedImages,
   columns = 3,
+  gap = DEFAULT_GRID_GAP,
   onPress,
   onEndReached,
   onRefresh,
@@ -136,10 +158,18 @@ export function PhotoGrid<T extends PhotoGridImage>({
   isPending = false,
   isFetchingNextPage = false,
 }: PhotoGridProps<T>) {
-  const imageSize = useMemo(() => SCREEN_WIDTH / columns, [columns]);
+  const { width } = useWindowDimensions();
+  const imageSize = useMemo(
+    () => calculatePhotoGridItemWidth(width, columns, gap),
+    [columns, gap, width],
+  );
+  const contentState = resolvePhotoGridContentState({
+    isPending,
+    itemCount: images.length,
+  });
 
-  if (isPending) {
-    return <PhotoGridSkeleton columns={columns} />;
+  if (contentState === "pending") {
+    return <PhotoGridSkeleton columns={columns} gap={gap} />;
   }
 
   return (
@@ -148,12 +178,17 @@ export function PhotoGrid<T extends PhotoGridImage>({
       nestedScrollEnabled
       keyExtractor={(item) => item.id}
       numColumns={columns}
+      columnWrapperStyle={columns > 1 ? { gap } : undefined}
+      contentContainerStyle={
+        contentState === "empty" ? { flexGrow: 1 } : undefined
+      }
+      ItemSeparatorComponent={() => <View style={{ height: gap }} />}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.2}
       onRefresh={onRefresh}
       refreshing={refreshing}
       ListEmptyComponent={
-        <Center className="flex-1 py-20">
+        <Center className="flex-1 w-full px-6">
           <Text className="text-label-muted">
             {emptyMessage}
           </Text>
