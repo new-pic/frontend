@@ -96,8 +96,9 @@ Camera Guide Sheet
 
 ## Result
 
-- 활성 Feed 상세 페이지에 thumbnail과 gradient action을 포함한 FAB를
-  고정 배치했다.
+- 초기 구현에서는 활성 Feed 상세 슬라이드에 thumbnail과 gradient
+  action을 포함한 FAB를 배치했다. 이후 페이지 단일 FAB 소유권과 원형
+  카메라 UI는 ADR-0012에서 대체했다.
 - Camera는 `guideFeedId`의 Feed가 준비되면 가이드를 한 번만 선택한다.
 - 사용자가 로딩 중 다른 가이드를 고르면 늦은 초기 응답이 덮어쓰지 않는다.
 - 초기 Feed 조회가 실패해도 Camera는 유지되고 기존 가이드 재시도

@@ -1,5 +1,4 @@
 import { feedQuery, FeedResponse } from "@entities/feed";
-import { FeedCameraGuideFab } from "@features/camera/guide-feed";
 import { FeedCommentForm } from "@features/feed/create-feed-comment";
 import { FeedLikeButton } from "@features/feed/update-feed-like";
 import { FeedPickButton } from "@features/feed/update-feed-pick";
@@ -30,6 +29,7 @@ import { FeedOwnerActionsMenu } from "./feed-owner-actions-menu";
 interface FeedDetailContentProps {
   feed: FeedResponse;
   isActivePage: boolean;
+  contentBottomPadding: number;
   commentSort: CommentSort;
   setCommentSort: (sort: CommentSort) => void;
   handleGoBack: () => void;
@@ -38,6 +38,7 @@ interface FeedDetailContentProps {
 export function FeedDetailContent({
   feed,
   isActivePage,
+  contentBottomPadding,
   commentSort,
   setCommentSort,
   handleGoBack,
@@ -75,7 +76,7 @@ export function FeedDetailContent({
         data={comments}
         keyExtractor={(comment) => comment.id}
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 104 }}
+        contentContainerStyle={{ paddingBottom: contentBottomPadding }}
         showsVerticalScrollIndicator={false}
         onEndReached={handleReachLastComment}
         onEndReachedThreshold={0.2}
@@ -230,7 +231,6 @@ export function FeedDetailContent({
           <FeedCommentItem comment={item} />
         )}
       />
-      {isActivePage ? <FeedCameraGuideFab feed={feed} /> : null}
     </View>
   );
 }

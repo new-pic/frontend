@@ -1,8 +1,16 @@
 import { FeedResponse } from "@entities/feed";
+import { FeedCameraGuideFab } from "@features/camera/guide-feed";
 import { SlidePageView } from "@shared/ui";
 import { router } from "expo-router";
 import { useState } from "react";
+import { View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CommentSort } from "../model";
+import {
+  FEED_DETAIL_GUIDE_FAB_SIZE,
+  getFeedDetailCommentBottomPadding,
+  getFeedDetailGuideFabBottomOffset,
+} from "../model/feed-detail-layout";
 import { FeedDetailContent } from "./feed-detail-content";
 
 const FEED_BUFFER_SIZE = 3;
@@ -28,6 +36,12 @@ export function FeedDetailPager({
   const [commentSort, setCommentSort] = useState<CommentSort>("latest");
   const [activePageIndex, setActivePageIndex] =
     useState<number>(initialPageIndex);
+  const insets = useSafeAreaInsets();
+  const activeFeed = feeds[activePageIndex];
+  const contentBottomPadding =
+    getFeedDetailCommentBottomPadding(insets.bottom);
+  const fabBottomOffset =
+    getFeedDetailGuideFabBottomOffset(insets.bottom);
 
   /**
    * 페이지가 변경되었을때,
@@ -43,23 +57,33 @@ export function FeedDetailPager({
   };
 
   return (
-    <SlidePageView
-      initialPage={initialPageIndex}
-      onPageSelected={handleChangePage}
-    >
-      {feeds.map((feed, feedIndex) => (
-        <SlidePageView.Item key={feed.id}>
-          {Math.abs(activePageIndex - feedIndex) <= 1 ? (
-            <FeedDetailContent
-              feed={feed}
-              commentSort={commentSort}
-              setCommentSort={setCommentSort}
-              isActivePage={activePageIndex === feedIndex}
-              handleGoBack={() => router.back()}
-            />
-          ) : null}
-        </SlidePageView.Item>
-      ))}
-    </SlidePageView>
+    <View style={{ flex: 1 }}>
+      <SlidePageView
+        initialPage={initialPageIndex}
+        onPageSelected={handleChangePage}
+      >
+        {feeds.map((feed, feedIndex) => (
+          <SlidePageView.Item key={feed.id}>
+            {Math.abs(activePageIndex - feedIndex) <= 1 ? (
+              <FeedDetailContent
+                feed={feed}
+                contentBottomPadding={contentBottomPadding}
+                commentSort={commentSort}
+                setCommentSort={setCommentSort}
+                isActivePage={activePageIndex === feedIndex}
+                handleGoBack={() => router.back()}
+              />
+            ) : null}
+          </SlidePageView.Item>
+        ))}
+      </SlidePageView>
+      {activeFeed ? (
+        <FeedCameraGuideFab
+          feed={activeFeed}
+          bottomOffset={fabBottomOffset}
+          size={FEED_DETAIL_GUIDE_FAB_SIZE}
+        />
+      ) : null}
+    </View>
   );
 }

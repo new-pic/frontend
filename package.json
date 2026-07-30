@@ -94,6 +94,7 @@
     "test:rtc-reactions": "node --test src/features/rtc/reactions/__tests__/rtc-reaction-domain.test.cjs",
     "test:feed-processing": "node --test src/features/feed/feed-processing/__tests__/feed-processing.test.cjs",
     "test:saved-feed-sync": "node --test src/features/feed/update-feed-pick/__tests__/saved-feed-sync.test.cjs",
+    "test:feed-detail": "node --test src/widgets/feed/detail/__tests__/feed-detail-layout.test.cjs",
     "test:rtc-stored-photos": "node --test src/features/rtc-photo/browse-stored-photos/__tests__/rtc-stored-photo.test.cjs"
   },
   "private": true,
