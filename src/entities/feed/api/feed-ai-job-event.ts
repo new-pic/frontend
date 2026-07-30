@@ -1,5 +1,5 @@
 import type { FeedAiJobProgressEventDto } from "../model";
-import type { SseMessage } from "./sse-parser";
+import type { SseMessage } from "@shared/api";
 
 export type FeedAiJobEvent =
   | {

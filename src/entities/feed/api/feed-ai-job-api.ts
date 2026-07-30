@@ -1,4 +1,4 @@
-import { privateApiClient } from "@shared/api";
+import { createSseParser, privateApiClient } from "@shared/api";
 import { env } from "@shared/config";
 import { useAuthStore } from "@shared/model";
 import { fetch } from "expo/fetch";
@@ -7,7 +7,6 @@ import {
   parseFeedAiJobEvent,
   type FeedAiJobEvent,
 } from "./feed-ai-job-event";
-import { createSseParser } from "./sse-parser";
 
 interface SubscribeFeedAiJobEventsOptions {
   jobId: string;
