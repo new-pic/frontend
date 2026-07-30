@@ -5,6 +5,6 @@ export {
   parseRtcRoomEvent,
 } from "./api/rtc-room-event";
 export { mergeRtcRoomEvent } from "./api/rtc-room-event-state";
-export { subscribeRtcRoomEvents } from "./api/rtc-room-events-api";
+export { subscribeRtcRoomEvents } from "./api/rtc-room-events-query";
 export * from "./lib";
 export * from "./model";
