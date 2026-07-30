@@ -8,10 +8,7 @@ import {
   useActiveRtcStoredPhotos,
 } from "@features/rtc-photo/browse-stored-photos";
 import {
-  Button,
-  ButtonText,
   Pressable,
-  Skeleton,
   Text,
   VStack,
 } from "@shared/ui";
@@ -19,33 +16,7 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { memo, useEffect, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
-
-function PreviewLoadingCard() {
-  return (
-    <View style={styles.card}>
-      <Skeleton variant="sharp" />
-    </View>
-  );
-}
-
-interface PreviewErrorCardProps {
-  onRetry: () => void;
-}
-
-function PreviewErrorCard({ onRetry }: PreviewErrorCardProps) {
-  return (
-    <View style={[styles.card, styles.errorCard]}>
-      <VStack className="items-center gap-3">
-        <Text className="text-label-muted">
-          촬영 사진을 불러오지 못했습니다.
-        </Text>
-        <Button variant="outline" size="sm" onPress={onRetry}>
-          <ButtonText>다시 시도</ButtonText>
-        </Button>
-      </VStack>
-    </View>
-  );
-}
+import { shouldShowProfileRtcPhotoPreview } from "../model/preview-visibility";
 
 function getDisplayablePhotos(
   photos: RtcStoredPhoto[],
@@ -95,22 +66,14 @@ export const ProfileRtcPhotoPreview = memo(
       return () => clearTimeout(timeout);
     }, [currentIndex, displayablePhotos.length]);
 
-    const handleRetry = () => {
-      setFailedPhotoIds(new Set());
-      void photosQuery.refetch();
-    };
-
-    if (photosQuery.isPending) {
-      return <PreviewLoadingCard />;
-    }
-    if (photosQuery.isError) {
-      return <PreviewErrorCard onRetry={handleRetry} />;
-    }
-    if (activePhotos.length === 0) {
+    if (
+      !shouldShowProfileRtcPhotoPreview({
+        isQuerySuccess: photosQuery.isSuccess,
+        hasDisplayablePhoto: Boolean(currentPhoto),
+      }) ||
+      !currentPhoto
+    ) {
       return null;
-    }
-    if (!currentPhoto) {
-      return <PreviewErrorCard onRetry={handleRetry} />;
     }
 
     return (
@@ -157,13 +120,6 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     overflow: "hidden",
     backgroundColor: "#eeeeee",
-  },
-  errorCard: {
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#d1d1d1",
-    backgroundColor: "white",
   },
   scrim: {
     position: "absolute",

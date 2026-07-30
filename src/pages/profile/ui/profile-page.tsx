@@ -1,11 +1,9 @@
 import { usersQuery } from "@entities/user";
-import { colors, gradients } from "@shared/constants";
-import { useMemberAccess } from "@shared/hooks";
+import { gradients } from "@shared/constants";
 import { useConfirm } from "@shared/lib";
 import { useAuthStore } from "@shared/model/auth-store";
 import {
   Avatar,
-  AvatarFallbackText,
   AvatarImage,
   Button,
   ButtonIcon,
@@ -17,6 +15,7 @@ import {
   VStack,
 } from "@shared/ui";
 import {
+  IconBookmarkFilled,
   IconHeartFilled,
   IconHelpCircleFilled,
   IconPencilFilled,
@@ -33,11 +32,11 @@ function ProfileButtonMenu() {
     router.push("/profile/my");
   };
 
-  const handleGoLikeFeed = async () => {
+  const handleGoLikeFeed = () => {
     router.push("/profile/like");
   };
 
-  const handleGoSaveFeed = async () => {
+  const handleGoSaveFeed = () => {
     router.push("/profile/save");
   };
 
@@ -77,14 +76,20 @@ function ProfileButtonMenu() {
             </VStack>
           </Button>
           <Divider orientation="vertical" className="h-full w-px bg-white/35" />
-          <Button variant="ghost" className="w-25">
+          <Button
+            variant="ghost"
+            className="w-25"
+            onPress={handleGoSaveFeed}
+          >
             <VStack space="sm" className="flex-1 justify-center items-center">
               <ButtonIcon
-                as={IconHelpCircleFilled}
+                as={IconBookmarkFilled}
                 fill={"white"}
                 className="h-8 w-8"
               />
-              <ButtonText className="text-white">도움말</ButtonText>
+              <ButtonText className="text-white">
+                저장한 피드
+              </ButtonText>
             </VStack>
           </Button>
         </HStack>
@@ -95,11 +100,10 @@ function ProfileButtonMenu() {
 
 export function ProfilePage() {
   const openConfirm = useConfirm();
-  const requireMember = useMemberAccess();
   const isGuest = useAuthStore((state) => state.isGuest);
   const prepareGoogleLink = useAuthStore((state) => state.prepareGoogleLink);
   const logout = useAuthStore((state) => state.logout);
-  const { data } = usersQuery.useReadMe({ enabled: !isGuest });
+  const { data } = usersQuery.useReadMe();
 
   const handleLogout = async () => {
     const response = await openConfirm({
@@ -114,14 +118,19 @@ export function ProfilePage() {
 
   const handleGoLogin = () => {
     prepareGoogleLink();
-    router.replace("/");
+    router.replace({
+      pathname: "/",
+      params: {
+        returnTo: "/profile",
+      },
+    });
   };
 
-  const handleGoEdit = async () => {
+  const handleGoEdit = () => {
     router.push("/profile/edit");
   };
 
-  const handlePressProfile = async () => {
+  const handlePressProfile = () => {
     if (isGuest) {
       handleGoLogin();
       return;
@@ -141,22 +150,22 @@ export function ProfilePage() {
         <VStack className="w-full" space="xl">
           <HStack space="xl" className="items-center px-1 py-2 ">
             <Avatar
-              className={`h-20 w-20 ${isGuest ? "bg-brand-light border-brand" : ""}`}
+              className="h-20 w-20"
+              style={{ backgroundColor: "#b8b8b8" }}
             >
-              {isGuest ? (
-                <IconUserFilled size={42} color={colors.brand.primary} />
+              {data?.profileImage ? (
+                <AvatarImage source={{ uri: data.profileImage }} />
               ) : (
-                <>
-                  <AvatarFallbackText>{data?.nickname}</AvatarFallbackText>
-                  {data?.profileImage ? (
-                    <AvatarImage source={{ uri: data.profileImage }} />
-                  ) : null}
-                </>
+                <IconUserFilled
+                  size={42}
+                  color="white"
+                  fill="white"
+                />
               )}
             </Avatar>
             <VStack className="justify-center">
               <Text className="font-medium">
-                {isGuest ? "로그인이 필요합니다." : data?.nickname}
+                {data?.nickname}
               </Text>
               <Button
                 variant="ghost"
@@ -165,7 +174,7 @@ export function ProfilePage() {
                 onPress={handlePressProfile}
               >
                 <ButtonText className="text-link-text">
-                  {isGuest ? "로그인 하러가기" : "프로필 변경"}
+                  {isGuest ? "계정 연결하기" : "프로필 변경"}
                 </ButtonText>
               </Button>
             </VStack>
@@ -175,6 +184,13 @@ export function ProfilePage() {
           {!isGuest ? <ProfileRtcPhotoPreview /> : null}
 
           <VStack className="rounded-3xl border border-outline">
+            <Pressable className="p-6">
+              <HStack className="items-center" space="sm">
+                <IconHelpCircleFilled size={20} />
+                <Text size="sm">도움말</Text>
+              </HStack>
+            </Pressable>
+            <Divider className="bg-outline" />
             <Pressable className="p-6">
               <Text size="sm">버그 제보하기</Text>
             </Pressable>
