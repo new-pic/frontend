@@ -1,5 +1,6 @@
 import { privateApiClient } from "@shared/api";
 import type { FeedListResponse } from "@entities/feed";
+import { useAuthStore } from "@shared/model";
 import {
   infiniteQueryOptions,
   useInfiniteQuery,
@@ -9,6 +10,7 @@ import {
 } from "@tanstack/react-query";
 import {
   API_QUERY_KEY,
+  getUserQueryIdentity,
   PaginationParams,
   ProfileRequest,
 } from "../model";
@@ -17,7 +19,13 @@ const QUERY_KEY = [API_QUERY_KEY, "user"] as const;
 
 export const userQueryKeys = {
   all: QUERY_KEY,
-  me: [...QUERY_KEY, "me"] as const,
+  meAll: [...QUERY_KEY, "me"] as const,
+  me: (userId: string | null) =>
+    [
+      ...QUERY_KEY,
+      "me",
+      getUserQueryIdentity(userId),
+    ] as const,
   myFeeds: [...QUERY_KEY, "me", "feeds"] as const,
   savedFeeds: [...QUERY_KEY, "me", "saved-feeds"] as const,
   savedFeedList: (params: PaginationParams) =>
@@ -29,13 +37,17 @@ export const userQueryKeys = {
  * @returns
  */
 export function useReadMe(options?: { enabled?: boolean }) {
+  const userId = useAuthStore((state) => state.userId);
+  const accessToken = useAuthStore((state) => state.accessToken);
+
   return useQuery({
-    queryKey: userQueryKeys.me,
+    queryKey: userQueryKeys.me(userId),
     queryFn: async () => {
       const response = await privateApiClient.get("/users/me");
       return response.data;
     },
-    enabled: options?.enabled,
+    enabled:
+      Boolean(userId && accessToken) && (options?.enabled ?? true),
   });
 }
 
@@ -127,9 +139,15 @@ export function savedFeedsInfiniteQueryOptions(
  */
 export function useFetchMe() {
   const queryClient = useQueryClient();
+  const userId = useAuthStore((state) => state.userId);
+
   const fetchMe = async () => {
+    if (!userId) {
+      throw new Error("Cannot fetch a profile without a user session");
+    }
+
     return await queryClient.fetchQuery({
-      queryKey: [...QUERY_KEY, "me"],
+      queryKey: userQueryKeys.me(userId),
       queryFn: async () => {
         const response = await privateApiClient.get("/users/me");
         return response.data;
@@ -147,10 +165,14 @@ export function useFetchMe() {
  */
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
+  const userId = useAuthStore((state) => state.userId);
+
   return useMutation({
     mutationFn: async (data: ProfileRequest) => {
       const response = await privateApiClient.patch("/users/me", data);
-      await queryClient.invalidateQueries({ queryKey: [...QUERY_KEY, "me"] });
+      await queryClient.invalidateQueries({
+        queryKey: userQueryKeys.me(userId),
+      });
       return response.data;
     },
   });

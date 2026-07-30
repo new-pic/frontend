@@ -1,0 +1,10 @@
+export const SOCIAL_LOGIN_REQUEST_MODE = {
+  PUBLIC: "PUBLIC",
+  AUTHENTICATED_ACCOUNT_LINK: "AUTHENTICATED_ACCOUNT_LINK",
+} as const;
+
+export function getSocialLoginRequestMode(isGuest: boolean) {
+  return isGuest
+    ? SOCIAL_LOGIN_REQUEST_MODE.AUTHENTICATED_ACCOUNT_LINK
+    : SOCIAL_LOGIN_REQUEST_MODE.PUBLIC;
+}

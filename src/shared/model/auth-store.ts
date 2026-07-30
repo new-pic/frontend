@@ -1,6 +1,10 @@
 import { decodeAccessToken } from "@shared/lib/jwt";
 import * as SecureStore from "expo-secure-store";
 import { create } from "zustand";
+import {
+  AUTH_ENTRY_INTENT,
+  type AuthEntryIntent,
+} from "./auth-entry-intent";
 
 const ACCESS_TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
@@ -23,6 +27,7 @@ interface AuthStore {
   isLoggedIn: boolean;
   isGuest: boolean;
   isInitialized: boolean;
+  authEntryIntent: AuthEntryIntent;
 
   setSession: ({
     accessToken,
@@ -43,6 +48,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
   isLoggedIn: false,
   isGuest: false,
   isInitialized: false,
+  authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
 
   setSession: async ({ accessToken, refreshToken }) => {
     await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
@@ -55,6 +61,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       isGuest,
       isLoggedIn: true,
       isInitialized: true,
+      authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
     }));
   },
   setUserId: (userId) => set(() => ({ userId })),
@@ -67,9 +74,13 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       isLoggedIn: false,
       isGuest: false,
       isInitialized: true,
+      authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
     }));
   },
-  prepareGoogleLink: () => set(() => ({ isGuest: true, isLoggedIn: false })),
+  prepareGoogleLink: () =>
+    set(() => ({
+      authEntryIntent: AUTH_ENTRY_INTENT.LINK_GUEST_ACCOUNT,
+    })),
   initializeAuthState: async () => {
     try {
       const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
@@ -82,6 +93,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
           userId,
           isGuest,
           isInitialized: true,
+          authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
         });
       } else {
         // 토큰이 없다면 게스트 상태이거나 첫 진입
@@ -91,6 +103,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
           userId: null,
           isGuest,
           isInitialized: true,
+          authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
         });
       }
     } catch {
@@ -100,6 +113,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
         userId: null,
         isGuest: false,
         isInitialized: true,
+        authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
       });
     }
   },

@@ -32,7 +32,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./global.css";
 
 import "@shared/api/interceptors";
-import { useAuthStore } from "@shared/model";
+import {
+  shouldLeaveAuthEntry,
+  useAuthStore,
+} from "@shared/model";
 import { useEffect } from "react";
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -64,6 +67,9 @@ export default function RootLayout() {
   );
   const accessToken = useAuthStore(
     (state) => state.accessToken,
+  );
+  const authEntryIntent = useAuthStore(
+    (state) => state.authEntryIntent,
   );
   const isInitialized = useAuthStore((state) => state.isInitialized);
 
@@ -119,13 +125,17 @@ export default function RootLayout() {
       } as Href);
     }
     // 이미 인증된 사용자가 로그인 화면에 진입하면 요청했던 화면으로 복귀합니다.
-    else if (accessToken && pathname === "/") {
+    else if (
+      pathname === "/" &&
+      shouldLeaveAuthEntry(accessToken, authEntryIntent)
+    ) {
       router.replace(
         normalizeAuthReturnTo(returnToParam) as Href,
       );
     }
   }, [
     accessToken,
+    authEntryIntent,
     codeParam,
     guideFeedIdParam,
     isInitialized,
@@ -134,7 +144,7 @@ export default function RootLayout() {
     returnToParam,
   ]);
 
-  if (!loaded) return null;
+  if (!loaded || !isInitialized) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

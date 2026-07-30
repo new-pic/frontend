@@ -2,18 +2,34 @@ import AppleLogo from "@assets/icons/apple-logo.svg";
 import GoogleLogo from "@assets/icons/google-logo.svg";
 import { useSocialLogin } from "@features/user/save-social-login";
 import { Button, ButtonText, Center, Text, VStack } from "@shared/ui";
+import { useState } from "react";
 import { Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function WelcomPage() {
   const { isLoading, loginWithGoogle, loginToGuest } = useSocialLogin();
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const handleGuestLogin = async () => {
-    await loginToGuest();
+    setLoginError(null);
+    try {
+      await loginToGuest();
+    } catch {
+      setLoginError(
+        "기기 정보를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      );
+    }
   };
 
   const handleGoogleLogin = async () => {
-    await loginWithGoogle();
+    setLoginError(null);
+    try {
+      await loginWithGoogle();
+    } catch {
+      setLoginError(
+        "계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.",
+      );
+    }
   };
   return (
     <SafeAreaView>
@@ -31,6 +47,11 @@ export function WelcomPage() {
           <Text>그날 까지..... free</Text>
         </Center>
         <VStack space="lg">
+          {loginError ? (
+            <Text className="text-center text-destructive" size="sm">
+              {loginError}
+            </Text>
+          ) : null}
           <Button
             variant="outline"
             className="rounded-full"
