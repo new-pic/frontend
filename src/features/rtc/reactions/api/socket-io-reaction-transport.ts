@@ -98,6 +98,12 @@ export const createSocketIoReactionTransport = ({
       socket.emit(RTC_REACTION_SOCKET_CONFIG.sendEvent, {
         emojiId,
       });
+      if (__DEV__) {
+        console.info("[RTC Reaction] emitted", {
+          event: RTC_REACTION_SOCKET_CONFIG.sendEvent,
+          emojiId,
+        });
+      }
       return true;
     },
   };
