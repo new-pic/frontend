@@ -68,6 +68,7 @@ export interface RtcViewerLiveKitTokenResponse {
 
 export interface RtcViewerLiveKitTokenRequest {
   roomId: string;
+  participantId: string;
 }
 
 export type RtcJoinRoomRequest = z.input<typeof RtcJoinRoomRequestSchema>;

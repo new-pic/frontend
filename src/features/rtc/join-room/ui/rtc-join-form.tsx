@@ -25,6 +25,7 @@ const sanitizeCode = (value: string) =>
 interface JoinedRoom {
   joinCode: string;
   roomId: string;
+  participantId: string;
 }
 
 const getErrorMessage = (error: unknown) =>
@@ -98,7 +99,7 @@ export function RtcJoinForm({
 
     try {
       // 방 참여 요청은 중복 호출하지 않고, LiveKit 토큰 발급만 실패하면
-      // 기존 roomId로 해당 단계만 다시 시도합니다.
+      // 기존 roomId와 participantId로 해당 단계만 다시 시도합니다.
       let room = reusableJoinedRoom;
 
       if (!room) {
@@ -108,12 +109,14 @@ export function RtcJoinForm({
         room = {
           joinCode: code,
           roomId: response.roomId,
+          participantId: response.participantId,
         };
         setJoinedRoom(room);
       }
 
       await viewerTokenMutation.mutateAsync({
         roomId: room.roomId,
+        participantId: room.participantId,
       });
       router.replace(RTC_NAVIGATION.paths.viewer as Href);
     } catch (error) {

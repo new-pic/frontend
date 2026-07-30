@@ -7,6 +7,7 @@ import {
   RtcJoinRoomResponse,
   RtcViewerLiveKitTokenRequest,
   RtcViewerLiveKitTokenResponse,
+  isCurrentRtcViewerSession,
   useRtcStore,
 } from "../model";
 
@@ -39,18 +40,25 @@ export const useJoinRtcRoom = () => {
  */
 export const useCreateViewerLiveKitToken = () => {
   return useMutation({
-    mutationFn: async ({ roomId }: RtcViewerLiveKitTokenRequest) => {
+    mutationFn: async ({
+      participantId,
+    }: RtcViewerLiveKitTokenRequest) => {
       assertRtcAppAccessToken();
-      const id = verifyRtcId(roomId, "RTC 방 ID");
+      const id = verifyRtcId(participantId, "RTC 참여자 ID");
 
       const response =
         await privateApiClient.post<RtcViewerLiveKitTokenResponse>(
-          `/rtc/rooms/${id}/livekit-token`,
+          `/rtc/participants/${id}/livekit-token`,
         );
       return response.data;
     },
-    onSuccess: (response, { roomId }) => {
-      if (useRtcStore.getState().viewerSession?.roomId !== roomId.trim()) {
+    onSuccess: (response, request) => {
+      if (
+        !isCurrentRtcViewerSession(
+          useRtcStore.getState().viewerSession,
+          request,
+        )
+      ) {
         return;
       }
 

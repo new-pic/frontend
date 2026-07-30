@@ -101,6 +101,7 @@
     "test:profile-flow": "node --test src/pages/profile/__tests__/profile-flow.test.cjs",
     "test:rtc-stored-photos": "node --test src/features/rtc-photo/browse-stored-photos/__tests__/rtc-stored-photo.test.cjs",
     "test:rtc-host-controls": "node --test src/features/rtc/host-controls/__tests__/rtc-host-controls.test.cjs",
+    "test:rtc-join": "node --test src/features/rtc/join-room/__tests__/rtc-join-room.test.cjs",
     "test:photo-gallery": "node --test src/shared/ui/photo-gallery/__tests__/photo-gallery-state.test.cjs"
   },
   "private": true,
