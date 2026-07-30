@@ -39,9 +39,7 @@ export function FeedPage() {
     id: feed.id,
     imageUrl: feed.thumbnailUrl,
   }));
-  const [refreshSnapshot, setRefreshSnapshot] = useState(
-    currentFeedImages,
-  );
+  const [refreshSnapshot, setRefreshSnapshot] = useState(currentFeedImages);
   const feedImages = data ? currentFeedImages : refreshSnapshot;
   const selectedTagKey = selectedTags.join(",");
 

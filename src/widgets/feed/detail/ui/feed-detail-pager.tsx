@@ -2,7 +2,7 @@ import { FeedResponse } from "@entities/feed";
 import { FeedCameraGuideFab } from "@features/camera/guide-feed";
 import { SlidePageView } from "@shared/ui";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CommentSort } from "../model";
@@ -41,11 +41,14 @@ export function FeedDetailPager({
   const [activePageIndex, setActivePageIndex] =
     useState<number>(initialPageIndex);
   const insets = useSafeAreaInsets();
-  const activeFeed = feeds[activePageIndex];
-  const contentBottomPadding =
-    getFeedDetailCommentBottomPadding(insets.bottom);
-  const fabBottomOffset =
-    getFeedDetailGuideFabBottomOffset(insets.bottom);
+  const activeFeed = useMemo(() => {
+    if (activePageIndex < 0 || activePageIndex >= feeds.length) {
+      return null;
+    }
+    return feeds[activePageIndex];
+  }, [feeds, activePageIndex]);
+  const contentBottomPadding = getFeedDetailCommentBottomPadding(insets.bottom);
+  const fabBottomOffset = getFeedDetailGuideFabBottomOffset(insets.bottom);
 
   /**
    * 페이지가 변경되었을때,

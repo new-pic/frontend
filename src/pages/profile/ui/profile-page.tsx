@@ -17,7 +17,6 @@ import {
 import {
   IconBookmarkFilled,
   IconHeartFilled,
-  IconHelpCircleFilled,
   IconPencilFilled,
   IconUserFilled,
 } from "@tabler/icons-react-native";
@@ -76,20 +75,14 @@ function ProfileButtonMenu() {
             </VStack>
           </Button>
           <Divider orientation="vertical" className="h-full w-px bg-white/35" />
-          <Button
-            variant="ghost"
-            className="w-25"
-            onPress={handleGoSaveFeed}
-          >
+          <Button variant="ghost" className="w-25" onPress={handleGoSaveFeed}>
             <VStack space="sm" className="flex-1 justify-center items-center">
               <ButtonIcon
                 as={IconBookmarkFilled}
                 fill={"white"}
                 className="h-8 w-8"
               />
-              <ButtonText className="text-white">
-                저장한 피드
-              </ButtonText>
+              <ButtonText className="text-white">저장한 피드</ButtonText>
             </VStack>
           </Button>
         </HStack>
@@ -156,17 +149,11 @@ export function ProfilePage() {
               {data?.profileImage ? (
                 <AvatarImage source={{ uri: data.profileImage }} />
               ) : (
-                <IconUserFilled
-                  size={42}
-                  color="white"
-                  fill="white"
-                />
+                <IconUserFilled size={42} color="white" fill="white" />
               )}
             </Avatar>
             <VStack className="justify-center">
-              <Text className="font-medium">
-                {data?.nickname}
-              </Text>
+              <Text className="font-medium">{data?.nickname}</Text>
               <Button
                 variant="ghost"
                 size="sm"
@@ -185,10 +172,7 @@ export function ProfilePage() {
 
           <VStack className="rounded-3xl border border-outline">
             <Pressable className="p-6">
-              <HStack className="items-center" space="sm">
-                <IconHelpCircleFilled size={20} />
-                <Text size="sm">도움말</Text>
-              </HStack>
+              <Text size="sm">도움말</Text>
             </Pressable>
             <Divider className="bg-outline" />
             <Pressable className="p-6">
@@ -200,7 +184,9 @@ export function ProfilePage() {
             </Pressable>
             <Divider className="bg-outline" />
             <Pressable className="p-6" onPress={handleLogout}>
-              <Text size="sm">로그아웃</Text>
+              <Text size="sm" className="text-red-500 font-semibold">
+                로그아웃
+              </Text>
             </Pressable>
           </VStack>
         </VStack>
