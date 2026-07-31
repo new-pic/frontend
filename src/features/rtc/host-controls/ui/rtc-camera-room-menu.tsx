@@ -1,15 +1,10 @@
 import type { RtcRoomParticipant } from "@entities/rtc";
 import { colors } from "@shared/constants";
-import {
-  Button,
-  ButtonIcon,
-  Pressable,
-  Text,
-} from "@shared/ui";
+import { Button, ButtonIcon, Pressable, Text } from "@shared/ui";
 import {
   IconBroadcast,
   IconUserFilled,
-  IconUserShare,
+  IconUsersPlus,
 } from "@tabler/icons-react-native";
 import { Image } from "expo-image";
 import { useRef, useState } from "react";
@@ -101,12 +96,10 @@ export function RtcCameraRoomMenu({
             <ActivityIndicator size="small" color="#111111" />
           ) : (
             <ButtonIcon
-              as={mode === "LIVE" ? IconBroadcast : IconUserShare}
+              as={mode === "LIVE" ? IconBroadcast : IconUsersPlus}
               className="h-6 w-6"
               style={
-                mode === "LIVE"
-                  ? { color: colors.brand.primary }
-                  : undefined
+                mode === "LIVE" ? { color: colors.brand.primary } : undefined
               }
             />
           )}
@@ -126,10 +119,7 @@ export function RtcCameraRoomMenu({
             style={StyleSheet.absoluteFill}
             onPress={() => setIsOpen(false)}
           />
-          <View
-            accessibilityViewIsModal
-            style={[styles.menu, menuPosition]}
-          >
+          <View accessibilityViewIsModal style={[styles.menu, menuPosition]}>
             {mode === "LIVE" ? (
               <>
                 <Text className="px-4 pb-2 pt-4 font-semibold">
@@ -144,8 +134,7 @@ export function RtcCameraRoomMenu({
                     nestedScrollEnabled
                     style={{
                       maxHeight:
-                        PARTICIPANT_ROW_HEIGHT *
-                        MAX_VISIBLE_PARTICIPANTS,
+                        PARTICIPANT_ROW_HEIGHT * MAX_VISIBLE_PARTICIPANTS,
                     }}
                     renderItem={({ item }) => (
                       <View style={styles.participantRow}>
@@ -157,16 +146,10 @@ export function RtcCameraRoomMenu({
                           />
                         ) : (
                           <View style={styles.profileFallback}>
-                            <IconUserFilled
-                              size={20}
-                              color="white"
-                            />
+                            <IconUserFilled size={20} color="white" />
                           </View>
                         )}
-                        <Text
-                          numberOfLines={1}
-                          className="flex-1 font-medium"
-                        >
+                        <Text numberOfLines={1} className="flex-1 font-medium">
                           {item.nickname}
                         </Text>
                       </View>
@@ -183,10 +166,7 @@ export function RtcCameraRoomMenu({
                   onPress={() => runAction(onEndRoomPress)}
                   style={styles.menuItem}
                 >
-                  <Text
-                    className="font-semibold"
-                    style={{ color: "#dc2626" }}
-                  >
+                  <Text className="font-semibold" style={{ color: "#dc2626" }}>
                     방 종료하기
                   </Text>
                 </Pressable>
@@ -214,9 +194,7 @@ export function RtcCameraRoomMenu({
                         : "font-medium text-label-muted"
                     }
                   >
-                    {isCameraReady
-                      ? "실시간 공유하기"
-                      : "카메라 준비 중"}
+                    {isCameraReady ? "실시간 공유하기" : "카메라 준비 중"}
                   </Text>
                 </Pressable>
               </>

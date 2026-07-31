@@ -1,8 +1,5 @@
 import { Button, ButtonIcon, HStack } from "@shared/ui";
-import {
-  IconChevronLeft,
-  IconLayoutGridFilled,
-} from "@tabler/icons-react-native";
+import { IconChevronLeft, IconSettings } from "@tabler/icons-react-native";
 import type { ReactNode } from "react";
 
 interface CameraHeaderProps {
@@ -30,10 +27,7 @@ export function CameraHeader({
           onPress={onSettingsPress}
           accessibilityLabel="카메라 촬영 설정"
         >
-          <ButtonIcon
-            className="h-6 w-6"
-            as={IconLayoutGridFilled}
-          />
+          <ButtonIcon className="h-6 w-6" as={IconSettings} />
         </Button>
       </HStack>
     </HStack>
