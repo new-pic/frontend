@@ -49,12 +49,13 @@ export function FeedPickButton({ feedId, isPicked }: FeedPickButtonProps) {
     <Button
       variant="ghost"
       size="icon"
-      className="w-6 h-6"
+      className="rounded-full"
       disabled={isPending}
+      accessibilityLabel={isPicked ? "피드 저장 취소" : "피드 저장"}
       onPress={handlePress}
     >
       <ButtonIcon
-        className="w-6 h-6"
+        className="w-7 h-7"
         as={IconBookmarkFilled}
         color={colors.brand.primary}
         fill={isPicked ? colors.brand.primary : "white"}

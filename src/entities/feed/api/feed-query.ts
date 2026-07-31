@@ -25,6 +25,7 @@ import {
   FeedTagResponse,
   UpdateFeedRequest,
 } from "../model";
+import { updateFeedInCacheData } from "./feed-cache";
 
 const QUERY_KEY = [API_QUERY_KEY, "feed"] as const;
 
@@ -54,6 +55,8 @@ type FeedListInfiniteData = InfiniteData<
 type FeedListCacheSnapshot = Array<
   [QueryKey, FeedListInfiniteData | undefined]
 >;
+
+type FeedCacheSnapshot = Array<[QueryKey, unknown]>;
 
 /**
  * @description 피드 목록 낙관적 업데이트 함수
@@ -95,6 +98,51 @@ async function optimisticallyUpdateFeedLists(
 function rollbackFeedLists(
   queryClient: QueryClient,
   snapshot?: FeedListCacheSnapshot,
+) {
+  snapshot?.forEach(([queryKey, data]) => {
+    queryClient.setQueryData(queryKey, data);
+  });
+}
+
+async function optimisticallyUpdateFeedAcrossCollections(
+  queryClient: QueryClient,
+  feedId: string,
+  update: (feed: FeedResponse) => FeedResponse,
+) {
+  const cachedQueries = queryClient.getQueryCache().findAll();
+  const matchingQueries = cachedQueries.filter((query) => {
+    const data = query.state.data;
+    return updateFeedInCacheData(data, feedId, update) !== data;
+  });
+
+  await Promise.all(
+    matchingQueries.map((query) =>
+      queryClient.cancelQueries({
+        queryKey: query.queryKey,
+        exact: true,
+      }),
+    ),
+  );
+
+  const previousFeedCaches: FeedCacheSnapshot = matchingQueries.map(
+    (query) => [
+      query.queryKey,
+      queryClient.getQueryData(query.queryKey),
+    ],
+  );
+
+  matchingQueries.forEach((query) => {
+    queryClient.setQueryData(query.queryKey, (data: unknown) =>
+      updateFeedInCacheData(data, feedId, update),
+    );
+  });
+
+  return previousFeedCaches;
+}
+
+function rollbackFeedCaches(
+  queryClient: QueryClient,
+  snapshot?: FeedCacheSnapshot,
 ) {
   snapshot?.forEach(([queryKey, data]) => {
     queryClient.setQueryData(queryKey, data);
@@ -354,24 +402,21 @@ export function useLikeFeed() {
       return response.data;
     },
     onMutate: async (feedId: string) => {
-      const previousFeedLists = await optimisticallyUpdateFeedLists(
-        queryClient,
-        (items) =>
-          items.map((feed) =>
-            feed.id === feedId
-              ? {
-                  ...feed,
-                  isLiked: true,
-                  likeCount: feed.likeCount + 1,
-                }
-              : feed,
-          ),
-      );
+      const previousFeedCaches =
+        await optimisticallyUpdateFeedAcrossCollections(
+          queryClient,
+          feedId,
+          (feed) => ({
+            ...feed,
+            isLiked: true,
+            likeCount: feed.likeCount + 1,
+          }),
+        );
 
-      return { previousFeedLists };
+      return { previousFeedCaches };
     },
     onError: (_, __, context) => {
-      rollbackFeedLists(queryClient, context?.previousFeedLists);
+      rollbackFeedCaches(queryClient, context?.previousFeedCaches);
     },
   });
 }
@@ -385,24 +430,21 @@ export function useUnlikeFeed() {
       return response.data;
     },
     onMutate: async (feedId: string) => {
-      const previousFeedLists = await optimisticallyUpdateFeedLists(
-        queryClient,
-        (items) =>
-          items.map((feed) =>
-            feed.id === feedId
-              ? {
-                  ...feed,
-                  isLiked: false,
-                  likeCount: Math.max(0, feed.likeCount - 1),
-                }
-              : feed,
-          ),
-      );
+      const previousFeedCaches =
+        await optimisticallyUpdateFeedAcrossCollections(
+          queryClient,
+          feedId,
+          (feed) => ({
+            ...feed,
+            isLiked: false,
+            likeCount: Math.max(0, feed.likeCount - 1),
+          }),
+        );
 
-      return { previousFeedLists };
+      return { previousFeedCaches };
     },
     onError: (_, __, context) => {
-      rollbackFeedLists(queryClient, context?.previousFeedLists);
+      rollbackFeedCaches(queryClient, context?.previousFeedCaches);
     },
   });
 }

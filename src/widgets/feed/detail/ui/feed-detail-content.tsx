@@ -1,6 +1,10 @@
 import { feedQuery, FeedResponse } from "@entities/feed";
 import { FeedCommentForm } from "@features/feed/create-feed-comment";
-import { FeedLikeButton } from "@features/feed/update-feed-like";
+import {
+  FeedImageLikeInteraction,
+  FeedLikeButton,
+  useFeedLikeController,
+} from "@features/feed/update-feed-like";
 import { FeedPickButton } from "@features/feed/update-feed-pick";
 import { colors } from "@shared/constants";
 import { useAuthStore } from "@shared/model";
@@ -45,6 +49,10 @@ export function FeedDetailContent({
 }: FeedDetailContentProps) {
   const userId = useAuthStore((state) => state.userId);
   const isMyFeed = Boolean(userId) && feed.author.id === userId;
+  const feedLike = useFeedLikeController({
+    feedId: feed.id,
+    isLiked: feed.isLiked,
+  });
 
   const {
     data: commentData,
@@ -88,6 +96,7 @@ export function FeedDetailContent({
                   <Button
                     variant="ghost"
                     size="icon"
+                    accessibilityLabel="피드 상세 닫기"
                     onPress={handleGoBack}
                   >
                     <ButtonIcon as={IconChevronLeft} />
@@ -101,7 +110,7 @@ export function FeedDetailContent({
                     space="md"
                     className="items-center px-1 py-2 "
                   >
-                    <Avatar className="h-8 w-8">
+                    <Avatar className="h-10 w-10">
                       <AvatarFallbackText>
                         {feed.author.nickname}
                       </AvatarFallbackText>
@@ -109,7 +118,7 @@ export function FeedDetailContent({
                         source={{ uri: feed.author.profileImage }}
                       />
                     </Avatar>
-                    <Text size="sm" className="font-medium">
+                    <Text size="md" className="font-medium">
                       {feed.author.nickname}
                     </Text>
                   </HStack>
@@ -126,16 +135,22 @@ export function FeedDetailContent({
                   position: "relative",
                 }}
               >
-                <Image
-                  source={{ uri: feed.detailImageUrl }}
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                    left: 0,
-                  }}
-                />
+                <FeedImageLikeInteraction
+                  enabled={isActivePage}
+                  onToggle={feedLike.toggle}
+                >
+                  <Image
+                    accessibilityLabel={`${feed.author.nickname}님의 피드 이미지`}
+                    source={{ uri: feed.detailImageUrl }}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      right: 0,
+                      bottom: 0,
+                      left: 0,
+                    }}
+                  />
+                </FeedImageLikeInteraction>
                 <LinearGradient
                   colors={[
                     "rgba(0,0,0,0)",
@@ -162,13 +177,14 @@ export function FeedDetailContent({
                   }}
                 >
                   <FeedLikeButton
-                    feedId={feed.id}
                     isLiked={feed.isLiked}
+                    isPending={feedLike.isPending}
                     tone="on-image"
+                    onPress={() => void feedLike.toggle()}
                   />
                   <Text
                     className="font-semibold text-white"
-                    size="md"
+                    size="lg"
                     style={{
                       textShadowColor: "rgba(0,0,0,0.55)",
                       textShadowOffset: { width: 0, height: 1 },
@@ -187,12 +203,12 @@ export function FeedDetailContent({
                   paddingVertical: 20,
                 }}
               >
-                <Text className="text-sm text-link-text mb-1">
+                <Text size="sm" className="text-link-text mb-1">
                   {feed.tags
                     .map((tag: string) => `#${tag} `)
                     .join(" ")}
                 </Text>
-                <Text className="text-sm whitespace-pre-line">
+                <Text size="md" className="whitespace-pre-line leading-6">
                   {feed.description}
                 </Text>
               </VStack>

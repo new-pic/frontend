@@ -60,7 +60,7 @@ export function FeedOwnerActionsMenu({
         <Button
           variant="ghost"
           size="icon"
-          className="h-10 w-10"
+          className="rounded-full"
           accessibilityLabel="피드 더보기"
           accessibilityHint="수정 및 삭제 메뉴를 엽니다"
           accessibilityState={{ expanded: isOpen }}

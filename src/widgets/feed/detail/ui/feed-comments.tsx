@@ -22,21 +22,23 @@ function formatCommentDate(createdAt: string) {
 
 export function FeedCommentItem({ comment }: { comment: FeedCommentResponse }) {
   return (
-    <HStack className="px-6 py-3 items-start" space="md">
-      <Avatar className="h-8 w-8">
+    <HStack className="px-6 py-4 items-start" space="md">
+      <Avatar className="h-10 w-10">
         <AvatarFallbackText>{comment.user.nickname}</AvatarFallbackText>
         <AvatarImage source={{ uri: comment.user.profileImage }} />
       </Avatar>
       <VStack className="flex-1" space="xs">
         <HStack className="items-center justify-between">
-          <Text size="sm" className="font-semibold">
+          <Text size="md" className="font-semibold">
             {comment.user.nickname}
           </Text>
-          <Text size="xs" className="text-label-muted">
+          <Text size="sm" className="text-label-muted">
             {formatCommentDate(comment.createdAt)}
           </Text>
         </HStack>
-        <Text size="sm">{comment.content}</Text>
+        <Text size="md" className="leading-6">
+          {comment.content}
+        </Text>
       </VStack>
     </HStack>
   );
@@ -51,7 +53,12 @@ export function FeedCommentsHeader({
     <HStack className="px-6 py-3 items-center justify-between border-t border-b border-outline-light">
       <Text className="font-semibold">댓글 {commentCount}개</Text>
       <HStack className="items-center" space="md">
-        <Pressable onPress={() => onChangeSort("latest")}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ selected: sort === "latest" }}
+          className="min-h-12 min-w-12 items-center justify-center px-2"
+          onPress={() => onChangeSort("latest")}
+        >
           <Text
             size="sm"
             className={
@@ -63,7 +70,12 @@ export function FeedCommentsHeader({
             최신순
           </Text>
         </Pressable>
-        <Pressable onPress={() => onChangeSort("oldest")}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ selected: sort === "oldest" }}
+          className="min-h-12 min-w-12 items-center justify-center px-2"
+          onPress={() => onChangeSort("oldest")}
+        >
           <Text
             size="sm"
             className={
