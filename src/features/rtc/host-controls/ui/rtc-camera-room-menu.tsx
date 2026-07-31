@@ -77,7 +77,7 @@ export function RtcCameraRoomMenu({
         <Button
           variant="ghost"
           size="icon"
-          className="h-10 w-10 rounded-full bg-white/75"
+          className="rounded-full bg-white/75"
           disabled={isBusy}
           accessibilityLabel={
             mode === "LIVE"

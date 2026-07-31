@@ -50,6 +50,7 @@ export function ProfileRtcPhotoPage() {
           <Button
             variant="ghost"
             size="icon"
+            accessibilityLabel="프로필로 돌아가기"
             onPress={() => router.back()}
           >
             <ButtonIcon as={IconChevronLeft} />
@@ -57,7 +58,7 @@ export function ProfileRtcPhotoPage() {
           <Text className="font-semibold" size="lg">
             최근 촬영 사진
           </Text>
-          <Box className="w-10" />
+          <Box className="w-12" />
         </HStack>
 
         {photosQuery.isError ? (

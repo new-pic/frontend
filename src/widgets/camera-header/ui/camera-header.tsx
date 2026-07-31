@@ -15,7 +15,12 @@ export function CameraHeader({
 }: CameraHeaderProps) {
   return (
     <HStack className="absolute top-0 z-10 w-full justify-between px-4 py-3">
-      <Button variant="ghost" size="icon" onPress={onBackPress}>
+      <Button
+        variant="ghost"
+        size="icon"
+        accessibilityLabel="카메라 닫기"
+        onPress={onBackPress}
+      >
         <ButtonIcon as={IconChevronLeft} />
       </Button>
       <HStack space="sm" className="items-center">
@@ -23,7 +28,7 @@ export function CameraHeader({
         <Button
           variant="ghost"
           size="icon"
-          className="h-10 w-10 rounded-full bg-white/75"
+          className="rounded-full bg-white/75"
           onPress={onSettingsPress}
           accessibilityLabel="카메라 촬영 설정"
         >

@@ -86,13 +86,18 @@ export function FeedEditPage({ id, isEditMode }: FeedEditPageProps) {
       <KeyboardDismissLayout>
         <VStack className="h-full pt-3 w-full" space="xl">
           <HStack className="py-3 px-6 items-center justify-between border-b border-outline-light">
-            <Button variant="ghost" size="icon" onPress={handleGoBack}>
+            <Button
+              variant="ghost"
+              size="icon"
+              accessibilityLabel="피드 편집 닫기"
+              onPress={handleGoBack}
+            >
               <ButtonIcon as={IconChevronLeft} />
             </Button>
             <Text className="font-semibold" size="lg">
               {isEditMode ? "피드 수정하기" : "피드 작성하기"}
             </Text>
-            <Box className="w-10" />
+            <Box className="w-12" />
           </HStack>
           <Center>
             <Image

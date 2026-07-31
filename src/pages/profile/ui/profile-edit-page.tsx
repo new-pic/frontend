@@ -27,13 +27,18 @@ export function ProfileEditPage() {
       <KeyboardDismissLayout>
         <VStack className="h-full pt-3 w-full" space="xl">
           <HStack className="py-3 px-6 items-center justify-between border-b border-outline-light">
-            <Button variant="ghost" size="icon" onPress={handleGoBack}>
+            <Button
+              variant="ghost"
+              size="icon"
+              accessibilityLabel="프로필로 돌아가기"
+              onPress={handleGoBack}
+            >
               <ButtonIcon as={IconChevronLeft} />
             </Button>
             <Text className="font-semibold" size="lg">
               프로필 설정하기
             </Text>
-            <Box className="w-10" />
+            <Box className="w-12" />
           </HStack>
           <VStack className="px-6 flex-1 py-3">
             <VStack className="flex-1">

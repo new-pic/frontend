@@ -72,10 +72,11 @@ export function CameraControls({
         <Button
           variant="ghost"
           size="icon"
-          className="w-10 h-10"
+          className="rounded-full"
           onPress={onChangePosition}
+          accessibilityLabel="전후면 카메라 전환"
         >
-          <ButtonIcon className="w-10 h-10" as={IconCameraRotate} />
+          <ButtonIcon className="w-8 h-8" as={IconCameraRotate} />
         </Button>
       </HStack>
     </VStack>
