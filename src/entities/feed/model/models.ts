@@ -1,8 +1,9 @@
 import z from "zod";
 import {
   CreateFeedCommentRequestSchema,
+  CreateFeedFormSchema,
   CreateFeedRequestSchema,
-  FeedFormSchema,
+  UpdateFeedFormSchema,
   UpdateFeedRequestSchema,
 } from "./schema";
 
@@ -13,7 +14,8 @@ export type UpdateFeedRequestInput = z.input<typeof UpdateFeedRequestSchema>;
 
 export type CreateFeedRequest = z.infer<typeof CreateFeedRequestSchema>;
 export type UpdateFeedRequest = z.infer<typeof UpdateFeedRequestSchema>;
-export type FeedFormValues = z.infer<typeof FeedFormSchema>;
+export type FeedFormValues = z.infer<typeof CreateFeedFormSchema>;
+export type UpdateFeedFormValues = z.infer<typeof UpdateFeedFormSchema>;
 export type CreateFeedCommentRequest = z.infer<
   typeof CreateFeedCommentRequestSchema
 >;
