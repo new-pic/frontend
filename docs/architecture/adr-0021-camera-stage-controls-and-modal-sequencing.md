@@ -112,7 +112,8 @@ CameraSession lifecycle은 계속 VisionCamera가 관리한다.
 - RTC 참여 form은 공용 Input을 사용하고 상단 정렬, keyboard 및 bottom
   safe area를 적용했다.
 - 촬영 사진 Modal은 프로필 PhotoGrid 화면과 같은 중앙 제목 header 및
-  전체 화면 safe area 구조를 사용한다.
+  전체 화면 safe area 구조를 사용한다. 공용 native Modal root에 별도
+  `SafeAreaProvider`를 두어 상단 notch와 하단 home indicator를 함께 피한다.
 - 관련 camera, guide, RTC, gallery 테스트와 iOS/Android Expo export를
   통과했다.
 - 전체 TypeScript 검사는 이번 변경과 무관한 기존 `checkbox`, `spinner`

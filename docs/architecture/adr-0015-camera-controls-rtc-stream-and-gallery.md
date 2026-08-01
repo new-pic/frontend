@@ -13,7 +13,9 @@ RTC 방의 참여자와 상태는 `expo/fetch` SSE transport에서 서버 event�
 
 촬영 사진 목록은 CameraPage가 소유하는 Safe Area 전체 화면 Layer로
 제공한다. 사진 상세만 `SlidePageView` 기반 단일 native Modal로 열고,
-선택 화면에서는 이미지 본문 터치와 선택 check 터치를 분리한다.
+선택 화면에서는 이미지 본문 터치와 선택 check 터치를 분리한다. Native
+Modal은 route와 별도 view root를 만들 수 있으므로 공용 `PhotoGalleryModal`
+자체에 `SafeAreaProvider` 경계를 두고 상·하단 inset을 계산한다.
 
 가이드 trigger는 Header action row에 넣지 않고 Camera Preview 콘텐츠의
 우측 상단에 absolute로 배치한다.
@@ -58,7 +60,8 @@ Camera 설정은 `capture-photo`, SSE transport와 schema는 `entities/rtc`,
 Option B를 선택했다. VisionCamera가 계속 유일한 Camera owner이고,
 SSE 연결 실패가 LiveKit 영상 송출에 영향을 주지 않으며, 서버 room
 상태도 기존 Query Cache를 단일 source of truth로 유지할 수 있기
-때문이다.
+때문이다. VisionCamera FrameOutput과 LiveKit publisher의 핵심 lifecycle은
+ADR-0022에서 별도로 기록한다.
 
 설정 흐름은 다음과 같다.
 
@@ -130,7 +133,8 @@ RtcHostLiveKitPage
   갤러리를 연결했다.
 - 촬영 사진 목록과 상세 native Modal의 중첩을 제거했다. 목록은 Camera
   session 내부의 전체 화면 Layer로 유지하고, 상세 사진은 흰색 여백의
-  `contain` 방식과 Safe Area control을 사용하는 단일 Modal로 표시한다.
+  `contain` 방식과 Modal-local `SafeAreaProvider`를 사용하는 단일 Modal로
+  표시한다.
 - RTC event 병합, 재연결 지연, 메뉴 상태, 갤러리 index와 기존
   Camera/PhotoGrid/Feed SSE 회귀 단위 테스트를 통과했다.
 - 전체 TypeScript 검사에서는 이번 변경과 무관한 기존
