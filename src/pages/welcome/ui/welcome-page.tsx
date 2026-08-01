@@ -1,4 +1,3 @@
-import AppleLogo from "@assets/icons/apple-logo.svg";
 import GoogleLogo from "@assets/icons/google-logo.svg";
 import { useSocialLogin } from "@features/user/save-social-login";
 import { Button, ButtonText, Center, Text, VStack } from "@shared/ui";
@@ -26,9 +25,7 @@ export function WelcomPage() {
     try {
       await loginWithGoogle();
     } catch {
-      setLoginError(
-        "계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.",
-      );
+      setLoginError("계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.");
     }
   };
   return (
@@ -42,9 +39,8 @@ export function WelcomPage() {
             resizeMode="contain"
           />
 
-          <Text>이제 그만 사진으로 핍박 받자. 우리도 인간이다.</Text>
-          <Text>사진을 못찍는 친구들이 사람 취급을 받는</Text>
-          <Text>그날 까지..... free</Text>
+          <Text>친구들과 찍는 순간을 공유하고</Text>
+          <Text>쉽고 빠르게 인생샷을 남겨보세요!</Text>
         </Center>
         <VStack space="lg">
           {loginError ? (
@@ -61,14 +57,14 @@ export function WelcomPage() {
             <GoogleLogo width={24} height={24} />
             <ButtonText>구글로 시작하기</ButtonText>
           </Button>
-          <Button
+          {/* <Button
             variant="outline"
             className="rounded-full bg-black"
             disabled={isLoading}
           >
             <AppleLogo width={24} height={24} />
             <ButtonText className="text-white">애플로 시작하기</ButtonText>
-          </Button>
+          </Button> */}
           <Button
             variant="ghost"
             disabled={isLoading}
