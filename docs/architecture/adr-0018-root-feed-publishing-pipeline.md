@@ -7,6 +7,10 @@
 즉시 복귀한다. 실제 생성 upload와 수정 PATCH는 앱 루트의
 `FeedPublishingCoordinator`가 수행한다.
 
+작성·수정 폼은 임시저장하지 않는다. Expo Router route가 stack에 남아도
+화면 focus를 잃으면 폼 값, 선택 이미지와 작성 단계를 폐기하고, 다시 focus될
+때 작성은 빈 값으로, 수정은 현재 서버 응답으로 초기화한다.
+
 생성 upload가 성공하면 기존 `FeedProcessingCoordinator`에 서버 AI job을
 인계한다. 게시 명령, AI 처리, 완료 목록 갱신을 하나의 게시 파이프라인으로
 보고 이 중 하나가 진행 중이면 새 피드 작성 FAB을 비활성화한다.
@@ -103,6 +107,8 @@ upload 전용 `expo/fetch`도 Axios와 같은 single-flight token refresh 함수
 - 수정 화면은 기존 이미지 재업로드 없이 description과 tags만 검증·전송한다.
 - 수정 상세 로딩 중 전용 skeleton을 표시하고 최초 응답으로 폼을 한 번만
   초기화해 사용자의 편집을 refetch가 덮어쓰지 않는다.
+- 화면을 벗어나면 transient 폼 상태를 폐기해 재진입 시 이전 작성·수정
+  내용이 남지 않는다.
 - 게시 실패는 루트 배지에서 확인하고 같은 명령으로 재시도할 수 있다.
 - 전체 Node 단위 테스트 108개와 iOS Expo export가 통과했다.
 - TypeScript 검사에서 이번 변경 파일의 오류는 없었으며 기존 checkbox와

@@ -18,8 +18,8 @@ import {
   ImageSelector,
   type ImageParams,
 } from "@widgets/feed/edit";
-import { router } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -43,6 +43,9 @@ export function FeedEditPage({ id, isEditMode }: FeedEditPageProps) {
   const [step, setStep] = useState<EditStep>("IMAGE");
   const [isLoadingAlbum, setIsLoadingAlbum] = useState(false);
   const initializedFeedIdRef = useRef<string | null>(null);
+  const isFocusedRef = useRef(false);
+  const feedDataRef = useRef(data);
+  feedDataRef.current = data;
 
   const handleSelectImage = (image: ImageParams) => {
     setSelectedImage(image);
@@ -70,18 +73,48 @@ export function FeedEditPage({ id, isEditMode }: FeedEditPageProps) {
     }
   };
 
-  useEffect(() => {
-    if (isEditMode) {
-      setStep("CAPTION");
-      return;
-    }
-    initializedFeedIdRef.current = null;
-    reset();
-    setStep("IMAGE");
-  }, [isEditMode, reset]);
+  useFocusEffect(
+    useCallback(() => {
+      isFocusedRef.current = true;
+      initializedFeedIdRef.current = null;
+      setSelectedImage(null);
+      setIsLoadingAlbum(false);
+
+      if (isEditMode) {
+        setStep("CAPTION");
+        const currentFeed = feedDataRef.current;
+        if (currentFeed) {
+          reset({
+            image: "",
+            imageFileName: undefined,
+            tags: currentFeed.tags,
+            description: currentFeed.description,
+          });
+          initializedFeedIdRef.current = currentFeed.id;
+        }
+      } else {
+        reset();
+        setStep("IMAGE");
+      }
+
+      return () => {
+        isFocusedRef.current = false;
+        initializedFeedIdRef.current = null;
+        reset();
+        setSelectedImage(null);
+        setIsLoadingAlbum(false);
+        setStep(isEditMode ? "CAPTION" : "IMAGE");
+      };
+    }, [isEditMode, reset]),
+  );
 
   useEffect(() => {
-    if (!isEditMode || !data || initializedFeedIdRef.current === data.id) {
+    if (
+      !isFocusedRef.current ||
+      !isEditMode ||
+      !data ||
+      initializedFeedIdRef.current === data.id
+    ) {
       return;
     }
 
