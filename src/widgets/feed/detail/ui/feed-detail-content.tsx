@@ -165,13 +165,27 @@ export function FeedDetailContent({
                     height: 96,
                   }}
                 />
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 16,
+                    right: 16,
+                    borderRadius: 999,
+                    backgroundColor: "rgba(0,0,0,0.28)",
+                  }}
+                >
+                  <FeedPickButton
+                    feedId={feed.id}
+                    isPicked={feed.isPicked}
+                    tone="on-image"
+                  />
+                </View>
                 <HStack
-                  className="items-center justify-between"
+                  className="items-center"
                   style={{
                     position: "absolute",
                     bottom: 0,
                     left: 0,
-                    right: 0,
                     paddingHorizontal: 24,
                     paddingVertical: 14,
                   }}
@@ -196,48 +210,34 @@ export function FeedDetailContent({
                       {feed.likeCount ?? 0}개
                     </Text>
                   </HStack>
-                  <HStack className="items-center" space="xs">
-                    <FeedPickButton
-                      feedId={feed.id}
-                      isPicked={feed.isPicked}
-                      tone="on-image"
-                    />
-                    <Text
-                      className="font-semibold text-white"
-                      size="lg"
-                      style={{
-                        fontVariant: ["tabular-nums"],
-                        textShadowColor: "rgba(0,0,0,0.55)",
-                        textShadowOffset: { width: 0, height: 1 },
-                        textShadowRadius: 4,
-                      }}
-                    >
-                      {feed.pickCount ?? 0}개
-                    </Text>
-                  </HStack>
                 </HStack>
               </View>
               <VStack
                 className="px-6"
-                space="xs"
+                space="2xl"
                 style={{
                   minHeight: 120,
                   paddingVertical: 20,
                 }}
               >
-                <Text size="sm" className="text-link-text mb-1">
-                  {feed.tags
-                    .map((tag: string) => `#${tag} `)
-                    .join(" ")}
-                </Text>
-                <Text size="md" className="whitespace-pre-line leading-6">
-                  {feed.description}
-                </Text>
+                <VStack space="xs">
+                  <Text size="sm" className="text-link-text mb-1">
+                    {feed.tags
+                      .map((tag: string) => `#${tag} `)
+                      .join(" ")}
+                  </Text>
+                  <Text
+                    size="md"
+                    className="whitespace-pre-line leading-6"
+                  >
+                    {feed.description}
+                  </Text>
+                </VStack>
                 {detailTime ? (
                   <Text
                     selectable
-                    size="xs"
-                    className="text-label-muted pt-3"
+                    size="sm"
+                    className="w-full text-right text-label-muted"
                   >
                     {detailTime}
                   </Text>

@@ -2,10 +2,7 @@ import { feedQuery } from "@entities/feed";
 import { colors } from "@shared/constants";
 import { useMemberAccess } from "@shared/hooks";
 import { Button, ButtonIcon } from "@shared/ui";
-import {
-  IconBookmark,
-  IconBookmarkFilled,
-} from "@tabler/icons-react-native";
+import { IconBookmarkFilled } from "@tabler/icons-react-native";
 import { useRef } from "react";
 import { useRefreshSavedFeedGuideCache } from "../model/use-refresh-saved-feed-guide-cache";
 
@@ -26,8 +23,7 @@ export function FeedPickButton({
   const requireMember = useMemberAccess();
   const mutationToSave = feedQuery.useSaveFeed();
   const mutationToUnsave = feedQuery.useUnsaveFeed();
-  const refreshSavedFeedGuideCache =
-    useRefreshSavedFeedGuideCache();
+  const refreshSavedFeedGuideCache = useRefreshSavedFeedGuideCache();
   const mutation = isPicked ? mutationToUnsave : mutationToSave;
   const isPending = mutationToSave.isPending || mutationToUnsave.isPending;
   const isOnImage = tone === "on-image";
@@ -70,7 +66,7 @@ export function FeedPickButton({
     >
       <ButtonIcon
         className={isOnImage ? "w-8 h-8" : "w-7 h-7"}
-        as={isPicked ? IconBookmarkFilled : IconBookmark}
+        as={IconBookmarkFilled}
         color={iconColor}
         fill={isPicked ? colors.brand.primary : "transparent"}
       />
