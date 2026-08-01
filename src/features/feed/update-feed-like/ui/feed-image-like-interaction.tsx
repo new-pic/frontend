@@ -1,8 +1,5 @@
 import { MOBILE_UI_METRICS } from "@shared/constants";
-import {
-  IconHeart,
-  IconHeartFilled,
-} from "@tabler/icons-react-native";
+import { IconHeartFilled } from "@tabler/icons-react-native";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -29,8 +26,7 @@ export function FeedImageLikeInteraction({
   enabled,
   onToggle,
 }: FeedImageLikeInteractionProps) {
-  const [feedback, setFeedback] =
-    useState<FeedLikeToggleResult>("LIKED");
+  const [feedback, setFeedback] = useState<FeedLikeToggleResult>("LIKED");
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.6);
 
@@ -53,10 +49,7 @@ export function FeedImageLikeInteraction({
               withTiming(1, { duration: 90 }),
             )
           : withTiming(0.68, { duration: 190 });
-      opacity.value = withDelay(
-        160,
-        withTiming(0, { duration: 120 }),
-      );
+      opacity.value = withDelay(160, withTiming(0, { duration: 120 }));
     },
     [opacity, scale],
   );
@@ -93,20 +86,13 @@ export function FeedImageLikeInteraction({
           pointerEvents="none"
           style={[styles.feedback, feedbackStyle]}
         >
-          {feedback === "LIKED" ? (
-            <IconHeartFilled
-              color="white"
-              fill="white"
-              size={MOBILE_UI_METRICS.feedbackIconSize}
-              strokeWidth={2.4}
-            />
-          ) : (
-            <IconHeart
-              color="white"
-              size={MOBILE_UI_METRICS.feedbackIconSize}
-              strokeWidth={3}
-            />
-          )}
+          <IconHeartFilled
+            color="white"
+            fill="white"
+            opacity={0.9}
+            size={MOBILE_UI_METRICS.feedbackIconSize}
+            strokeWidth={2.4}
+          />
         </Animated.View>
       </View>
     </GestureDetector>

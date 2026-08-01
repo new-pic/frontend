@@ -3,5 +3,5 @@ export const MOBILE_UI_METRICS = {
   standardIconSize: 24,
   prominentIconSize: 32,
   contentAvatarSize: 40,
-  feedbackIconSize: 96,
+  feedbackIconSize: 200,
 } as const;
