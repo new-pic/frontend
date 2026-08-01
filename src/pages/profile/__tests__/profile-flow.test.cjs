@@ -1,5 +1,6 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const path = require("node:path");
 const test = require("node:test");
 const ts = require("typescript");
 
@@ -14,6 +15,9 @@ require.extensions[".ts"] = (module, filename) => {
   });
   module._compile(output.outputText, filename);
 };
+
+const readSource = (relativePath) =>
+  fs.readFileSync(path.resolve(__dirname, relativePath), "utf8");
 
 const {
   getUserQueryIdentity,
@@ -50,4 +54,29 @@ test("사진 미리보기는 조회 성공 후 표시 가능한 사진이 있을
     }),
     true,
   );
+});
+
+test("프로필 하위 화면은 탭 sibling이 아니라 Profile Stack에 속한다", () => {
+  const tabsLayout = readSource("../../../app/(tabs)/_layout.tsx");
+  const profileLayout = readSource(
+    "../../../app/(tabs)/profile/_layout.tsx",
+  );
+
+  assert.match(profileLayout, /<Stack/);
+  assert.doesNotMatch(tabsLayout, /name="profile\/rtc-photos"/);
+  assert.doesNotMatch(tabsLayout, /name="profile\/edit"/);
+  assert.doesNotMatch(tabsLayout, /name="profile\/\(feed\)\/my"/);
+  assert.match(tabsLayout, /pathname === "\/profile"/);
+  assert.match(tabsLayout, /\{ display: "none" \}/);
+});
+
+test("최근 촬영 사진은 grid에서 선택한 사진으로 공용 갤러리를 연다", () => {
+  const source = readSource("../ui/profile-rtc-photo-page.tsx");
+
+  assert.match(
+    source,
+    /onPress=\{\(_, index\) => setGalleryIndex\(index\)\}/,
+  );
+  assert.match(source, /<PhotoGalleryModal/);
+  assert.match(source, /initialIndex=\{galleryIndex \?\? 0\}/);
 });

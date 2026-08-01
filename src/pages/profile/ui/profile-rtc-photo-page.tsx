@@ -11,16 +11,20 @@ import {
   ButtonText,
   Center,
   HStack,
+  PhotoGalleryModal,
   PhotoGrid,
   Text,
   VStack,
 } from "@shared/ui";
 import { IconChevronLeft } from "@tabler/icons-react-native";
 import { router } from "expo-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function ProfileRtcPhotoPage() {
+  const [galleryIndex, setGalleryIndex] = useState<number | null>(
+    null,
+  );
   const photosQuery =
     rtcStoredPhotoQuery.useReadMyRtcStoredPhotos({
       take: RTC_STORED_PHOTO_GALLERY_CONFIG.pageSize,
@@ -78,6 +82,7 @@ export function ProfileRtcPhotoPage() {
         ) : (
           <PhotoGrid
             images={activePhotos}
+            onPress={(_, index) => setGalleryIndex(index)}
             onEndReached={handleEndReached}
             onRefresh={() => void photosQuery.refetch()}
             refreshing={
@@ -90,6 +95,13 @@ export function ProfileRtcPhotoPage() {
           />
         )}
       </VStack>
+
+      <PhotoGalleryModal
+        open={galleryIndex !== null}
+        images={activePhotos}
+        initialIndex={galleryIndex ?? 0}
+        onClose={() => setGalleryIndex(null)}
+      />
     </SafeAreaView>
   );
 }
