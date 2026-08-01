@@ -18,9 +18,7 @@ function getPersonCountMismatchMessage(
 ) {
   const difference = targetPersonCount - livePersonCount;
   if (difference > 0) {
-    return difference === 1
-      ? "한 명 더 화면에 들어와 주세요"
-      : `${difference}명 더 화면에 들어와 주세요`;
+    return "화면에 들어와 주세요";
   }
   if (difference < 0) {
     return `화면에 ${targetPersonCount}명만 나오도록 조정해 주세요`;
@@ -82,4 +80,3 @@ export function mapPoseFeedbackMessage(
     ? `${PERSON_POSITION_LABELS[feedback.personPosition]}이 ${instruction}`
     : instruction;
 }
-

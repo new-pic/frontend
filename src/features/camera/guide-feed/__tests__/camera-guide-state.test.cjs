@@ -823,7 +823,7 @@ test("person-count feedback includes the target and live difference", () => {
       targetPersonCount: 3,
       livePersonCount: 1,
     }),
-    "2명 더 화면에 들어와 주세요",
+    "화면에 들어와 주세요",
   );
   assert.equal(
     mapPoseFeedbackMessage({
