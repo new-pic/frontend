@@ -15,18 +15,32 @@ import {
   Pressable as NativePressable,
   StyleSheet,
   View,
+  type ViewStyle,
   useWindowDimensions,
 } from "react-native";
 import { resolveRtcCameraMenuMode } from "../model/rtc-host-control";
 
 const PARTICIPANT_ROW_HEIGHT = 52;
 const MAX_VISIBLE_PARTICIPANTS = 5;
+const OVERLAY_ICON_SHADOW_STYLE = {
+  filter: [
+    {
+      dropShadow: {
+        offsetX: 0,
+        offsetY: 2,
+        standardDeviation: 2,
+        color: "rgba(0,0,0,0.55)",
+      },
+    },
+  ],
+} satisfies ViewStyle;
 
 interface RtcCameraRoomMenuProps {
   participants: RtcRoomParticipant[];
   isLive: boolean;
   isBusy: boolean;
   isCameraReady: boolean;
+  appearance?: "inline" | "overlay";
   onJoinPress: () => void;
   onSharePress: () => void;
   onEndRoomPress: () => void;
@@ -37,6 +51,7 @@ export function RtcCameraRoomMenu({
   isLive,
   isBusy,
   isCameraReady,
+  appearance = "inline",
   onJoinPress,
   onSharePress,
   onEndRoomPress,
@@ -49,6 +64,7 @@ export function RtcCameraRoomMenu({
   const triggerRef = useRef<View>(null);
   const { width: windowWidth } = useWindowDimensions();
   const mode = resolveRtcCameraMenuMode({ isBusy, isLive });
+  const isOverlay = appearance === "overlay";
 
   const handleOpen = () => {
     if (isBusy) return;
@@ -77,7 +93,8 @@ export function RtcCameraRoomMenu({
         <Button
           variant="ghost"
           size="icon"
-          className="rounded-full bg-white/75"
+          className="rounded-full"
+          style={isOverlay ? OVERLAY_ICON_SHADOW_STYLE : undefined}
           disabled={isBusy}
           accessibilityLabel={
             mode === "LIVE"
@@ -93,14 +110,21 @@ export function RtcCameraRoomMenu({
           onPress={handleOpen}
         >
           {mode === "BUSY" ? (
-            <ActivityIndicator size="small" color="#111111" />
+            <ActivityIndicator
+              size="small"
+              color={isOverlay ? "white" : "#111111"}
+            />
           ) : (
             <ButtonIcon
               as={mode === "LIVE" ? IconBroadcast : IconUsersPlus}
               className="h-6 w-6"
-              style={
-                mode === "LIVE" ? { color: colors.brand.primary } : undefined
-              }
+              style={{
+                color: isOverlay
+                  ? "white"
+                  : mode === "LIVE"
+                    ? colors.brand.primary
+                    : "#111111",
+              }}
             />
           )}
         </Button>

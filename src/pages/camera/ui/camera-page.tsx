@@ -602,12 +602,14 @@ export function CameraPage() {
           <Camera
             isActive={isVisionCameraActive}
             onClose={() => router.back()}
-            renderHeader={({ onOpenSettings }) => (
+            renderHeader={({ onOpenSettings, presentation }) => (
               <CameraHeader
+                presentation={presentation}
                 onBackPress={() => router.back()}
                 onSettingsPress={onOpenSettings}
                 rtcControl={
                   <RtcCameraRoomMenu
+                    appearance={presentation}
                     participants={participants}
                     isLive={Boolean(broadcastConnection)}
                     isBusy={
