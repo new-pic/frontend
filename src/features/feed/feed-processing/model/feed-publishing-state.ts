@@ -26,6 +26,6 @@ export function isFeedPublishingPipelineActive(
   task: FeedPublishingTask | null,
   job: FeedProcessingJob | null,
 ) {
-  // 실패/완료 task도 사용자가 재시도하거나 닫기 전까지 단일 슬롯을 점유합니다.
-  return task !== null || isFeedProcessingJobActive(job);
+  const isTaskBlocking = task ? task.phase !== "completed" : false;
+  return isTaskBlocking || isFeedProcessingJobActive(job);
 }

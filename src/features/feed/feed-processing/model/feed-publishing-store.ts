@@ -34,7 +34,8 @@ export const useFeedPublishingStore = create<FeedPublishingStore>()(
   (set, get) => ({
     task: null,
     enqueue: (command) => {
-      if (get().task) return false;
+      const currentTask = get().task;
+      if (currentTask && currentTask.phase !== "completed") return false;
 
       set({
         task: {

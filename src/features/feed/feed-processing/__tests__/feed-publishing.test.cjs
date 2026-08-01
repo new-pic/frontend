@@ -24,6 +24,9 @@ const {
   useFeedPublishingStore,
 } = require("../model/feed-publishing-store.ts");
 const {
+  FEED_PROCESSING_CONFIG,
+} = require("../config/feed-processing-config.ts");
+const {
   createApiRequestError,
   getApiErrorMessage,
 } = require("../../../../shared/api/api-error.ts");
@@ -50,6 +53,10 @@ const createCommand = {
   tags: ["일상"],
 };
 
+test("성공 배지는 8초 동안 표시한다", () => {
+  assert.equal(FEED_PROCESSING_CONFIG.completedBadgeDurationMs, 8_000);
+});
+
 test("활성 게시 작업이 있으면 두 번째 게시 명령을 거절한다", () => {
   const store = useFeedPublishingStore.getState();
   assert.equal(store.enqueue(createCommand), true);
@@ -68,11 +75,50 @@ test("실패한 작업은 같은 명령으로 재시도할 수 있다", () => {
   store.setPhase(taskId, "uploading");
   store.fail(taskId, "네트워크 오류");
   assert.equal(useFeedPublishingStore.getState().task.phase, "failed");
-  assert.equal(store.enqueue({ ...createCommand, description: "새 작업" }), false);
+  assert.equal(
+    isFeedPublishingPipelineActive(
+      useFeedPublishingStore.getState().task,
+      null,
+    ),
+    true,
+  );
+  assert.equal(
+    store.enqueue({ ...createCommand, description: "새 작업" }),
+    false,
+  );
 
   store.retry(taskId);
   assert.equal(useFeedPublishingStore.getState().task.phase, "queued");
   store.dismiss(taskId);
+});
+
+test("완료 배지가 남아 있어도 게시 슬롯을 해제하고 새 작업으로 교체한다", () => {
+  const store = useFeedPublishingStore.getState();
+  const updateCommand = {
+    kind: "UPDATE",
+    feedId: "feed-1",
+    description: "수정한 설명",
+    tags: ["일상"],
+  };
+
+  assert.equal(store.enqueue(updateCommand), true);
+  const completedTaskId = useFeedPublishingStore.getState().task.id;
+  store.setPhase(completedTaskId, "completed");
+
+  assert.equal(
+    isFeedPublishingPipelineActive(
+      useFeedPublishingStore.getState().task,
+      null,
+    ),
+    false,
+  );
+  assert.equal(store.enqueue(createCommand), true);
+  assert.equal(
+    useFeedPublishingStore.getState().task.command.kind,
+    "CREATE",
+  );
+
+  store.dismiss(useFeedPublishingStore.getState().task.id);
 });
 
 test("서버 AI 처리와 목록 갱신까지 단일 게시 파이프라인으로 본다", () => {
