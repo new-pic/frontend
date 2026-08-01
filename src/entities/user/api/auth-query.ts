@@ -5,9 +5,14 @@ import {
   API_QUERY_KEY,
   getSocialLoginRequestMode,
   GoogleLoginRequest,
+  GoogleLoginRequestSchema,
   GoogleLoginResponse,
+  GoogleLoginResponseSchema,
+  GuestLoginRequest,
+  GuestLoginRequestSchema,
   SOCIAL_LOGIN_REQUEST_MODE,
   TokenResponse,
+  TokenResponseSchema,
 } from "../model";
 import { getAndCreateDeviceUUID } from "../../../shared/lib/device-uuid";
 
@@ -18,6 +23,7 @@ export function useGoogleLogin() {
     mutationFn: async ({
       idToken,
       isGuest,
+      termsAgreed,
     }: GoogleLoginRequest & {
       isGuest: boolean;
     }): Promise<GoogleLoginResponse> => {
@@ -27,20 +33,28 @@ export function useGoogleLogin() {
         SOCIAL_LOGIN_REQUEST_MODE.AUTHENTICATED_ACCOUNT_LINK
           ? privateApiClient
           : apiClient;
-      const response = await apiClientToUse.post("/auth/google", { idToken });
-      return response.data;
+      const request = GoogleLoginRequestSchema.parse({
+        idToken,
+        termsAgreed,
+      });
+      const response = await apiClientToUse.post("/auth/google", request);
+      return GoogleLoginResponseSchema.parse(response.data);
     },
   });
 }
 
 export function useGuestLogin() {
   return useMutation({
-    mutationFn: async (): Promise<TokenResponse> => {
+    mutationFn: async ({
+      termsAgreed,
+    }: Pick<GuestLoginRequest, "termsAgreed">): Promise<TokenResponse> => {
       const deviceUUID = await getAndCreateDeviceUUID();
-      const response = await apiClient.post("/auth/guest", {
+      const request = GuestLoginRequestSchema.parse({
         deviceId: deviceUUID,
+        termsAgreed,
       });
-      return response.data;
+      const response = await apiClient.post("/auth/guest", request);
+      return TokenResponseSchema.parse(response.data);
     },
   });
 }

@@ -14,6 +14,7 @@ export async function refreshAuthSession() {
       await useAuthStore.getState().setSession({
         accessToken: newToken.accessToken,
         refreshToken,
+        termsAgreed: useAuthStore.getState().termsAgreed,
       });
       return newToken;
     })()

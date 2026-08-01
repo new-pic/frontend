@@ -27,16 +27,20 @@ interface AuthStore {
   isLoggedIn: boolean;
   isGuest: boolean;
   isInitialized: boolean;
+  termsAgreed: boolean;
   authEntryIntent: AuthEntryIntent;
 
   setSession: ({
     accessToken,
     refreshToken,
+    termsAgreed,
   }: {
     accessToken: string;
     refreshToken: string;
+    termsAgreed: boolean;
   }) => Promise<void>;
   setUserId: (userId: string) => void;
+  setTermsAgreed: (termsAgreed: boolean) => void;
   logout: () => Promise<void>;
   prepareGoogleLink: () => void;
   initializeAuthState: () => Promise<void>;
@@ -48,9 +52,14 @@ export const useAuthStore = create<AuthStore>()((set) => ({
   isLoggedIn: false,
   isGuest: false,
   isInitialized: false,
+  termsAgreed: false,
   authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
 
-  setSession: async ({ accessToken, refreshToken }) => {
+  setSession: async ({ accessToken, refreshToken, termsAgreed }) => {
+    if (!termsAgreed) {
+      throw new Error("Terms agreement is required to persist a session.");
+    }
+
     await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
     await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
     const { userId, isGuest } = parseTokenState(accessToken);
@@ -61,10 +70,15 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       isGuest,
       isLoggedIn: true,
       isInitialized: true,
+      termsAgreed: true,
       authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
     }));
   },
   setUserId: (userId) => set(() => ({ userId })),
+  setTermsAgreed: (termsAgreed) =>
+    set((state) => ({
+      termsAgreed: state.accessToken ? true : termsAgreed,
+    })),
   logout: async () => {
     await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
     await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
@@ -74,6 +88,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       isLoggedIn: false,
       isGuest: false,
       isInitialized: true,
+      termsAgreed: false,
       authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
     }));
   },
@@ -93,6 +108,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
           userId,
           isGuest,
           isInitialized: true,
+          termsAgreed: true,
           authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
         });
       } else {
@@ -103,6 +119,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
           userId: null,
           isGuest,
           isInitialized: true,
+          termsAgreed: false,
           authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
         });
       }
@@ -113,6 +130,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
         userId: null,
         isGuest: false,
         isInitialized: true,
+        termsAgreed: false,
         authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
       });
     }

@@ -1,22 +1,24 @@
 import { z } from "zod";
 import {
+  GoogleLoginResponseSchema,
   GoogleLoginRequestSchema,
+  GuestLoginRequestSchema,
+  SocialLoginStatusSchema,
+  TokenResponseSchema,
   UpdateProfileRequestSchema,
 } from "./schema";
 
 export const API_QUERY_KEY = ["user"] as const;
 
 export type GoogleLoginRequest = z.infer<typeof GoogleLoginRequestSchema>;
+export type GuestLoginRequest = z.infer<typeof GuestLoginRequestSchema>;
 
-export interface TokenResponse {
-  accessToken: string;
-  refreshToken: string;
-}
-export interface GoogleLoginResponse extends TokenResponse {
-  status: SosialLoginStatus;
-}
+export type TokenResponse = z.infer<typeof TokenResponseSchema>;
+export type GoogleLoginResponse = z.infer<
+  typeof GoogleLoginResponseSchema
+>;
 
-export type SosialLoginStatus = "LOGIN_SUCCESS" | "NEED_NICKNAME";
+export type SosialLoginStatus = z.infer<typeof SocialLoginStatusSchema>;
 export type UserType = "GUEST" | "NORMAL" | "ADMIN";
 
 export type ProfileRequest = z.infer<typeof UpdateProfileRequestSchema>;

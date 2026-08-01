@@ -3,6 +3,27 @@ import { z } from "zod";
 
 export const GoogleLoginRequestSchema = z.object({
   idToken: z.string(),
+  termsAgreed: z.boolean(),
+});
+
+export const GuestLoginRequestSchema = z.object({
+  deviceId: z.string().min(1),
+  termsAgreed: z.boolean(),
+});
+
+export const TokenResponseSchema = z.object({
+  accessToken: z.string().min(1),
+  refreshToken: z.string().min(1),
+  termsAgreed: z.boolean(),
+});
+
+export const SocialLoginStatusSchema = z.enum([
+  "LOGIN_SUCCESS",
+  "NEED_NICKNAME",
+]);
+
+export const GoogleLoginResponseSchema = TokenResponseSchema.extend({
+  status: SocialLoginStatusSchema,
 });
 
 export const NicknameSchema = z
