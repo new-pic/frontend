@@ -2,31 +2,56 @@ import { feedQueryKeys } from "@entities/feed/api/feed-query";
 import { userQueryKeys } from "@entities/user/api/user-query";
 import type { QueryClient } from "@tanstack/react-query";
 
-const refreshes = new WeakMap<QueryClient, Promise<void>>();
+interface FeedListRefreshEntry {
+  generation: number;
+  promise: Promise<void>;
+}
 
-export function refreshPublishedFeedLists(
-  queryClient: QueryClient,
-): Promise<void> {
-  const currentRefresh = refreshes.get(queryClient);
-  if (currentRefresh) return currentRefresh;
+interface RefreshPublishedFeedListsOptions {
+  force?: boolean;
+}
 
-  const refresh = Promise.all([
+const refreshes = new WeakMap<QueryClient, FeedListRefreshEntry>();
+
+function resetPublishedFeedLists(queryClient: QueryClient) {
+  return Promise.all([
     queryClient.resetQueries(
       { queryKey: feedQueryKeys.lists },
-      { cancelRefetch: false, throwOnError: true },
+      { cancelRefetch: true, throwOnError: true },
     ),
     queryClient.resetQueries(
       { queryKey: userQueryKeys.myFeeds },
-      { cancelRefetch: false, throwOnError: true },
+      { cancelRefetch: true, throwOnError: true },
     ),
-  ])
-    .then(() => undefined)
+  ]).then(() => undefined);
+}
+
+export function refreshPublishedFeedLists(
+  queryClient: QueryClient,
+  options: RefreshPublishedFeedListsOptions = {},
+): Promise<void> {
+  const currentRefresh = refreshes.get(queryClient);
+  if (currentRefresh && !options.force) return currentRefresh.promise;
+
+  const generation = (currentRefresh?.generation ?? 0) + 1;
+  let entry: FeedListRefreshEntry;
+
+  const refresh = Promise.resolve()
+    .then(() => resetPublishedFeedLists(queryClient))
+    .catch((error) => {
+      const latestRefresh = refreshes.get(queryClient);
+      if (latestRefresh && latestRefresh.generation > generation) {
+        return latestRefresh.promise;
+      }
+      throw error;
+    })
     .finally(() => {
-      if (refreshes.get(queryClient) === refresh) {
+      if (refreshes.get(queryClient) === entry) {
         refreshes.delete(queryClient);
       }
     });
 
-  refreshes.set(queryClient, refresh);
+  entry = { generation, promise: refresh };
+  refreshes.set(queryClient, entry);
   return refresh;
 }
