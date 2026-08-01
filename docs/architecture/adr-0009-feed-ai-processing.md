@@ -70,6 +70,13 @@ SSE transport는 `react-native-sse` 추가와 네이티브 전용 모듈도
 활성 목록을 첫 페이지부터 서버 기준으로 다시 받기 위해 invalidate가
 아닌 reset을 사용한다.
 
+자동 AI 완료 갱신은 같은 QueryClient에서 single-flight로 합치지만,
+사용자의 pull-to-refresh는 기존 갱신에 합류하지 않는다. 사용자 요청은
+진행 중인 목록 fetch를 취소하고 새 reset/refetch를 시작하며, 이전 자동
+갱신 호출자는 최신 generation의 결과를 함께 기다린다. 이를 통해 오래된
+요청 완료가 최신 목록을 다시 덮거나 새로고침이 실제 네트워크 요청 없이
+끝나는 것을 막는다.
+
 ## Trade-off
 
 - 얻는 것
@@ -96,5 +103,5 @@ SSE transport는 `react-native-sse` 추가와 네이티브 전용 모듈도
 - background에서는 stream/polling을 정리하고 foreground에서 Status
   GET부터 재개한다.
 - 완료 시 전역 Feed 목록과 내 피드 목록을 single-flight reset한다.
-- Pull-to-Refresh도 같은 reset use case를 공유한다.
+- Pull-to-Refresh는 같은 reset use case를 강제 최신 요청 모드로 실행한다.
 - 목록 reset 중에는 Photo Grid가 직전 서버 응답 snapshot을 유지한다.
