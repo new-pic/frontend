@@ -1,4 +1,4 @@
-import { feedQuery, type FeedResponse } from "@entities/feed";
+import { feedQuery } from "@entities/feed";
 import {
   RTC_MAX_CAPTURED_PHOTOS,
   rtcHostQuery,
@@ -17,6 +17,7 @@ import {
   CameraGuideNavigationSearchParams,
   CameraGuideFeedbackBanner,
   CameraGuideOverlay,
+  CameraGuideReferenceOverlay,
   GuideFeedBottomSheet,
   GuideSelectionControl,
   useCameraGuideController,
@@ -57,8 +58,7 @@ import {
 } from "react";
 import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { CameraGuideFeedDetailModal } from "./camera-guide-feed-detail-modal";
-import { CapturedPhotosModal } from "./captured-photos-modal";
+import { CapturedPhotosLayer } from "./captured-photos-layer";
 import { RtcHostLiveKitPage } from "./rtc-livekit-page";
 import { SharingCameraSheet } from "./sharing-camera-page";
 import { SharingEndSelectionPage } from "./sharing-end-selection-page";
@@ -77,11 +77,6 @@ interface ResultImage {
 interface EndPhotoSelectionRequest {
   resolve: (photos: SessionPhoto[]) => void;
   reject: (reason: Error) => void;
-}
-
-interface GuideFeedDetailRequest {
-  feedId: string;
-  initialIndex: number;
 }
 
 const getErrorMessage = (error: unknown) =>
@@ -137,8 +132,8 @@ export function CameraPage() {
     useState(false);
   const [isGuideSheetOpen, setIsGuideSheetOpen] =
     useState(false);
-  const [guideFeedDetailRequest, setGuideFeedDetailRequest] =
-    useState<GuideFeedDetailRequest | null>(null);
+  const [isGuideReferenceVisible, setIsGuideReferenceVisible] =
+    useState(false);
   const [cameraGeometry, setCameraGeometry] =
     useState<CameraRuntimeGeometry | null>(null);
   const [joinInitialCode, setJoinInitialCode] =
@@ -191,6 +186,12 @@ export function CameraPage() {
     appliedInitialGuideFeedIdRef.current !== initialGuideFeedId;
   const hasInitialGuideError =
     initialGuideNotApplied && initialGuideQuery.isError;
+  const isGuideReferenceAvailable = Boolean(
+    cameraGeometry &&
+      cameraGuide.presentedGuide?.outline &&
+      cameraGeometry.aspectRatio ===
+        cameraGuide.presentedGuide.cameraAspectRatio,
+  );
   const openConfirm = useConfirm();
 
   useEffect(() => {
@@ -203,6 +204,7 @@ export function CameraPage() {
     }
 
     appliedInitialGuideFeedIdRef.current = initialGuideFeedId;
+    setIsGuideReferenceVisible(false);
     cameraGuide.selectGuide(initialGuideSelection);
   }, [
     cameraGuide.selectGuide,
@@ -560,19 +562,24 @@ export function CameraPage() {
         appliedInitialGuideFeedIdRef.current =
           initialGuideFeedId;
       }
+      setIsGuideReferenceVisible(false);
       cameraGuide.selectGuide(selection);
     },
     [cameraGuide.selectGuide, initialGuideFeedId],
   );
 
-  const handleSelectGuideFromDetail = useCallback(
-    (feed: FeedResponse) => {
-      handleSelectGuide(adaptFeedToGuideSelection(feed));
-      setGuideFeedDetailRequest(null);
-      setIsGuideSheetOpen(false);
-    },
-    [handleSelectGuide],
-  );
+  const handleOpenGuideSheet = useCallback(() => {
+    setIsGuideSheetOpen(true);
+  }, []);
+
+  const handleClearGuide = useCallback(() => {
+    setIsGuideReferenceVisible(false);
+    cameraGuide.clearGuide();
+  }, [cameraGuide.clearGuide]);
+
+  const handleToggleGuideReference = useCallback(() => {
+    setIsGuideReferenceVisible((visible) => !visible);
+  }, []);
 
   const handleRetryGuide = useCallback(() => {
     if (hasInitialGuideError) {
@@ -658,14 +665,28 @@ export function CameraPage() {
                 cameraGuide.presentedGuide?.outline &&
                 cameraGeometry.aspectRatio ===
                   cameraGuide.presentedGuide.cameraAspectRatio ? (
-                  <CameraGuideOverlay
-                    previewSize={cameraGeometry.previewSize}
-                    outline={cameraGuide.presentedGuide.outline}
-                    warning={
-                      cameraGuide.alignment.alignmentState ===
-                      "MISALIGNED"
-                    }
-                  />
+                  <>
+                    {isGuideReferenceVisible ? (
+                      <CameraGuideReferenceOverlay
+                        imageUrl={
+                          cameraGuide.presentedGuide.selection
+                            .detailImageUrl
+                        }
+                        sourceSize={
+                          cameraGuide.presentedGuide.outline.sourceSize
+                        }
+                        previewSize={cameraGeometry.previewSize}
+                      />
+                    ) : null}
+                    <CameraGuideOverlay
+                      previewSize={cameraGeometry.previewSize}
+                      outline={cameraGuide.presentedGuide.outline}
+                      warning={
+                        cameraGuide.alignment.alignmentState ===
+                        "MISALIGNED"
+                      }
+                    />
+                  </>
                 ) : null}
                 {broadcastConnection && hostSession ? (
                   <RtcHostReactionBubbles
@@ -679,27 +700,29 @@ export function CameraPage() {
               </>
             }
             previewControl={
-              <>
-                <CameraGuideFeedbackBanner
-                  feedback={cameraGuide.alignment.feedback}
-                />
-                <GuideSelectionControl
-                  selectedGuide={cameraGuide.selectedGuide}
-                  isPreparing={
-                    (initialGuideNotApplied &&
-                      initialGuideQuery.isPending) ||
-                    cameraGuide.isPreparing ||
-                    cameraGuide.isTargetLoading ||
-                    cameraGuide.isOutlineLoading
-                  }
-                  hasError={
-                    hasInitialGuideError || hasGuideError
-                  }
-                  onOpen={() => setIsGuideSheetOpen(true)}
-                  onRetry={handleRetryGuide}
-                />
-              </>
+              <CameraGuideFeedbackBanner
+                feedback={cameraGuide.alignment.feedback}
+              />
             }
+            renderStageControl={({ presentation }) => (
+              <GuideSelectionControl
+                selectedGuide={cameraGuide.selectedGuide}
+                isPreparing={
+                  (initialGuideNotApplied &&
+                    initialGuideQuery.isPending) ||
+                  cameraGuide.isPreparing ||
+                  cameraGuide.isTargetLoading ||
+                  cameraGuide.isOutlineLoading
+                }
+                hasError={hasInitialGuideError || hasGuideError}
+                isReferenceVisible={isGuideReferenceVisible}
+                isReferenceAvailable={isGuideReferenceAvailable}
+                topOffset={presentation === "overlay" ? 64 : 12}
+                onOpen={handleOpenGuideSheet}
+                onRetry={handleRetryGuide}
+                onToggleReference={handleToggleGuideReference}
+              />
+            )}
           />
         </VStack>
       </SafeAreaView>
@@ -707,19 +730,9 @@ export function CameraPage() {
       <GuideFeedBottomSheet
         open={isGuideSheetOpen}
         selectedFeedId={cameraGuide.selectedGuide?.feedId}
-        onOpenDetail={(feedId, initialIndex) =>
-          setGuideFeedDetailRequest({ feedId, initialIndex })
-        }
-        onClear={cameraGuide.clearGuide}
+        onSelect={handleSelectGuide}
+        onClear={handleClearGuide}
         onClose={() => setIsGuideSheetOpen(false)}
-      />
-
-      <CameraGuideFeedDetailModal
-        feedId={guideFeedDetailRequest?.feedId}
-        initialIndex={guideFeedDetailRequest?.initialIndex ?? 0}
-        open={guideFeedDetailRequest !== null}
-        onClose={() => setGuideFeedDetailRequest(null)}
-        onSelect={handleSelectGuideFromDetail}
       />
 
       {broadcastConnection ? (
@@ -778,7 +791,7 @@ export function CameraPage() {
         </Box>
       ) : null}
 
-      <CapturedPhotosModal
+      <CapturedPhotosLayer
         open={isCapturedPhotosOpen}
         photos={capturedPhotos}
         onClose={() => setIsCapturedPhotosOpen(false)}

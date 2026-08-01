@@ -1,4 +1,6 @@
 import { usersQuery } from "@entities/user";
+import { adaptFeedToGuideSelection } from "../lib/feed-guide-selection-adapter";
+import type { GuideFeedSelection } from "../model";
 import {
   BottomSheetModal,
   Button,
@@ -16,7 +18,7 @@ const GUIDE_SHEET_SNAP_POINTS = ["70%", "100%"];
 interface GuideFeedBottomSheetProps {
   open: boolean;
   selectedFeedId?: string;
-  onOpenDetail: (feedId: string, index: number) => void;
+  onSelect: (selection: GuideFeedSelection) => void;
   onClear: () => void;
   onClose: () => void;
 }
@@ -24,7 +26,7 @@ interface GuideFeedBottomSheetProps {
 export function GuideFeedBottomSheet({
   open,
   selectedFeedId,
-  onOpenDetail,
+  onSelect,
   onClear,
   onClose,
 }: GuideFeedBottomSheetProps) {
@@ -101,9 +103,10 @@ export function GuideFeedBottomSheet({
                 savedFeedsQuery.isFetchingNextPage
               }
               onEndReached={handleEndReached}
-              onPress={(feed, index) =>
-                onOpenDetail(feed.id, index)
-              }
+              onPress={(feed) => {
+                onSelect(adaptFeedToGuideSelection(feed));
+                onClose();
+              }}
             />
           )}
         </VStack>
