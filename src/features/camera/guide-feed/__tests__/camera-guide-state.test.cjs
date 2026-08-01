@@ -33,6 +33,7 @@ const {
 const {
   createGuideContourPath,
   projectGuideOutlineToPreview,
+  projectGuideSourceToPreviewRect,
 } = require("../lib/guide-contour-projection.ts");
 const {
   mapPoseFeedbackMessage,
@@ -57,6 +58,16 @@ const FEED_B = {
   thumbnailUrl: "https://example.com/b-thumb.webp",
   detailImageUrl: "https://example.com/b.webp",
 };
+
+test("가이드 선택 시 버튼에 사용할 selection이 즉시 저장된다", () => {
+  const state = cameraGuideReducer(INITIAL_CAMERA_GUIDE_STATE, {
+    type: "SELECT",
+    requestId: 1,
+    selection: FEED_A,
+  });
+
+  assert.deepEqual(state.selected, FEED_A);
+});
 
 test("피드 상세 FAB은 feedId만 Camera route contract로 전달한다", () => {
   assert.deepEqual(createCameraGuideHref(" feed-a "), {
@@ -234,7 +245,58 @@ test("guide contour applies source cover directly to the preview", () => {
   );
   assert.equal(
     createGuideContourPath(projected),
-    "M 0 -66.667 L 300 -66.667 L 300 466.667 Z",
+    "M 150 200 Q 0 -66.667 150 -66.667 Q 300 -66.667 300 200 Q 300 466.667 150 200 Z",
+  );
+});
+
+test("reference image and contour share the same cover render rect", () => {
+  const sourceSize = { width: 9, height: 16 };
+  const previewSize = { width: 300, height: 400 };
+  const renderRect = projectGuideSourceToPreviewRect(
+    sourceSize,
+    previewSize,
+  );
+  const [projected] = projectGuideOutlineToPreview(
+    {
+      sourceSize,
+      contours: [
+        {
+          contourIndex: 0,
+          closed: true,
+          areaRatio: 1,
+          points: [
+            { x: 0, y: 0 },
+            { x: 1, y: 0 },
+          ],
+        },
+      ],
+    },
+    previewSize,
+  );
+
+  assert.deepEqual(projected.points[0], {
+    x: renderRect.x,
+    y: renderRect.y,
+  });
+  assert.deepEqual(projected.points[1], {
+    x: renderRect.x + renderRect.width,
+    y: renderRect.y,
+  });
+});
+
+test("open guide contour uses quadratic segments without closing", () => {
+  assert.equal(
+    createGuideContourPath({
+      contourIndex: 0,
+      closed: false,
+      areaRatio: 0.2,
+      points: [
+        { x: 0, y: 0 },
+        { x: 10, y: 20 },
+        { x: 20, y: 0 },
+      ],
+    }),
+    "M 0 0 Q 10 20 15 10 Q 20 0 20 0",
   );
 });
 

@@ -2,9 +2,11 @@
 
 ## Decision
 
-배경 제거 이미지를 Preview 위에 렌더링하지 않고,
+기본 상태에서는 배경 제거 이미지를 Preview 위에 렌더링하지 않고,
 `background-removal` 응답의 normalized `contours`를
-`react-native-svg` Path로 그린다.
+`react-native-svg` Path로 그린다. 사용자가 원본 보기 control을 켠
+경우에만 선택 피드의 원본 이미지를 낮은 opacity의 독립 레이어로
+표시하고 contour 레이어는 항상 그 위에 둔다.
 
 서버 contour는 source image normalized coordinate로 보관하고 다음
 순서로만 화면 좌표에 투영한다.
@@ -18,13 +20,18 @@ SourceNormalizedContour[]
         ↓
 Source-to-Preview cover projection
         ↓
-SVG outline
+Reference image (optional)
+        ↓
+Quadratic SVG outline
 ```
 
 ## Context
 
 촬영 가이드는 배경 제거 PNG의 인물을 화면에 합성하는 기능이 아니라,
 선택한 피드의 인물 외곽선을 카메라 위에 안내선으로 표시하는 기능이다.
+다만 사용자가 구도를 더 직접 비교할 수 있도록 원본 전체를 일시적으로
+겹쳐 보는 보조 기능을 제공한다. 원본은 기본 숨김이며 가이드가 바뀌면
+다시 숨김으로 초기화한다.
 
 서버 응답은 이미지 크기와 함께 다음 정보를 제공한다.
 
@@ -83,10 +90,11 @@ Pose와 좌표 변환 단계를 공유할 수 있지만 sensor-native PhotoOutpu
 - PhotoOutput orientation과 독립적인 Preview 전용 좌표 계약
 - warning 상태에서 geometry 변경 없이 stroke 색만 변경
 - 순수 함수 기반 좌표 및 Path 테스트
+- 필요할 때만 원본 구도를 확인하고 contour를 계속 최상단에 유지
 
 포기하는 것:
 
-- 배경 제거 PNG 원본 색상 표시
+- 원본 이미지를 기본 상태에서 항상 표시하는 동작
 - contour와 Pose가 하나의 Source → Capture → Preview 함수를 공유하는 구조
 - 매우 많은 contour를 하나의 native SVG node로 합치는 미세 최적화
 
@@ -94,6 +102,11 @@ Pose와 좌표 변환 단계를 공유할 수 있지만 sensor-native PhotoOutpu
 
 - API adapter가 크기와 normalized contour contract를 검증한다.
 - 기본 상태는 흰색, `MISALIGNED`는 빨간색 윤곽선을 표시한다.
+- contour 점은 외부 dependency 없이 midpoint 기반 Quadratic path로
+  연결해 직선 segment의 각진 표현을 완화한다.
+- 원본 보기 control은 Preview 왼쪽, 가이드 선택 control은 오른쪽에서
+  같은 행을 사용한다. 원본 이미지는 contour와 동일한 center-cover
+  투영을 적용하고 22% opacity로 contour 아래에 표시한다.
 - 검은색 보조 stroke로 밝은 카메라 배경에서도 선을 구분한다.
 - contour projection은 `captureSize`를 참조하지 않고 Preview `onLayout`
   크기만 목적지 canvas로 사용한다.
