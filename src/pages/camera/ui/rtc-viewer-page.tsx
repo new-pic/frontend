@@ -8,6 +8,7 @@ import {
   RTC_STORED_PHOTO_MAX_TAKE,
 } from "@entities/rtc-stored-photo";
 import { RtcViewerReactionPicker } from "@features/rtc/reactions";
+import { useRtcViewerEntry } from "@features/rtc/join-room";
 import { RTC_NAVIGATION } from "@shared/config";
 import {
   Button,
@@ -17,7 +18,14 @@ import {
   VStack,
 } from "@shared/ui";
 import { Href, router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RtcViewerLiveKitPage } from "./rtc-livekit-page";
 import { SharingResultPage } from "./sharing-result-page";
@@ -115,17 +123,51 @@ export function RtcViewerPage() {
   const [resultRoomId, setResultRoomId] = useState<string | null>(
     null,
   );
+  const hasPresentedEndedAlertRef = useRef(false);
+  const hasViewerConnection =
+    liveKitConnection?.role === "VIEWER";
+  const viewerEntry = useRtcViewerEntry({
+    enabled: Boolean(viewerSession) && !hasViewerConnection,
+    session: viewerSession,
+  });
 
   useEffect(() => {
-    if (!viewerSession && resultRoomId === null) {
+    if (
+      !viewerSession &&
+      resultRoomId === null &&
+      !hasPresentedEndedAlertRef.current
+    ) {
       router.replace(RTC_NAVIGATION.paths.join as Href);
     }
   }, [resultRoomId, viewerSession]);
 
-  const leaveViewer = () => {
+  const leaveViewer = useCallback(() => {
     clearViewerSession();
     router.replace("/feed" as Href);
-  };
+  }, [clearViewerSession]);
+
+  useEffect(() => {
+    if (
+      viewerEntry.phase !== "ROOM_ENDED" ||
+      hasPresentedEndedAlertRef.current
+    ) {
+      return;
+    }
+
+    hasPresentedEndedAlertRef.current = true;
+    clearViewerSession();
+    Alert.alert(
+      "실시간 공유 종료",
+      "호스트가 공유를 시작하기 전에 방을 종료했습니다.",
+      [
+        {
+          text: "확인",
+          onPress: () => router.replace("/feed" as Href),
+        },
+      ],
+      { cancelable: false },
+    );
+  }, [clearViewerSession, viewerEntry.phase]);
 
   const handleRoomEnded = (result: RtcEndRoomResponse) => {
     setResultRoomId(result.roomId);
@@ -148,7 +190,18 @@ export function RtcViewerPage() {
   ) {
     return (
       <SharingWaitingPage
-        isConnecting
+        hostNickname={viewerEntry.hostNickname}
+        isConnecting={
+          viewerEntry.phase === "REQUESTING_TOKEN" ||
+          viewerEntry.streamState === "CONNECTING" ||
+          viewerEntry.streamState === "RECONNECTING"
+        }
+        connectionError={viewerEntry.tokenErrorMessage}
+        onRetry={
+          viewerEntry.phase === "TOKEN_ERROR"
+            ? viewerEntry.retryToken
+            : undefined
+        }
         onCancel={leaveViewer}
       />
     );

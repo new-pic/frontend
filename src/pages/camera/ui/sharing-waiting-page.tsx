@@ -6,12 +6,16 @@ export interface SharingWaitingPageProps {
   hostNickname?: string;
   onCancel: () => void;
   isConnecting?: boolean;
+  connectionError?: string | null;
+  onRetry?: () => void;
 }
 
 export function SharingWaitingPage({
   hostNickname,
   onCancel,
   isConnecting = false,
+  connectionError,
+  onRetry,
 }: SharingWaitingPageProps) {
   const displayHostNickname = hostNickname?.trim() || "호스트";
 
@@ -39,21 +43,34 @@ export function SharingWaitingPage({
                 />
               )}
               <Text size="lg" className="text-center text-outline">
-                {isConnecting
+                {connectionError
+                  ? connectionError
+                  : isConnecting
                   ? "실시간 공유에 연결하고 있어요"
                   : "잠시만 기다려주세요"}
               </Text>
             </VStack>
 
-            <Button
-              variant="outline"
-              size="lg"
-              className="min-w-48"
-              onPress={onCancel}
-              accessibilityLabel="실시간 공유 대기 취소"
-            >
-              <ButtonText>취소하기</ButtonText>
-            </Button>
+            <VStack className="w-full max-w-72 gap-3">
+              {connectionError && onRetry ? (
+                <Button
+                  variant="gradient"
+                  size="lg"
+                  onPress={onRetry}
+                  accessibilityLabel="실시간 공유 연결 다시 시도"
+                >
+                  <ButtonText>다시 시도</ButtonText>
+                </Button>
+              ) : null}
+              <Button
+                variant="outline"
+                size="lg"
+                onPress={onCancel}
+                accessibilityLabel="실시간 공유 대기 취소"
+              >
+                <ButtonText>취소하기</ButtonText>
+              </Button>
+            </VStack>
           </VStack>
         </Center>
 

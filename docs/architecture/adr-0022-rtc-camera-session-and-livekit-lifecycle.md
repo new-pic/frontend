@@ -34,6 +34,8 @@ VIEWER
 
 Join code
   ↓ RTC join API → roomId + participantId
+  ↓ RTC room SSE 대기
+  ↓ status LIVE
   ↓ viewer LiveKit token API
   ↓ LiveKitRoom subscribe-only connection
   ↓ remote camera track render

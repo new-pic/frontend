@@ -23,12 +23,6 @@ import { Alert } from "react-native";
 const sanitizeCode = (value: string) =>
   value.replace(/\D/g, "").slice(0, 6);
 
-interface JoinedRoom {
-  joinCode: string;
-  roomId: string;
-  participantId: string;
-}
-
 const getErrorMessage = (error: unknown) =>
   error instanceof Error
     ? error.message
@@ -46,8 +40,6 @@ export function RtcJoinForm({
   loginReturnRoute = "rtc-join",
 }: RtcJoinFormProps) {
   const joinRoomMutation = rtcViewerQuery.useJoinRtcRoom();
-  const viewerTokenMutation =
-    rtcViewerQuery.useCreateViewerLiveKitToken();
   const isInitialized = useAuthStore(
     (state) => state.isInitialized,
   );
@@ -57,17 +49,8 @@ export function RtcJoinForm({
   const [code, setCode] = useState(() =>
     sanitizeCode(initialCode ?? ""),
   );
-  const [joinedRoom, setJoinedRoom] =
-    useState<JoinedRoom | null>(null);
-  const reusableJoinedRoom =
-    joinedRoom?.joinCode === code
-      ? joinedRoom
-      : null;
-  const isRequestPending =
-    joinRoomMutation.isPending || viewerTokenMutation.isPending;
+  const isRequestPending = joinRoomMutation.isPending;
   const isSubmitting = !isInitialized || isRequestPending;
-  const areInputsLocked =
-    isRequestPending || Boolean(reusableJoinedRoom);
 
   useEffect(() => {
     if (initialCode) {
@@ -99,25 +82,8 @@ export function RtcJoinForm({
     }
 
     try {
-      // 방 참여 요청은 중복 호출하지 않고, LiveKit 토큰 발급만 실패하면
-      // 기존 roomId와 participantId로 해당 단계만 다시 시도합니다.
-      let room = reusableJoinedRoom;
-
-      if (!room) {
-        const response = await joinRoomMutation.mutateAsync({
-          code,
-        });
-        room = {
-          joinCode: code,
-          roomId: response.roomId,
-          participantId: response.participantId,
-        };
-        setJoinedRoom(room);
-      }
-
-      await viewerTokenMutation.mutateAsync({
-        roomId: room.roomId,
-        participantId: room.participantId,
+      await joinRoomMutation.mutateAsync({
+        code,
       });
       router.replace(RTC_NAVIGATION.paths.viewer as Href);
     } catch (error) {
@@ -147,7 +113,7 @@ export function RtcJoinForm({
             placeholder="6자리 숫자"
             keyboardType="number-pad"
             maxLength={6}
-            editable={!areInputsLocked}
+            editable={!isRequestPending}
             textContentType="oneTimeCode"
             returnKeyType="join"
             onSubmitEditing={() => void handleJoin()}
@@ -184,12 +150,10 @@ export function RtcJoinForm({
             {!isInitialized
               ? "세션 확인 중..."
               : isRequestPending
-                ? "연결 중..."
-                : reusableJoinedRoom
-                  ? "연결 다시 시도"
-                  : accessToken
-                    ? "참여하기"
-                    : "로그인 후 참여"}
+                ? "참여 중..."
+                : accessToken
+                  ? "참여하기"
+                  : "로그인 후 참여"}
           </ButtonText>
         </Button>
       </HStack>
