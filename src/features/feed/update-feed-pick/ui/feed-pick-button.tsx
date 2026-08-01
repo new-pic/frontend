@@ -2,18 +2,26 @@ import { feedQuery } from "@entities/feed";
 import { colors } from "@shared/constants";
 import { useMemberAccess } from "@shared/hooks";
 import { Button, ButtonIcon } from "@shared/ui";
-import { IconBookmarkFilled } from "@tabler/icons-react-native";
+import {
+  IconBookmark,
+  IconBookmarkFilled,
+} from "@tabler/icons-react-native";
 import { useRef } from "react";
 import { useRefreshSavedFeedGuideCache } from "../model/use-refresh-saved-feed-guide-cache";
 
 interface FeedPickButtonProps {
   feedId?: string;
   isPicked?: boolean;
+  tone?: "default" | "on-image";
 }
 
 const THROTTLE_DELAY = 500;
 
-export function FeedPickButton({ feedId, isPicked }: FeedPickButtonProps) {
+export function FeedPickButton({
+  feedId,
+  isPicked,
+  tone = "default",
+}: FeedPickButtonProps) {
   const lastPressedAtRef = useRef(0);
   const requireMember = useMemberAccess();
   const mutationToSave = feedQuery.useSaveFeed();
@@ -22,6 +30,12 @@ export function FeedPickButton({ feedId, isPicked }: FeedPickButtonProps) {
     useRefreshSavedFeedGuideCache();
   const mutation = isPicked ? mutationToUnsave : mutationToSave;
   const isPending = mutationToSave.isPending || mutationToUnsave.isPending;
+  const isOnImage = tone === "on-image";
+  const iconColor = isPicked
+    ? colors.brand.primary
+    : isOnImage
+      ? "white"
+      : colors.brand.primary;
 
   const handlePress = async () => {
     if (!feedId || isPending) return;
@@ -55,10 +69,10 @@ export function FeedPickButton({ feedId, isPicked }: FeedPickButtonProps) {
       onPress={handlePress}
     >
       <ButtonIcon
-        className="w-7 h-7"
-        as={IconBookmarkFilled}
-        color={colors.brand.primary}
-        fill={isPicked ? colors.brand.primary : "white"}
+        className={isOnImage ? "w-8 h-8" : "w-7 h-7"}
+        as={isPicked ? IconBookmarkFilled : IconBookmark}
+        color={iconColor}
+        fill={isPicked ? colors.brand.primary : "transparent"}
       />
     </Button>
   );

@@ -338,24 +338,21 @@ export function useSaveFeed() {
       return response.data;
     },
     onMutate: async (feedId: string) => {
-      const previousFeedLists = await optimisticallyUpdateFeedLists(
-        queryClient,
-        (items) =>
-          items.map((feed) =>
-            feed.id === feedId
-              ? {
-                  ...feed,
-                  isPicked: true,
-                  pickCount: feed.pickCount + 1,
-                }
-              : feed,
-          ),
-      );
+      const previousFeedCaches =
+        await optimisticallyUpdateFeedAcrossCollections(
+          queryClient,
+          feedId,
+          (feed) => ({
+            ...feed,
+            isPicked: true,
+            pickCount: feed.pickCount + 1,
+          }),
+        );
 
-      return { previousFeedLists };
+      return { previousFeedCaches };
     },
     onError: (_, __, context) => {
-      rollbackFeedLists(queryClient, context?.previousFeedLists);
+      rollbackFeedCaches(queryClient, context?.previousFeedCaches);
     },
   });
 }
@@ -371,24 +368,21 @@ export function useUnsaveFeed() {
       return response.data;
     },
     onMutate: async (feedId: string) => {
-      const previousFeedLists = await optimisticallyUpdateFeedLists(
-        queryClient,
-        (items) =>
-          items.map((feed) =>
-            feed.id === feedId
-              ? {
-                  ...feed,
-                  isPicked: false,
-                  pickCount: Math.max(0, feed.pickCount - 1),
-                }
-              : feed,
-          ),
-      );
+      const previousFeedCaches =
+        await optimisticallyUpdateFeedAcrossCollections(
+          queryClient,
+          feedId,
+          (feed) => ({
+            ...feed,
+            isPicked: false,
+            pickCount: Math.max(0, feed.pickCount - 1),
+          }),
+        );
 
-      return { previousFeedLists };
+      return { previousFeedCaches };
     },
     onError: (_, __, context) => {
-      rollbackFeedLists(queryClient, context?.previousFeedLists);
+      rollbackFeedCaches(queryClient, context?.previousFeedCaches);
     },
   });
 }

@@ -49,6 +49,12 @@ const likeFeed = (feed) => ({
   likeCount: feed.likeCount + 1,
 });
 
+const pickFeed = (feed) => ({
+  ...feed,
+  isPicked: true,
+  pickCount: feed.pickCount + 1,
+});
+
 test("단일 피드 상세 cache의 좋아요 상태를 변경한다", () => {
   const updated = updateFeedInCacheData(
     createFeed(),
@@ -76,6 +82,23 @@ test("public과 user 목록에서 사용하는 infinite cache를 동일하게 �
   assert.equal(updated.pages[0].items[0].isLiked, true);
   assert.equal(updated.pages[0].items[0].likeCount, 3);
   assert.equal(updated.pages[0].items[1], cache.pages[0].items[1]);
+});
+
+test("저장 상태와 저장 수도 모든 피드 collection cache에서 변경한다", () => {
+  const cache = {
+    pages: [
+      {
+        items: [createFeed({ pickCount: 4 })],
+        nextCursor: null,
+      },
+    ],
+    pageParams: [undefined],
+  };
+
+  const updated = updateFeedInCacheData(cache, "feed-1", pickFeed);
+
+  assert.equal(updated.pages[0].items[0].isPicked, true);
+  assert.equal(updated.pages[0].items[0].pickCount, 5);
 });
 
 test("피드 데이터가 아니거나 대상이 없으면 원래 참조를 유지한다", () => {

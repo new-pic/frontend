@@ -26,7 +26,7 @@ import {
   Image,
   View,
 } from "react-native";
-import { CommentSort } from "../model";
+import { CommentSort, formatFeedDetailTime } from "../model";
 import { FeedCommentItem, FeedCommentsHeader } from "./feed-comments";
 import { FeedOwnerActionsMenu } from "./feed-owner-actions-menu";
 
@@ -52,6 +52,10 @@ export function FeedDetailContent({
   const feedLike = useFeedLikeController({
     feedId: feed.id,
     isLiked: feed.isLiked,
+  });
+  const detailTime = formatFeedDetailTime({
+    createdAt: feed.createdAt,
+    updatedAt: feed.updatedAt,
   });
 
   const {
@@ -105,7 +109,7 @@ export function FeedDetailContent({
                     <FeedOwnerActionsMenu feedId={feed.id} />
                   ) : null}
                 </HStack>
-                <HStack className="items-center justify-between w-full py-2">
+                <HStack className="items-center w-full py-2">
                   <HStack
                     space="md"
                     className="items-center px-1 py-2 "
@@ -122,10 +126,6 @@ export function FeedDetailContent({
                       {feed.author.nickname}
                     </Text>
                   </HStack>
-                  <FeedPickButton
-                    feedId={feed.id}
-                    isPicked={feed.isPicked}
-                  />
                 </HStack>
               </VStack>
               <View
@@ -166,33 +166,55 @@ export function FeedDetailContent({
                   }}
                 />
                 <HStack
-                  className="items-center"
-                  space="xs"
+                  className="items-center justify-between"
                   style={{
                     position: "absolute",
                     bottom: 0,
                     left: 0,
+                    right: 0,
                     paddingHorizontal: 24,
                     paddingVertical: 14,
                   }}
                 >
-                  <FeedLikeButton
-                    isLiked={feed.isLiked}
-                    isPending={feedLike.isPending}
-                    tone="on-image"
-                    onPress={() => void feedLike.toggle()}
-                  />
-                  <Text
-                    className="font-semibold text-white"
-                    size="lg"
-                    style={{
-                      textShadowColor: "rgba(0,0,0,0.55)",
-                      textShadowOffset: { width: 0, height: 1 },
-                      textShadowRadius: 4,
-                    }}
-                  >
-                    {feed.likeCount ?? 0}개
-                  </Text>
+                  <HStack className="items-center" space="xs">
+                    <FeedLikeButton
+                      isLiked={feed.isLiked}
+                      isPending={feedLike.isPending}
+                      tone="on-image"
+                      onPress={() => void feedLike.toggle()}
+                    />
+                    <Text
+                      className="font-semibold text-white"
+                      size="lg"
+                      style={{
+                        fontVariant: ["tabular-nums"],
+                        textShadowColor: "rgba(0,0,0,0.55)",
+                        textShadowOffset: { width: 0, height: 1 },
+                        textShadowRadius: 4,
+                      }}
+                    >
+                      {feed.likeCount ?? 0}개
+                    </Text>
+                  </HStack>
+                  <HStack className="items-center" space="xs">
+                    <FeedPickButton
+                      feedId={feed.id}
+                      isPicked={feed.isPicked}
+                      tone="on-image"
+                    />
+                    <Text
+                      className="font-semibold text-white"
+                      size="lg"
+                      style={{
+                        fontVariant: ["tabular-nums"],
+                        textShadowColor: "rgba(0,0,0,0.55)",
+                        textShadowOffset: { width: 0, height: 1 },
+                        textShadowRadius: 4,
+                      }}
+                    >
+                      {feed.pickCount ?? 0}개
+                    </Text>
+                  </HStack>
                 </HStack>
               </View>
               <VStack
@@ -211,6 +233,15 @@ export function FeedDetailContent({
                 <Text size="md" className="whitespace-pre-line leading-6">
                   {feed.description}
                 </Text>
+                {detailTime ? (
+                  <Text
+                    selectable
+                    size="xs"
+                    className="text-label-muted pt-3"
+                  >
+                    {detailTime}
+                  </Text>
+                ) : null}
               </VStack>
             </VStack>
             <FeedCommentsHeader
