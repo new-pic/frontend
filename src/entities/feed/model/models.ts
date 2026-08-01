@@ -114,6 +114,7 @@ export interface FeedItemResponse {
 
 export interface NormalizedPoseLandmark {
   index: number;
+  /** Source-image pixel coordinates for dwpose_xy_score. */
   x: number;
   y: number;
   visibility?: number;

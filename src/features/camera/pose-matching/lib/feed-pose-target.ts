@@ -24,6 +24,7 @@ export function prepareFeedTargetPoses(
 ): CommonPose[] {
   return adaptDWPoseResult(
     getNormalizedPoseResult(response),
+    transform.sourceSize,
   ).map((pose) =>
     projectDWPosePoseToCapture(pose, transform),
   );

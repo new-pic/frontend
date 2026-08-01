@@ -81,10 +81,13 @@ export function createFeedPoseTargetPreparer<TImage>({
         return { status: "stale", target: null };
       }
 
-      const sourcePoses = adaptDWPoseResult({
-        landmarks: poseResponse.poseLandmarks,
-        analysis: poseResponse.poseAnalysis,
-      });
+      const sourcePoses = adaptDWPoseResult(
+        {
+          landmarks: poseResponse.poseLandmarks,
+          analysis: poseResponse.poseAnalysis,
+        },
+        referenceImage.size,
+      );
       const target: PreparedFeedPoseTarget<TImage> = {
         feedId: poseResponse.feedId,
         imageUrl: poseResponse.imageUrl,

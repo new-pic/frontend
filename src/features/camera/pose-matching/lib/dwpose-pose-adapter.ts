@@ -5,10 +5,21 @@ import type {
 } from "@entities/feed";
 import type {
   CommonJoint,
+  CoordinateSize,
   DWPoseSourcePose,
 } from "../model";
 
 export const DWPOSE_KEYPOINT_FORMAT = "dwpose_xy_score" as const;
+
+export interface DWPoseContractDetails {
+  personIndex?: number;
+  landmarkIndex?: number;
+  x?: number;
+  y?: number;
+  visibility?: number;
+  sourceWidth?: number;
+  sourceHeight?: number;
+}
 
 const DWPOSE_BODY_INDEX: Record<CommonJoint, number> = {
   NOSE: 0,
@@ -27,7 +38,10 @@ const DWPOSE_BODY_INDEX: Record<CommonJoint, number> = {
 };
 
 export class DWPoseContractError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    readonly details?: DWPoseContractDetails,
+  ) {
     super(message);
     this.name = "DWPoseContractError";
   }
@@ -36,9 +50,10 @@ export class DWPoseContractError extends Error {
 function assertContract(
   condition: boolean,
   message: string,
+  details?: DWPoseContractDetails,
 ): asserts condition {
   if (!condition) {
-    throw new DWPoseContractError(message);
+    throw new DWPoseContractError(message, details);
   }
 }
 
@@ -55,15 +70,25 @@ function assertLandmark(
   assertContract(
     Number.isInteger(landmark.index) && landmark.index >= 0,
     `Person ${personIndex} has an invalid landmark index.`,
+    {
+      personIndex,
+      landmarkIndex: landmark.index,
+      x: landmark.x,
+      y: landmark.y,
+      visibility: landmark.visibility,
+    },
   );
   assertContract(
     Number.isFinite(landmark.x) &&
-      landmark.x >= 0 &&
-      landmark.x <= 1 &&
-      Number.isFinite(landmark.y) &&
-      landmark.y >= 0 &&
-      landmark.y <= 1,
-    `Person ${personIndex}, landmark ${landmark.index} is outside normalized source coordinates.`,
+      Number.isFinite(landmark.y),
+    `Person ${personIndex}, landmark ${landmark.index} has invalid source pixel coordinates (x: ${landmark.x}, y: ${landmark.y}).`,
+    {
+      personIndex,
+      landmarkIndex: landmark.index,
+      x: landmark.x,
+      y: landmark.y,
+      visibility: landmark.visibility,
+    },
   );
   assertContract(
     landmark.visibility === undefined ||
@@ -71,6 +96,13 @@ function assertLandmark(
         landmark.visibility >= 0 &&
         landmark.visibility <= 1),
     `Person ${personIndex}, landmark ${landmark.index} has an invalid visibility.`,
+    {
+      personIndex,
+      landmarkIndex: landmark.index,
+      x: landmark.x,
+      y: landmark.y,
+      visibility: landmark.visibility,
+    },
   );
 }
 
@@ -211,7 +243,20 @@ export function normalizeDWPosePeople(
 
 export function adaptDWPosePose(
   person: NormalizedPosePerson,
+  sourceSize: CoordinateSize,
 ): DWPoseSourcePose {
+  assertContract(
+    Number.isFinite(sourceSize.width) &&
+      sourceSize.width > 0 &&
+      Number.isFinite(sourceSize.height) &&
+      sourceSize.height > 0,
+    "DWPose source image size must be positive.",
+    {
+      personIndex: person.personIndex,
+      sourceWidth: sourceSize.width,
+      sourceHeight: sourceSize.height,
+    },
+  );
   const landmarkByIndex = new Map(
     person.landmarks.map((landmark) => [
       landmark.index,
@@ -231,8 +276,8 @@ export function adaptDWPosePose(
                 [
                   joint,
                   {
-                    x: landmark.x,
-                    y: landmark.y,
+                    x: landmark.x / sourceSize.width,
+                    y: landmark.y / sourceSize.height,
                     confidence: landmark.visibility ?? 0,
                   },
                 ],
@@ -246,6 +291,9 @@ export function adaptDWPosePose(
 
 export function adaptDWPoseResult(
   result: NormalizedPoseResult,
+  sourceSize: CoordinateSize,
 ): DWPoseSourcePose[] {
-  return normalizeDWPosePeople(result).map(adaptDWPosePose);
+  return normalizeDWPosePeople(result).map((person) =>
+    adaptDWPosePose(person, sourceSize),
+  );
 }

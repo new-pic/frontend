@@ -6,10 +6,11 @@
 adapter와 capture projector를 거쳐 `CommonPose`로 변환한다.
 
 ```text
-NormalizedPoseResult
+NormalizedPoseResult (source-image pixel x/y)
  ↓ Server result normalizer
 NormalizedPosePerson[]
- ↓ DWPosePoseAdapter
+ + pose image decoded width/height
+ ↓ DWPosePoseAdapter (x / width, y / height)
 DWPoseSourcePose[]
  ↓ Target capture projector
 CommonPose[]
@@ -46,6 +47,8 @@ front-camera mirroring, 실제 capture 영역이 반영되지 않는다.
 서버 `NormalizedPoseResult`는 `single_person`일 때 flat landmark
 배열, `multi_person`일 때 `NormalizedPosePerson[]`을 저장한다.
 사람의 배열 순서는 live 결과와 같은 identity를 의미하지 않는다.
+여기서 `Normalized`는 저장 구조를 정규화했다는 의미이며,
+`dwpose_xy_score`의 x/y는 pose `imageUrl` 원본의 pixel 좌표다.
 
 ## Alternatives
 
@@ -66,6 +69,16 @@ front-camera mirroring, 실제 capture 영역이 반영되지 않는다.
 overlay를 그리기는 쉽지만 view 크기, cover crop, preview mirror에
 domain 점수가 종속되고 실제 촬영 이미지의 구도와 달라질 수 있다.
 
+### 서버에서 DWPose 좌표를 0...1로 변환
+
+모든 클라이언트가 같은 normalized 응답을 받을 수 있지만 서버 수정과
+기존 저장 데이터 변환이 필요하다.
+
+### 값 범위로 pixel/normalized 좌표 자동 판별
+
+변경량은 작지만 원점 부근 pixel 좌표가 0...1에 포함될 수 있어 좌표
+계약을 잘못 판별한다. 잘못된 서버 응답도 조용히 통과시킨다.
+
 ## Reason
 
 모델별 coordinate type을 분리하면 외부 모델 교체 시 adapter만
@@ -81,6 +94,10 @@ React lifecycle 없이 단위 테스트할 수 있다.
 자동 선택하고 고정한다. 새 Feed는 pose와 image geometry가 모두
 준비되기 전까지 현재 target을 유지하며 latest request만 active
 target으로 commit한다.
+
+실제 서버 응답에서 DWPose 좌표가 source-image pixel 단위임을 확인해,
+target image decode가 끝난 뒤 adapter에서 명시적으로 width/height를
+나누는 방식을 선택했다. 값 범위 기반 자동 감지는 사용하지 않는다.
 
 ## Score
 
@@ -166,6 +183,7 @@ pose mismatch는 가장 낮은 joint group으로 팔/다리/몸통 feedback을
 - 4:3/16:9, orientation, mirror, cover crop 순수 함수 테스트
 - 다중 인물 순서가 달라도 전역 최소 assignment
 - Feed 전환 실패나 stale completion이 현재 target을 지우지 않음
+- 서버 pixel 좌표와 CommonPose normalized 계약 사이의 명시적 경계
 
 포기하거나 남은 것:
 
@@ -174,16 +192,19 @@ pose mismatch는 가장 낮은 joint group으로 팔/다리/몸통 feedback을
 - targetResolution과 실제 output resolution이 다를 수 있으므로
   Camera 연결 시 `currentResolution`을 capture size로 전달해야 함
 - score threshold는 실제 사용자 테스트 전까지 초기 calibration 값
+- target pose 변환은 pose `imageUrl`의 decoded 크기가 준비된 뒤 시작됨
 
 ## Result
 
 - 서버 single/multi storage shape와 per-person metadata 검증 구현
 - 검증된 DWPose body index 0, 5...16 mapping 적용
+- DWPose source pixel 좌표를 pose image width/height로 나누어 normalized
+  source pose로 변환하고, 이미지 밖 예측 좌표는 clamp하지 않음
 - MediaPipe app-domain `confidence` 연결
 - 누락 visibility를 confidence 0으로 처리
 - DWPose/MediaPipe adapter와 capture projector 분리
 - Feed 비율 자동 선택과 latest-only target 준비 구현
-- Pose Matching 25개, Camera 설정 7개, Pose detection 5개 테스트 통과
+- Pose Matching 29개, Camera 설정 12개, Pose detection 5개 테스트 통과
 - 변경 영역 TypeScript 오류 없음
 - 전체 TypeScript 검사는 기존 shared checkbox/spinner 오류가 남아 있음
 - UI toast와 overlay 색상은 변경하지 않음

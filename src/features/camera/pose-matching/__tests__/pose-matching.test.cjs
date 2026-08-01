@@ -19,6 +19,7 @@ require.extensions[".ts"] = (module, filename) => {
 const {
   adaptDWPosePose,
   adaptDWPoseResult,
+  DWPoseContractError,
   adaptMediaPipePose,
   capturePointToPreview,
   createFeedPoseTargetPreparer,
@@ -336,8 +337,8 @@ test("preview cover crop stays separate from capture matching", () => {
 test("DWPose and MediaPipe adapters use their own verified mappings", () => {
   const dwpose = Array.from({ length: 17 }, (_, index) => ({
     index,
-    x: index / 20,
-    y: index / 20,
+    x: index * 20,
+    y: index * 20,
     visibility: 0.9,
   }));
   const mediapipe = Array.from({ length: 29 }, (_, index) => ({
@@ -348,7 +349,7 @@ test("DWPose and MediaPipe adapters use their own verified mappings", () => {
   const commonDWPose = adaptDWPosePose({
     personIndex: 3,
     landmarks: dwpose,
-  });
+  }, { width: 400, height: 400 });
   const commonMediaPipe = adaptMediaPipePose(mediapipe);
 
   assert.equal(commonDWPose.sourcePersonIndex, 3);
@@ -410,8 +411,8 @@ test("multi-person server storage preserves each source person", () => {
     personIndex,
     landmarks: Array.from({ length: 17 }, (_, index) => ({
       index,
-      x: (index + offset) / 40,
-      y: index / 40,
+      x: index + offset,
+      y: index,
       visibility: 0.9,
     })),
   });
@@ -419,7 +420,10 @@ test("multi-person server storage preserves each source person", () => {
     makePerson(4, 0),
     makePerson(9, 2),
   ]);
-  const poses = adaptDWPoseResult(result);
+  const poses = adaptDWPoseResult(result, {
+    width: 40,
+    height: 40,
+  });
 
   assert.deepEqual(
     poses.map(({ sourcePersonIndex }) => sourcePersonIndex),
@@ -444,6 +448,74 @@ test("server per-person metadata mismatch is rejected", () => {
   );
 });
 
+test("non-finite DWPose pixel landmark reports its source values", () => {
+  const result = createNormalizedPoseResult("single_person", [
+    {
+      personIndex: 0,
+      landmarks: [
+        { index: 0, x: Infinity, y: -0.01, visibility: 0.8 },
+      ],
+    },
+  ]);
+
+  assert.throws(
+    () => normalizeDWPosePeople(result),
+    (error) => {
+      assert.ok(error instanceof DWPoseContractError);
+      assert.deepEqual(error.details, {
+        personIndex: 0,
+        landmarkIndex: 0,
+        x: Infinity,
+        y: -0.01,
+        visibility: 0.8,
+      });
+      return true;
+    },
+  );
+});
+
+test("DWPose source pixels normalize by the pose image size", () => {
+  const pose = adaptDWPosePose(
+    {
+      personIndex: 0,
+      landmarks: [
+        {
+          index: 0,
+          x: 602.160892,
+          y: 716.825548,
+          visibility: 0.815804,
+        },
+      ],
+    },
+    { width: 1200, height: 1600 },
+  );
+
+  assert.ok(
+    Math.abs(pose.joints.NOSE.x - 602.160892 / 1200) <
+      1e-12,
+  );
+  assert.ok(
+    Math.abs(pose.joints.NOSE.y - 716.825548 / 1600) <
+      1e-12,
+  );
+  assert.equal(pose.joints.NOSE.confidence, 0.815804);
+});
+
+test("DWPose source pixels outside the image are not clamped", () => {
+  const pose = adaptDWPosePose(
+    {
+      personIndex: 0,
+      landmarks: [
+        { index: 0, x: -120, y: 1760, visibility: 0.5 },
+      ],
+    },
+    { width: 1200, height: 1600 },
+  );
+
+  assert.equal(pose.joints.NOSE.x, -0.1);
+  assert.equal(pose.joints.NOSE.y, 1.1);
+});
+
 test("server raw keypoint diagnostics may exceed stored truncation", () => {
   const person = {
     personIndex: 0,
@@ -466,8 +538,8 @@ test("server raw keypoint diagnostics may exceed stored truncation", () => {
 test("missing DWPose visibility becomes zero confidence", () => {
   const pose = adaptDWPosePose({
     personIndex: 0,
-    landmarks: [{ index: 0, x: 0.5, y: 0.2 }],
-  });
+    landmarks: [{ index: 0, x: 50, y: 20 }],
+  }, { width: 100, height: 100 });
 
   assert.equal(pose.joints.NOSE.confidence, 0);
 });
