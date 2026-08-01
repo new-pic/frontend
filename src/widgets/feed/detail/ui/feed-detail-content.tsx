@@ -7,18 +7,14 @@ import {
 } from "@features/feed/update-feed-like";
 import { FeedPickButton } from "@features/feed/update-feed-pick";
 import { colors } from "@shared/constants";
-import { useAuthStore } from "@shared/model";
 import {
   Avatar,
   AvatarFallbackText,
   AvatarImage,
-  Button,
-  ButtonIcon,
   HStack,
   Text,
   VStack,
 } from "@shared/ui";
-import { IconChevronLeft } from "@tabler/icons-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import {
   ActivityIndicator,
@@ -28,7 +24,6 @@ import {
 } from "react-native";
 import { CommentSort, formatFeedDetailTime } from "../model";
 import { FeedCommentItem, FeedCommentsHeader } from "./feed-comments";
-import { FeedOwnerActionsMenu } from "./feed-owner-actions-menu";
 
 interface FeedDetailContentProps {
   feed: FeedResponse;
@@ -36,7 +31,6 @@ interface FeedDetailContentProps {
   contentBottomPadding: number;
   commentSort: CommentSort;
   setCommentSort: (sort: CommentSort) => void;
-  handleGoBack: () => void;
 }
 
 export function FeedDetailContent({
@@ -45,10 +39,7 @@ export function FeedDetailContent({
   contentBottomPadding,
   commentSort,
   setCommentSort,
-  handleGoBack,
 }: FeedDetailContentProps) {
-  const userId = useAuthStore((state) => state.userId);
-  const isMyFeed = Boolean(userId) && feed.author.id === userId;
   const feedLike = useFeedLikeController({
     feedId: feed.id,
     isLiked: feed.isLiked,
@@ -95,21 +86,6 @@ export function FeedDetailContent({
         ListHeaderComponent={
           <>
             <VStack className="w-full">
-              <VStack className="px-6 py-3 items-start border-b border-outline-light">
-                <HStack className="w-full items-center justify-between">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    accessibilityLabel="피드 상세 닫기"
-                    onPress={handleGoBack}
-                  >
-                    <ButtonIcon as={IconChevronLeft} />
-                  </Button>
-                  {isMyFeed ? (
-                    <FeedOwnerActionsMenu feedId={feed.id} />
-                  ) : null}
-                </HStack>
-              </VStack>
               <View
                 style={{
                   width: "100%",

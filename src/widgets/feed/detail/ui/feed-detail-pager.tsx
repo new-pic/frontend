@@ -12,6 +12,7 @@ import {
   getFeedDetailGuideFabBottomOffset,
 } from "../model/feed-detail-layout";
 import { FeedDetailContent } from "./feed-detail-content";
+import { FeedDetailHeader } from "./feed-detail-header";
 
 const FEED_BUFFER_SIZE = 3;
 
@@ -65,6 +66,13 @@ export function FeedDetailPager({
 
   return (
     <View style={{ flex: 1 }}>
+      {activeFeed ? (
+        <FeedDetailHeader
+          key={activeFeed.id}
+          feed={activeFeed}
+          onBack={onBack ?? (() => router.back())}
+        />
+      ) : null}
       <SlidePageView
         initialPage={initialPageIndex}
         onPageSelected={handleChangePage}
@@ -78,7 +86,6 @@ export function FeedDetailPager({
                 commentSort={commentSort}
                 setCommentSort={setCommentSort}
                 isActivePage={activePageIndex === feedIndex}
-                handleGoBack={onBack ?? (() => router.back())}
               />
             ) : null}
           </SlidePageView.Item>
