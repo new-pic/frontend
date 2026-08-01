@@ -19,8 +19,6 @@ import { scheduleOnRN } from "react-native-worklets";
 
 import {
   Camera,
-  CameraController,
-  CameraDevice,
   CameraRef,
   CommonResolutions,
   Constraint,
@@ -31,12 +29,20 @@ import {
   usePhotoOutput,
 } from "react-native-vision-camera";
 import {
+  type CameraChromePresentation,
+  clampCameraZoom,
+  createCameraZoomConfiguration,
   DEFAULT_CAMERA_CAPTURE_SETTINGS,
+  DEFAULT_CAMERA_DISPLAY_ZOOM,
   getEffectivePhotoFlashMode,
   getPhotoTargetResolution,
   getPortraitPreviewAspectRatio,
+  getSupportedCameraZoomLevels,
   isResolutionMatchingAspectRatio,
   orientCameraResolution,
+  resolveCameraDisplayZoomMultiplier,
+  resolveCameraChromePresentation,
+  resolveCameraStageAlignment,
 } from "../lib";
 import type {
   CameraAspectRatio,
@@ -49,60 +55,11 @@ import { CameraControls } from "./camera-controls";
 import { CameraSettingsBottomSheet } from "./camera-settings-bottom-sheet";
 import { ZoomControls } from "./zoom-control";
 
-const DEFAULT_DISPLAY_ZOOM = 1;
 const MAX_PINCH_ZOOM = 15;
-const ZOOM_BUTTON_LEVELS = [0.5, 1, 2] as const;
-const ZOOM_EPSILON = 0.01;
-
-function clampZoom(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
-}
 
 function roundDisplayZoom(value: number) {
   "worklet";
   return Math.round(value * 10) / 10;
-}
-
-/**
- * CameraController가 사용하는 raw zoom과 사용자에게 보여줄 배율은
- * iOS virtual camera/Android logical camera에서 다를 수 있습니다.
- */
-function getDisplayZoomMultiplier(
-  controller: CameraController,
-  device: CameraDevice,
-) {
-  const controllerMultiplier =
-    controller.zoom > 0
-      ? controller.displayableZoomFactor / controller.zoom
-      : 1;
-
-  if (
-    Number.isFinite(controllerMultiplier) &&
-    controllerMultiplier > 0 &&
-    Math.abs(controllerMultiplier - 1) > ZOOM_EPSILON
-  ) {
-    return controllerMultiplier;
-  }
-
-  // iOS 18 미만에서는 displayableZoomFactor가 raw zoom을 그대로
-  // 반환하므로 ultra-wide → wide 전환 지점을 1x 기준으로 사용합니다.
-  const firstLensSwitchFactor = device.zoomLensSwitchFactors[0];
-  const hasUltraWideCamera = device.physicalDevices.some(
-    (physicalDevice) => physicalDevice.type === "ultra-wide-angle",
-  );
-
-  if (
-    device.isVirtualDevice &&
-    hasUltraWideCamera &&
-    firstLensSwitchFactor !== undefined &&
-    firstLensSwitchFactor > 1
-  ) {
-    return 1 / firstLensSwitchFactor;
-  }
-
-  return Number.isFinite(controllerMultiplier) && controllerMultiplier > 0
-    ? controllerMultiplier
-    : 1;
 }
 
 /**
@@ -119,6 +76,11 @@ export interface NativeCameraFrameSink
 
 export interface CameraHeaderRenderProps {
   onOpenSettings: () => void;
+  presentation: CameraChromePresentation;
+}
+
+export interface CameraStageRenderProps {
+  presentation: CameraChromePresentation;
 }
 
 interface CustomCameraProps {
@@ -137,6 +99,9 @@ interface CustomCameraProps {
   guideAspectRatio?: CameraAspectRatio;
   previewOverlay?: ReactNode;
   previewControl?: ReactNode;
+  renderStageControl?: (
+    props: CameraStageRenderProps,
+  ) => ReactNode;
   onRuntimeGeometryChange?: (
     geometry: CameraRuntimeGeometry | null,
   ) => void;
@@ -159,6 +124,7 @@ function CameraView({
   guideAspectRatio,
   previewOverlay,
   previewControl,
+  renderStageControl,
   onRuntimeGeometryChange,
 }: CustomCameraProps) {
   const cameraRef = useRef<CameraRef>(null);
@@ -188,6 +154,12 @@ function CameraView({
   const previewAspectRatio = getPortraitPreviewAspectRatio(
     captureSettings.aspectRatio,
   );
+  const chromePresentation = resolveCameraChromePresentation(
+    captureSettings.aspectRatio,
+  );
+  const stageAlignment = resolveCameraStageAlignment(
+    captureSettings.aspectRatio,
+  );
 
   const [cameraDevice, setCameraDevice] = useState<"front" | "back">(
     "back",
@@ -196,30 +168,38 @@ function CameraView({
     physicalDevices: ["ultra-wide-angle", "wide-angle", "telephoto"],
   });
   const hasPhysicalFlash = device?.hasFlash ?? false;
-  const initialMinZoom = device?.minZoom ?? DEFAULT_DISPLAY_ZOOM;
+  const initialMinZoom =
+    device?.minZoom ?? DEFAULT_CAMERA_DISPLAY_ZOOM;
   const initialMaxZoom = Math.max(
     initialMinZoom,
     Math.min(device?.maxZoom ?? MAX_PINCH_ZOOM, MAX_PINCH_ZOOM),
   );
-  const initialZoom = clampZoom(
-    DEFAULT_DISPLAY_ZOOM,
-    initialMinZoom,
-    initialMaxZoom,
-  );
+  const initialDisplayZoomMultiplier = device
+    ? resolveCameraDisplayZoomMultiplier(null, device)
+    : 1;
+  const initialZoomConfiguration = createCameraZoomConfiguration({
+    rawMinZoom: initialMinZoom,
+    rawMaxZoom: initialMaxZoom,
+    displayZoomMultiplier: initialDisplayZoomMultiplier,
+  });
 
-  const zoom = useSharedValue(initialZoom);
-  const pinchStartZoom = useSharedValue(initialZoom);
+  const zoom = useSharedValue(initialZoomConfiguration.rawZoom);
+  const pinchStartZoom = useSharedValue(
+    initialZoomConfiguration.rawZoom,
+  );
   const minZoom = useSharedValue(initialMinZoom);
   const maxZoom = useSharedValue(initialMaxZoom);
-  const displayZoomMultiplier = useSharedValue(1);
+  const displayZoomMultiplier = useSharedValue(
+    initialDisplayZoomMultiplier,
+  );
   const configuredZoomDeviceIdRef = useRef<string | null>(null);
 
   const [displayZoom, setDisplayZoom] = useState(
-    roundDisplayZoom(initialZoom),
+    roundDisplayZoom(initialZoomConfiguration.displayZoom),
   );
   const [displayZoomRange, setDisplayZoomRange] = useState({
-    min: initialMinZoom,
-    max: initialMaxZoom,
+    min: initialZoomConfiguration.displayMinZoom,
+    max: initialZoomConfiguration.displayMaxZoom,
   });
 
   const photoOutput = usePhotoOutput({
@@ -308,6 +288,33 @@ function CameraView({
     [updateDisplayZoom],
   );
 
+  const applyZoomConfiguration = useCallback(
+    (
+      configuration: ReturnType<
+        typeof createCameraZoomConfiguration
+      >,
+    ) => {
+      minZoom.value = configuration.rawMinZoom;
+      maxZoom.value = configuration.rawMaxZoom;
+      displayZoomMultiplier.value =
+        configuration.displayZoomMultiplier;
+      zoom.value = configuration.rawZoom;
+      pinchStartZoom.value = configuration.rawZoom;
+      setDisplayZoomRange({
+        min: configuration.displayMinZoom,
+        max: configuration.displayMaxZoom,
+      });
+      setDisplayZoom(roundDisplayZoom(configuration.displayZoom));
+    },
+    [
+      displayZoomMultiplier,
+      maxZoom,
+      minZoom,
+      pinchStartZoom,
+      zoom,
+    ],
+  );
+
   useEffect(() => {
     if (!device) return;
 
@@ -316,28 +323,17 @@ function CameraView({
       nextMinZoom,
       Math.min(device.maxZoom, MAX_PINCH_ZOOM),
     );
-    const nextZoom = clampZoom(
-      DEFAULT_DISPLAY_ZOOM,
-      nextMinZoom,
-      nextMaxZoom,
-    );
+    const nextDisplayZoomMultiplier =
+      resolveCameraDisplayZoomMultiplier(null, device);
+    const configuration = createCameraZoomConfiguration({
+      rawMinZoom: nextMinZoom,
+      rawMaxZoom: nextMaxZoom,
+      displayZoomMultiplier: nextDisplayZoomMultiplier,
+    });
 
     configuredZoomDeviceIdRef.current = null;
-    minZoom.value = nextMinZoom;
-    maxZoom.value = nextMaxZoom;
-    displayZoomMultiplier.value = 1;
-    zoom.value = nextZoom;
-    pinchStartZoom.value = nextZoom;
-    setDisplayZoomRange({ min: nextMinZoom, max: nextMaxZoom });
-    setDisplayZoom(roundDisplayZoom(nextZoom));
-  }, [
-    device,
-    displayZoomMultiplier,
-    maxZoom,
-    minZoom,
-    pinchStartZoom,
-    zoom,
-  ]);
+    applyZoomConfiguration(configuration);
+  }, [applyZoomConfiguration, device]);
 
   useEffect(() => {
     if (device?.hasFlash !== false) return;
@@ -380,59 +376,35 @@ function CameraView({
     [onRuntimeGeometryChange],
   );
 
-  const handleCameraStarted = useCallback(() => {
+  const configureZoomForCurrentSession = useCallback(() => {
     const controller = cameraRef.current?.controller;
 
-    if (controller && device) {
-      const nextMinZoom = controller.minZoom;
-      const nextMaxZoom = Math.max(
-        nextMinZoom,
-        Math.min(controller.maxZoom, MAX_PINCH_ZOOM),
-      );
-      const nextDisplayZoomMultiplier = getDisplayZoomMultiplier(
-        controller,
-        device,
-      );
-      const minDisplayZoom = nextMinZoom * nextDisplayZoomMultiplier;
-      const maxDisplayZoom = nextMaxZoom * nextDisplayZoomMultiplier;
-      const isNewDevice =
-        configuredZoomDeviceIdRef.current !== device.id;
-      const preferredDisplayZoom = isNewDevice
-        ? DEFAULT_DISPLAY_ZOOM
-        : zoom.value * nextDisplayZoomMultiplier;
-      const nextDisplayZoom = clampZoom(
-        preferredDisplayZoom,
-        minDisplayZoom,
-        maxDisplayZoom,
-      );
-      const nextZoom = clampZoom(
-        nextDisplayZoom / nextDisplayZoomMultiplier,
-        nextMinZoom,
-        nextMaxZoom,
-      );
+    if (!controller || !device) return;
 
-      configuredZoomDeviceIdRef.current = device.id;
-      minZoom.value = nextMinZoom;
-      maxZoom.value = nextMaxZoom;
-      displayZoomMultiplier.value = nextDisplayZoomMultiplier;
-      zoom.value = nextZoom;
-      pinchStartZoom.value = nextZoom;
-      setDisplayZoomRange({
-        min: minDisplayZoom,
-        max: maxDisplayZoom,
-      });
-      setDisplayZoom(roundDisplayZoom(nextDisplayZoom));
-    }
+    const nextDisplayZoomMultiplier =
+      resolveCameraDisplayZoomMultiplier(controller, device);
+    const isNewDevice =
+      configuredZoomDeviceIdRef.current !== device.id;
+    const configuration = createCameraZoomConfiguration({
+      rawMinZoom: controller.minZoom,
+      rawMaxZoom: Math.min(controller.maxZoom, MAX_PINCH_ZOOM),
+      displayZoomMultiplier: nextDisplayZoomMultiplier,
+      preferredDisplayZoom: isNewDevice
+        ? DEFAULT_CAMERA_DISPLAY_ZOOM
+        : zoom.value * nextDisplayZoomMultiplier,
+    });
+
+    configuredZoomDeviceIdRef.current = device.id;
+    applyZoomConfiguration(configuration);
+  }, [applyZoomConfiguration, device, zoom]);
+
+  const handleCameraStarted = useCallback(() => {
+    configureZoomForCurrentSession();
 
     onStarted?.();
   }, [
-    device,
-    displayZoomMultiplier,
-    maxZoom,
-    minZoom,
+    configureZoomForCurrentSession,
     onStarted,
-    pinchStartZoom,
-    zoom,
   ]);
 
   const pinchGesture = useMemo(
@@ -452,23 +424,10 @@ function CameraView({
   );
 
   const zoomButtonLevels = useMemo(() => {
-    const supportedLevels = ZOOM_BUTTON_LEVELS.filter(
-      (level) =>
-        level >= displayZoomRange.min - ZOOM_EPSILON &&
-        level <= displayZoomRange.max + ZOOM_EPSILON,
+    return getSupportedCameraZoomLevels(
+      displayZoomRange.min,
+      displayZoomRange.max,
     );
-
-    if (supportedLevels.length > 0) return supportedLevels;
-
-    return [
-      roundDisplayZoom(
-        clampZoom(
-          DEFAULT_DISPLAY_ZOOM,
-          displayZoomRange.min,
-          displayZoomRange.max,
-        ),
-      ),
-    ];
   }, [displayZoomRange]);
 
   const handleZoomChange = useCallback(
@@ -476,7 +435,7 @@ function CameraView({
       const multiplier = displayZoomMultiplier.value;
       if (!Number.isFinite(multiplier) || multiplier <= 0) return;
 
-      const nextZoom = clampZoom(
+      const nextZoom = clampCameraZoom(
         nextDisplayZoom / multiplier,
         minZoom.value,
         maxZoom.value,
@@ -495,16 +454,16 @@ function CameraView({
     // 이전 카메라의 확대값이 새 카메라 범위를 벗어난 상태로
     // CameraController에 전달되지 않도록 전환 전에 1x로 초기화합니다.
     configuredZoomDeviceIdRef.current = null;
-    minZoom.value = DEFAULT_DISPLAY_ZOOM;
-    maxZoom.value = DEFAULT_DISPLAY_ZOOM;
+    minZoom.value = DEFAULT_CAMERA_DISPLAY_ZOOM;
+    maxZoom.value = DEFAULT_CAMERA_DISPLAY_ZOOM;
     displayZoomMultiplier.value = 1;
-    zoom.value = DEFAULT_DISPLAY_ZOOM;
-    pinchStartZoom.value = DEFAULT_DISPLAY_ZOOM;
+    zoom.value = DEFAULT_CAMERA_DISPLAY_ZOOM;
+    pinchStartZoom.value = DEFAULT_CAMERA_DISPLAY_ZOOM;
     setDisplayZoomRange({
-      min: DEFAULT_DISPLAY_ZOOM,
-      max: DEFAULT_DISPLAY_ZOOM,
+      min: DEFAULT_CAMERA_DISPLAY_ZOOM,
+      max: DEFAULT_CAMERA_DISPLAY_ZOOM,
     });
-    setDisplayZoom(DEFAULT_DISPLAY_ZOOM);
+    setDisplayZoom(DEFAULT_CAMERA_DISPLAY_ZOOM);
     setIsPhotoOutputConfigured(false);
 
     if (cameraDevice === "back") {
@@ -569,6 +528,7 @@ function CameraView({
     }
 
     setIsPhotoOutputConfigured(true);
+    configureZoomForCurrentSession();
   };
 
   const handleCameraError = (error: Error) => {
@@ -663,50 +623,55 @@ function CameraView({
       <VStack className="h-full bg-white">
         {renderHeader?.({
           onOpenSettings: () => setIsSettingsOpen(true),
+          presentation: chromePresentation,
         })}
-        <VStack className="flex-1 justify-center">
-          <VStack className="h-fit relative">
-            <GestureDetector gesture={pinchGesture}>
-              <View
-                collapsable={false}
-                onLayout={({ nativeEvent }) => {
-                  const { width, height } = nativeEvent.layout;
-                  setPreviewSize((current) =>
-                    current?.width === width &&
-                    current.height === height
-                      ? current
-                      : { width, height },
-                  );
-                }}
-                style={{
-                  aspectRatio: previewAspectRatio,
-                  overflow: "hidden",
-                }}
-              >
-                <Camera
-                  ref={cameraRef}
-                  style={StyleSheet.absoluteFill}
-                  resizeMode="cover"
-                  isActive={isActive}
-                  zoom={zoom}
-                  device={device}
-                  outputs={cameraOutputs}
-                  constraints={cameraConstraints}
-                  onConfigured={handleCameraConfigured}
-                  onError={handleCameraError}
-                  onStarted={handleCameraStarted}
-                  onStopped={onStopped}
-                />
-                {previewOverlay}
-                {previewControl}
-              </View>
-            </GestureDetector>
-            <ZoomControls
-              zoomLevel={displayZoom}
-              zoomLevels={zoomButtonLevels}
-              onZoomChange={handleZoomChange}
-            />
-          </VStack>
+        <VStack
+          className={`relative flex-1 ${stageAlignment === "center" ? "justify-center bg-black" : "justify-start bg-white"}`}
+        >
+          <GestureDetector gesture={pinchGesture}>
+            <View
+              collapsable={false}
+              onLayout={({ nativeEvent }) => {
+                const { width, height } = nativeEvent.layout;
+                setPreviewSize((current) =>
+                  current?.width === width &&
+                  current.height === height
+                    ? current
+                    : { width, height },
+                );
+              }}
+              style={{
+                width: "100%",
+                aspectRatio: previewAspectRatio,
+                overflow: "hidden",
+              }}
+            >
+              <Camera
+                ref={cameraRef}
+                style={StyleSheet.absoluteFill}
+                resizeMode="cover"
+                isActive={isActive}
+                zoom={zoom}
+                device={device}
+                outputs={cameraOutputs}
+                constraints={cameraConstraints}
+                onConfigured={handleCameraConfigured}
+                onError={handleCameraError}
+                onStarted={handleCameraStarted}
+                onStopped={onStopped}
+              />
+              {previewOverlay}
+              {previewControl}
+            </View>
+          </GestureDetector>
+          {renderStageControl?.({
+            presentation: chromePresentation,
+          })}
+          <ZoomControls
+            zoomLevel={displayZoom}
+            zoomLevels={zoomButtonLevels}
+            onZoomChange={handleZoomChange}
+          />
         </VStack>
         <CameraControls
           thumbnail={
@@ -755,6 +720,7 @@ export function CustomCamera({
   guideAspectRatio,
   previewOverlay,
   previewControl,
+  renderStageControl,
   onRuntimeGeometryChange,
 }: CustomCameraProps) {
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -790,6 +756,7 @@ export function CustomCamera({
       guideAspectRatio={guideAspectRatio}
       previewOverlay={previewOverlay}
       previewControl={previewControl}
+      renderStageControl={renderStageControl}
       onRuntimeGeometryChange={onRuntimeGeometryChange}
     />
   );

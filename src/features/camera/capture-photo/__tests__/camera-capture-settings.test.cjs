@@ -40,6 +40,10 @@ const {
 const {
   resolveFeedCameraAspectRatio,
 } = require("../lib/feed-camera-aspect-ratio.ts");
+const {
+  resolveCameraChromePresentation,
+  resolveCameraStageAlignment,
+} = require("../lib/camera-chrome.ts");
 
 Module._load = originalLoad;
 
@@ -57,6 +61,13 @@ test("16:9 uses a portrait photo target and 9:16 preview geometry", () => {
     commonResolutions.UHD_16_9,
   );
   assert.equal(getPortraitPreviewAspectRatio("16:9"), 9 / 16);
+});
+
+test("4:3 uses an inline header and 16:9 uses an overlay header", () => {
+  assert.equal(resolveCameraChromePresentation("4:3"), "inline");
+  assert.equal(resolveCameraChromePresentation("16:9"), "overlay");
+  assert.equal(resolveCameraStageAlignment("4:3"), "top");
+  assert.equal(resolveCameraStageAlignment("16:9"), "center");
 });
 
 test("resolved resolution comparison is orientation independent", () => {

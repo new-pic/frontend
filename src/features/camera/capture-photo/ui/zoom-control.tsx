@@ -33,7 +33,7 @@ export function ZoomControls({
 
   return (
     <HStack
-      className="absolute bottom-10 left-0 right-0 justify-center items-center space-x-4"
+      className="absolute bottom-5 left-0 right-0 justify-center items-center space-x-4"
       space="md"
       pointerEvents="box-none"
     >
