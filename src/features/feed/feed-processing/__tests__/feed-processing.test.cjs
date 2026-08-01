@@ -29,6 +29,11 @@ const {
 const {
   useFeedProcessingStore,
 } = require("../model/feed-processing-store.ts");
+const {
+  createFeedProcessingProgressProjection,
+  projectFeedProcessingProgress,
+  rebaseFeedProcessingProgressProjection,
+} = require("../model/feed-processing-progress.ts");
 
 test("분할된 SSE chunk와 CRLF를 하나의 progress event로 조립한다", () => {
   const messages = [];
@@ -97,7 +102,7 @@ test("생성 응답을 processing domain으로 변환하고 진행률을 보정�
       jobId: "job-1",
       feedId: "feed-1",
       phase: "processing",
-      progressPercent: 0,
+      serverProgressPercent: 0,
       estimatedRemainingSeconds: 60,
       transportState: "idle",
       listRefreshState: "idle",
@@ -112,7 +117,7 @@ test("status enum을 completed/failed domain으로 분리한다", () => {
       progressPercent: 101,
       isCompleted: true,
     }),
-    { phase: "completed", progressPercent: 100 },
+    { phase: "completed", serverProgressPercent: 100 },
   );
   assert.deepEqual(
     adaptFeedAiJobStatus({
@@ -120,7 +125,78 @@ test("status enum을 completed/failed domain으로 분리한다", () => {
       progressPercent: 73,
       isCompleted: true,
     }),
-    { phase: "failed", progressPercent: 73 },
+    { phase: "failed", serverProgressPercent: 73 },
+  );
+});
+
+test("SSE가 없어도 예상 잔여 시간에 따라 95%까지 증가한다", () => {
+  const projection = createFeedProcessingProgressProjection(
+    {
+      serverProgressPercent: 20,
+      estimatedRemainingSeconds: 100,
+      progressEstimateUpdatedAt: 1_000,
+    },
+    1_000,
+  );
+
+  assert.equal(projectFeedProcessingProgress(projection, 51_000), 57.5);
+  assert.equal(projectFeedProcessingProgress(projection, 101_000), 95);
+  assert.equal(projectFeedProcessingProgress(projection, 201_000), 95);
+});
+
+test("표시값보다 낮은 SSE는 역행시키지 않고 새 잔여 시간만 반영한다", () => {
+  const initial = createFeedProcessingProgressProjection(
+    {
+      serverProgressPercent: 60,
+      estimatedRemainingSeconds: 40,
+      progressEstimateUpdatedAt: 0,
+    },
+    0,
+  );
+  const displayBeforeSse = projectFeedProcessingProgress(initial, 10_000);
+  const rebased = rebaseFeedProcessingProgressProjection(
+    initial,
+    {
+      serverProgressPercent: 50,
+      estimatedRemainingSeconds: 60,
+      progressEstimateUpdatedAt: 10_000,
+    },
+    10_000,
+  );
+
+  assert.equal(displayBeforeSse, 68.75);
+  assert.equal(projectFeedProcessingProgress(rebased, 10_000), 68.75);
+  assert.equal(projectFeedProcessingProgress(rebased, 70_000), 95);
+});
+
+test("높은 서버 진행률은 즉시 반영하되 완료 전에는 100%가 되지 않는다", () => {
+  const initial = createFeedProcessingProgressProjection(
+    {
+      serverProgressPercent: 20,
+      estimatedRemainingSeconds: 100,
+      progressEstimateUpdatedAt: 0,
+    },
+    0,
+  );
+  const rebased = rebaseFeedProcessingProgressProjection(
+    initial,
+    {
+      serverProgressPercent: 98,
+      estimatedRemainingSeconds: 20,
+      progressEstimateUpdatedAt: 5_000,
+    },
+    5_000,
+  );
+  const serverReportedComplete = createFeedProcessingProgressProjection(
+    { serverProgressPercent: 100 },
+    5_000,
+  );
+
+  assert.equal(projectFeedProcessingProgress(rebased, 5_000), 98);
+  assert.equal(projectFeedProcessingProgress(rebased, 25_000), 98);
+  assert.equal(
+    projectFeedProcessingProgress(serverReportedComplete, 5_000),
+    99,
   );
 });
 
@@ -141,7 +217,7 @@ test("store는 현재 jobId의 update만 적용한다", () => {
     isCompleted: true,
   });
   assert.equal(
-    useFeedProcessingStore.getState().job.progressPercent,
+    useFeedProcessingStore.getState().job.serverProgressPercent,
     10,
   );
 
@@ -151,8 +227,29 @@ test("store는 현재 jobId의 update만 적용한다", () => {
     isCompleted: false,
   });
   assert.equal(
-    useFeedProcessingStore.getState().job.progressPercent,
+    useFeedProcessingStore.getState().job.serverProgressPercent,
     62,
+  );
+
+  const progressEstimateObservedAfter = Date.now();
+  useFeedProcessingStore.getState().applyProgress("job-current", {
+    jobId: "job-current",
+    status: "PROCESSING",
+    progressPercent: 50,
+    estimatedRemainingSeconds: 120,
+    isCompleted: false,
+  });
+  assert.equal(
+    useFeedProcessingStore.getState().job.serverProgressPercent,
+    50,
+  );
+  assert.equal(
+    useFeedProcessingStore.getState().job.estimatedRemainingSeconds,
+    120,
+  );
+  assert.ok(
+    useFeedProcessingStore.getState().job.progressEstimateUpdatedAt >=
+      progressEstimateObservedAfter,
   );
 
   useFeedProcessingStore.getState().dismiss();

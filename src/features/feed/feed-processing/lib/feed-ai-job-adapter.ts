@@ -27,7 +27,7 @@ export function adaptCreatedFeedAiJob(
     jobId: dto.jobId,
     feedId: dto.feedId,
     phase: adaptFeedAiJobPhase(dto.status),
-    progressPercent: clampProgress(dto.progressPercent),
+    serverProgressPercent: clampProgress(dto.progressPercent),
     estimatedRemainingSeconds: dto.estimatedRemainingSeconds,
     transportState: "idle",
     listRefreshState: "idle",
@@ -36,10 +36,10 @@ export function adaptCreatedFeedAiJob(
 
 export function adaptFeedAiJobStatus(
   dto: FeedAiJobStatusResponseDto,
-): Pick<FeedProcessingJob, "phase" | "progressPercent"> {
+): Pick<FeedProcessingJob, "phase" | "serverProgressPercent"> {
   return {
     phase: adaptFeedAiJobPhase(dto.status),
-    progressPercent: clampProgress(dto.progressPercent),
+    serverProgressPercent: clampProgress(dto.progressPercent),
   };
 }
 
@@ -47,11 +47,11 @@ export function adaptFeedAiJobProgress(
   dto: FeedAiJobProgressEventDto,
 ): Pick<
   FeedProcessingJob,
-  "phase" | "progressPercent" | "estimatedRemainingSeconds"
+  "phase" | "serverProgressPercent" | "estimatedRemainingSeconds"
 > {
   return {
     phase: adaptFeedAiJobPhase(dto.status),
-    progressPercent: clampProgress(dto.progressPercent),
+    serverProgressPercent: clampProgress(dto.progressPercent),
     estimatedRemainingSeconds: dto.estimatedRemainingSeconds,
   };
 }

@@ -27,6 +27,11 @@ const {
   FEED_PROCESSING_CONFIG,
 } = require("../config/feed-processing-config.ts");
 const {
+  claimFeedCompletionHaptic,
+  getProcessingCompletionHapticKey,
+  getPublishingCompletionHapticKey,
+} = require("../model/feed-completion-haptic.ts");
+const {
   createApiRequestError,
   getApiErrorMessage,
 } = require("../../../../shared/api/api-error.ts");
@@ -55,6 +60,71 @@ const createCommand = {
 
 test("성공 배지는 8초 동안 표시한다", () => {
   assert.equal(FEED_PROCESSING_CONFIG.completedBadgeDurationMs, 8_000);
+});
+
+test("수정 완료와 목록 갱신이 끝난 생성 작업만 햅틱 대상으로 만든다", () => {
+  const updateTask = {
+    id: "update-1",
+    command: {
+      kind: "UPDATE",
+      feedId: "feed-1",
+      description: "수정한 설명",
+      tags: [],
+    },
+    phase: "completed",
+  };
+  const completedJob = {
+    jobId: "job-1",
+    feedId: "feed-1",
+    phase: "completed",
+    serverProgressPercent: 100,
+    transportState: "idle",
+    listRefreshState: "succeeded",
+  };
+
+  assert.equal(
+    getPublishingCompletionHapticKey(updateTask),
+    "publishing:update-1",
+  );
+  assert.equal(
+    getPublishingCompletionHapticKey({
+      ...updateTask,
+      phase: "updating",
+    }),
+    null,
+  );
+  assert.equal(
+    getProcessingCompletionHapticKey(completedJob),
+    "processing:job-1",
+  );
+  assert.equal(
+    getProcessingCompletionHapticKey({
+      ...completedJob,
+      listRefreshState: "pending",
+    }),
+    null,
+  );
+});
+
+test("완료 햅틱은 작업마다 한 번만 소비하고 background에서는 지연 실행하지 않는다", () => {
+  const handledKeys = new Set();
+
+  assert.equal(
+    claimFeedCompletionHaptic(handledKeys, "publishing:update-1", true),
+    true,
+  );
+  assert.equal(
+    claimFeedCompletionHaptic(handledKeys, "publishing:update-1", true),
+    false,
+  );
+  assert.equal(
+    claimFeedCompletionHaptic(handledKeys, "processing:job-1", false),
+    false,
+  );
+  assert.equal(
+    claimFeedCompletionHaptic(handledKeys, "processing:job-1", true),
+    false,
+  );
 });
 
 test("활성 게시 작업이 있으면 두 번째 게시 명령을 거절한다", () => {
@@ -126,7 +196,7 @@ test("서버 AI 처리와 목록 갱신까지 단일 게시 파이프라인으�
     jobId: "job-1",
     feedId: "feed-1",
     phase: "processing",
-    progressPercent: 40,
+    serverProgressPercent: 40,
     transportState: "streaming",
     listRefreshState: "idle",
   };

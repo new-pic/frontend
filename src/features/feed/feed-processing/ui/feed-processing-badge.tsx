@@ -8,12 +8,21 @@ import {
   IconX,
 } from "@tabler/icons-react-native";
 import { router } from "expo-router";
-import { useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { useEffect, useRef } from "react";
+import { AppState, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FEED_PROCESSING_CONFIG } from "../config/feed-processing-config";
+import { triggerFeedCompletionHaptic } from "../lib/feed-processing-haptics";
+import {
+  claimFeedCompletionHaptic,
+  getProcessingCompletionHapticKey,
+  getPublishingCompletionHapticKey,
+} from "../model/feed-completion-haptic";
 import { useFeedProcessingStore } from "../model/feed-processing-store";
 import { useFeedPublishingStore } from "../model/feed-publishing-store";
+import {
+  useFeedProcessingDisplayProgress,
+} from "../model/use-feed-processing-display-progress";
 
 function getPublishingBadgeLabel(
   kind: "CREATE" | "UPDATE",
@@ -56,11 +65,25 @@ function getBadgeLabel(
 
 export function FeedProcessingBadge() {
   const insets = useSafeAreaInsets();
+  const handledHapticKeysRef = useRef(new Set<string>());
   const publishingTask = useFeedPublishingStore((state) => state.task);
   const retryPublishing = useFeedPublishingStore((state) => state.retry);
   const dismissPublishing = useFeedPublishingStore((state) => state.dismiss);
   const job = useFeedProcessingStore((state) => state.job);
   const dismiss = useFeedProcessingStore((state) => state.dismiss);
+  const displayProgressPercent = useFeedProcessingDisplayProgress(job);
+  const completionHapticKey =
+    getPublishingCompletionHapticKey(publishingTask) ??
+    getProcessingCompletionHapticKey(job);
+
+  useEffect(() => {
+    const shouldTrigger = claimFeedCompletionHaptic(
+      handledHapticKeysRef.current,
+      completionHapticKey,
+      AppState.currentState === "active",
+    );
+    if (shouldTrigger) void triggerFeedCompletionHaptic();
+  }, [completionHapticKey]);
 
   useEffect(() => {
     if (
@@ -168,16 +191,34 @@ export function FeedProcessingBadge() {
       pointerEvents="box-none"
       style={[styles.layer, { top: insets.top + 8 }]}
     >
-      <View style={[styles.badge, isFailed && styles.failedBadge]}>
+      <View
+        style={[
+          styles.badge,
+          job.phase === "processing" && styles.processingBadge,
+          isFailed && styles.failedBadge,
+        ]}
+      >
+        {job.phase === "processing" ? (
+          <View
+            pointerEvents="none"
+            style={[
+              styles.progressFill,
+              {
+                width: `${displayProgressPercent}%`,
+              },
+            ]}
+          />
+        ) : null}
         <Pressable
           className="flex-row items-center gap-2"
+          style={styles.badgeContent}
           onPress={() => router.push("/feed")}
         >
           <Icon color="white" size={19} />
           <Text className="text-white font-semibold" size="sm">
             {getBadgeLabel(
               job.phase,
-              job.progressPercent,
+              displayProgressPercent,
               job.transportState,
               job.listRefreshState,
             )}
@@ -187,6 +228,7 @@ export function FeedProcessingBadge() {
           <Pressable
             accessibilityLabel="피드 처리 상태 닫기"
             className="ml-2"
+            style={styles.badgeContent}
             onPress={dismiss}
           >
             <IconX color="white" size={18} />
@@ -221,5 +263,19 @@ const styles = StyleSheet.create({
   },
   failedBadge: {
     backgroundColor: "#423b3b",
+  },
+  processingBadge: {
+    backgroundColor: "#423b3b",
+  },
+  progressFill: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    borderRadius: 22,
+    backgroundColor: colors.brand.primary,
+  },
+  badgeContent: {
+    zIndex: 1,
   },
 });

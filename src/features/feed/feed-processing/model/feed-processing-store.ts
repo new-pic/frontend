@@ -49,7 +49,13 @@ function updateCurrentJob(
 
 export const useFeedProcessingStore = create<FeedProcessingStore>()((set) => ({
   job: null,
-  start: (dto) => set({ job: adaptCreatedFeedAiJob(dto) }),
+  start: (dto) =>
+    set({
+      job: {
+        ...adaptCreatedFeedAiJob(dto),
+        progressEstimateUpdatedAt: Date.now(),
+      },
+    }),
   applyStatus: (jobId, dto) =>
     set((state) => ({
       job: updateCurrentJob(
@@ -63,14 +69,17 @@ export const useFeedProcessingStore = create<FeedProcessingStore>()((set) => ({
       job: updateCurrentJob(
         state.job,
         jobId,
-        adaptFeedAiJobProgress(dto),
+        {
+          ...adaptFeedAiJobProgress(dto),
+          progressEstimateUpdatedAt: Date.now(),
+        },
       ),
     })),
   complete: (jobId) =>
     set((state) => ({
       job: updateCurrentJob(state.job, jobId, {
         phase: "completed",
-        progressPercent: 100,
+        serverProgressPercent: 100,
         transportState: "idle",
       }),
     })),

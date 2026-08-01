@@ -20,8 +20,9 @@ export interface FeedProcessingJob {
   jobId: string;
   feedId: string;
   phase: FeedProcessingPhase;
-  progressPercent: number;
+  serverProgressPercent: number;
   estimatedRemainingSeconds?: number;
+  progressEstimateUpdatedAt?: number;
   transportState: FeedProcessingTransportState;
   listRefreshState: FeedListRefreshState;
 }
