@@ -21,6 +21,11 @@ export type UserType = "GUEST" | "NORMAL" | "ADMIN";
 
 export type ProfileRequest = z.infer<typeof UpdateProfileRequestSchema>;
 
+export interface UserProfile {
+  nickname: string;
+  profileImage?: string | null;
+}
+
 export interface PaginationParams {
   take?: number;
   cursor?: string;

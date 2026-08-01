@@ -1,5 +1,6 @@
-import { privateApiClient } from "@shared/api";
 import type { FeedListResponse } from "@entities/feed";
+import { privateApiClient, uploadFetchClient } from "@shared/api";
+import { ObjectToFormData } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import {
   infiniteQueryOptions,
@@ -13,6 +14,8 @@ import {
   getUserQueryIdentity,
   PaginationParams,
   ProfileRequest,
+  UpdateProfileRequestSchema,
+  UserProfile,
 } from "../model";
 
 const QUERY_KEY = [API_QUERY_KEY, "user"] as const;
@@ -47,7 +50,7 @@ export function useReadMe(options?: { enabled?: boolean }) {
 
   return useQuery({
     queryKey: userQueryKeys.me(userId),
-    queryFn: async () => {
+    queryFn: async (): Promise<UserProfile> => {
       const response = await privateApiClient.get("/users/me");
       return response.data;
     },
@@ -184,11 +187,17 @@ export function useUpdateProfile() {
 
   return useMutation({
     mutationFn: async (data: ProfileRequest) => {
-      const response = await privateApiClient.patch("/users/me", data);
+      const request = UpdateProfileRequestSchema.parse(data);
+      const response = await uploadFetchClient.patch({
+        url: "/users/me",
+        formData: ObjectToFormData(request),
+      });
+      return response.data;
+    },
+    onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: userQueryKeys.me(userId),
       });
-      return response.data;
     },
   });
 }
