@@ -24,8 +24,10 @@ import {
 } from "@features/camera/guide-feed";
 import { RtcHostReactionBubbles } from "@features/rtc/reactions";
 import {
+  isRtcFinalizationBlocking,
   isRtcFinalizationPending,
   RtcCameraRoomMenu,
+  RtcFinalizationOverlay,
   type RtcHostFinalizationState,
   useRtcRoomEvents,
 } from "@features/rtc/host-controls";
@@ -50,6 +52,7 @@ import {
   useFocusEffect,
   useLocalSearchParams,
 } from "expo-router";
+import { usePreventRemove } from "expo-router/react-navigation";
 import {
   useCallback,
   useEffect,
@@ -57,7 +60,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Alert } from "react-native";
+import { Alert, BackHandler } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CapturedPhotosLayer } from "./captured-photos-layer";
 import { RtcHostLiveKitPage } from "./rtc-livekit-page";
@@ -160,6 +163,9 @@ export function CameraPage() {
   const [endRequestId, setEndRequestId] = useState(0);
   const [finalizationState, setFinalizationState] =
     useState<RtcHostFinalizationState>("IDLE");
+  const isFinalizationBlocking = isRtcFinalizationBlocking(
+    finalizationState,
+  );
   const isVisionCameraRunningRef = useRef(false);
   const isCameraPageFocusedRef = useRef(false);
   const endPhotoSelectionRequestRef =
@@ -194,6 +200,19 @@ export function CameraPage() {
         cameraGuide.presentedGuide.cameraAspectRatio,
   );
   const openConfirm = useConfirm();
+
+  usePreventRemove(isFinalizationBlocking, () => undefined);
+
+  useEffect(() => {
+    if (!isFinalizationBlocking) return;
+
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => true,
+    );
+
+    return () => subscription.remove();
+  }, [isFinalizationBlocking]);
 
   useEffect(() => {
     if (
@@ -800,6 +819,8 @@ export function CameraPage() {
         photos={capturedPhotos}
         onClose={() => setIsCapturedPhotosOpen(false)}
       />
+
+      <RtcFinalizationOverlay state={finalizationState} />
     </>
   );
 }

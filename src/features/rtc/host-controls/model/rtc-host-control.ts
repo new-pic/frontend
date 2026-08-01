@@ -7,6 +7,11 @@ export type RtcHostFinalizationState =
   | "DELIVERING_RESULT"
   | "FAILED";
 
+export type RtcFinalizationBlockingState = Extract<
+  RtcHostFinalizationState,
+  "ENDING_ROOM" | "DELIVERING_RESULT"
+>;
+
 export function resolveRtcCameraMenuMode({
   isBusy,
   isLive,
@@ -27,6 +32,12 @@ export function isRtcFinalizationPending(
     state === "ENDING_ROOM" ||
     state === "DELIVERING_RESULT"
   );
+}
+
+export function isRtcFinalizationBlocking(
+  state: RtcHostFinalizationState,
+): state is RtcFinalizationBlockingState {
+  return state === "ENDING_ROOM" || state === "DELIVERING_RESULT";
 }
 
 export function getRtcRoomReconnectDelay(

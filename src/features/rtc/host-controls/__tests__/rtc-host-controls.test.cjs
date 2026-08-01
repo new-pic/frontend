@@ -1,8 +1,14 @@
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 const test = require("node:test");
+
+const readSource = (relativePath) =>
+  fs.readFileSync(path.resolve(__dirname, relativePath), "utf8");
 
 const {
   getRtcRoomReconnectDelay,
+  isRtcFinalizationBlocking,
   isRtcFinalizationPending,
   resolveRtcCameraMenuMode,
 } = require("../model/rtc-host-control.ts");
@@ -37,6 +43,66 @@ test("RTC 종료 진행 상태만 pending으로 분류한다", () => {
   assert.equal(isRtcFinalizationPending("DELIVERING_RESULT"), true);
   assert.equal(isRtcFinalizationPending("FAILED"), false);
   assert.equal(isRtcFinalizationPending("IDLE"), false);
+});
+
+test("RTC 종료 요청과 결과 전달 단계에서만 카메라 입력을 차단한다", () => {
+  assert.equal(isRtcFinalizationBlocking("IDLE"), false);
+  assert.equal(isRtcFinalizationBlocking("PREPARING_PHOTOS"), false);
+  assert.equal(isRtcFinalizationBlocking("ENDING_ROOM"), true);
+  assert.equal(isRtcFinalizationBlocking("DELIVERING_RESULT"), true);
+  assert.equal(isRtcFinalizationBlocking("FAILED"), false);
+});
+
+test("카메라 종료 오버레이는 lifecycle을 유지한 채 입력과 화면 이탈을 차단한다", () => {
+  const pageSource = readSource(
+    "../../../../pages/camera/ui/camera-page.tsx",
+  );
+  const overlaySource = readSource(
+    "../ui/rtc-finalization-overlay.tsx",
+  );
+
+  assert.match(
+    pageSource,
+    /usePreventRemove\(isFinalizationBlocking/,
+  );
+  assert.match(
+    pageSource,
+    /BackHandler\.addEventListener\(\s*"hardwareBackPress",\s*\(\) => true/,
+  );
+  assert.match(
+    pageSource,
+    /<RtcFinalizationOverlay state=\{finalizationState\} \/>/,
+  );
+  assert.match(overlaySource, /pointerEvents="auto"/);
+  assert.match(overlaySource, /accessibilityViewIsModal/);
+});
+
+test("사진이 포함된 RTC 종료 요청은 호스트 인증과 upload fetch를 사용한다", () => {
+  const source = readSource(
+    "../../../../entities/rtc/api/rtc-host-query.ts",
+  );
+
+  assert.match(source, /const headers = createRtcHostHeaders\(id\)/);
+  assert.match(source, /uploadFetchClient\.patch\(\{/);
+  assert.match(source, /formData: ObjectToFormData\(parsedRequest\)/);
+  assert.match(source, /headers,/);
+  assert.match(
+    source,
+    /privateApiClient\.patch\(url, undefined, \{\s*headers,/,
+  );
+});
+
+test("RTC 종료 실패는 인라인 문구 대신 재시도 Alert로 표시한다", () => {
+  const source = readSource(
+    "../../../../pages/camera/ui/rtc-livekit-page.tsx",
+  );
+
+  assert.match(source, /Alert\.alert\(\s*"RTC 방 종료 실패"/);
+  assert.match(source, /text: "종료 처리 다시 시도"/);
+  assert.doesNotMatch(
+    source,
+    /<ButtonText>종료 처리 다시 시도<\/ButtonText>/,
+  );
 });
 
 test("RTC SSE 재연결 지연은 지수 증가 후 15초로 제한한다", () => {
