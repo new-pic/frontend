@@ -7,17 +7,18 @@ import {
 import { normalizeAuthReturnTo } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import {
-  Box,
   Button,
   ButtonSpinner,
   ButtonText,
   HStack,
+  Input,
+  InputField,
   Text,
   VStack,
 } from "@shared/ui";
 import { Href, router } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, TextInput } from "react-native";
+import { Alert } from "react-native";
 
 const sanitizeCode = (value: string) =>
   value.replace(/\D/g, "").slice(0, 6);
@@ -125,20 +126,20 @@ export function RtcJoinForm({
   };
 
   return (
-    <VStack className="gap-7">
-      <VStack className="gap-2">
-        <Text size="2xl" bold>
+    <VStack className="gap-6">
+      <VStack className="gap-3">
+        <Text size="xl" bold>
           실시간 공유 참여
         </Text>
-        <Text className="text-outline">
+        <Text className="text-label-muted">
           호스트 화면에 표시된 6자리 코드를 입력해주세요.
         </Text>
       </VStack>
 
-      <VStack className="gap-2">
+      <VStack className="gap-3">
         <Text bold>공유 코드</Text>
-        <Box className="min-h-14 w-full flex-row items-center overflow-hidden rounded-md border border-outline px-3">
-          <TextInput
+        <Input className="h-14 rounded-xl">
+          <InputField
             value={code}
             onChangeText={(value) =>
               setCode(sanitizeCode(value))
@@ -150,17 +151,11 @@ export function RtcJoinForm({
             textContentType="oneTimeCode"
             returnKeyType="join"
             onSubmitEditing={() => void handleJoin()}
-            style={{
-              height: "100%",
-              flex: 1,
-              paddingVertical: 4,
-              textAlign: "center",
-              fontSize: 20,
-              letterSpacing: code.length > 0 ? 4 : 0,
-            }}
+            className="text-center text-xl"
+            style={{ letterSpacing: code.length > 0 ? 4 : 0 }}
             accessibilityLabel="6자리 공유 코드"
           />
-        </Box>
+        </Input>
       </VStack>
 
       <HStack className="gap-3">

@@ -6,6 +6,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface RtcJoinSheetProps {
   open: boolean;
@@ -18,11 +19,13 @@ export function RtcJoinSheet({
   onClose,
   initialCode,
 }: RtcJoinSheetProps) {
+  const insets = useSafeAreaInsets();
+
   return (
     <BottomSheetModal
       open={open}
       onClose={onClose}
-      snapPoints={["52%", "82%"]}
+      snapPoints={["48%", "82%"]}
     >
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -32,13 +35,14 @@ export function RtcJoinSheet({
       >
         <ScrollView
           nestedScrollEnabled
+          contentInsetAdjustmentBehavior="automatic"
+          automaticallyAdjustKeyboardInsets
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{
             flexGrow: 1,
-            justifyContent: "center",
             paddingHorizontal: 24,
-            paddingBottom: 32,
-            paddingTop: 20,
+            paddingBottom: Math.max(24, insets.bottom),
+            paddingTop: 24,
           }}
         >
           <RtcJoinForm
