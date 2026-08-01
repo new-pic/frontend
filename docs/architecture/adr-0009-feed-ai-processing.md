@@ -17,6 +17,11 @@ projection이 `estimatedRemainingSeconds`를 기준으로 표시값을 계산한
 초기 이미지 파일 upload에는 서버 job ETA가 없으므로 기존 indeterminate
 loader를 유지하고, 시간 기반 progress loader는 AI 처리 단계에만 적용한다.
 
+루트 Badge는 safe area 기준 우측 상단에 배치한다. 파일 upload와 수정
+요청에는 회전 loader를 사용하고, AI 처리 단계에서는 spinner를 숨긴 뒤
+문구 오른쪽의 얇은 progress track만 표시한다. Badge 배경 전체를 progress로
+사용하지 않아 다른 화면 요소 위에서도 상태와 진행량을 구분한다.
+
 생성 작업은 AI 처리와 목록 갱신이 모두 끝났을 때, 수정 작업은 API 요청이
 완료됐을 때 `expo-haptics` 성공 feedback을 한 번 발생시킨다. 햅틱은 UI
 feedback adapter로 격리하고 네트워크·Store 상태를 변경하지 않는다.
@@ -136,8 +141,9 @@ active인 동안만 250ms 주기로 계산하며 foreground 복귀 시 wall-cloc
 - 완료 시 전역 Feed 목록과 내 피드 목록을 single-flight reset한다.
 - Pull-to-Refresh는 같은 reset use case를 강제 최신 요청 모드로 실행한다.
 - 목록 reset 중에는 Photo Grid가 직전 서버 응답 snapshot을 유지한다.
-- AI 처리 Badge는 전체 pill을 track으로 사용해 표시 진행률만큼 브랜드 색상으로
-  채운다.
+- 루트 Badge는 safe area 기준 우측 상단에 배치한다. 파일 upload/수정 중에는
+  spinner를, AI 처리 중에는 문구 오른쪽 `64 x 4` progress track을 표시한다.
+- AI 처리 중 Badge 배경은 고정하고 progress value만 track 안에서 증가한다.
 - 낮은 SSE 무시, ETA 기반 무응답 증가, 95% 보간 상한과 완료 전 99% 제한을
   순수 함수 단위 테스트로 검증했다.
 - 완료 작업 ID는 한 번만 소비하며 background에서 완료된 작업은 foreground

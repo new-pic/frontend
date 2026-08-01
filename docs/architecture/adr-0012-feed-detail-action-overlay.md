@@ -6,6 +6,11 @@
 `FeedDetailPager`가 하나만 소유한다. Pager의 `activePageIndex`에서 현재
 Feed를 선택해 기존 `guideFeedId` route contract로 Camera를 연다.
 
+뒤로 가기와 작성자 더보기 메뉴가 있는 Header도 슬라이드 item이 아니라
+`FeedDetailPager`의 고정 sibling으로 둔다. 작성자 avatar와 nickname은
+이미지 상단 왼쪽, 저장 action은 상단 오른쪽에 overlay하고 좋아요 action은
+이미지 하단에 유지한다.
+
 작성자 전용 수정·삭제 액션은 각각의 아이콘 버튼 대신 하나의 세로 점
 트리거와 anchored menu로 제공한다. 메뉴는 기존 edit/delete feature의
 headless action을 조합한다.
@@ -18,6 +23,8 @@ headless action을 조합한다.
 
 수정과 삭제는 버튼 UI에 동작이 직접 결합돼 있어 하나의 메뉴에서 기존
 동작을 조합할 수 없었다. 큰 텍스트 FAB는 긴 댓글을 가리는 면적도 컸다.
+Header가 슬라이드 안에 있으면 페이지를 넘길 때 뒤로 가기와 메뉴 trigger도
+함께 이동해 화면 navigation control이 콘텐츠 lifecycle에 종속된다.
 
 ## Alternatives
 
@@ -40,6 +47,11 @@ headless action을 조합한다.
 Pager가 이미 활성 Feed 상태를 소유하므로 페이지 수준 FAB도 같은
 계층에서 파생하는 것이 단일 책임에 맞다. 원형 카메라 FAB는 접근성
 라벨로 의미를 유지하면서 화면 점유를 최소화한다.
+
+Header도 현재 Feed만 입력으로 받는 Pager sibling으로 두면 navigation
+control은 고정하고 작성자 권한에 따른 메뉴 내용만 활성 page에 맞춰 바꿀 수
+있다. 작성자 정보와 저장 action은 이미지 문맥에 속하므로 콘텐츠 overlay가
+소유하고, Header는 navigation과 owner menu만 책임진다.
 
 작성자 메뉴는 화면의 trigger 위치를 측정해 표시하므로 헤더가 일부
 스크롤된 상태에서도 메뉴가 trigger에 붙는다. 수정·삭제 동작을
@@ -77,8 +89,12 @@ FeedDetailContent
 ## Result
 
 - FAB를 `FeedDetailPager`의 단일 sibling overlay로 이동했다.
+- Header를 `SlidePageView` 밖 Pager sibling으로 이동해 페이지 전환 중에도
+  뒤로 가기와 작성자 메뉴 위치를 고정했다.
 - 56px 원형 camera action과 접근성 라벨을 적용했다.
 - 댓글 하단 여백에 FAB 높이 절반과 bottom safe area를 포함했다.
 - 작성자 피드에만 수정·삭제 dropdown을 노출했다.
 - 좋아요 액션을 이미지 하단에 배치하고 밝은 색상과 하단 음영을 적용했다.
+- 작성자 avatar/nickname과 저장 action을 이미지 상단 양쪽에 배치하고
+  이미지 배경과 관계없이 보이도록 text/icon shadow를 적용했다.
 - 피드 캡션에 최소 높이와 확장된 상하 패딩을 적용했다.
