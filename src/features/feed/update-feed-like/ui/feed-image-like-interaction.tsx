@@ -1,7 +1,7 @@
 import { MOBILE_UI_METRICS } from "@shared/constants";
 import { IconHeartFilled } from "@tabler/icons-react-native";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   cancelAnimation,
@@ -78,13 +78,32 @@ export function FeedImageLikeInteraction({
 
   return (
     <GestureDetector gesture={doubleTapGesture}>
-      <View style={styles.container}>
+      <View
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+        }}
+      >
         {children}
         <Animated.View
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
           pointerEvents="none"
-          style={[styles.feedback, feedbackStyle]}
+          style={[
+            {
+              position: "absolute",
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+              alignItems: "center",
+              justifyContent: "center",
+            },
+            feedbackStyle,
+          ]}
         >
           <IconHeartFilled
             color="white"
@@ -98,22 +117,3 @@ export function FeedImageLikeInteraction({
     </GestureDetector>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-  },
-  feedback: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
