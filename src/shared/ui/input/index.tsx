@@ -1,5 +1,4 @@
 "use client";
-"use no memo";
 
 import { UIIcon } from "@gluestack-ui/core/icon/creator";
 import { createInput } from "@gluestack-ui/core/input/creator";

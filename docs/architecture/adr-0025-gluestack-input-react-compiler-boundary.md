@@ -1,5 +1,8 @@
 # ADR-0025: gluestack Input과 React Compiler 경계
 
+> Status: Superseded by ADR-0027. 실제 런타임 오류는 React Compiler
+> 경계가 아니라 NativeWind v5에 남은 기존 Babel preset에서 발생했다.
+
 ## Decision
 
 공용 `Input`의 gluestack v5 `createInput` 구조와 공개 API를 유지한다. 다만
