@@ -2,6 +2,7 @@ import { registerGlobals } from "@livekit/react-native";
 import {
   FeedProcessingBadge,
   FeedProcessingCoordinator,
+  FeedPublishingCoordinator,
 } from "@features/feed/feed-processing";
 import {
   CAMERA_GUIDE_NAVIGATION,
@@ -150,6 +151,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <GluestackUIProvider>
         <QueryClientProvider client={queryClient}>
+          <FeedPublishingCoordinator />
           <FeedProcessingCoordinator />
           <Stack
             screenOptions={{

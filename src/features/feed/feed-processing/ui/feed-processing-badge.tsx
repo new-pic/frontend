@@ -1,4 +1,5 @@
 import { colors } from "@shared/constants";
+import { deleteStagedUploadFile } from "@shared/lib";
 import { Pressable, Text } from "@shared/ui";
 import {
   IconAlertCircle,
@@ -12,6 +13,23 @@ import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FEED_PROCESSING_CONFIG } from "../config/feed-processing-config";
 import { useFeedProcessingStore } from "../model/feed-processing-store";
+import { useFeedPublishingStore } from "../model/feed-publishing-store";
+
+function getPublishingBadgeLabel(
+  kind: "CREATE" | "UPDATE",
+  phase: "queued" | "uploading" | "updating" | "completed" | "failed",
+  errorMessage?: string,
+) {
+  const action = kind === "CREATE" ? "게시" : "수정";
+  if (phase === "failed") {
+    return errorMessage
+      ? `${action} 실패 · ${errorMessage}`
+      : `${action} 실패 · 눌러서 다시 시도`;
+  }
+  if (phase === "completed") return `피드 ${action} 완료`;
+  if (phase === "queued") return `피드 ${action} 준비 중`;
+  return kind === "CREATE" ? "피드 업로드 중" : "피드 수정 중";
+}
 
 function getBadgeLabel(
   phase: "processing" | "completed" | "failed",
@@ -38,6 +56,9 @@ function getBadgeLabel(
 
 export function FeedProcessingBadge() {
   const insets = useSafeAreaInsets();
+  const publishingTask = useFeedPublishingStore((state) => state.task);
+  const retryPublishing = useFeedPublishingStore((state) => state.retry);
+  const dismissPublishing = useFeedPublishingStore((state) => state.dismiss);
   const job = useFeedProcessingStore((state) => state.job);
   const dismiss = useFeedProcessingStore((state) => state.dismiss);
 
@@ -55,6 +76,79 @@ export function FeedProcessingBadge() {
     );
     return () => clearTimeout(timeout);
   }, [dismiss, job?.jobId, job?.listRefreshState, job?.phase]);
+
+  useEffect(() => {
+    if (publishingTask?.phase !== "completed") return;
+
+    const taskId = publishingTask.id;
+    const timeout = setTimeout(
+      () => dismissPublishing(taskId),
+      FEED_PROCESSING_CONFIG.completedBadgeDurationMs,
+    );
+    return () => clearTimeout(timeout);
+  }, [dismissPublishing, publishingTask?.id, publishingTask?.phase]);
+
+  if (publishingTask) {
+    const isFailed = publishingTask.phase === "failed";
+    const isCompleted = publishingTask.phase === "completed";
+    const Icon = isFailed
+      ? IconAlertCircle
+      : isCompleted
+        ? IconCheck
+        : IconLoader2;
+
+    const handleDismiss = () => {
+      if (publishingTask.command.kind === "CREATE") {
+        deleteStagedUploadFile(publishingTask.command.image);
+      }
+      dismissPublishing(publishingTask.id);
+    };
+
+    return (
+      <View
+        pointerEvents="box-none"
+        style={[styles.layer, { top: insets.top + 8 }]}
+      >
+        <View style={[styles.badge, isFailed && styles.failedBadge]}>
+          <Pressable
+            accessibilityLabel={
+              isFailed ? "실패한 피드 저장 다시 시도" : "피드로 이동"
+            }
+            className="flex-row items-center gap-2 flex-shrink"
+            onPress={() => {
+              if (isFailed) {
+                retryPublishing(publishingTask.id);
+              } else {
+                router.push("/feed");
+              }
+            }}
+          >
+            <Icon color="white" size={19} />
+            <Text
+              className="text-white font-semibold flex-shrink"
+              size="sm"
+              numberOfLines={2}
+            >
+              {getPublishingBadgeLabel(
+                publishingTask.command.kind,
+                publishingTask.phase,
+                publishingTask.errorMessage,
+              )}
+            </Text>
+          </Pressable>
+          {isFailed || isCompleted ? (
+            <Pressable
+              accessibilityLabel="피드 게시 상태 닫기"
+              className="ml-2"
+              onPress={handleDismiss}
+            >
+              <IconX color="white" size={18} />
+            </Pressable>
+          ) : null}
+        </View>
+      </View>
+    );
+  }
 
   if (!job) return null;
 

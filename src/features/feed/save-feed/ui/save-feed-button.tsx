@@ -1,11 +1,11 @@
 // 피드 게시하기 / 수정하기 공통 사용 버튼
 
+import type { UpdateFeedRequest } from "@entities/feed";
 import {
-  CreateFeedRequest,
-  feedQuery,
-  UpdateFeedRequest,
-} from "@entities/feed";
-import { useFeedProcessingStore } from "@features/feed/feed-processing";
+  type CreateFeedPublishingCommand,
+  useFeedPublishingPipelineActive,
+  useFeedPublishingStore,
+} from "@features/feed/feed-processing";
 import { Button, ButtonSpinner, ButtonText } from "@shared/ui";
 import { router } from "expo-router";
 import { Alert } from "react-native";
@@ -20,14 +20,11 @@ interface SaveFeedButtonProps {
 
 export function SaveFeedButton({ mode, form, feedId }: SaveFeedButtonProps) {
   const isCreate = mode === "CREATE";
-  const mutationToCreate = feedQuery.useCreateFeed();
-  const mutationToUpdate = feedQuery.useUpdateFeed({ feedId });
-  const startFeedProcessing = useFeedProcessingStore(
-    (state) => state.start,
-  );
+  const enqueue = useFeedPublishingStore((state) => state.enqueue);
+  const isPipelineActive = useFeedPublishingPipelineActive();
 
   const actionText = isCreate ? "등록" : "수정";
-  const isPending = form.formState.isSubmitting;
+  const isPending = form.formState.isSubmitting || isPipelineActive;
 
   const onRequestError = (errorMessage?: string) => {
     const message =
@@ -36,20 +33,29 @@ export function SaveFeedButton({ mode, form, feedId }: SaveFeedButtonProps) {
     Alert.alert(`피드 ${actionText} 실패`, message);
   };
 
-  const handleUpdateSuccess = () => {
-    Alert.alert("피드 수정 완료", "피드가 수정되었습니다.");
+  const handleCreate = (command: CreateFeedPublishingCommand) => {
+    const accepted = enqueue(command);
+    if (!accepted) {
+      onRequestError("진행 중인 피드 저장 작업을 먼저 완료해주세요.");
+      return false;
+    }
     router.replace("/feed");
+    return true;
   };
 
-  const handleCreate = async (request: CreateFeedRequest) => {
-    const job = await mutationToCreate.mutateAsync(request);
-    startFeedProcessing(job);
-    router.replace("/feed");
-  };
+  const handleUpdate = (request: UpdateFeedRequest) => {
+    if (!feedId) {
+      onRequestError("수정할 피드 정보를 찾을 수 없습니다.");
+      return false;
+    }
 
-  const handleUpdate = async (request: UpdateFeedRequest) => {
-    await mutationToUpdate.mutateAsync(request);
-    handleUpdateSuccess();
+    const accepted = enqueue({ kind: "UPDATE", feedId, ...request });
+    if (!accepted) {
+      onRequestError("진행 중인 피드 저장 작업을 먼저 완료해주세요.");
+      return false;
+    }
+    router.replace("/feed");
+    return true;
   };
 
   const handlePress = form.handleValidSubmit(

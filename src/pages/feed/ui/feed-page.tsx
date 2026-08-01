@@ -1,5 +1,8 @@
 import { feedQuery } from "@entities/feed";
-import { useRefreshPublishedFeeds } from "@features/feed/feed-processing";
+import {
+  useFeedPublishingPipelineActive,
+  useRefreshPublishedFeeds,
+} from "@features/feed/feed-processing";
 import { TagBottomSheet, TagList } from "@features/tags/select-feed-tags";
 import { gradients } from "@shared/constants";
 import { useDebouncedValue } from "@shared/hooks";
@@ -16,6 +19,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export function FeedPage() {
   const isGuest = useAuthStore((state) => state.isGuest);
+  const isPublishing = useFeedPublishingPipelineActive();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isTagBottomSheetOpen, setIsTagBottomSheetOpen] = useState(false);
@@ -157,6 +161,10 @@ export function FeedPage() {
           {!isGuest ? (
             <Fab
               className="w-15 h-15 rounded-full bottom-8 right-8"
+              disabled={isPublishing}
+              accessibilityLabel={
+                isPublishing ? "다른 피드를 게시하는 중입니다" : "피드 작성"
+              }
               onPress={handlePressEdit}
             >
               <LinearGradient
