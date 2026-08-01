@@ -1,26 +1,61 @@
 import GoogleLogo from "@assets/icons/google-logo.svg";
 import { useSocialLogin } from "@features/user/save-social-login";
-import { Button, ButtonText, Center, Text, VStack } from "@shared/ui";
+import { EXTERNAL_LINKS } from "@shared/constants";
+import { useAuthStore } from "@shared/model";
+import {
+  Button,
+  ButtonText,
+  Center,
+  Checkbox,
+  CheckboxIcon,
+  CheckboxIndicator,
+  HStack,
+  Text,
+  VStack,
+} from "@shared/ui";
+import { IconCheck } from "@tabler/icons-react-native";
+import * as Linking from "expo-linking";
 import { useState } from "react";
-import { Image } from "react-native";
+import { Alert, Image, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function WelcomPage() {
   const { isLoading, loginWithGoogle, loginToGuest } = useSocialLogin();
   const [loginError, setLoginError] = useState<string | null>(null);
+  const termsAgreed = useAuthStore((state) => state.termsAgreed);
+  const hasExistingSession = useAuthStore((state) =>
+    Boolean(state.accessToken),
+  );
+  const setTermsAgreed = useAuthStore(
+    (state) => state.setTermsAgreed,
+  );
+
+  const ensureTermsAgreed = () => {
+    if (termsAgreed) return true;
+
+    Alert.alert(
+      "이용약관 동의 필요",
+      "서비스를 시작하려면 이용약관에 동의해주세요.",
+    );
+    return false;
+  };
 
   const handleGuestLogin = async () => {
+    if (!ensureTermsAgreed()) return;
+
     setLoginError(null);
     try {
       await loginToGuest();
     } catch {
       setLoginError(
-        "기기 정보를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.",
+        "로그인 없이 시작하지 못했습니다. 잠시 후 다시 시도해주세요.",
       );
     }
   };
 
   const handleGoogleLogin = async () => {
+    if (!ensureTermsAgreed()) return;
+
     setLoginError(null);
     try {
       await loginWithGoogle();
@@ -28,8 +63,21 @@ export function WelcomPage() {
       setLoginError("계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.");
     }
   };
+
+  const handleOpenTermsOfService = async () => {
+    try {
+      await Linking.openURL(EXTERNAL_LINKS.TERMS_OF_SERVICE);
+      setTermsAgreed(true);
+    } catch {
+      Alert.alert(
+        "페이지 연결 실패",
+        "이용약관 페이지를 열지 못했습니다. 다시 시도해주세요.",
+      );
+    }
+  };
+
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ flex: 1 }}>
       <VStack className="h-full px-8 justify-center py-8 gap-14">
         <Center>
           <Image
@@ -73,6 +121,33 @@ export function WelcomPage() {
             <ButtonText>로그인 없이 사용하기</ButtonText>
           </Button>
         </VStack>
+        <HStack className="absolute bottom-0 left-8 right-8 items-center justify-center">
+          <Checkbox
+            value="terms-agreed"
+            className="h-11 w-11 justify-center"
+            isChecked={termsAgreed}
+            isDisabled={isLoading || hasExistingSession}
+            onChange={setTermsAgreed}
+            accessibilityLabel="이용약관 동의"
+          >
+            <CheckboxIndicator className="h-6 w-6 rounded-md">
+              <CheckboxIcon as={IconCheck} className="h-4 w-4" />
+            </CheckboxIndicator>
+          </Checkbox>
+          <Pressable
+            className="min-h-11 justify-center"
+            disabled={isLoading}
+            accessibilityRole="link"
+            onPress={handleOpenTermsOfService}
+          >
+            <Text size="sm">
+              <Text className="font-semibold text-link-text underline">
+                이용약관
+              </Text>
+              에 동의합니다.
+            </Text>
+          </Pressable>
+        </HStack>
       </VStack>
     </SafeAreaView>
   );
