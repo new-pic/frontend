@@ -11,7 +11,8 @@ RTC 방의 참여자와 상태는 `expo/fetch` SSE transport에서 서버 event�
 종료 동작은 서버 mutation을 직접 호출하지 않고 controlled command를
 통해 LiveKit host lifecycle의 기존 종료 절차를 실행한다.
 
-촬영 사진 상세는 `SlidePageView` 기반 공용 갤러리로 제공하고,
+촬영 사진 목록은 CameraPage가 소유하는 Safe Area 전체 화면 Layer로
+제공한다. 사진 상세만 `SlidePageView` 기반 단일 native Modal로 열고,
 선택 화면에서는 이미지 본문 터치와 선택 check 터치를 분리한다.
 
 가이드 trigger는 Header action row에 넣지 않고 Camera Preview 콘텐츠의
@@ -127,6 +128,9 @@ RtcHostLiveKitPage
 - 가이드 trigger는 Preview 우측 상단에 별도 배치했다.
 - 최근 촬영 사진, 종료 사진 선택, 결과 사진 선택에 공용 슬라이드
   갤러리를 연결했다.
+- 촬영 사진 목록과 상세 native Modal의 중첩을 제거했다. 목록은 Camera
+  session 내부의 전체 화면 Layer로 유지하고, 상세 사진은 흰색 여백의
+  `contain` 방식과 Safe Area control을 사용하는 단일 Modal로 표시한다.
 - RTC event 병합, 재연결 지연, 메뉴 상태, 갤러리 index와 기존
   Camera/PhotoGrid/Feed SSE 회귀 단위 테스트를 통과했다.
 - 전체 TypeScript 검사에서는 이번 변경과 무관한 기존

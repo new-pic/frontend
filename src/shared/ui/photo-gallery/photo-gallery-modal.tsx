@@ -2,7 +2,7 @@ import { colors } from "@shared/constants";
 import {
   IconCircle,
   IconCircleCheck,
-  IconX,
+  IconChevronLeft,
 } from "@tabler/icons-react-native";
 import { Image } from "expo-image";
 import { useEffect, useState } from "react";
@@ -12,10 +12,13 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Box } from "../box";
 import { Button, ButtonIcon } from "../button";
+import { HStack } from "../hstack";
 import { Pressable } from "../pressable";
 import { SlidePageView } from "../slide-page-view";
 import { Text } from "../text";
+import { VStack } from "../vstack";
 import { clampPhotoGalleryIndex } from "./photo-gallery-state";
 
 export interface PhotoGalleryImage {
@@ -61,107 +64,101 @@ export function PhotoGalleryModal<
   return (
     <Modal
       animationType="fade"
+      presentationStyle="fullScreen"
       visible
-      statusBarTranslucent
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
-        <SlidePageView
-          initialPage={safeInitialIndex}
-          onPageSelected={setActiveIndex}
-        >
-          {images.map((image) => (
-            <SlidePageView.Item key={image.id}>
-              <View style={styles.imagePage}>
-                <Image
-                  source={image.imageUrl}
-                  contentFit="contain"
-                  style={StyleSheet.absoluteFill}
-                />
-              </View>
-            </SlidePageView.Item>
-          ))}
-        </SlidePageView>
-
-        <SafeAreaView
-          pointerEvents="box-none"
-          edges={["top", "bottom"]}
-          style={StyleSheet.absoluteFill}
-        >
-          <View style={styles.topBar}>
+      <SafeAreaView
+        edges={["top", "bottom"]}
+        style={{ flex: 1, backgroundColor: "white" }}
+      >
+        <VStack className="flex-1 bg-white pt-4">
+          <HStack className="items-center justify-between border-b border-outline-light px-6 py-3">
             <Button
               variant="ghost"
               size="icon"
-              className="h-11 w-11 rounded-full bg-black/45"
               onPress={onClose}
-              accessibilityLabel="사진 상세 닫기"
+              accessibilityLabel="사진 목록으로 돌아가기"
             >
-              <ButtonIcon
-                as={IconX}
-                className="h-7 w-7 text-white"
-              />
+              <ButtonIcon as={IconChevronLeft} />
             </Button>
+            <Text size="lg" className="font-semibold">
+              사진 미리보기
+            </Text>
+            <Box className="w-12" />
+          </HStack>
+
+          <VStack className="relative flex-1">
+            <SlidePageView
+              initialPage={safeInitialIndex}
+              onPageSelected={setActiveIndex}
+            >
+              {images.map((image) => (
+                <SlidePageView.Item key={image.id}>
+                  <View style={styles.imagePage}>
+                    <Image
+                      source={image.imageUrl}
+                      contentFit="contain"
+                      style={StyleSheet.absoluteFill}
+                    />
+                  </View>
+                </SlidePageView.Item>
+              ))}
+            </SlidePageView>
+
+            {activeImage &&
+            selectedImageIds &&
+            onToggleSelection ? (
+              <Pressable
+                accessibilityRole="checkbox"
+                accessibilityLabel={
+                  selectedImageIds.has(activeImage.id)
+                    ? "현재 사진 선택 해제"
+                    : "현재 사진 선택"
+                }
+                accessibilityState={{
+                  checked: selectedImageIds.has(activeImage.id),
+                }}
+                onPress={() => onToggleSelection(activeImage)}
+                style={styles.selectionButton}
+              >
+                {selectedImageIds.has(activeImage.id) ? (
+                  <IconCircleCheck
+                    size={28}
+                    color="white"
+                    fill={colors.brand.primary}
+                  />
+                ) : (
+                  <IconCircle size={28} color="white" />
+                )}
+                <Text bold className="text-white">
+                  {selectedImageIds.has(activeImage.id)
+                    ? "선택됨"
+                    : "선택"}
+                </Text>
+              </Pressable>
+            ) : null}
+          </VStack>
+
+          <HStack className="items-center justify-center border-t border-outline-light px-6 py-4">
             <Text
-              className="rounded-full bg-black/45 px-4 py-2 text-white"
+              size="lg"
+              className="font-semibold"
               style={{ fontVariant: ["tabular-nums"] }}
             >
               {activeIndex + 1} / {images.length}
             </Text>
-          </View>
-
-          {activeImage &&
-          selectedImageIds &&
-          onToggleSelection ? (
-            <Pressable
-              accessibilityRole="checkbox"
-              accessibilityLabel={
-                selectedImageIds.has(activeImage.id)
-                  ? "현재 사진 선택 해제"
-                  : "현재 사진 선택"
-              }
-              accessibilityState={{
-                checked: selectedImageIds.has(activeImage.id),
-              }}
-              onPress={() => onToggleSelection(activeImage)}
-              style={styles.selectionButton}
-            >
-              {selectedImageIds.has(activeImage.id) ? (
-                <IconCircleCheck
-                  size={28}
-                  color="white"
-                  fill={colors.brand.primary}
-                />
-              ) : (
-                <IconCircle size={28} color="white" />
-              )}
-              <Text bold className="text-white">
-                {selectedImageIds.has(activeImage.id)
-                  ? "선택됨"
-                  : "선택"}
-              </Text>
-            </Pressable>
-          ) : null}
-        </SafeAreaView>
-      </View>
+          </HStack>
+        </VStack>
+      </SafeAreaView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000000",
-  },
   imagePage: {
     flex: 1,
-    backgroundColor: "#000000",
-  },
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 8,
+    backgroundColor: "#ffffff",
   },
   selectionButton: {
     position: "absolute",
