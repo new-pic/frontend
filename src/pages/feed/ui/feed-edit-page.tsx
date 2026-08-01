@@ -14,11 +14,12 @@ import {
 import { IconChevronLeft } from "@tabler/icons-react-native";
 import {
   CaptionContent,
+  FeedEditSkeleton,
   ImageSelector,
   type ImageParams,
 } from "@widgets/feed/edit";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -30,14 +31,18 @@ interface FeedEditPageProps {
 }
 
 export function FeedEditPage({ id, isEditMode }: FeedEditPageProps) {
-  const { data } = feedQuery.useReadFeed({ feedId: id });
+  const { data, isError, isPending, refetch } = feedQuery.useReadFeed({
+    feedId: id,
+  });
   const form = useSaveFeedForm({
     mode: isEditMode ? "EDIT" : "CREATE",
   });
+  const { reset } = form;
 
   const [selectedImage, setSelectedImage] = useState<ImageParams | null>(null);
   const [step, setStep] = useState<EditStep>("IMAGE");
   const [isLoadingAlbum, setIsLoadingAlbum] = useState(false);
+  const initializedFeedIdRef = useRef<string | null>(null);
 
   const handleSelectImage = (image: ImageParams) => {
     setSelectedImage(image);
@@ -66,20 +71,45 @@ export function FeedEditPage({ id, isEditMode }: FeedEditPageProps) {
   };
 
   useEffect(() => {
-    form.reset();
     if (isEditMode) {
       setStep("CAPTION");
       return;
     }
+    initializedFeedIdRef.current = null;
+    reset();
     setStep("IMAGE");
-  }, [isEditMode]);
+  }, [isEditMode, reset]);
 
   useEffect(() => {
-    if (data) {
-      form.setValue("tags", data.tags);
-      form.setValue("description", data.description);
+    if (!isEditMode || !data || initializedFeedIdRef.current === data.id) {
+      return;
     }
-  }, [data]);
+
+    reset({
+      image: "",
+      imageFileName: undefined,
+      tags: data.tags,
+      description: data.description,
+    });
+    initializedFeedIdRef.current = data.id;
+  }, [data, isEditMode, reset]);
+
+  if (isEditMode && isPending) return <FeedEditSkeleton />;
+
+  if (isEditMode && (isError || !data)) {
+    return (
+      <SafeAreaView style={{ flex: 1 }}>
+        <Center className="flex-1 gap-4 px-6">
+          <Text className="text-center text-label-muted">
+            피드 수정 정보를 불러오지 못했습니다.
+          </Text>
+          <Button variant="outline" onPress={() => void refetch()}>
+            <ButtonText>다시 시도</ButtonText>
+          </Button>
+        </Center>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView>
@@ -102,7 +132,7 @@ export function FeedEditPage({ id, isEditMode }: FeedEditPageProps) {
           <Center>
             <Image
               source={{
-                uri: selectedImage?.imageUrl ?? data?.thumbnailUrl,
+                uri: selectedImage?.imageUrl ?? data?.detailImageUrl,
               }}
               style={{ width: "60%", borderRadius: 20, aspectRatio: 4 / 5 }}
             />
