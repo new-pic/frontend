@@ -295,6 +295,15 @@ export function CameraPage() {
   const handleOpenShare = async () => {
     if (createRoomMutation.isPending) return;
 
+    const confirmed = await openConfirm({
+      title: "실시간 공유를 시작할까요?",
+      message:
+        "촬영 화면이 참여자에게 실시간으로 공유됩니다.",
+      confirmText: "공유 준비하기",
+      cancelText: "취소",
+    });
+    if (!confirmed) return;
+
     try {
       setIsJoinSheetOpen(false);
       await createRoomMutation.mutateAsync({
