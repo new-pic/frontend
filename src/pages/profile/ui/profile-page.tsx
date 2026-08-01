@@ -1,5 +1,5 @@
 import { usersQuery } from "@entities/user";
-import { gradients } from "@shared/constants";
+import { EXTERNAL_LINKS, gradients } from "@shared/constants";
 import { useConfirm } from "@shared/lib";
 import { useAuthStore } from "@shared/model/auth-store";
 import {
@@ -22,8 +22,9 @@ import {
 } from "@tabler/icons-react-native";
 import { ProfileRtcPhotoPreview } from "@widgets/profile/rtc-photo-preview";
 import { LinearGradient } from "expo-linear-gradient";
+import * as Linking from "expo-linking";
 import { router } from "expo-router";
-import { ScrollView } from "react-native";
+import { Alert, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 function ProfileButtonMenu() {
@@ -131,6 +132,28 @@ export function ProfilePage() {
     handleGoEdit();
   };
 
+  const handleOpenBugReport = async () => {
+    try {
+      await Linking.openURL(EXTERNAL_LINKS.BUG_REPORT);
+    } catch {
+      Alert.alert(
+        "페이지 연결 실패",
+        "버그 제보 페이지를 열지 못했습니다. 다시 시도해주세요.",
+      );
+    }
+  };
+
+  const handleOpenTermsOfService = async () => {
+    try {
+      await Linking.openURL(EXTERNAL_LINKS.TERMS_OF_SERVICE);
+    } catch {
+      Alert.alert(
+        "페이지 연결 실패",
+        "서비스 약관 페이지를 열지 못했습니다. 다시 시도해주세요.",
+      );
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView
@@ -171,20 +194,28 @@ export function ProfilePage() {
           {!isGuest ? <ProfileRtcPhotoPreview /> : null}
 
           <VStack className="rounded-3xl border border-outline">
-            <Pressable className="p-6">
-              <Text size="sm">도움말</Text>
+            {/* <Pressable className="p-6">
+              <Text size="md">도움말</Text>
+            </Pressable>
+            <Divider className="bg-outline" /> */}
+            <Pressable
+              className="p-6"
+              onPress={handleOpenBugReport}
+              accessibilityRole="link"
+            >
+              <Text size="md">버그 제보하기</Text>
             </Pressable>
             <Divider className="bg-outline" />
-            <Pressable className="p-6">
-              <Text size="sm">버그 제보하기</Text>
-            </Pressable>
-            <Divider className="bg-outline" />
-            <Pressable className="p-6">
-              <Text size="sm">서비스 약관</Text>
+            <Pressable
+              className="p-6"
+              onPress={handleOpenTermsOfService}
+              accessibilityRole="link"
+            >
+              <Text size="md">서비스 약관</Text>
             </Pressable>
             <Divider className="bg-outline" />
             <Pressable className="p-6" onPress={handleLogout}>
-              <Text size="sm" className="text-red-500 font-semibold">
+              <Text size="md" className="text-red-500 font-semibold">
                 로그아웃
               </Text>
             </Pressable>

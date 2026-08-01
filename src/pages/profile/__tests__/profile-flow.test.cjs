@@ -80,3 +80,53 @@ test("최근 촬영 사진은 grid에서 선택한 사진으로 공용 갤러리
   assert.match(source, /<PhotoGalleryModal/);
   assert.match(source, /initialIndex=\{galleryIndex \?\? 0\}/);
 });
+
+test("버그 제보 메뉴는 공용 외부 링크를 연다", () => {
+  const profileSource = readSource("../ui/profile-page.tsx");
+  const externalLinksSource = readSource(
+    "../../../shared/constants/external-links.ts",
+  );
+
+  assert.match(
+    externalLinksSource,
+    /BUG_REPORT: "https:\/\/forms\.gle\/Cr5erBoRrnHyayRw8"/,
+  );
+  assert.match(
+    profileSource,
+    /Linking\.openURL\(EXTERNAL_LINKS\.BUG_REPORT\)/,
+  );
+  assert.match(profileSource, /accessibilityRole="link"/);
+});
+
+test("서비스 약관 메뉴는 공용 외부 링크를 연다", () => {
+  const profileSource = readSource("../ui/profile-page.tsx");
+  const externalLinksSource = readSource(
+    "../../../shared/constants/external-links.ts",
+  );
+
+  assert.match(
+    externalLinksSource,
+    /TERMS_OF_SERVICE:[\s\S]*"https:\/\/working-skunk-fbd\.notion\.site\/newpic-3affdee90e2f807385e3ded6fe4ac37a"/,
+  );
+  assert.match(
+    profileSource,
+    /Linking\.openURL\(EXTERNAL_LINKS\.TERMS_OF_SERVICE\)/,
+  );
+  assert.match(profileSource, /onPress=\{handleOpenTermsOfService\}/);
+});
+
+test("프로필 하단 메뉴는 모바일 기본 텍스트 크기를 사용한다", () => {
+  const source = readSource("../ui/profile-page.tsx");
+
+  for (const label of [
+    "도움말",
+    "버그 제보하기",
+    "서비스 약관",
+    "로그아웃",
+  ]) {
+    assert.match(
+      source,
+      new RegExp(`size="md"[^>]*>\\s*${label}\\s*<`),
+    );
+  }
+});
