@@ -4,12 +4,16 @@ import { Pressable, Text } from "@shared/ui";
 import {
   IconAlertCircle,
   IconCheck,
-  IconLoader2,
   IconX,
 } from "@tabler/icons-react-native";
 import { router } from "expo-router";
 import { useEffect, useRef } from "react";
-import { AppState, StyleSheet, View } from "react-native";
+import {
+  ActivityIndicator,
+  AppState,
+  StyleSheet,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FEED_PROCESSING_CONFIG } from "../config/feed-processing-config";
 import { triggerFeedCompletionHaptic } from "../lib/feed-processing-haptics";
@@ -114,11 +118,6 @@ export function FeedProcessingBadge() {
   if (publishingTask) {
     const isFailed = publishingTask.phase === "failed";
     const isCompleted = publishingTask.phase === "completed";
-    const Icon = isFailed
-      ? IconAlertCircle
-      : isCompleted
-        ? IconCheck
-        : IconLoader2;
 
     const handleDismiss = () => {
       if (publishingTask.command.kind === "CREATE") {
@@ -146,7 +145,13 @@ export function FeedProcessingBadge() {
               }
             }}
           >
-            <Icon color="white" size={19} />
+            {isFailed ? (
+              <IconAlertCircle color="white" size={19} />
+            ) : isCompleted ? (
+              <IconCheck color="white" size={19} />
+            ) : (
+              <ActivityIndicator color="white" size="small" />
+            )}
             <Text
               className="text-white font-semibold flex-shrink"
               size="sm"
@@ -180,11 +185,6 @@ export function FeedProcessingBadge() {
   const isCompleted =
     job.phase === "completed" &&
     job.listRefreshState === "succeeded";
-  const Icon = isFailed
-    ? IconAlertCircle
-    : isCompleted
-      ? IconCheck
-      : IconLoader2;
 
   return (
     <View
@@ -194,28 +194,24 @@ export function FeedProcessingBadge() {
       <View
         style={[
           styles.badge,
-          job.phase === "processing" && styles.processingBadge,
           isFailed && styles.failedBadge,
         ]}
       >
-        {job.phase === "processing" ? (
-          <View
-            pointerEvents="none"
-            style={[
-              styles.progressFill,
-              {
-                width: `${displayProgressPercent}%`,
-              },
-            ]}
-          />
-        ) : null}
         <Pressable
-          className="flex-row items-center gap-2"
+          className="flex-row items-center gap-2 flex-shrink"
           style={styles.badgeContent}
           onPress={() => router.push("/feed")}
         >
-          <Icon color="white" size={19} />
-          <Text className="text-white font-semibold" size="sm">
+          {isFailed ? (
+            <IconAlertCircle color="white" size={19} />
+          ) : isCompleted ? (
+            <IconCheck color="white" size={19} />
+          ) : null}
+          <Text
+            className="text-white font-semibold flex-shrink"
+            size="sm"
+            numberOfLines={1}
+          >
             {getBadgeLabel(
               job.phase,
               displayProgressPercent,
@@ -223,6 +219,25 @@ export function FeedProcessingBadge() {
               job.listRefreshState,
             )}
           </Text>
+          {job.phase === "processing" ? (
+            <View
+              accessibilityRole="progressbar"
+              accessibilityValue={{
+                min: 0,
+                max: 100,
+                now: Math.round(displayProgressPercent),
+              }}
+              pointerEvents="none"
+              style={styles.progressTrack}
+            >
+              <View
+                style={[
+                  styles.progressValue,
+                  { width: `${displayProgressPercent}%` },
+                ]}
+              />
+            </View>
+          ) : null}
         </Pressable>
         {job.phase !== "processing" ? (
           <Pressable
@@ -244,13 +259,13 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 16,
     right: 16,
-    alignItems: "center",
+    alignItems: "flex-end",
     zIndex: 100,
     elevation: 100,
   },
   badge: {
     minHeight: 44,
-    maxWidth: "100%",
+    maxWidth: "84%",
     paddingHorizontal: 16,
     borderRadius: 22,
     flexDirection: "row",
@@ -264,16 +279,18 @@ const styles = StyleSheet.create({
   failedBadge: {
     backgroundColor: "#423b3b",
   },
-  processingBadge: {
-    backgroundColor: "#423b3b",
+  progressTrack: {
+    width: 64,
+    height: 4,
+    flexShrink: 0,
+    overflow: "hidden",
+    borderRadius: 2,
+    backgroundColor: "rgba(255, 255, 255, 0.35)",
   },
-  progressFill: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    borderRadius: 22,
-    backgroundColor: colors.brand.primary,
+  progressValue: {
+    height: "100%",
+    borderRadius: 2,
+    backgroundColor: "white",
   },
   badgeContent: {
     zIndex: 1,
