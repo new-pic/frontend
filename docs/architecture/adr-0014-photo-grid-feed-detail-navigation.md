@@ -6,6 +6,11 @@
 이동하고, 카메라 가이드 목록은 CameraPage 내부의 전체 화면
 Viewer에서 동일한 `FeedDetailPager`를 재사용한다.
 
+공통 `/feed/[id]` 상세 Route는 특정 Feed 탭이 아니라 Root Stack이
+소유한다. Feed 탭, 프로필의 내가 올린/저장한/찜한 피드 등 어느
+화면에서 진입해도 상세 화면을 현재 화면 위에 push하고, 뒤로 가기는
+실제 진입 화면의 navigation state로 복귀한다.
+
 ## Context
 
 `PhotoGrid`를 사용하는 목록마다 loading과 클릭 동작이 달랐고,
@@ -36,6 +41,8 @@ lifecycle에도 영향을 줄 수 있었다.
 
 - 프로필의 내가 올린/저장한/찜한 피드는 각 query 순서로 상세
   슬라이드를 탐색한다.
+- 공통 상세 Route를 Tabs 밖 Root Stack으로 이동해 뒤로 가기 시
+  피드 목록으로 강제 전환되지 않고 실제 진입 화면으로 복귀한다.
 - 카메라 가이드 목록은 CameraPage를 유지한 채 상세를 열고 현재
   슬라이드를 가이드로 선택한다.
 - 실제 기기에서 Camera/RTC 유지 여부와 상세 전환 동작을 검증해야

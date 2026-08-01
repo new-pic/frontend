@@ -1,5 +1,6 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const path = require("node:path");
 const test = require("node:test");
 const ts = require("typescript");
 
@@ -20,6 +21,19 @@ const {
   findFeedDetailInitialIndex,
   parseFeedDetailSource,
 } = require("../model/feed-detail-navigation.ts");
+
+test("공통 피드 상세 route는 Tabs 밖의 Root Stack이 소유한다", () => {
+  assert.equal(
+    fs.existsSync(path.join(process.cwd(), "src/app/feed/[id].tsx")),
+    true,
+  );
+  assert.equal(
+    fs.existsSync(
+      path.join(process.cwd(), "src/app/(tabs)/feed/[id].tsx"),
+    ),
+    false,
+  );
+});
 
 test("source가 없는 기존 상세 링크는 public 목록을 사용한다", () => {
   assert.equal(parseFeedDetailSource(undefined), "public");
