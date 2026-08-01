@@ -1,7 +1,7 @@
 import {
   mergeRtcRoomEvent,
   rtcHostQuery,
-  subscribeRtcRoomEvents,
+  rtcQuery,
   type RtcRoomResponse,
 } from "@entities/rtc";
 import { useQueryClient } from "@tanstack/react-query";
@@ -76,7 +76,7 @@ export function useRtcRoomEvents({
         }
 
         try {
-          await subscribeRtcRoomEvents({
+          await rtcQuery.subscribeRtcRoomEvents({
             roomId: normalizedRoomId,
             signal: streamController.signal,
             onOpen: () => {
