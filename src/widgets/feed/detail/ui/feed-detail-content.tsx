@@ -94,8 +94,8 @@ export function FeedDetailContent({
         onEndReachedThreshold={0.2}
         ListHeaderComponent={
           <>
-            <VStack className="pt-3 w-full">
-              <VStack className="px-6 items-start border-b border-outline-light">
+            <VStack className="w-full">
+              <VStack className="px-6 py-3 items-start border-b border-outline-light">
                 <HStack className="w-full items-center justify-between">
                   <Button
                     variant="ghost"
@@ -108,24 +108,6 @@ export function FeedDetailContent({
                   {isMyFeed ? (
                     <FeedOwnerActionsMenu feedId={feed.id} />
                   ) : null}
-                </HStack>
-                <HStack className="items-center w-full py-2">
-                  <HStack
-                    space="md"
-                    className="items-center px-1 py-2 "
-                  >
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallbackText>
-                        {feed.author.nickname}
-                      </AvatarFallbackText>
-                      <AvatarImage
-                        source={{ uri: feed.author.profileImage }}
-                      />
-                    </Avatar>
-                    <Text size="md" className="font-medium">
-                      {feed.author.nickname}
-                    </Text>
-                  </HStack>
                 </HStack>
               </VStack>
               <View
@@ -165,21 +147,63 @@ export function FeedDetailContent({
                     height: 96,
                   }}
                 />
-                <View
+                <HStack
+                  className="items-center justify-between"
+                  pointerEvents="box-none"
                   style={{
                     position: "absolute",
                     top: 16,
+                    left: 16,
                     right: 16,
-                    borderRadius: 999,
-                    backgroundColor: "rgba(0,0,0,0.28)",
                   }}
                 >
+                  <HStack
+                    className="items-center"
+                    pointerEvents="none"
+                    space="sm"
+                  >
+                    <View
+                      style={{
+                        filter: [
+                          {
+                            dropShadow: {
+                              offsetX: 0,
+                              offsetY: 2,
+                              standardDeviation: 2,
+                              color: "rgba(0, 0, 0, 0.55)",
+                            },
+                          },
+                        ],
+                      }}
+                    >
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallbackText>
+                          {feed.author.nickname}
+                        </AvatarFallbackText>
+                        <AvatarImage
+                          source={{ uri: feed.author.profileImage }}
+                        />
+                      </Avatar>
+                    </View>
+                    <Text
+                      className="font-semibold text-white"
+                      size="lg"
+                      numberOfLines={1}
+                      style={{
+                        textShadowColor: "rgba(0,0,0,0.55)",
+                        textShadowOffset: { width: 0, height: 1 },
+                        textShadowRadius: 4,
+                      }}
+                    >
+                      {feed.author.nickname}
+                    </Text>
+                  </HStack>
                   <FeedPickButton
                     feedId={feed.id}
                     isPicked={feed.isPicked}
                     tone="on-image"
                   />
-                </View>
+                </HStack>
                 <HStack
                   className="items-center"
                   style={{

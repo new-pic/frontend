@@ -60,6 +60,22 @@ export function FeedPickButton({
       variant="ghost"
       size="icon"
       className="rounded-full"
+      style={
+        isOnImage
+          ? {
+              filter: [
+                {
+                  dropShadow: {
+                    offsetX: 0,
+                    offsetY: 2,
+                    standardDeviation: 2,
+                    color: "rgba(0, 0, 0, 0.55)",
+                  },
+                },
+              ],
+            }
+          : undefined
+      }
       disabled={isPending}
       accessibilityLabel={isPicked ? "피드 저장 취소" : "피드 저장"}
       onPress={handlePress}
