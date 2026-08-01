@@ -7,6 +7,11 @@ React Query infinite query가 소유한다. RTC 종료 시 선택한
 `SessionPhoto`를 파일로 준비한 뒤 서버의 방 종료 API에 함께 전달하고,
 성공한 경우 내 사진 목록 query를 reset한다.
 
+사진이 포함된 종료 요청은 Expo `File`을 지원하는 `uploadFetchClient`로
+multipart 전송하고, 사진이 없는 종료 요청은 일반 private API client를
+사용한다. 두 경로 모두 앱 Authorization과 현재 방의
+`x-rtc-host-access-token`을 함께 전달한다.
+
 프로필의 자동 전환 Preview는 독립 widget으로, 전체 목록은 별도 page로
 구성한다. 두 UI는 같은 query와 `expiresAt` 기반 가시성 feature를
 사용한다.
@@ -94,6 +99,8 @@ Preview / Grid UI
 
 - 현재 서버의 종료 API가 저장과 종료를 한 요청으로 묶으므로 클라이언트는
   서버 내부의 사진 저장 실패와 방 종료 실패를 따로 판별할 수 없다.
+- Expo `File` multipart는 Axios request 경계와 호환된다고 가정하지 않고
+  `expo/fetch` 기반 upload client를 유지해야 한다.
 - 응답도 저장된 사진 목록만 제공하므로 개별 사진의 부분 실패 상태를
   만들어내지 않는다.
 - 이번 단계에서는 `roomId`별 그룹 UI를 만들지 않는다.
@@ -104,8 +111,12 @@ Preview / Grid UI
 
 - RTC 종료 전에 선택한 로컬 파일을 준비하고, 준비 실패 시 영상 송출
   종료 전에 재선택할 수 있게 했다.
+- 사진을 포함한 종료 요청은 upload client와 host 인증 header를 사용하며,
+  사진이 없는 종료 요청에도 같은 host 인증 contract를 적용한다.
 - 서버 요청이나 결과 RPC가 실패해도 publisher와 LiveKit room cleanup은
   `finally`에서 수행된다.
+- 종료 실패는 서버 오류 메시지를 보존한 Alert로 표시하고 같은 종료
+  pipeline을 다시 실행할 수 있게 한다.
 - 종료 성공 후 저장 사진이 있으면 infinite query를 reset해 다음 Profile
   진입에서 첫 페이지부터 최신 데이터를 받는다.
 - Preview는 사진이 2장 이상일 때만 단일 timeout으로 전환하며 unmount 시

@@ -1,4 +1,7 @@
-import { privateApiClient } from "@shared/api";
+import {
+  privateApiClient,
+  uploadFetchClient,
+} from "@shared/api";
 import { ObjectToFormData } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -136,16 +139,19 @@ export const useEndRtcRoom = () => {
   return useMutation({
     mutationFn: async ({ roomId, request = {} }: RtcEndRoomMutationRequest) => {
       const id = verifyRtcId(roomId, "RTC 방 ID");
-      assertRtcAppAccessToken();
+      const headers = createRtcHostHeaders(id);
       const parsedRequest = RtcEndRoomRequestSchema.parse(request);
-      const body = parsedRequest.images?.length
-        ? ObjectToFormData(parsedRequest)
-        : undefined;
+      const url = `/rtc/rooms/${id}/end`;
 
-      const response = await privateApiClient.patch(
-        `/rtc/rooms/${id}/end`,
-        body,
-      );
+      const response = parsedRequest.images?.length
+        ? await uploadFetchClient.patch({
+            url,
+            formData: ObjectToFormData(parsedRequest),
+            headers,
+          })
+        : await privateApiClient.patch(url, undefined, {
+            headers,
+          });
       return RtcEndRoomResponseSchema.parse(response.data);
     },
   });

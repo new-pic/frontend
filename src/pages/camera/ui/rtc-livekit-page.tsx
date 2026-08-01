@@ -40,7 +40,12 @@ import {
   useRef,
   useState,
 } from "react";
-import { BackHandler, StyleSheet, View } from "react-native";
+import {
+  Alert,
+  BackHandler,
+  StyleSheet,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SharingWaitingPage } from "./sharing-waiting-page";
 
@@ -114,8 +119,8 @@ function HostRoomContent({
   const [publisherError, setPublisherError] = useState<string | null>(
     null,
   );
-  const [isFinalizationError, setIsFinalizationError] =
-    useState(false);
+  const [finalizationErrorMessage, setFinalizationErrorMessage] =
+    useState<string | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
   isActiveRef.current = isActive;
@@ -150,7 +155,7 @@ function HostRoomContent({
     hasPublisherStartBeenRequestedRef.current = true;
     setIsPublishing(true);
     setPublisherError(null);
-    setIsFinalizationError(false);
+    setFinalizationErrorMessage(null);
 
     try {
       await publisher.start();
@@ -243,7 +248,7 @@ function HostRoomContent({
     setIsStopping(true);
     onFinalizationStateChange?.("PREPARING_PHOTOS");
     setPublisherError(null);
-    setIsFinalizationError(false);
+    setFinalizationErrorMessage(null);
 
     let result = completedResultRef.current;
     let finalizationError: unknown;
@@ -287,12 +292,11 @@ function HostRoomContent({
 
     if (finalizationError || !result) {
       if (isMountedRef.current) {
-        setPublisherError(
+        setFinalizationErrorMessage(
           finalizationError instanceof Error
             ? finalizationError.message
             : "RTC 공유 종료에 실패했습니다. 종료 처리를 다시 시도해주세요.",
         );
-        setIsFinalizationError(true);
         setIsStopping(false);
         onFinalizationStateChange?.("FAILED");
       }
@@ -318,6 +322,34 @@ function HostRoomContent({
     publisher,
     room,
   ]);
+
+  useEffect(() => {
+    if (!finalizationErrorMessage) return;
+
+    const clearError = () => setFinalizationErrorMessage(null);
+    Alert.alert(
+      "RTC 방 종료 실패",
+      finalizationErrorMessage,
+      [
+        {
+          text: "닫기",
+          style: "cancel",
+          onPress: clearError,
+        },
+        {
+          text: "종료 처리 다시 시도",
+          onPress: () => {
+            clearError();
+            void handleStop();
+          },
+        },
+      ],
+      {
+        cancelable: true,
+        onDismiss: clearError,
+      },
+    );
+  }, [finalizationErrorMessage, handleStop]);
 
   useEffect(() => {
     if (
@@ -357,26 +389,16 @@ function HostRoomContent({
               <Text className="text-center text-white">
                 {errorMessage}
               </Text>
-              {!isFinalizationError ? (
-                <Button
-                  variant="outline"
-                  disabled={
-                    isPublishing ||
-                    connectionState !== ConnectionState.Connected
-                  }
-                  onPress={() => void startPublisher()}
-                >
-                  <ButtonText>영상 송출 다시 시작</ButtonText>
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  disabled={isStopping}
-                  onPress={() => void handleStop()}
-                >
-                  <ButtonText>종료 처리 다시 시도</ButtonText>
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                disabled={
+                  isPublishing ||
+                  connectionState !== ConnectionState.Connected
+                }
+                onPress={() => void startPublisher()}
+              >
+                <ButtonText>영상 송출 다시 시작</ButtonText>
+              </Button>
             </VStack>
           ) : null}
         </View>

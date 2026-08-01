@@ -34,6 +34,7 @@ import {
   useResetMyRtcStoredPhotos,
 } from "@features/rtc/finalize-session";
 import { visionCameraRtcFrameSink } from "@newpic/vision-camera-rtc";
+import { getApiErrorMessage } from "@shared/api";
 import {
   RTC_NAVIGATION,
   RtcNavigationSearchParams,
@@ -477,9 +478,12 @@ export function CameraPage() {
             ? { images: preparedEndImagesRef.current }
             : undefined,
       });
-    } catch {
+    } catch (error) {
       throw new Error(
-        "사진 저장 및 RTC 방 종료 요청에 실패했습니다. 종료 처리를 다시 시도해주세요.",
+        getApiErrorMessage(
+          error,
+          "사진 저장 및 RTC 방 종료 요청에 실패했습니다. 종료 처리를 다시 시도해주세요.",
+        ),
       );
     }
   };
