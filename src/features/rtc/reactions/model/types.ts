@@ -17,6 +17,20 @@ export interface RtcReactionBubble {
 
 export type RtcReactionRole = "HOST" | "VIEWER";
 
+export interface RtcReactionHostJoinPayload {
+  roomId: string;
+}
+
+export interface RtcReactionViewerJoinPayload {
+  roomId: string;
+  participantId: string;
+}
+
+export interface RtcReactionJoinResponse {
+  ok: boolean;
+  message?: string;
+}
+
 export type RtcReactionConnectionStatus =
   | "IDLE"
   | "CONNECTING"

@@ -13,11 +13,13 @@ import { useRtcReactionChannel } from "../model/use-rtc-reaction-channel";
 interface RtcViewerReactionPickerProps {
   active: boolean;
   roomId: string;
+  participantId: string;
 }
 
 export function RtcViewerReactionPicker({
   active,
   roomId,
+  participantId,
 }: RtcViewerReactionPickerProps) {
   const emojiQuery = rtcQuery.useReadFeedbackEmojis();
   const emojis = useMemo(
@@ -26,8 +28,9 @@ export function RtcViewerReactionPicker({
   );
   const channel = useRtcReactionChannel({
     active,
-    roomKey: roomId,
+    roomId,
     role: "VIEWER",
+    participantId,
   });
   const canSend =
     channel.status === "CONNECTED" && emojis.length > 0;

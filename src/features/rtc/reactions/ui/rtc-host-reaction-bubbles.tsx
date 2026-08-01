@@ -133,7 +133,15 @@ export function RtcHostReactionBubbles({
   const handleReaction = useCallback(
     ({ emojiId }: { emojiId: string }) => {
       const emoji = emojiById.get(emojiId);
-      if (!emoji) return;
+      if (!emoji) {
+        if (__DEV__) {
+          console.warn("[RTC Reaction] unknown emoji ignored", {
+            roomId,
+            emojiId,
+          });
+        }
+        return;
+      }
 
       const sequence = sequenceRef.current++;
       const bubble: RtcReactionBubble = {
@@ -145,13 +153,21 @@ export function RtcHostReactionBubbles({
       setBubbles((current) =>
         enqueueRtcReactionBubble(current, bubble),
       );
+      if (__DEV__) {
+        console.info("[RTC Reaction] bubble enqueued", {
+          roomId,
+          emojiId,
+          renderId: bubble.renderId,
+          lane: bubble.lane,
+        });
+      }
     },
     [emojiById, roomId],
   );
 
   useRtcReactionChannel({
     active,
-    roomKey: roomId,
+    roomId,
     role: "HOST",
     onReaction: handleReaction,
   });

@@ -17,15 +17,17 @@ import type {
 
 interface UseRtcReactionChannelOptions {
   active: boolean;
-  roomKey: string;
+  roomId: string;
   role: RtcReactionRole;
+  participantId?: string;
   onReaction?: (reaction: RtcReceivedReaction) => void;
 }
 
 export const useRtcReactionChannel = ({
   active,
-  roomKey,
+  roomId,
   role,
+  participantId,
   onReaction,
 }: UseRtcReactionChannelOptions): RtcReactionChannel => {
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -40,13 +42,21 @@ export const useRtcReactionChannel = ({
   onReactionRef.current = onReaction;
 
   useEffect(() => {
-    const normalizedRoomKey = roomKey.trim();
+    const normalizedRoomId = roomId.trim();
+    const normalizedParticipantId = participantId?.trim() ?? "";
     const normalizedToken = accessToken?.trim() ?? "";
-    if (!active || !normalizedRoomKey || !normalizedToken) {
+    if (!active || !normalizedRoomId || !normalizedToken) {
       transportRef.current = null;
       lastSentAtRef.current = null;
       setStatus("IDLE");
       setError(null);
+      return;
+    }
+    if (role === "VIEWER" && !normalizedParticipantId) {
+      transportRef.current = null;
+      lastSentAtRef.current = null;
+      setStatus("ERROR");
+      setError("RTC 참여자 정보를 확인할 수 없습니다.");
       return;
     }
 
@@ -58,6 +68,10 @@ export const useRtcReactionChannel = ({
     try {
       transport = createSocketIoReactionTransport({
         accessToken: normalizedToken,
+        role,
+        roomId: normalizedRoomId,
+        participantId:
+          role === "VIEWER" ? normalizedParticipantId : undefined,
         onReaction: (reaction) => {
           if (!disposed && role === "HOST") {
             onReactionRef.current?.(reaction);
@@ -95,7 +109,7 @@ export const useRtcReactionChannel = ({
       lastSentAtRef.current = null;
       transport.disconnect();
     };
-  }, [accessToken, active, role, roomKey]);
+  }, [accessToken, active, participantId, role, roomId]);
 
   const sendReaction = useCallback(
     (emojiId: string): boolean => {

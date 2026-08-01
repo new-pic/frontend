@@ -218,6 +218,7 @@ export function RtcViewerPage() {
       <RtcViewerReactionPicker
         active
         roomId={viewerSession.roomId}
+        participantId={viewerSession.participantId}
       />
     </>
   );
