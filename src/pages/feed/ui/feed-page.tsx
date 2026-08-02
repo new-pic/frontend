@@ -1,48 +1,61 @@
 import { feedQuery } from "@entities/feed";
-import { gradients } from "@shared/constants";
-import { useDebouncedValue, useMemberAccess } from "@shared/hooks";
-import { useAuthStore } from "@shared/model";
-import { TagBottomSheet } from "@widgets/feed/tags";
-
 import {
-  Badge,
-  BadgeText,
-  Fab,
-  HStack,
-  Icon,
-  Input,
-  InputField,
-  Pressable,
-  Text,
-  VStack,
-} from "@shared/ui";
+  useFeedPublishingPipelineActive,
+  useRefreshPublishedFeeds,
+} from "@features/feed/feed-processing";
+import { TagBottomSheet, TagList } from "@features/tags/select-feed-tags";
+import { gradients } from "@shared/constants";
+import { useDebouncedValue } from "@shared/hooks";
+import { useAuthStore } from "@shared/model";
+
+import { Fab, Input, InputField, Text, VStack } from "@shared/ui";
 import { PhotoGrid } from "@shared/ui/photo-grid";
-import { IconPencil, IconPlus } from "@tabler/icons-react-native";
+import { IconPencil } from "@tabler/icons-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useState } from "react";
-import { FlatList } from "react-native";
+import { useEffect, useState } from "react";
+import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function FeedPage() {
-  const requireMember = useMemberAccess();
   const isGuest = useAuthStore((state) => state.isGuest);
+  const isPublishing = useFeedPublishingPipelineActive();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isTagBottomSheetOpen, setIsTagBottomSheetOpen] = useState(false);
   const debouncedSearchQuery = useDebouncedValue(searchQuery.trim(), 400);
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    feedQuery.useReadFeeds({
-      take: 24,
-      q: debouncedSearchQuery || undefined,
-      tag: selectedTags.length > 0 ? selectedTags.join(",") : undefined,
-    });
+  const {
+    data,
+    isPending,
+    isFetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = feedQuery.useReadFeeds({
+    take: 24,
+    q: debouncedSearchQuery || undefined,
+    tag: selectedTags.length > 0 ? selectedTags.join(",") : undefined,
+  });
+  const refreshFeeds = useRefreshPublishedFeeds();
   const feeds = data?.pages.flatMap((page) => page.items) ?? [];
-  const feedImages = feeds.map((feed) => ({
+  const currentFeedImages = feeds.map((feed) => ({
     id: feed.id,
     imageUrl: feed.thumbnailUrl,
   }));
+  const [refreshSnapshot, setRefreshSnapshot] = useState(currentFeedImages);
+  const feedImages = data ? currentFeedImages : refreshSnapshot;
+  const selectedTagKey = selectedTags.join(",");
+
+  useEffect(() => {
+    if (data && !refreshFeeds.isPending) {
+      setRefreshSnapshot([]);
+    }
+  }, [data, refreshFeeds.isPending]);
+
+  useEffect(() => {
+    setRefreshSnapshot([]);
+  }, [debouncedSearchQuery, selectedTagKey]);
   const handlePressFeed = async (feedId: string, index: number) => {
     router.push({
       pathname: `/feed/[id]`,
@@ -72,9 +85,37 @@ export function FeedPage() {
     setSelectedTags(tags);
   };
 
+  const handleTagPress = (tag: string) => {
+    setSelectedTags((previousTags) => {
+      const nextTags = new Set(previousTags);
+
+      if (nextTags.has(tag)) {
+        nextTags.delete(tag);
+      } else {
+        nextTags.add(tag);
+      }
+
+      return [...nextTags];
+    });
+  };
+
   const handleEndReached = () => {
-    if (!hasNextPage || isFetchingNextPage) return;
+    if (!hasNextPage || isFetching || isFetchingNextPage) return;
     void fetchNextPage();
+  };
+
+  const handleRefresh = async () => {
+    if (refreshFeeds.isPending) return;
+    setRefreshSnapshot(currentFeedImages);
+
+    try {
+      await refreshFeeds.mutateAsync();
+    } catch {
+      Alert.alert(
+        "피드 새로고침 실패",
+        "목록을 새로고침하지 못했습니다. 다시 시도해주세요.",
+      );
+    }
   };
 
   return (
@@ -92,44 +133,38 @@ export function FeedPage() {
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                   returnKeyType="search"
+                  style={{ letterSpacing: 0 }}
                 />
               </Input>
             </VStack>
-            <FlatList
-              horizontal
-              data={selectedTags}
-              keyExtractor={(tag) => tag}
-              showsHorizontalScrollIndicator={false}
+            <TagList
+              tags={selectedTags}
+              readOnly={false}
+              onTagPress={handleTagPress}
+              onPressAddTag={handleOpenTagBottomSheet}
               contentContainerStyle={{
                 alignItems: "center",
-                gap: 4,
                 paddingHorizontal: 24,
                 paddingVertical: 12,
               }}
-              renderItem={({ item }) => (
-                <Badge>
-                  <BadgeText># {item}</BadgeText>
-                </Badge>
-              )}
-              ListFooterComponent={
-                <Pressable onPress={handleOpenTagBottomSheet}>
-                  <HStack className="h-8 px-3 items-center gap-1 rounded-full border border-outline-light">
-                    <Icon as={IconPlus} size="sm" />
-                    <Text size="sm">태그 선택</Text>
-                  </HStack>
-                </Pressable>
-              }
             />
           </VStack>
           <PhotoGrid
             images={feedImages}
             onPress={(feed, index) => handlePressFeed(feed.id, index)}
             onEndReached={handleEndReached}
+            onRefresh={() => void handleRefresh()}
+            refreshing={refreshFeeds.isPending}
+            isPending={isPending && refreshSnapshot.length === 0}
             isFetchingNextPage={isFetchingNextPage}
           />
           {!isGuest ? (
             <Fab
               className="w-15 h-15 rounded-full bottom-8 right-8"
+              disabled={isPublishing}
+              accessibilityLabel={
+                isPublishing ? "다른 피드를 게시하는 중입니다" : "피드 작성"
+              }
               onPress={handlePressEdit}
             >
               <LinearGradient

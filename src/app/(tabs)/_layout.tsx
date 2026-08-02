@@ -4,9 +4,11 @@ import {
   IconLayoutGridFilled,
   IconUserFilled,
 } from "@tabler/icons-react-native";
-import { Tabs } from "expo-router";
+import { Tabs, usePathname } from "expo-router";
 
 export default function TabLayout() {
+  const pathname = usePathname();
+
   return (
     <Tabs
       screenOptions={{
@@ -27,12 +29,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconLayoutGridFilled color={color} size={28} />
           ),
-        }}
-      />
-      <Tabs.Screen
-        name="feed/[id]"
-        options={{
-          href: null,
         }}
       />
       <Tabs.Screen
@@ -63,35 +59,11 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: "프로필",
+          tabBarStyle:
+            pathname === "/profile"
+              ? undefined
+              : { display: "none" },
           tabBarIcon: ({ color }) => <IconUserFilled color={color} size={28} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile/edit"
-        options={{
-          tabBarStyle: { display: "none" },
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="profile/(feed)/my"
-        options={{
-          tabBarStyle: { display: "none" },
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="profile/(feed)/like"
-        options={{
-          tabBarStyle: { display: "none" },
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="profile/(feed)/save"
-        options={{
-          tabBarStyle: { display: "none" },
-          href: null,
         }}
       />
     </Tabs>

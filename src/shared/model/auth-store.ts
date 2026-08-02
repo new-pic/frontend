@@ -1,6 +1,10 @@
 import { decodeAccessToken } from "@shared/lib/jwt";
 import * as SecureStore from "expo-secure-store";
 import { create } from "zustand";
+import {
+  AUTH_ENTRY_INTENT,
+  type AuthEntryIntent,
+} from "./auth-entry-intent";
 
 const ACCESS_TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
@@ -22,15 +26,21 @@ interface AuthStore {
   userId: string | null;
   isLoggedIn: boolean;
   isGuest: boolean;
+  isInitialized: boolean;
+  termsAgreed: boolean;
+  authEntryIntent: AuthEntryIntent;
 
   setSession: ({
     accessToken,
     refreshToken,
+    termsAgreed,
   }: {
     accessToken: string;
     refreshToken: string;
+    termsAgreed: boolean;
   }) => Promise<void>;
   setUserId: (userId: string) => void;
+  setTermsAgreed: (termsAgreed: boolean) => void;
   logout: () => Promise<void>;
   prepareGoogleLink: () => void;
   initializeAuthState: () => Promise<void>;
@@ -41,8 +51,15 @@ export const useAuthStore = create<AuthStore>()((set) => ({
   userId: null,
   isLoggedIn: false,
   isGuest: false,
+  isInitialized: false,
+  termsAgreed: false,
+  authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
 
-  setSession: async ({ accessToken, refreshToken }) => {
+  setSession: async ({ accessToken, refreshToken, termsAgreed }) => {
+    if (!termsAgreed) {
+      throw new Error("Terms agreement is required to persist a session.");
+    }
+
     await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
     await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
     const { userId, isGuest } = parseTokenState(accessToken);
@@ -52,9 +69,16 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       userId,
       isGuest,
       isLoggedIn: true,
+      isInitialized: true,
+      termsAgreed: true,
+      authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
     }));
   },
   setUserId: (userId) => set(() => ({ userId })),
+  setTermsAgreed: (termsAgreed) =>
+    set((state) => ({
+      termsAgreed: state.accessToken ? true : termsAgreed,
+    })),
   logout: async () => {
     await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
     await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
@@ -63,9 +87,15 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       userId: null,
       isLoggedIn: false,
       isGuest: false,
+      isInitialized: true,
+      termsAgreed: false,
+      authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
     }));
   },
-  prepareGoogleLink: () => set(() => ({ isGuest: true, isLoggedIn: false })),
+  prepareGoogleLink: () =>
+    set(() => ({
+      authEntryIntent: AUTH_ENTRY_INTENT.LINK_GUEST_ACCOUNT,
+    })),
   initializeAuthState: async () => {
     try {
       const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
@@ -77,6 +107,9 @@ export const useAuthStore = create<AuthStore>()((set) => ({
           accessToken: token,
           userId,
           isGuest,
+          isInitialized: true,
+          termsAgreed: true,
+          authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
         });
       } else {
         // 토큰이 없다면 게스트 상태이거나 첫 진입
@@ -85,6 +118,9 @@ export const useAuthStore = create<AuthStore>()((set) => ({
           accessToken: null,
           userId: null,
           isGuest,
+          isInitialized: true,
+          termsAgreed: false,
+          authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
         });
       }
     } catch {
@@ -93,6 +129,9 @@ export const useAuthStore = create<AuthStore>()((set) => ({
         accessToken: null,
         userId: null,
         isGuest: false,
+        isInitialized: true,
+        termsAgreed: false,
+        authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
       });
     }
   },

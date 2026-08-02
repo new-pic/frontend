@@ -1,1 +1,1 @@
-export { DeleteFeedButton } from "./ui/delete-feed-button";
+export { useDeleteFeed } from "./model/use-delete-feed";

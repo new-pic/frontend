@@ -17,19 +17,37 @@ function isExpoFile(value: unknown): value is File {
   );
 }
 
+function appendFormDataValue(
+  formData: FormData,
+  key: string,
+  value: unknown,
+) {
+  if (value === undefined || value === null) return;
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      appendFormDataValue(formData, key, item);
+    }
+    return;
+  }
+
+  if (isExpoFile(value)) {
+    if (!value.exists || value.size === 0) {
+      throw new Error(`Cannot upload an empty file: ${value.name}`);
+    }
+
+    formData.append(key, value);
+    return;
+  }
+
+  formData.append(key, String(value));
+}
+
 export function ObjectToFormData(obj: Record<string, unknown>): FormData {
   const formData = new FormData();
 
   for (const [key, value] of Object.entries(obj)) {
-    if (isExpoFile(value)) {
-      if (!value.exists || value.size === 0) {
-        throw new Error(`Cannot upload an empty file: ${value.name}`);
-      }
-
-      formData.append(key, value);
-    } else if (value !== undefined && value !== null) {
-      formData.append(key, String(value));
-    }
+    appendFormDataValue(formData, key, value);
   }
 
   return formData;

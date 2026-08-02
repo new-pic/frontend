@@ -2,6 +2,7 @@
 import { createAvatar } from "@gluestack-ui/core/avatar/creator";
 import type { VariantProps } from "@gluestack-ui/utils/nativewind-utils";
 import { tva, withStyleContext } from "@gluestack-ui/utils/nativewind-utils";
+import { colors } from "@shared/constants";
 import React from "react";
 import { Image, Text, View } from "react-native";
 const SCOPE = "AVATAR";
@@ -15,11 +16,11 @@ const UIAvatar = createAvatar({
 });
 
 const avatarStyle = tva({
-  base: "relative flex h-12 w-12 shrink-0 rounded-full bg-muted items-center justify-center group-[.avatar-group]/avatar-group:-ml-2.5 border border-outline-light",
+  base: "relative flex h-12 w-12 shrink-0 rounded-full items-center justify-center group-[.avatar-group]/avatar-group:-ml-2.5 border border-outline-light",
 });
 
 const avatarFallbackTextStyle = tva({
-  base: "text-foreground text-xs font-medium text-transform:uppercase",
+  base: "text-white text-xs font-medium text-transform:uppercase",
 });
 
 const avatarGroupStyle = tva({
@@ -43,11 +44,12 @@ type IAvatarProps = Omit<
 const Avatar = React.forwardRef<
   React.ComponentRef<typeof UIAvatar>,
   IAvatarProps
->(function Avatar({ className, ...props }, ref) {
+>(function Avatar({ className, style, ...props }, ref) {
   return (
     <UIAvatar
       ref={ref}
       {...props}
+      style={[{ backgroundColor: colors.brand.light }, style]}
       className={avatarStyle({ class: className })}
       context={{}}
     />

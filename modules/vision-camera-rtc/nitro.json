@@ -1,0 +1,24 @@
+{
+  "$schema": "https://nitro.margelo.com/nitro.schema.json",
+  "cxxNamespace": ["newpic", "visioncamerartc"],
+  "ios": {
+    "iosModuleName": "VisionCameraRtc"
+  },
+  "android": {
+    "androidNamespace": ["newpic", "visioncamerartc"],
+    "androidCxxLibName": "VisionCameraRtc"
+  },
+  "autolinking": {
+    "VisionCameraRtcFrameSink": {
+      "ios": {
+        "language": "swift",
+        "implementationClassName": "HybridVisionCameraRtcFrameSink"
+      },
+      "android": {
+        "language": "kotlin",
+        "implementationClassName": "HybridVisionCameraRtcFrameSink"
+      }
+    }
+  },
+  "ignorePaths": ["**/node_modules"]
+}

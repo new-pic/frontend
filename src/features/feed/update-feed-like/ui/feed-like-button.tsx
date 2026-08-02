@@ -1,51 +1,42 @@
-import { feedQuery } from "@entities/feed";
 import { colors } from "@shared/constants";
-import { useMemberAccess } from "@shared/hooks";
 import { Button, ButtonIcon } from "@shared/ui";
 import { IconHeartFilled } from "@tabler/icons-react-native";
-import { useRef } from "react";
 
 interface FeedLikeButtonProps {
-  feedId?: string;
-  isLiked?: boolean;
+  isLiked: boolean;
+  isPending: boolean;
+  tone?: "default" | "on-image";
+  onPress: () => void;
 }
 
-const THROTTLE_DELAY = 500; // 0.5초
-
-export function FeedLikeButton({ feedId, isLiked }: FeedLikeButtonProps) {
-  const lastPressedAtRef = useRef<number>(0);
-  const requireMember = useMemberAccess();
-  const mutationToLike = feedQuery.useLikeFeed();
-  const mutationToUnlike = feedQuery.useUnlikeFeed();
-  const mutation = isLiked ? mutationToUnlike : mutationToLike;
-  const isPending = mutationToLike.isPending || mutationToUnlike.isPending;
-
-  const handlePress = async () => {
-    if (!feedId || isPending) return;
-
-    const now = Date.now();
-
-    if (now - lastPressedAtRef.current <= THROTTLE_DELAY) return;
-    lastPressedAtRef.current = now;
-
-    if (!(await requireMember())) return;
-
-    mutation.mutate(feedId);
-  };
+export function FeedLikeButton({
+  isLiked,
+  isPending,
+  tone = "default",
+  onPress,
+}: FeedLikeButtonProps) {
+  const isOnImage = tone === "on-image";
+  const iconColor = isOnImage ? "white" : colors.brand.primary;
+  const iconFill = isLiked
+    ? colors.brand.primary
+    : isOnImage
+      ? "transparent"
+      : "white";
 
   return (
     <Button
       variant="ghost"
       size="icon"
-      className="w-6 h-6"
+      className="rounded-full"
       disabled={isPending}
-      onPress={handlePress}
+      accessibilityLabel={isLiked ? "좋아요 취소" : "좋아요"}
+      onPress={onPress}
     >
       <ButtonIcon
-        className="w-6 h-6"
+        className={isOnImage ? "w-8 h-8" : "w-7 h-7"}
         as={IconHeartFilled}
-        color={colors.brand.primary}
-        fill={isLiked ? colors.brand.primary : "white"}
+        color={iconColor}
+        fill={iconFill}
       />
     </Button>
   );

@@ -14,11 +14,12 @@ import {
 import { IconChevronLeft } from "@tabler/icons-react-native";
 import {
   CaptionContent,
+  FeedEditSkeleton,
   ImageSelector,
   type ImageParams,
 } from "@widgets/feed/edit";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -30,14 +31,21 @@ interface FeedEditPageProps {
 }
 
 export function FeedEditPage({ id, isEditMode }: FeedEditPageProps) {
-  const { data } = feedQuery.useReadFeed({ feedId: id });
+  const { data, isError, isPending, refetch } = feedQuery.useReadFeed({
+    feedId: id,
+  });
   const form = useSaveFeedForm({
     mode: isEditMode ? "EDIT" : "CREATE",
   });
+  const { reset } = form;
 
   const [selectedImage, setSelectedImage] = useState<ImageParams | null>(null);
   const [step, setStep] = useState<EditStep>("IMAGE");
   const [isLoadingAlbum, setIsLoadingAlbum] = useState(false);
+  const initializedFeedIdRef = useRef<string | null>(null);
+  const isFocusedRef = useRef(false);
+  const feedDataRef = useRef(data);
+  feedDataRef.current = data;
 
   const handleSelectImage = (image: ImageParams) => {
     setSelectedImage(image);
@@ -65,41 +73,99 @@ export function FeedEditPage({ id, isEditMode }: FeedEditPageProps) {
     }
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      isFocusedRef.current = true;
+      initializedFeedIdRef.current = null;
+      setSelectedImage(null);
+      setIsLoadingAlbum(false);
+
+      if (isEditMode) {
+        setStep("CAPTION");
+        const currentFeed = feedDataRef.current;
+        if (currentFeed) {
+          reset({
+            image: "",
+            imageFileName: undefined,
+            tags: currentFeed.tags,
+            description: currentFeed.description,
+          });
+          initializedFeedIdRef.current = currentFeed.id;
+        }
+      } else {
+        reset();
+        setStep("IMAGE");
+      }
+
+      return () => {
+        isFocusedRef.current = false;
+        initializedFeedIdRef.current = null;
+        reset();
+        setSelectedImage(null);
+        setIsLoadingAlbum(false);
+        setStep(isEditMode ? "CAPTION" : "IMAGE");
+      };
+    }, [isEditMode, reset]),
+  );
+
   useEffect(() => {
-    form.reset();
-    if (isEditMode) {
-      setStep("CAPTION");
+    if (
+      !isFocusedRef.current ||
+      !isEditMode ||
+      !data ||
+      initializedFeedIdRef.current === data.id
+    ) {
       return;
     }
-    setStep("IMAGE");
-  }, [isEditMode]);
 
-  useEffect(() => {
-    if (data) {
-      form.setValue("tags", data.tags);
-      form.setValue("description", data.description);
-    }
-  }, [data]);
+    reset({
+      image: "",
+      imageFileName: undefined,
+      tags: data.tags,
+      description: data.description,
+    });
+    initializedFeedIdRef.current = data.id;
+  }, [data, isEditMode, reset]);
 
-  console.log("selectedImage", selectedImage, data);
+  if (isEditMode && isPending) return <FeedEditSkeleton />;
+
+  if (isEditMode && (isError || !data)) {
+    return (
+      <SafeAreaView style={{ flex: 1 }}>
+        <Center className="flex-1 gap-4 px-6">
+          <Text className="text-center text-label-muted">
+            피드 수정 정보를 불러오지 못했습니다.
+          </Text>
+          <Button variant="outline" onPress={() => void refetch()}>
+            <ButtonText>다시 시도</ButtonText>
+          </Button>
+        </Center>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView>
       <KeyboardDismissLayout>
         <VStack className="h-full pt-3 w-full" space="xl">
           <HStack className="py-3 px-6 items-center justify-between border-b border-outline-light">
-            <Button variant="ghost" size="icon" onPress={handleGoBack}>
+            <Button
+              variant="ghost"
+              size="icon"
+              accessibilityLabel="피드 편집 닫기"
+              onPress={handleGoBack}
+            >
               <ButtonIcon as={IconChevronLeft} />
             </Button>
             <Text className="font-semibold" size="lg">
               {isEditMode ? "피드 수정하기" : "피드 작성하기"}
             </Text>
-            <Box className="w-10" />
+            <Box className="w-12" />
           </HStack>
           <Center>
             <Image
               source={{
-                uri: selectedImage?.imageUrl ?? data?.thumbnailUrl,
+                uri: selectedImage?.imageUrl ?? data?.detailImageUrl,
               }}
               style={{ width: "60%", borderRadius: 20, aspectRatio: 4 / 5 }}
             />

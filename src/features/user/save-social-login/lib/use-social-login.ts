@@ -1,18 +1,32 @@
 import { authQuery } from "@entities/user";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { env } from "@shared/config";
+import { normalizeAuthReturnTo } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
-import { router } from "expo-router";
+import {
+  Href,
+  router,
+  useLocalSearchParams,
+} from "expo-router";
 
 export function useSocialLogin() {
+  const { returnTo: returnToParam } = useLocalSearchParams<{
+    returnTo?: string | string[];
+  }>();
   const mutationToServiceLogin = authQuery.useGoogleLogin();
   const mutationToGuestLogin = authQuery.useGuestLogin();
 
   const isGuest = useAuthStore((state) => state.isGuest);
   const setSession = useAuthStore((state) => state.setSession);
+  const termsAgreed = useAuthStore((state) => state.termsAgreed);
+  const returnTo = normalizeAuthReturnTo(returnToParam);
 
   // 구글 로그인
   const loginWithGoogle = async () => {
+    if (!termsAgreed) {
+      throw new Error("Terms agreement is required before login.");
+    }
+
     GoogleSignin.configure({
       webClientId: env.WEB_GOOGLE_CLIENT_ID,
       iosClientId: env.IOS_GOOGLE_CLIENT_ID,
@@ -33,36 +47,40 @@ export function useSocialLogin() {
     const response = await mutationToServiceLogin.mutateAsync({
       idToken,
       isGuest,
+      termsAgreed,
     });
-    // 로그인 성공
-    try {
-      await setSession({
-        accessToken: response.accessToken,
-        refreshToken: response.refreshToken,
-      });
-      if (response.status === "LOGIN_SUCCESS") {
-        router.replace("/feed");
-      } else if (response.status === "NEED_NICKNAME") {
-        router.push("/profile/edit");
-      }
-    } catch (error) {
-      console.error("Error during login:", error);
+    await setSession({
+      accessToken: response.accessToken,
+      refreshToken: response.refreshToken,
+      termsAgreed: response.termsAgreed,
+    });
+    if (response.status === "LOGIN_SUCCESS") {
+      router.replace(returnTo as Href);
+    } else if (response.status === "NEED_NICKNAME") {
+      router.replace({
+        pathname: "/profile/edit",
+        params: { returnTo },
+      } as Href);
     }
   };
 
   const loginToGuest = async () => {
-    const response = await mutationToGuestLogin.mutateAsync();
+    if (!termsAgreed) {
+      throw new Error("Terms agreement is required before login.");
+    }
+
+    const response = await mutationToGuestLogin.mutateAsync({
+      termsAgreed,
+    });
     if (!response.accessToken) {
       return;
     }
-    try {
-      await setSession({
-        accessToken: response.accessToken,
-        refreshToken: response.refreshToken,
-      });
-    } catch (error) {
-      console.error("Error during guest login:", error);
-    }
+    await setSession({
+      accessToken: response.accessToken,
+      refreshToken: response.refreshToken,
+      termsAgreed: response.termsAgreed,
+    });
+    router.replace(returnTo as Href);
   };
 
   return {

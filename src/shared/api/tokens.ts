@@ -2,7 +2,6 @@ import { apiClient } from "./api-client";
 
 export interface TokenRefreshResponse {
   accessToken: string;
-  refreshToken: string;
 }
 
 export const requestTokenRefresh = async (

@@ -1,17 +1,18 @@
 import {
-  CreateFeedRequest,
+  CreateFeedFormSchema,
   FeedFormValues,
   UpdateFeedRequest,
   UpdateFeedRequestInput,
-} from "@entities/feed";
-import {
-  CreateFeedRequestSchema,
-  FeedFormSchema,
   UpdateFeedRequestSchema,
-} from "@entities/feed/model/schema";
+  UpdateFeedFormSchema,
+} from "@entities/feed";
+import type { CreateFeedPublishingCommand } from "@features/feed/feed-processing";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
-import { uriToFile } from "@shared/lib/file";
-import { ObjectToFormData } from "@shared/lib/form-data";
+import { getApiErrorMessage } from "@shared/api";
+import {
+  deleteStagedUploadFile,
+  stageFileForUpload,
+} from "@shared/lib";
 import { useForm } from "react-hook-form";
 import { FeedFormMode } from "../model";
 
@@ -19,27 +20,27 @@ export interface UseSaveFeedFormProps {
   mode: FeedFormMode;
 }
 
+interface SaveFeedSubmitHandlers {
+  onCreate: (
+    command: CreateFeedPublishingCommand,
+  ) => boolean | Promise<boolean>;
+  onUpdate: (
+    request: UpdateFeedRequest,
+  ) => boolean | Promise<boolean>;
+}
+
 export type UseSaveFeedFormReturn = ReturnType<typeof useSaveFeedForm>;
 
-async function transformToCreateFeedRequest(
+async function prepareCreateFeedCommand(
   data: FeedFormValues,
-): Promise<FormData> {
+): Promise<CreateFeedPublishingCommand> {
   const { image, imageFileName, ...other } = data;
-  const imageFile = await uriToFile({ uri: image, fileName: imageFileName });
-
-  const parsedRequest = CreateFeedRequestSchema.safeParse({
-    ...other,
-    image: imageFile,
+  const stagedImage = await stageFileForUpload({
+    uri: image,
+    fileName: imageFileName,
   });
 
-  if (!parsedRequest.success) {
-    throw parsedRequest.error;
-  }
-
-  const request: CreateFeedRequest = parsedRequest.data;
-
-  const formData = ObjectToFormData(request);
-  return formData;
+  return { kind: "CREATE", image: stagedImage, ...other };
 }
 
 function transformToUpdateFeedRequest(
@@ -53,7 +54,9 @@ function transformToUpdateFeedRequest(
 
 export function useSaveFeedForm({ mode }: UseSaveFeedFormProps) {
   const form = useForm<FeedFormValues>({
-    resolver: standardSchemaResolver(FeedFormSchema),
+    resolver: standardSchemaResolver(
+      mode === "CREATE" ? CreateFeedFormSchema : UpdateFeedFormSchema,
+    ),
     mode: "onChange",
     defaultValues: {
       image: "",
@@ -64,23 +67,40 @@ export function useSaveFeedForm({ mode }: UseSaveFeedFormProps) {
   });
 
   const handleValidSubmit = (
-    onValidResult: (data: FormData | UpdateFeedRequest) => void | Promise<void>,
-    onErrorResult?: (error: unknown) => void,
+    { onCreate, onUpdate }: SaveFeedSubmitHandlers,
+    onErrorResult?: (errorMessage?: string) => void,
   ) =>
-    form.handleSubmit(async (data) => {
-      try {
-        if (mode === "CREATE") {
-          const formData = await transformToCreateFeedRequest(data);
-          await onValidResult(formData);
-          return;
+    form.handleSubmit(
+      async (data) => {
+        try {
+          if (mode === "CREATE") {
+            const command = await prepareCreateFeedCommand(data);
+            const accepted = await onCreate(command);
+            if (!accepted) deleteStagedUploadFile(command.image);
+            return;
+          }
+
+          const transformedData = transformToUpdateFeedRequest(data);
+          const result = UpdateFeedRequestSchema.parse(transformedData);
+          await onUpdate(result);
+        } catch (error) {
+          onErrorResult?.(
+            getApiErrorMessage(
+              error,
+              "피드 저장을 준비하지 못했습니다. 다시 시도해주세요.",
+            ),
+          );
         }
-        const transformedData = transformToUpdateFeedRequest(data);
-        const result = UpdateFeedRequestSchema.parse(transformedData);
-        await onValidResult(result);
-      } catch (error) {
-        onErrorResult?.(error);
-      }
-    });
+      },
+      (errors) => {
+        const message =
+          errors.image?.message ??
+          errors.description?.message ??
+          errors.tags?.message ??
+          "입력 내용을 확인해주세요.";
+        onErrorResult?.(message);
+      },
+    );
 
   return { ...form, handleValidSubmit };
 }

@@ -1,7 +1,6 @@
-import { UseSaveFeedFormReturn } from "@features/feed/save-feed/lib/use-save-feed-form";
+import type { UseSaveFeedFormReturn } from "@features/feed/save-feed";
+import { TagBottomSheet, TagList } from "@features/tags/select-feed-tags";
 import {
-  Badge,
-  BadgeText,
   HStack,
   Icon,
   Pressable,
@@ -11,7 +10,6 @@ import {
   VStack,
 } from "@shared/ui";
 import { IconChevronRight } from "@tabler/icons-react-native";
-import { TagBottomSheet } from "@widgets/feed/tags";
 import { useState } from "react";
 import { Controller, useFormState, useWatch } from "react-hook-form";
 
@@ -88,13 +86,7 @@ export function CaptionContent({ form }: CaptionContentProps) {
                 <Icon as={IconChevronRight} />
               </HStack>
               {selectedTags ? (
-                <HStack className="gap-1">
-                  {selectedTags.map((tag) => (
-                    <Badge key={tag}>
-                      <BadgeText className="">{tag}</BadgeText>
-                    </Badge>
-                  ))}
-                </HStack>
+                <TagList tags={selectedTags} readOnly={true} />
               ) : null}
               {errors.tags?.message ? (
                 <Text className="text-red-500" size="xs">

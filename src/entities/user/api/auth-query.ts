@@ -3,11 +3,18 @@ import { useMutation } from "@tanstack/react-query";
 
 import {
   API_QUERY_KEY,
+  getSocialLoginRequestMode,
   GoogleLoginRequest,
+  GoogleLoginRequestSchema,
   GoogleLoginResponse,
+  GoogleLoginResponseSchema,
+  GuestLoginRequest,
+  GuestLoginRequestSchema,
+  SOCIAL_LOGIN_REQUEST_MODE,
   TokenResponse,
+  TokenResponseSchema,
 } from "../model";
-import { getAndCreateDeviceUUID } from "../model/device-uuid";
+import { getAndCreateDeviceUUID } from "../../../shared/lib/device-uuid";
 
 const QUERY_KEY = [API_QUERY_KEY, "auth"];
 
@@ -16,25 +23,38 @@ export function useGoogleLogin() {
     mutationFn: async ({
       idToken,
       isGuest,
+      termsAgreed,
     }: GoogleLoginRequest & {
       isGuest: boolean;
     }): Promise<GoogleLoginResponse> => {
-      // 게스트 로그인 여부에 따라 적절한 API 클라이언트를 선택합니다.
-      const apiClientToUse = isGuest ? privateApiClient : apiClient;
-      const response = await apiClientToUse.post("/auth/google", { idToken });
-      return response.data;
+      const requestMode = getSocialLoginRequestMode(isGuest);
+      const apiClientToUse =
+        requestMode ===
+        SOCIAL_LOGIN_REQUEST_MODE.AUTHENTICATED_ACCOUNT_LINK
+          ? privateApiClient
+          : apiClient;
+      const request = GoogleLoginRequestSchema.parse({
+        idToken,
+        termsAgreed,
+      });
+      const response = await apiClientToUse.post("/auth/google", request);
+      return GoogleLoginResponseSchema.parse(response.data);
     },
   });
 }
 
 export function useGuestLogin() {
   return useMutation({
-    mutationFn: async (): Promise<TokenResponse> => {
+    mutationFn: async ({
+      termsAgreed,
+    }: Pick<GuestLoginRequest, "termsAgreed">): Promise<TokenResponse> => {
       const deviceUUID = await getAndCreateDeviceUUID();
-      const response = await apiClient.post("/auth/guest", {
+      const request = GuestLoginRequestSchema.parse({
         deviceId: deviceUUID,
+        termsAgreed,
       });
-      return response.data;
+      const response = await apiClient.post("/auth/guest", request);
+      return TokenResponseSchema.parse(response.data);
     },
   });
 }

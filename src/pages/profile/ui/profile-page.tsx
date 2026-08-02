@@ -1,11 +1,9 @@
 import { usersQuery } from "@entities/user";
-import { colors, gradients } from "@shared/constants";
-import { useMemberAccess } from "@shared/hooks";
+import { EXTERNAL_LINKS, gradients } from "@shared/constants";
 import { useConfirm } from "@shared/lib";
 import { useAuthStore } from "@shared/model/auth-store";
 import {
   Avatar,
-  AvatarFallbackText,
   AvatarImage,
   Button,
   ButtonIcon,
@@ -17,13 +15,16 @@ import {
   VStack,
 } from "@shared/ui";
 import {
+  IconBookmarkFilled,
   IconHeartFilled,
-  IconHelpCircleFilled,
   IconPencilFilled,
   IconUserFilled,
 } from "@tabler/icons-react-native";
+import { ProfileRtcPhotoPreview } from "@widgets/profile/rtc-photo-preview";
 import { LinearGradient } from "expo-linear-gradient";
+import * as Linking from "expo-linking";
 import { router } from "expo-router";
+import { Alert, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 function ProfileButtonMenu() {
@@ -31,11 +32,11 @@ function ProfileButtonMenu() {
     router.push("/profile/my");
   };
 
-  const handleGoLikeFeed = async () => {
+  const handleGoLikeFeed = () => {
     router.push("/profile/like");
   };
 
-  const handleGoSaveFeed = async () => {
+  const handleGoSaveFeed = () => {
     router.push("/profile/save");
   };
 
@@ -75,14 +76,14 @@ function ProfileButtonMenu() {
             </VStack>
           </Button>
           <Divider orientation="vertical" className="h-full w-px bg-white/35" />
-          <Button variant="ghost" className="w-25">
+          <Button variant="ghost" className="w-25" onPress={handleGoSaveFeed}>
             <VStack space="sm" className="flex-1 justify-center items-center">
               <ButtonIcon
-                as={IconHelpCircleFilled}
+                as={IconBookmarkFilled}
                 fill={"white"}
                 className="h-8 w-8"
               />
-              <ButtonText className="text-white">도움말</ButtonText>
+              <ButtonText className="text-white">저장한 피드</ButtonText>
             </VStack>
           </Button>
         </HStack>
@@ -93,11 +94,10 @@ function ProfileButtonMenu() {
 
 export function ProfilePage() {
   const openConfirm = useConfirm();
-  const requireMember = useMemberAccess();
   const isGuest = useAuthStore((state) => state.isGuest);
   const prepareGoogleLink = useAuthStore((state) => state.prepareGoogleLink);
   const logout = useAuthStore((state) => state.logout);
-  const { data } = usersQuery.useReadMe({ enabled: !isGuest });
+  const { data } = usersQuery.useReadMe();
 
   const handleLogout = async () => {
     const response = await openConfirm({
@@ -112,14 +112,19 @@ export function ProfilePage() {
 
   const handleGoLogin = () => {
     prepareGoogleLink();
-    router.replace("/");
+    router.replace({
+      pathname: "/",
+      params: {
+        returnTo: "/profile",
+      },
+    });
   };
 
-  const handleGoEdit = async () => {
+  const handleGoEdit = () => {
     router.push("/profile/edit");
   };
 
-  const handlePressProfile = async () => {
+  const handlePressProfile = () => {
     if (isGuest) {
       handleGoLogin();
       return;
@@ -127,57 +132,96 @@ export function ProfilePage() {
     handleGoEdit();
   };
 
+  const handleOpenBugReport = async () => {
+    try {
+      await Linking.openURL(EXTERNAL_LINKS.BUG_REPORT);
+    } catch {
+      Alert.alert(
+        "페이지 연결 실패",
+        "버그 제보 페이지를 열지 못했습니다. 다시 시도해주세요.",
+      );
+    }
+  };
+
+  const handleOpenTermsOfService = async () => {
+    try {
+      await Linking.openURL(EXTERNAL_LINKS.TERMS_OF_SERVICE);
+    } catch {
+      Alert.alert(
+        "페이지 연결 실패",
+        "서비스 약관 페이지를 열지 못했습니다. 다시 시도해주세요.",
+      );
+    }
+  };
+
   return (
-    <SafeAreaView>
-      <VStack className="h-full pt-10 px-6 w-full" space="xl">
-        <HStack space="xl" className="items-center px-1 py-2 ">
-          <Avatar
-            className={`h-20 w-20 ${isGuest ? "bg-brand-light border-brand" : ""}`}
-          >
-            {isGuest ? (
-              <IconUserFilled size={42} color={colors.brand.primary} />
-            ) : (
-              <>
-                <AvatarFallbackText>{data?.nickname}</AvatarFallbackText>
-                {data?.profileImage ? (
-                  <AvatarImage source={{ uri: data.profileImage }} />
-                ) : null}
-              </>
-            )}
-          </Avatar>
-          <VStack className="justify-center">
-            <Text className="font-medium">
-              {isGuest ? "로그인이 필요합니다." : data?.nickname}
-            </Text>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="justify-start p-0"
-              onPress={handlePressProfile}
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingTop: 40,
+          paddingBottom: 40,
+        }}
+      >
+        <VStack className="w-full" space="xl">
+          <HStack space="xl" className="items-center px-1 py-2 ">
+            <Avatar
+              className="h-20 w-20"
+              style={{ backgroundColor: "#b8b8b8" }}
             >
-              <ButtonText className="text-link-text">
-                {isGuest ? "로그인 하러가기" : "프로필 변경"}
-              </ButtonText>
-            </Button>
+              {data?.profileImage ? (
+                <AvatarImage source={{ uri: data.profileImage }} />
+              ) : (
+                <IconUserFilled size={42} color="white" fill="white" />
+              )}
+            </Avatar>
+            <VStack className="justify-center">
+              <Text className="font-medium">{data?.nickname}</Text>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="justify-start p-0"
+                onPress={handlePressProfile}
+              >
+                <ButtonText className="text-link-text">
+                  {isGuest ? "계정 연결하기" : "프로필 변경"}
+                </ButtonText>
+              </Button>
+            </VStack>
+          </HStack>
+
+          {!isGuest ? <ProfileButtonMenu /> : null}
+          {!isGuest ? <ProfileRtcPhotoPreview /> : null}
+
+          <VStack className="rounded-3xl border border-outline">
+            {/* <Pressable className="p-6">
+              <Text size="md">도움말</Text>
+            </Pressable>
+            <Divider className="bg-outline" /> */}
+            <Pressable
+              className="p-6"
+              onPress={handleOpenBugReport}
+              accessibilityRole="link"
+            >
+              <Text size="md">버그 제보하기</Text>
+            </Pressable>
+            <Divider className="bg-outline" />
+            <Pressable
+              className="p-6"
+              onPress={handleOpenTermsOfService}
+              accessibilityRole="link"
+            >
+              <Text size="md">서비스 약관</Text>
+            </Pressable>
+            <Divider className="bg-outline" />
+            <Pressable className="p-6" onPress={handleLogout}>
+              <Text size="md" className="text-red-500 font-semibold">
+                로그아웃
+              </Text>
+            </Pressable>
           </VStack>
-        </HStack>
-
-        {!isGuest ? <ProfileButtonMenu /> : null}
-
-        <VStack className="rounded-3xl border border-outline">
-          <Pressable className="p-6">
-            <Text size="sm">버그 제보하기</Text>
-          </Pressable>
-          <Divider className="bg-outline" />
-          <Pressable className="p-6">
-            <Text size="sm">서비스 약관</Text>
-          </Pressable>
-          <Divider className="bg-outline" />
-          <Pressable className="p-6" onPress={handleLogout}>
-            <Text size="sm">로그아웃</Text>
-          </Pressable>
         </VStack>
-      </VStack>
+      </ScrollView>
     </SafeAreaView>
   );
 }

@@ -1,15 +1,18 @@
-import { ProfileRequest, UpdateProfileRequestSchema } from "@entities/user";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { useForm } from "react-hook-form";
+import {
+  ProfileEditFormSchema,
+  ProfileEditFormValues,
+} from "../model/profile-edit-form-schema";
 
 export type UseSetupFormReturn = ReturnType<typeof useSetupForm>;
 
 export function useSetupForm() {
-  return useForm<ProfileRequest>({
-    resolver: standardSchemaResolver(UpdateProfileRequestSchema),
+  return useForm<ProfileEditFormValues>({
+    resolver: standardSchemaResolver(ProfileEditFormSchema),
     defaultValues: {
-      profileImage: "",
       nickname: "",
+      profileImage: undefined,
     },
   });
 }

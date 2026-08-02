@@ -14,8 +14,8 @@ const FeedTagsSchema = z
     { message: "중복된 태그가 존재합니다." },
   );
 
-export const FeedFormSchema = z.object({
-  image: z.string().min(1, "이미지를 선택해주세요."),
+const FeedFormFieldsSchema = z.object({
+  image: z.string(),
   imageFileName: z.string().optional(),
   description: z
     .string()
@@ -24,6 +24,15 @@ export const FeedFormSchema = z.object({
     .max(500, "내용은 최대 500자까지 입력할 수 있습니다."),
   tags: FeedTagsSchema,
 });
+
+export const CreateFeedFormSchema = FeedFormFieldsSchema.extend({
+  image: z.string().min(1, "이미지를 선택해주세요."),
+});
+
+export const UpdateFeedFormSchema = FeedFormFieldsSchema;
+
+// 기존 import 호환을 유지하되, 새 작성 폼은 이미지가 필수입니다.
+export const FeedFormSchema = CreateFeedFormSchema;
 
 /**
  * 피드 작성 폼 스키마 - 생성/ 수정 공통 transformType

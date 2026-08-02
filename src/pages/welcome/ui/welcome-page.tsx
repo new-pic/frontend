@@ -1,22 +1,83 @@
-import AppleLogo from "@assets/icons/apple-logo.svg";
 import GoogleLogo from "@assets/icons/google-logo.svg";
 import { useSocialLogin } from "@features/user/save-social-login";
-import { Button, ButtonText, Center, Text, VStack } from "@shared/ui";
-import { Image } from "react-native";
+import { EXTERNAL_LINKS } from "@shared/constants";
+import { useAuthStore } from "@shared/model";
+import {
+  Button,
+  ButtonText,
+  Center,
+  Checkbox,
+  CheckboxIcon,
+  CheckboxIndicator,
+  HStack,
+  Text,
+  VStack,
+} from "@shared/ui";
+import { IconCheck } from "@tabler/icons-react-native";
+import * as Linking from "expo-linking";
+import { useState } from "react";
+import { Alert, Image, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function WelcomPage() {
   const { isLoading, loginWithGoogle, loginToGuest } = useSocialLogin();
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const termsAgreed = useAuthStore((state) => state.termsAgreed);
+  const hasExistingSession = useAuthStore((state) =>
+    Boolean(state.accessToken),
+  );
+  const setTermsAgreed = useAuthStore(
+    (state) => state.setTermsAgreed,
+  );
+
+  const ensureTermsAgreed = () => {
+    if (termsAgreed) return true;
+
+    Alert.alert(
+      "이용약관 동의 필요",
+      "서비스를 시작하려면 이용약관에 동의해주세요.",
+    );
+    return false;
+  };
 
   const handleGuestLogin = async () => {
-    await loginToGuest();
+    if (!ensureTermsAgreed()) return;
+
+    setLoginError(null);
+    try {
+      await loginToGuest();
+    } catch {
+      setLoginError(
+        "로그인 없이 시작하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      );
+    }
   };
 
   const handleGoogleLogin = async () => {
-    await loginWithGoogle();
+    if (!ensureTermsAgreed()) return;
+
+    setLoginError(null);
+    try {
+      await loginWithGoogle();
+    } catch {
+      setLoginError("계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    }
   };
+
+  const handleOpenTermsOfService = async () => {
+    try {
+      await Linking.openURL(EXTERNAL_LINKS.TERMS_OF_SERVICE);
+      setTermsAgreed(true);
+    } catch {
+      Alert.alert(
+        "페이지 연결 실패",
+        "이용약관 페이지를 열지 못했습니다. 다시 시도해주세요.",
+      );
+    }
+  };
+
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ flex: 1 }}>
       <VStack className="h-full px-8 justify-center py-8 gap-14">
         <Center>
           <Image
@@ -26,11 +87,15 @@ export function WelcomPage() {
             resizeMode="contain"
           />
 
-          <Text>이제 그만 사진으로 핍박 받자. 우리도 인간이다.</Text>
-          <Text>사진을 못찍는 친구들이 사람 취급을 받는</Text>
-          <Text>그날 까지..... free</Text>
+          <Text>친구들과 찍는 순간을 공유하고</Text>
+          <Text>쉽고 빠르게 인생샷을 남겨보세요!</Text>
         </Center>
         <VStack space="lg">
+          {loginError ? (
+            <Text className="text-center text-destructive" size="sm">
+              {loginError}
+            </Text>
+          ) : null}
           <Button
             variant="outline"
             className="rounded-full"
@@ -40,14 +105,14 @@ export function WelcomPage() {
             <GoogleLogo width={24} height={24} />
             <ButtonText>구글로 시작하기</ButtonText>
           </Button>
-          <Button
+          {/* <Button
             variant="outline"
             className="rounded-full bg-black"
             disabled={isLoading}
           >
             <AppleLogo width={24} height={24} />
             <ButtonText className="text-white">애플로 시작하기</ButtonText>
-          </Button>
+          </Button> */}
           <Button
             variant="ghost"
             disabled={isLoading}
@@ -56,6 +121,33 @@ export function WelcomPage() {
             <ButtonText>로그인 없이 사용하기</ButtonText>
           </Button>
         </VStack>
+        <HStack className="absolute bottom-0 left-8 right-8 items-center justify-center">
+          <Checkbox
+            value="terms-agreed"
+            className="h-11 w-11 justify-center"
+            isChecked={termsAgreed}
+            isDisabled={isLoading || hasExistingSession}
+            onChange={setTermsAgreed}
+            accessibilityLabel="이용약관 동의"
+          >
+            <CheckboxIndicator className="h-6 w-6 rounded-md">
+              <CheckboxIcon as={IconCheck} className="h-4 w-4" />
+            </CheckboxIndicator>
+          </Checkbox>
+          <Pressable
+            className="min-h-11 justify-center"
+            disabled={isLoading}
+            accessibilityRole="link"
+            onPress={handleOpenTermsOfService}
+          >
+            <Text size="sm">
+              <Text className="font-semibold text-link-text underline">
+                이용약관
+              </Text>
+              에 동의합니다.
+            </Text>
+          </Pressable>
+        </HStack>
       </VStack>
     </SafeAreaView>
   );
