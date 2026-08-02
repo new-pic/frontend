@@ -24,11 +24,7 @@ export const userQueryKeys = {
   all: QUERY_KEY,
   meAll: [...QUERY_KEY, "me"] as const,
   me: (userId: string | null) =>
-    [
-      ...QUERY_KEY,
-      "me",
-      getUserQueryIdentity(userId),
-    ] as const,
+    [...QUERY_KEY, "me", getUserQueryIdentity(userId)] as const,
   myFeeds: [...QUERY_KEY, "me", "feeds"] as const,
   myFeedList: (params: PaginationParams) =>
     [...QUERY_KEY, "me", "feeds", params] as const,
@@ -54,8 +50,7 @@ export function useReadMe(options?: { enabled?: boolean }) {
       const response = await privateApiClient.get("/users/me");
       return response.data;
     },
-    enabled:
-      Boolean(userId && accessToken) && (options?.enabled ?? true),
+    enabled: Boolean(userId && accessToken) && (options?.enabled ?? true),
   });
 }
 
@@ -63,7 +58,12 @@ export function useReadMe(options?: { enabled?: boolean }) {
  * 내가 올린 피드 목록 조회
  */
 export function useReadMyFeeds(params: PaginationParams) {
-  return useInfiniteQuery(myFeedsInfiniteQueryOptions(params));
+  const isGuest = useAuthStore((state) => state.isGuest);
+
+  return useInfiniteQuery({
+    ...myFeedsInfiniteQueryOptions(params),
+    enabled: !isGuest,
+  });
 }
 
 export function myFeedsInfiniteQueryOptions(params: PaginationParams) {
@@ -90,7 +90,12 @@ export function myFeedsInfiniteQueryOptions(params: PaginationParams) {
  * @returns
  */
 export function useReadLikedFeeds(params: PaginationParams) {
-  return useInfiniteQuery(likedFeedsInfiniteQueryOptions(params));
+  const isGuest = useAuthStore((state) => state.isGuest);
+
+  return useInfiniteQuery({
+    ...likedFeedsInfiniteQueryOptions(params),
+    enabled: !isGuest,
+  });
 }
 
 export function likedFeedsInfiniteQueryOptions(params: PaginationParams) {
@@ -120,33 +125,30 @@ export function useReadSavedFeeds(
   params: PaginationParams,
   options?: { enabled?: boolean },
 ) {
+  const isGuest = useAuthStore((state) => state.isGuest);
+
   return useInfiniteQuery({
     ...savedFeedsInfiniteQueryOptions(params),
-    enabled: options?.enabled,
+    enabled: !isGuest && (options?.enabled ?? true),
   });
 }
 
-export function savedFeedsInfiniteQueryOptions(
-  params: PaginationParams,
-) {
+export function savedFeedsInfiniteQueryOptions(params: PaginationParams) {
   return infiniteQueryOptions({
     queryKey: userQueryKeys.savedFeedList(params),
     queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
-      const response = await privateApiClient.get(
-        "/users/me/references",
-        {
-          params: {
-            ...params,
-            cursor: pageParam,
-          },
-          signal,
+      const response = await privateApiClient.get("/users/me/references", {
+        params: {
+          ...params,
+          cursor: pageParam,
         },
-      );
+        signal,
+      });
+
       return response.data;
     },
     initialPageParam: params.cursor,
-    getNextPageParam: (lastPage) =>
-      lastPage.nextCursor ?? undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 1000 * 60 * 5,
   });
 }
@@ -187,6 +189,11 @@ export function useUpdateProfile() {
 
   return useMutation({
     mutationFn: async (data: ProfileRequest) => {
+      const isGuest = useAuthStore.getState().isGuest;
+
+      if (isGuest) {
+        throw new Error("Member account is required.");
+      }
       const request = UpdateProfileRequestSchema.parse(data);
       const response = await uploadFetchClient.patch({
         url: "/users/me",
@@ -200,4 +207,14 @@ export function useUpdateProfile() {
       });
     },
   });
+}
+
+export function useResetCurrentUser() {
+  const queryClient = useQueryClient();
+
+  return async () => {
+    await queryClient.resetQueries({
+      queryKey: userQueryKeys.meAll,
+    });
+  };
 }

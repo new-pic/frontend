@@ -191,7 +191,7 @@ export function ProfilePage() {
           </HStack>
 
           {!isGuest ? <ProfileButtonMenu /> : null}
-          {!isGuest ? <ProfileRtcPhotoPreview /> : null}
+          <ProfileRtcPhotoPreview />
 
           <VStack className="rounded-3xl border border-outline">
             {/* <Pressable className="p-6">

@@ -1,4 +1,4 @@
-import { authQuery } from "@entities/user";
+import { authQuery, usersQuery } from "@entities/user";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { env } from "@shared/config";
 import { normalizeAuthReturnTo } from "@shared/lib";
@@ -12,6 +12,7 @@ export function useSocialLogin() {
   }>();
   const mutationToServiceGoogleLogin = authQuery.useGoogleLogin();
   const mutationToGuestLogin = authQuery.useGuestLogin();
+  const resetCurrentUser = usersQuery.useResetCurrentUser();
 
   const isGuest = useAuthStore((state) => state.isGuest);
   const setSession = useAuthStore((state) => state.setSession);
@@ -57,10 +58,11 @@ export function useSocialLogin() {
         // idToken이 없는 경우 처리
         return;
       }
+      const isLinkingGuestAccount = isGuest;
 
       const response = await mutationToServiceGoogleLogin.mutateAsync({
         idToken,
-        isGuest,
+        isGuest: isLinkingGuestAccount,
         termsAgreed,
       });
       await setSession({
@@ -68,6 +70,9 @@ export function useSocialLogin() {
         refreshToken: response.refreshToken,
         termsAgreed: response.termsAgreed,
       });
+      if (isLinkingGuestAccount) {
+        await resetCurrentUser();
+      }
       if (response.status === "LOGIN_SUCCESS") {
         router.replace(returnTo as Href);
       } else if (response.status === "NEED_NICKNAME") {
