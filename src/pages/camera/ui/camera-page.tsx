@@ -42,7 +42,7 @@ import {
   RtcNavigationSearchParams,
 } from "@shared/config";
 import { getFirstSearchParam, useConfirm } from "@shared/lib";
-import { Box, VStack } from "@shared/ui";
+import { Box, FramingGridOverlay, VStack } from "@shared/ui";
 import { CameraHeader } from "@widgets/camera-header";
 import { RtcJoinSheet } from "@widgets/rtc-join-sheet";
 import * as Linking from "expo-linking";
@@ -684,6 +684,7 @@ export function CameraPage() {
             onRuntimeGeometryChange={handleCameraGeometryChange}
             previewOverlay={
               <>
+                <FramingGridOverlay />
                 {cameraGeometry &&
                 cameraGuide.presentedGuide?.outline &&
                 cameraGeometry.aspectRatio ===

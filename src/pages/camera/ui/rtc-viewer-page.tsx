@@ -208,18 +208,18 @@ export function RtcViewerPage() {
   }
 
   return (
-    <>
-      <RtcViewerLiveKitPage
-        connection={liveKitConnection}
-        roomId={viewerSession.roomId}
-        onCancel={leaveViewer}
-        onRoomEnded={handleRoomEnded}
-      />
-      <RtcViewerReactionPicker
-        active
-        roomId={viewerSession.roomId}
-        participantId={viewerSession.participantId}
-      />
-    </>
+    <RtcViewerLiveKitPage
+      connection={liveKitConnection}
+      roomId={viewerSession.roomId}
+      reactionPicker={
+        <RtcViewerReactionPicker
+          active
+          roomId={viewerSession.roomId}
+          participantId={viewerSession.participantId}
+        />
+      }
+      onCancel={leaveViewer}
+      onRoomEnded={handleRoomEnded}
+    />
   );
 }

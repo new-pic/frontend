@@ -106,6 +106,7 @@
     "test:rtc-host-controls": "node --test src/features/rtc/host-controls/__tests__/rtc-host-controls.test.cjs",
     "test:rtc-join": "node --test src/features/rtc/join-room/__tests__/rtc-join-room.test.cjs",
     "test:input-runtime": "node --test src/shared/ui/input/__tests__/nativewind-input-config.test.cjs",
+    "test:rtc-viewer-ui": "node --test src/shared/ui/framing-grid-overlay/__tests__/framing-grid-overlay.test.cjs",
     "test:photo-gallery": "node --test src/shared/ui/photo-gallery/__tests__/photo-gallery-state.test.cjs",
     "test:ui-metrics": "node --test src/shared/constants/__tests__/ui-metrics.test.cjs"
   },

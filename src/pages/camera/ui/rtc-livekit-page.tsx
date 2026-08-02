@@ -22,11 +22,14 @@ import {
 import {
   Box,
   Button,
+  ButtonIcon,
+  ButtonSpinner,
   ButtonText,
-  HStack,
+  FramingGridOverlay,
   Text,
   VStack,
 } from "@shared/ui";
+import { IconX } from "@tabler/icons-react-native";
 import {
   ConnectionState,
   Room,
@@ -34,6 +37,7 @@ import {
   Track,
 } from "livekit-client";
 import {
+  type ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -70,6 +74,7 @@ interface RtcHostLiveKitPageProps {
 interface RtcViewerLiveKitPageProps {
   connection: RtcLiveKitConnection;
   roomId: string;
+  reactionPicker: ReactNode;
   onCancel: () => void | Promise<void>;
   onRoomEnded: (
     result: RtcEndRoomResponse,
@@ -621,6 +626,7 @@ export function RtcHostLiveKitPage({
 interface ViewerRoomContentProps {
   connectionError: string | null;
   roomId: string;
+  reactionPicker: ReactNode;
   onCancel: () => void | Promise<void>;
   onRoomEnded: (
     result: RtcEndRoomResponse,
@@ -630,6 +636,7 @@ interface ViewerRoomContentProps {
 function ViewerRoomContent({
   connectionError,
   roomId,
+  reactionPicker,
   onCancel,
   onRoomEnded,
 }: ViewerRoomContentProps) {
@@ -746,43 +753,59 @@ function ViewerRoomContent({
   }
 
   return (
-    <View style={styles.videoContainer}>
-      <VideoTrack
-        trackRef={remoteCameraTrack}
-        style={StyleSheet.absoluteFill}
-        objectFit="cover"
-      />
-      <SafeAreaView
-        pointerEvents="box-none"
-        style={StyleSheet.absoluteFill}
-      >
-        <VStack className="flex-1 justify-between px-5 py-4">
-          <HStack className="self-start items-center gap-2 rounded-full bg-black/55 px-4 py-2">
-            <Box className="h-2.5 w-2.5 rounded-full bg-red-500" />
-            <Text bold className="text-white">
-              실시간 공유
+    <SafeAreaView
+      edges={["top", "bottom"]}
+      style={{ flex: 1, backgroundColor: "white" }}
+    >
+      <View className="relative min-h-20 flex-row items-center justify-center bg-white px-16 py-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute left-4 rounded-full"
+          disabled={isLeaving}
+          accessibilityLabel={
+            isLeaving ? "실시간 공유에서 나가는 중" : "실시간 공유 나가기"
+          }
+          onPress={() => void handleCancel()}
+        >
+          {isLeaving ? (
+            <ButtonSpinner color="#111111" />
+          ) : (
+            <ButtonIcon as={IconX} className="h-7 w-7" />
+          )}
+        </Button>
+        <Text size="2xl" bold className="text-center text-foreground">
+          사진에 찍히는 내 모습
+        </Text>
+      </View>
+
+      <View className="relative flex-1 overflow-hidden bg-black">
+        <VideoTrack
+          trackRef={remoteCameraTrack}
+          style={StyleSheet.absoluteFill}
+          objectFit="contain"
+        />
+        <FramingGridOverlay />
+        {connectionError ? (
+          <Box className="absolute left-6 right-6 top-6 rounded-xl bg-red-500 px-4 py-3">
+            <Text className="text-center text-white">
+              {connectionError}
             </Text>
-          </HStack>
-          <Button
-            variant="outline"
-            size="lg"
-            className="border-white bg-black/55"
-            disabled={isLeaving}
-            onPress={() => void handleCancel()}
-          >
-            <ButtonText className="text-white">
-              {isLeaving ? "나가는 중..." : "나가기"}
-            </ButtonText>
-          </Button>
-        </VStack>
-      </SafeAreaView>
-    </View>
+          </Box>
+        ) : null}
+      </View>
+
+      <View className="min-h-24 justify-center bg-white py-3">
+        {reactionPicker}
+      </View>
+    </SafeAreaView>
   );
 }
 
 export function RtcViewerLiveKitPage({
   connection,
   roomId,
+  reactionPicker,
   onCancel,
   onRoomEnded,
 }: RtcViewerLiveKitPageProps) {
@@ -809,6 +832,7 @@ export function RtcViewerLiveKitPage({
       <ViewerRoomContent
         connectionError={connectionError}
         roomId={roomId}
+        reactionPicker={reactionPicker}
         onCancel={onCancel}
         onRoomEnded={onRoomEnded}
       />

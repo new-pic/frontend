@@ -11,6 +11,7 @@ export * from "./checkbox";
 export * from "./divider";
 export * from "./fab";
 export * from "./form-control";
+export * from "./framing-grid-overlay";
 export * from "./gluestack-ui-provider";
 export * from "./grid";
 export * from "./heading";
