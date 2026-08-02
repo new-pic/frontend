@@ -51,9 +51,7 @@ export function WelcomPage() {
     try {
       await loginToGuest();
     } catch {
-      setLoginError(
-        "로그인 없이 시작하지 못했습니다. 잠시 후 다시 시도해주세요.",
-      );
+      setLoginError("게스트 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.");
     }
   };
 
