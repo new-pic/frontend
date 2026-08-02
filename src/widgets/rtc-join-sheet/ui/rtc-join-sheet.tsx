@@ -1,11 +1,9 @@
-import { RtcJoinForm } from "@features/rtc/join-room";
 import {
-  BottomSheetModal,
-} from "@shared/ui";
-import {
-  KeyboardAvoidingView,
-  ScrollView,
-} from "react-native";
+  RtcJoinForm,
+  RtcJoinFormHeader,
+} from "@features/rtc/join-room";
+import { BottomSheetModal, VStack } from "@shared/ui";
+import { ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface RtcJoinSheetProps {
@@ -25,33 +23,32 @@ export function RtcJoinSheet({
     <BottomSheetModal
       open={open}
       onClose={onClose}
-      snapPoints={["48%", "82%"]}
+      lockedSnapPoint="50%"
     >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={
-          process.env.EXPO_OS === "ios" ? "padding" : undefined
-        }
+      <VStack
+        className="flex-1 gap-5 px-6 pt-4"
+        style={{ paddingBottom: Math.max(24, insets.bottom) }}
       >
+        <RtcJoinFormHeader />
         <ScrollView
+          style={{ flex: 1 }}
           nestedScrollEnabled
-          contentInsetAdjustmentBehavior="automatic"
-          automaticallyAdjustKeyboardInsets
+          contentInsetAdjustmentBehavior="never"
+          keyboardDismissMode="interactive"
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{
             flexGrow: 1,
-            paddingHorizontal: 24,
-            paddingBottom: Math.max(24, insets.bottom),
-            paddingTop: 24,
+            paddingBottom: 8,
           }}
         >
           <RtcJoinForm
             initialCode={initialCode}
             loginReturnRoute="camera"
             onCancel={onClose}
+            showHeader={false}
           />
         </ScrollView>
-      </KeyboardAvoidingView>
+      </VStack>
     </BottomSheetModal>
   );
 }

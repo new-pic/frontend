@@ -32,12 +32,27 @@ export interface RtcJoinFormProps {
   initialCode?: string;
   onCancel?: () => void;
   loginReturnRoute?: "camera" | "rtc-join";
+  showHeader?: boolean;
+}
+
+export function RtcJoinFormHeader() {
+  return (
+    <VStack className="gap-3">
+      <Text size="xl" bold>
+        실시간 공유 참여
+      </Text>
+      <Text className="text-label-muted">
+        호스트 화면에 표시된 6자리 코드를 입력해주세요.
+      </Text>
+    </VStack>
+  );
 }
 
 export function RtcJoinForm({
   initialCode,
   onCancel,
   loginReturnRoute = "rtc-join",
+  showHeader = true,
 }: RtcJoinFormProps) {
   const joinRoomMutation = rtcViewerQuery.useJoinRtcRoom();
   const isInitialized = useAuthStore(
@@ -93,14 +108,7 @@ export function RtcJoinForm({
 
   return (
     <VStack className="gap-6">
-      <VStack className="gap-3">
-        <Text size="xl" bold>
-          실시간 공유 참여
-        </Text>
-        <Text className="text-label-muted">
-          호스트 화면에 표시된 6자리 코드를 입력해주세요.
-        </Text>
-      </VStack>
+      {showHeader ? <RtcJoinFormHeader /> : null}
 
       <VStack className="gap-3">
         <Text bold>공유 코드</Text>

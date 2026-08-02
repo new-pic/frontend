@@ -2,35 +2,62 @@ import {
   BottomSheet as ExpoBottomSheet,
   BottomSheetView as ExpoBottomSheetView,
 } from "@expo/ui/community/bottom-sheet";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
+import {
+  resolveBottomSheetPresentation,
+  type BottomSheetSnapPoint,
+} from "./bottom-sheet-presentation";
 
-const DEFAULT_SNAP_POINTS: string[] = ["50%", "100%"];
+const DEFAULT_SNAP_POINTS: BottomSheetSnapPoint[] = ["50%", "100%"];
 const BOTTOM_SHEET_BACKGROUND_STYLE = {
   backgroundColor: "white",
 };
 
-export interface BottomSheetModalProps {
+interface BottomSheetModalBaseProps {
   open: boolean;
   onClose: () => void;
   children: ReactNode;
-  snapPoints?: string[];
-  isPanDownToCloseEnabled?: boolean;
 }
+
+type ResizableBottomSheetModalProps = {
+  snapPoints?: BottomSheetSnapPoint[];
+  lockedSnapPoint?: never;
+  isPanDownToCloseEnabled?: boolean;
+};
+
+type LockedBottomSheetModalProps = {
+  lockedSnapPoint: BottomSheetSnapPoint;
+  snapPoints?: never;
+  isPanDownToCloseEnabled?: never;
+};
+
+export type BottomSheetModalProps = BottomSheetModalBaseProps &
+  (ResizableBottomSheetModalProps | LockedBottomSheetModalProps);
 
 export function BottomSheetModal({
   open,
   onClose,
   children,
   snapPoints = DEFAULT_SNAP_POINTS,
+  lockedSnapPoint,
   isPanDownToCloseEnabled = true,
 }: BottomSheetModalProps) {
+  const presentation = resolveBottomSheetPresentation({
+    platform: process.env.EXPO_OS,
+    snapPoints,
+    lockedSnapPoint,
+    isPanDownToCloseEnabled,
+  });
+
   return (
     <ExpoBottomSheet
       index={open ? 0 : -1}
       onClose={onClose}
-      snapPoints={snapPoints}
+      snapPoints={presentation.snapPoints}
       enableDynamicSizing={false}
-      enablePanDownToClose={isPanDownToCloseEnabled}
+      enablePanDownToClose={
+        presentation.isPanDownToCloseEnabled
+      }
       backgroundStyle={BOTTOM_SHEET_BACKGROUND_STYLE}
     >
       <ExpoBottomSheetView

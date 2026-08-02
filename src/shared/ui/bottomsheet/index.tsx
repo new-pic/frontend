@@ -1,1 +1,4 @@
-export { BottomSheetModal, BottomSheetModalProps } from "./bottom-sheet-modal";
+export {
+  BottomSheetModal,
+  type BottomSheetModalProps,
+} from "./bottom-sheet-modal";
