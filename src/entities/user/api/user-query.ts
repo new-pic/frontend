@@ -194,3 +194,13 @@ export function useUpdateProfile() {
     },
   });
 }
+
+export function useResetCurrentUser() {
+  const queryClient = useQueryClient();
+
+  return async () => {
+    await queryClient.resetQueries({
+      queryKey: userQueryKeys.meAll,
+    });
+  };
+}
