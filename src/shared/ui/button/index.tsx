@@ -11,12 +11,7 @@ import { gradients } from "@shared/constants";
 import { LinearGradient } from "expo-linear-gradient";
 import { styled } from "nativewind";
 import React from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 const SCOPE = "BUTTON";
 const Root = withStyleContext(Pressable, SCOPE);
 const StyledUIIcon = styled(UIIcon, {
@@ -139,6 +134,7 @@ type IButtonProps = Omit<
 > &
   VariantProps<typeof buttonStyle> & {
     className?: string;
+    isLoading?: boolean;
     children?: React.ReactNode; // ← 추가
   };
 const Button = React.forwardRef<
@@ -152,21 +148,31 @@ const Button = React.forwardRef<
       size = "default",
       children,
       disabled,
+      isLoading = false,
       ...props
     },
     ref,
   ) => {
+    const spinnerColor =
+      variant === "ghost" || variant === "outline" ? "black" : "white";
+    const buttonChildren = isLoading ? (
+      <ButtonSpinner color={spinnerColor} />
+    ) : (
+      children
+    );
+    const buttonDisabled = disabled || isLoading;
     if (variant === "gradient") {
       return (
         <UIButton
           ref={ref}
           {...props}
-          disabled={disabled}
+          accessibilityState={{ disabled: buttonDisabled, busy: isLoading }}
+          disabled={buttonDisabled}
           className={buttonStyle({ variant, size, class: className })}
           context={{ variant, size }}
         >
           <LinearGradient
-            {...(disabled ? gradients.disabled : gradients.primary)}
+            {...(buttonDisabled ? gradients.disabled : gradients.primary)}
             pointerEvents="none"
             style={{
               position: "absolute",
@@ -176,7 +182,7 @@ const Button = React.forwardRef<
               left: 0,
             }}
           />
-          {children}
+          {buttonChildren}
         </UIButton>
       );
     }
@@ -184,8 +190,9 @@ const Button = React.forwardRef<
       <UIButton
         ref={ref}
         {...props}
-        disabled={disabled}
-        children={children}
+        accessibilityState={{ disabled: buttonDisabled, busy: isLoading }}
+        disabled={buttonDisabled}
+        children={buttonChildren}
         className={buttonStyle({ variant, size, class: className })}
         context={{ variant, size }}
       />

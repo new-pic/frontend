@@ -13,29 +13,23 @@ import type { RtcHostFinalizationState } from "@features/rtc/host-controls";
 import {
   LiveKitRoom,
   RoomContext,
-  VideoTrack,
   useConnectionState,
   useRemoteParticipants,
   useRoomContext,
   useTracks,
+  VideoTrack,
 } from "@livekit/react-native";
 import {
   Box,
   Button,
   ButtonIcon,
-  ButtonSpinner,
   ButtonText,
   FramingGridOverlay,
   Text,
   VStack,
 } from "@shared/ui";
 import { IconX } from "@tabler/icons-react-native";
-import {
-  ConnectionState,
-  Room,
-  RoomEvent,
-  Track,
-} from "livekit-client";
+import { ConnectionState, Room, RoomEvent, Track } from "livekit-client";
 import {
   type ReactNode,
   useCallback,
@@ -44,12 +38,7 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  Alert,
-  BackHandler,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Alert, BackHandler, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SharingWaitingPage } from "./sharing-waiting-page";
 
@@ -61,13 +50,9 @@ interface RtcHostLiveKitPageProps {
   isActive: boolean;
   onPrepareEndRoom: () => Promise<void>;
   onEndRoom: () => Promise<RtcEndRoomResponse>;
-  onStopped: (
-    result: RtcEndRoomResponse,
-  ) => void | Promise<void>;
+  onStopped: (result: RtcEndRoomResponse) => void | Promise<void>;
   endRequestId?: number;
-  onFinalizationStateChange?: (
-    state: RtcHostFinalizationState,
-  ) => void;
+  onFinalizationStateChange?: (state: RtcHostFinalizationState) => void;
   publisherFactory?: RtcVideoPublisherFactory;
 }
 
@@ -76,9 +61,7 @@ interface RtcViewerLiveKitPageProps {
   roomId: string;
   reactionPicker: ReactNode;
   onCancel: () => void | Promise<void>;
-  onRoomEnded: (
-    result: RtcEndRoomResponse,
-  ) => void | Promise<void>;
+  onRoomEnded: (result: RtcEndRoomResponse) => void | Promise<void>;
 }
 
 interface HostRoomContentProps {
@@ -88,13 +71,9 @@ interface HostRoomContentProps {
   isActive: boolean;
   onPrepareEndRoom: () => Promise<void>;
   onEndRoom: () => Promise<RtcEndRoomResponse>;
-  onStopped: (
-    result: RtcEndRoomResponse,
-  ) => void | Promise<void>;
+  onStopped: (result: RtcEndRoomResponse) => void | Promise<void>;
   endRequestId: number;
-  onFinalizationStateChange?: (
-    state: RtcHostFinalizationState,
-  ) => void;
+  onFinalizationStateChange?: (state: RtcHostFinalizationState) => void;
   publisher: RtcVideoPublisher;
 }
 
@@ -118,14 +97,12 @@ function HostRoomContent({
   const hasPublisherStartBeenRequestedRef = useRef(false);
   const isStoppingRef = useRef(false);
   const hasStopBeenRequestedRef = useRef(false);
-  const completedResultRef =
-    useRef<RtcEndRoomResponse | null>(null);
+  const completedResultRef = useRef<RtcEndRoomResponse | null>(null);
   const handledEndRequestIdRef = useRef(endRequestId);
-  const [publisherError, setPublisherError] = useState<string | null>(
-    null,
-  );
-  const [finalizationErrorMessage, setFinalizationErrorMessage] =
-    useState<string | null>(null);
+  const [publisherError, setPublisherError] = useState<string | null>(null);
+  const [finalizationErrorMessage, setFinalizationErrorMessage] = useState<
+    string | null
+  >(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
   isActiveRef.current = isActive;
@@ -185,10 +162,7 @@ function HostRoomContent({
   }, [connectionState, publisher]);
 
   useEffect(() => {
-    if (
-      canPublish &&
-      connectionState === ConnectionState.Connected
-    ) {
+    if (canPublish && connectionState === ConnectionState.Connected) {
       void startPublisher();
     }
   }, [canPublish, connectionState, startPublisher]);
@@ -212,18 +186,15 @@ function HostRoomContent({
       }
 
       const payload = encodeRtcRoomEndedRpcPayload(result);
-      const currentViewers = [
-        ...room.remoteParticipants.values(),
-      ];
+      const currentViewers = [...room.remoteParticipants.values()];
       const acknowledgements = await Promise.allSettled(
         currentViewers.map(async (participant) => {
-          const response =
-            await room.localParticipant.performRpc({
-              destinationIdentity: participant.identity,
-              method: RTC_ROOM_ENDED_RPC_METHOD,
-              payload,
-              responseTimeout: 8_000,
-            });
+          const response = await room.localParticipant.performRpc({
+            destinationIdentity: participant.identity,
+            method: RTC_ROOM_ENDED_RPC_METHOD,
+            payload,
+            responseTimeout: 8_000,
+          });
 
           if (response !== RTC_ROOM_ENDED_RPC_ACK) {
             throw new Error(
@@ -357,10 +328,7 @@ function HostRoomContent({
   }, [finalizationErrorMessage, handleStop]);
 
   useEffect(() => {
-    if (
-      endRequestId <= handledEndRequestIdRef.current ||
-      endRequestId <= 0
-    ) {
+    if (endRequestId <= handledEndRequestIdRef.current || endRequestId <= 0) {
       return;
     }
 
@@ -384,21 +352,15 @@ function HostRoomContent({
 
   return (
     <View pointerEvents="box-none" style={styles.hostOverlay}>
-      <SafeAreaView
-        pointerEvents="box-none"
-        style={StyleSheet.absoluteFill}
-      >
+      <SafeAreaView pointerEvents="box-none" style={StyleSheet.absoluteFill}>
         <View pointerEvents="box-none" style={styles.hostControls}>
           {errorMessage ? (
             <VStack className="mt-3 items-center gap-3 rounded-2xl bg-black/70 p-4">
-              <Text className="text-center text-white">
-                {errorMessage}
-              </Text>
+              <Text className="text-center text-white">{errorMessage}</Text>
               <Button
                 variant="outline"
                 disabled={
-                  isPublishing ||
-                  connectionState !== ConnectionState.Connected
+                  isPublishing || connectionState !== ConnectionState.Connected
                 }
                 onPress={() => void startPublisher()}
               >
@@ -439,15 +401,13 @@ export function RtcHostLiveKitPage({
   const lifecycleEpochRef = useRef(0);
   const isActiveRef = useRef(isActive);
   const isMountedRef = useRef(true);
-  const [connectionReadyEpoch, setConnectionReadyEpoch] =
-    useState<number | null>(null);
-  const [connectionError, setConnectionError] = useState<
-    string | null
+  const [connectionReadyEpoch, setConnectionReadyEpoch] = useState<
+    number | null
   >(null);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   isActiveRef.current = isActive;
   const canPublish =
-    isActive &&
-    connectionReadyEpoch === lifecycleEpochRef.current;
+    isActive && connectionReadyEpoch === lifecycleEpochRef.current;
 
   const ensureConnected = useCallback(async () => {
     if (!isActiveRef.current) {
@@ -628,9 +588,7 @@ interface ViewerRoomContentProps {
   roomId: string;
   reactionPicker: ReactNode;
   onCancel: () => void | Promise<void>;
-  onRoomEnded: (
-    result: RtcEndRoomResponse,
-  ) => void | Promise<void>;
+  onRoomEnded: (result: RtcEndRoomResponse) => void | Promise<void>;
 }
 
 function ViewerRoomContent({
@@ -736,16 +694,13 @@ function ViewerRoomContent({
         <SharingWaitingPage
           hostNickname={hostNickname}
           isConnecting={
-            connectionState !== ConnectionState.Connected &&
-            !connectionError
+            connectionState !== ConnectionState.Connected && !connectionError
           }
           onCancel={() => void handleCancel()}
         />
         {connectionError ? (
           <Box className="absolute left-6 right-6 top-16 rounded-xl bg-red-500 px-4 py-3">
-            <Text className="text-center text-white">
-              {connectionError}
-            </Text>
+            <Text className="text-center text-white">{connectionError}</Text>
           </Box>
         ) : null}
       </View>
@@ -763,16 +718,13 @@ function ViewerRoomContent({
           size="icon"
           className="absolute left-4 rounded-full"
           disabled={isLeaving}
+          isLoading={isLeaving}
           accessibilityLabel={
             isLeaving ? "실시간 공유에서 나가는 중" : "실시간 공유 나가기"
           }
           onPress={() => void handleCancel()}
         >
-          {isLeaving ? (
-            <ButtonSpinner color="#111111" />
-          ) : (
-            <ButtonIcon as={IconX} className="h-7 w-7" />
-          )}
+          <ButtonIcon as={IconX} className="h-7 w-7" />
         </Button>
         <Text size="2xl" bold className="text-center text-foreground">
           사진에 찍히는 내 모습
@@ -788,9 +740,7 @@ function ViewerRoomContent({
         <FramingGridOverlay />
         {connectionError ? (
           <Box className="absolute left-6 right-6 top-6 rounded-xl bg-red-500 px-4 py-3">
-            <Text className="text-center text-white">
-              {connectionError}
-            </Text>
+            <Text className="text-center text-white">{connectionError}</Text>
           </Box>
         ) : null}
       </View>
@@ -809,9 +759,7 @@ export function RtcViewerLiveKitPage({
   onCancel,
   onRoomEnded,
 }: RtcViewerLiveKitPageProps) {
-  const [connectionError, setConnectionError] = useState<
-    string | null
-  >(null);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   return (
     <LiveKitRoom

@@ -20,15 +20,19 @@ import { Alert, Image, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function WelcomPage() {
-  const { isLoading, loginWithGoogle, loginToGuest } = useSocialLogin();
+  const {
+    disabled,
+    isGuestLoading,
+    isGoogleLoading,
+    loginWithGoogle,
+    loginToGuest,
+  } = useSocialLogin();
   const [loginError, setLoginError] = useState<string | null>(null);
   const termsAgreed = useAuthStore((state) => state.termsAgreed);
   const hasExistingSession = useAuthStore((state) =>
     Boolean(state.accessToken),
   );
-  const setTermsAgreed = useAuthStore(
-    (state) => state.setTermsAgreed,
-  );
+  const setTermsAgreed = useAuthStore((state) => state.setTermsAgreed);
 
   const ensureTermsAgreed = () => {
     if (termsAgreed) return true;
@@ -47,9 +51,7 @@ export function WelcomPage() {
     try {
       await loginToGuest();
     } catch {
-      setLoginError(
-        "로그인 없이 시작하지 못했습니다. 잠시 후 다시 시도해주세요.",
-      );
+      setLoginError("게스트 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.");
     }
   };
 
@@ -99,7 +101,8 @@ export function WelcomPage() {
           <Button
             variant="outline"
             className="rounded-full"
-            disabled={isLoading}
+            disabled={disabled}
+            isLoading={isGoogleLoading}
             onPress={handleGoogleLogin}
           >
             <GoogleLogo width={24} height={24} />
@@ -108,14 +111,15 @@ export function WelcomPage() {
           {/* <Button
             variant="outline"
             className="rounded-full bg-black"
-            disabled={isLoading}
+            disabled={disabled}
           >
             <AppleLogo width={24} height={24} />
             <ButtonText className="text-white">애플로 시작하기</ButtonText>
           </Button> */}
           <Button
             variant="ghost"
-            disabled={isLoading}
+            disabled={disabled}
+            isLoading={isGuestLoading}
             onPress={handleGuestLogin}
           >
             <ButtonText>로그인 없이 사용하기</ButtonText>
@@ -126,7 +130,7 @@ export function WelcomPage() {
             value="terms-agreed"
             className="h-11 w-11 justify-center"
             isChecked={termsAgreed}
-            isDisabled={isLoading || hasExistingSession}
+            isDisabled={disabled || hasExistingSession}
             onChange={setTermsAgreed}
             accessibilityLabel="이용약관 동의"
           >
@@ -136,7 +140,7 @@ export function WelcomPage() {
           </Checkbox>
           <Pressable
             className="min-h-11 justify-center"
-            disabled={isLoading}
+            disabled={disabled}
             accessibilityRole="link"
             onPress={handleOpenTermsOfService}
           >

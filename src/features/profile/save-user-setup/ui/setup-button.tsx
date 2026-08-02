@@ -1,12 +1,8 @@
 import { usersQuery } from "@entities/user";
 import { getApiErrorMessage } from "@shared/api";
 import { normalizeAuthReturnTo } from "@shared/lib";
-import { Button, ButtonSpinner, ButtonText } from "@shared/ui";
-import {
-  Href,
-  router,
-  useLocalSearchParams,
-} from "expo-router";
+import { Button, ButtonText } from "@shared/ui";
+import { Href, router, useLocalSearchParams } from "expo-router";
 import { Alert } from "react-native";
 import { prepareProfileUpdateRequest } from "../lib/prepare-profile-update-request";
 import { UseSetupFormReturn } from "../lib/use-setup-form";
@@ -42,11 +38,11 @@ export function SetupButton({ form }: { form: UseSetupFormReturn }) {
       variant="gradient"
       className="w-full h-12.5 p-0 rounded-xl"
       disabled={isSubmitting}
+      isLoading={isSubmitting}
       onPress={form.handleSubmit(onSubmit)}
     >
-      {isSubmitting ? <ButtonSpinner /> : null}
       <ButtonText size="lg" className="font-semibold">
-        {isSubmitting ? "저장 중..." : "설정하기"}
+        설정하기
       </ButtonText>
     </Button>
   );
