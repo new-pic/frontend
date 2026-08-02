@@ -18,7 +18,9 @@ export function SetupButton({ form }: { form: UseSetupFormReturn }) {
     try {
       const request = await prepareProfileUpdateRequest(data);
       await mutationToUpdateProfile.mutateAsync(request);
-      router.replace(normalizeAuthReturnTo(returnToParam) as Href);
+      router.replace(
+        normalizeAuthReturnTo(returnToParam ?? "/profile") as Href,
+      );
     } catch (error) {
       Alert.alert(
         "프로필 수정 실패",
