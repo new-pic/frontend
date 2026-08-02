@@ -58,7 +58,12 @@ export function useReadMe(options?: { enabled?: boolean }) {
  * 내가 올린 피드 목록 조회
  */
 export function useReadMyFeeds(params: PaginationParams) {
-  return useInfiniteQuery(myFeedsInfiniteQueryOptions(params));
+  const isGuest = useAuthStore((state) => state.isGuest);
+
+  return useInfiniteQuery({
+    ...myFeedsInfiniteQueryOptions(params),
+    enabled: !isGuest,
+  });
 }
 
 export function myFeedsInfiniteQueryOptions(params: PaginationParams) {
@@ -78,7 +83,6 @@ export function myFeedsInfiniteQueryOptions(params: PaginationParams) {
     initialPageParam: params.cursor,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 1000 * 60 * 5, // 5분
-    enabled: !isGuest,
   });
 }
 
@@ -87,11 +91,15 @@ export function myFeedsInfiniteQueryOptions(params: PaginationParams) {
  * @returns
  */
 export function useReadLikedFeeds(params: PaginationParams) {
-  return useInfiniteQuery(likedFeedsInfiniteQueryOptions(params));
+  const isGuest = useAuthStore((state) => state.isGuest);
+
+  return useInfiniteQuery({
+    ...likedFeedsInfiniteQueryOptions(params),
+    enabled: !isGuest,
+  });
 }
 
 export function likedFeedsInfiniteQueryOptions(params: PaginationParams) {
-  const isGuest = useAuthStore.getState().isGuest;
   return infiniteQueryOptions({
     queryKey: userQueryKeys.likedFeedList(params),
     queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
@@ -107,7 +115,6 @@ export function likedFeedsInfiniteQueryOptions(params: PaginationParams) {
     initialPageParam: params.cursor,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 1000 * 60 * 5, // 5분
-    enabled: !isGuest,
   });
 }
 
@@ -119,7 +126,7 @@ export function useReadSavedFeeds(
   params: PaginationParams,
   options?: { enabled?: boolean },
 ) {
-  const isGuest = useAuthStore.getState().isGuest;
+  const isGuest = useAuthStore((state) => state.isGuest);
   return useInfiniteQuery({
     queryKey: userQueryKeys.savedFeedList(params),
     queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
@@ -135,7 +142,7 @@ export function useReadSavedFeeds(
     initialPageParam: params.cursor,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 1000 * 60 * 5,
-    enabled: options?.enabled || !isGuest,
+    enabled: !isGuest && (options?.enabled ?? true),
   });
 }
 
