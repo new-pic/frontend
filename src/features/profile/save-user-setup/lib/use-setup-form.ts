@@ -12,7 +12,7 @@ export function useSetupForm() {
     resolver: standardSchemaResolver(ProfileEditFormSchema),
     defaultValues: {
       nickname: "",
-      profileImage: undefined,
+      profileImageFile: undefined,
     },
   });
 }
