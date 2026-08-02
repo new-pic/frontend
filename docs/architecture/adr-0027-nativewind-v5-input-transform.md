@@ -1,79 +1,90 @@
-# ADR-0027: NativeWind v5 Input 변환 경계
+# ADR-0027: NativeWind v5 Input의 nativeStyleMapping 호환 경계
 
 ## Decision
 
-NativeWind v5의 CSS 변환은 Metro `withNativewind`가 전담하고,
-Babel에서는 기존 `nativewind/babel` preset을 제거한다. Expo의
-`babel-preset-expo`, module resolver, worklets plugin은 유지한다.
+Gluestack 공용 `Input`과 NativeWind v5 Metro 변환 구조를 유지한다.
+`react-native-css@3.0.7`의 `nativeStyleMapping`이 `true`를 같은 이름의 prop
+경로로 해석하도록 pnpm dependency patch를 적용한다.
 
-Gluestack `Input` wrapper의 React Compiler 예외도 제거하고 공용
-`Input`, `InputField`, `InputIcon`, `InputSlot` API를 그대로 유지한다.
+```text
+RtcJoinForm
+  ↓
+shared/ui InputField
+  ↓
+Gluestack createInput
+  ↓
+NativeWind가 제공한 react-native-css TextInput
+  ↓
+nativeStyleMapping(true → 동일한 이름의 prop 경로)
+  ↓
+React Native TextInput
+```
+
+프로젝트가 직접 선언한 `Spinner` 매핑도 deprecated `nativeStyleToProp` 대신
+문자열 경로를 사용하는 `nativeStyleMapping`으로 맞춘다.
 
 ## Context
 
-프로젝트는 NativeWind 5 preview와 Tailwind CSS 4를 사용하지만,
-Babel에 NativeWind v4 방식의 preset이 남아 있었다. 그 결과
-Gluestack 내부의 `react-native` import까지 `react-native-css/components`로
-재변환되어 `InputField` 렌더 시 `undefined is not a function` 오류가
-발생했다.
+RTC 코드 입력창은 `text-center`를 사용한다. 이 클래스가 `textAlign` 스타일을
+생성하면 `react-native-css`의 내장 TextInput은 다음 매핑을 실행한다.
 
-React Compiler 예외를 적용한 후에도 같은 오류가 재현되었고,
-Babel 결과에서 compiler memo cache가 제거된 것을 확인했다. 따라서
-ADR-0025의 초기 원인 판단을 폐기하고 NativeWind 변환 경계를
-실제 원인으로 정정한다.
+```ts
+nativeStyleMapping: {
+  textAlign: true,
+}
+```
+
+설치된 3.0.7 타입은 `true`를 허용하지만 런타임은 값을 문자열로 가정해
+`path.split(".")`을 호출했다. 따라서 `true.split`에 해당하는
+`undefined is not a function`이 발생했다. RedBox의 실제 최상단 소스와
+컴포넌트 스택은 각각 `native/styles/index`와
+`react-native-css/components/TextInput`이었다.
 
 ## Alternatives
 
-### Option A: NativeWind v5 Babel preset을 제거
+### Option A: `text-center`를 인라인 `textAlign`으로 교체
 
-공식 v5 변환 경계에 맞추면서 Gluestack 공용 Input을 유지한다.
+현재 RTC 입력만 빠르게 우회할 수 있지만 동일한 클래스가 다시 사용되면
+재발하고 외부 라이브러리의 유효한 타입 계약을 앱이 회피해야 한다.
 
-### Option B: NativeWind, Metro, CSS 설정을 전체 재구성
+### Option B: 공용 Input을 React Native primitive로 교체
 
-전체 설정을 한 번에 정규화할 수 있지만 앱 전체 스타일 회귀 범위가
-커진다.
+외부 creator 의존성은 줄지만 Gluestack의 focus, invalid, disabled, 접근성
+상태 전달을 다시 구현해야 하며 모든 입력 화면의 회귀 범위가 크다.
 
-### Option C: RTC 참여 form만 React Native TextInput으로 우회
+### Option C: dependency patch로 매핑 계약을 복구
 
-즉시 회피는 가능하지만 공용 Input의 잘못된 변환을 남기고
-화면별 구현을 중복한다.
+공용 API와 스타일 사용법을 유지하고 결함이 있는 외부 경계 한 곳만 수정한다.
+반면 패키지 업그레이드 때 upstream 수정 여부와 patch 적용 가능성을 확인해야
+한다.
 
 ## Reason
 
-Option A를 선택했다. 변경 범위가 Babel 경계로 한정되고,
-Gluestack Input 구조와 현재 호출 API를 모두 유지할 수 있다.
-
-```text
-Application / Gluestack components
-  ↓
-babel-preset-expo
-  ↓
-NativeWind v5 Metro transformer
-  ↓
-react-native-css
-  ↓
-React Native primitives
-```
+Option C를 선택했다. `true`는 라이브러리의 공개 타입이 허용하는 값이며,
+의미도 현재 style key와 같은 이름의 native prop으로 옮기는 것이다. 최신
+배포 버전인 3.0.7에서 결함이 재현되어 단순 버전 업그레이드로 해결할 수도
+없었다. `(path === true ? key : path)` 정규화는 이 계약을 가장 작은 범위로
+복구한다.
 
 ## Trade-off
 
 얻은 것:
 
-- NativeWind v5 공식 변환 경계와의 일치
-- Gluestack Input 공용 API 유지
-- 화면별 TextInput 우회 제거
+- Gluestack Input과 기존 호출 API 유지
+- RTC에 한정되지 않고 `true` 매핑 전체의 동일 오류 방지
+- pnpm install 시 자동 재적용되는 명시적인 호환 패치
+- NativeWind의 Metro 단일 변환 경계 유지
 
 제한:
 
-- Metro 캐시에 기존 Babel 결과가 남아 있으면 `expo start --clear`가
-  필요하다.
-- NativeWind v5가 preview 버전이므로 업그레이드 시 설정을 재검증해야
-  한다.
+- 외부 패키지 소스에 대한 프로젝트 patch를 관리해야 한다.
+- `react-native-css` 업그레이드 시 upstream 반영 여부를 확인하고 patch를
+  제거하거나 갱신해야 한다.
 
 ## Result
 
-- Babel이 Gluestack 내부 `react-native` import를 구 방식으로 재변환하지
-  않도록 정리했다.
-- React Compiler 예외 지시어를 제거했다.
-- 실제 iOS/Android 기기에서 RTC 참여 입력과 프로필 수정 입력의
-  focus, keyboard submit, disabled 상태를 확인해야 한다.
+- 패치 전 iOS 시뮬레이터의 최소 Input 화면에서 같은 RedBox를 재현했다.
+- 패치 후 동일한 `InputField className="text-center text-xl"`이 정상 렌더됐다.
+- 공용 Input API를 변경하지 않았고 TypeScript 전체 검사가 통과했다.
+- 회귀 검사는 patch 등록과 `true → key` 정규화가 저장소에 남아 있는지
+  확인한다. 실제 렌더 검증은 iOS 시뮬레이터에서 수행했다.

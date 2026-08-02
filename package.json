@@ -105,6 +105,7 @@
     "test:rtc-stored-photos": "node --test src/features/rtc-photo/browse-stored-photos/__tests__/rtc-stored-photo.test.cjs",
     "test:rtc-host-controls": "node --test src/features/rtc/host-controls/__tests__/rtc-host-controls.test.cjs",
     "test:rtc-join": "node --test src/features/rtc/join-room/__tests__/rtc-join-room.test.cjs",
+    "test:input-runtime": "node --test src/shared/ui/input/__tests__/nativewind-input-config.test.cjs",
     "test:photo-gallery": "node --test src/shared/ui/photo-gallery/__tests__/photo-gallery-state.test.cjs",
     "test:ui-metrics": "node --test src/shared/constants/__tests__/ui-metrics.test.cjs"
   },
@@ -112,6 +113,9 @@
   "pnpm": {
     "overrides": {
       "lightningcss": "1.30.1"
+    },
+    "patchedDependencies": {
+      "react-native-css@3.0.7": "patches/react-native-css@3.0.7.patch"
     }
   },
   "resolutions": {

@@ -1,0 +1,24 @@
+diff --git a/src/native/styles/index.ts b/src/native/styles/index.ts
+--- a/src/native/styles/index.ts
++++ b/src/native/styles/index.ts
+@@ -506,3 +506,3 @@ function nativeStyleMapping(
+     let target = props;
+-    const tokens = path.split(".");
++    const tokens = (path === true ? key : path).split(".");
+     const lastToken = tokens.pop();
+diff --git a/dist/module/native/styles/index.js b/dist/module/native/styles/index.js
+--- a/dist/module/native/styles/index.js
++++ b/dist/module/native/styles/index.js
+@@ -372,3 +372,3 @@ function nativeStyleMapping(config, props) {
+     let target = props;
+-    const tokens = path.split(".");
++    const tokens = (path === true ? key : path).split(".");
+     const lastToken = tokens.pop();
+diff --git a/dist/commonjs/native/styles/index.js b/dist/commonjs/native/styles/index.js
+--- a/dist/commonjs/native/styles/index.js
++++ b/dist/commonjs/native/styles/index.js
+@@ -376,3 +376,3 @@ function nativeStyleMapping(config, props) {
+     let target = props;
+-    const tokens = path.split(".");
++    const tokens = (path === true ? key : path).split(".");
+     const lastToken = tokens.pop();
