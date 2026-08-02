@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
-  GoogleLoginResponseSchema,
   GoogleLoginRequestSchema,
+  GoogleLoginResponseSchema,
   GuestLoginRequestSchema,
   SocialLoginStatusSchema,
   TokenResponseSchema,
@@ -14,9 +14,7 @@ export type GoogleLoginRequest = z.infer<typeof GoogleLoginRequestSchema>;
 export type GuestLoginRequest = z.infer<typeof GuestLoginRequestSchema>;
 
 export type TokenResponse = z.infer<typeof TokenResponseSchema>;
-export type GoogleLoginResponse = z.infer<
-  typeof GoogleLoginResponseSchema
->;
+export type GoogleLoginResponse = z.infer<typeof GoogleLoginResponseSchema>;
 
 export type SosialLoginStatus = z.infer<typeof SocialLoginStatusSchema>;
 export type UserType = "GUEST" | "NORMAL" | "ADMIN";

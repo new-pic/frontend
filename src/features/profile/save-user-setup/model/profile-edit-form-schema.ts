@@ -9,13 +9,9 @@ export const SelectedProfileImageSchema = z.object({
 
 export const ProfileEditFormSchema = z.object({
   nickname: NicknameSchema,
-  profileImage: SelectedProfileImageSchema.optional(),
+  profileImageFile: SelectedProfileImageSchema.optional(),
 });
 
-export type ProfileEditFormValues = z.infer<
-  typeof ProfileEditFormSchema
->;
+export type ProfileEditFormValues = z.infer<typeof ProfileEditFormSchema>;
 
-export type SelectedProfileImage = z.infer<
-  typeof SelectedProfileImageSchema
->;
+export type SelectedProfileImage = z.infer<typeof SelectedProfileImageSchema>;

@@ -33,5 +33,5 @@ export const NicknameSchema = z
 
 export const UpdateProfileRequestSchema = z.object({
   nickname: NicknameSchema,
-  profileImage: z.instanceof(File).optional(),
+  profileImageFile: z.instanceof(File).optional(),
 });

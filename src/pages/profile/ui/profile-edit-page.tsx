@@ -34,7 +34,7 @@ export function ProfileEditPage() {
 
     reset({
       nickname: profile.nickname,
-      profileImage: undefined,
+      profileImageFile: undefined,
     });
   }, [isDirty, profile, reset]);
 
@@ -63,7 +63,7 @@ export function ProfileEditPage() {
           <VStack className="px-6 flex-1 py-3">
             <VStack className="flex-1" space="xl">
               <Controller
-                name="profileImage"
+                name="profileImageFile"
                 control={form.control}
                 render={({ field }) => (
                   <ProfileImageField

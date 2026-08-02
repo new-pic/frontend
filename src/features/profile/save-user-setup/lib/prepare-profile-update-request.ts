@@ -5,7 +5,7 @@ import type { ProfileEditFormValues } from "../model/profile-edit-form-schema";
 export async function prepareProfileUpdateRequest(
   values: ProfileEditFormValues,
 ): Promise<ProfileRequest> {
-  if (!values.profileImage) {
+  if (!values.profileImageFile) {
     return {
       nickname: values.nickname,
     };
@@ -13,8 +13,8 @@ export async function prepareProfileUpdateRequest(
 
   return {
     nickname: values.nickname,
-    profileImage: await uriToFile({
-      uri: values.profileImage.uri,
+    profileImageFile: await uriToFile({
+      uri: values.profileImageFile.uri,
     }),
   };
 }
