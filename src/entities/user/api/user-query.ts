@@ -126,7 +126,15 @@ export function useReadSavedFeeds(
   options?: { enabled?: boolean },
 ) {
   const isGuest = useAuthStore((state) => state.isGuest);
+
   return useInfiniteQuery({
+    ...savedFeedsInfiniteQueryOptions(params),
+    enabled: !isGuest && (options?.enabled ?? true),
+  });
+}
+
+export function savedFeedsInfiniteQueryOptions(params: PaginationParams) {
+  return infiniteQueryOptions({
     queryKey: userQueryKeys.savedFeedList(params),
     queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
       const response = await privateApiClient.get("/users/me/references", {
@@ -136,12 +144,12 @@ export function useReadSavedFeeds(
         },
         signal,
       });
+
       return response.data;
     },
     initialPageParam: params.cursor,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 1000 * 60 * 5,
-    enabled: !isGuest && (options?.enabled ?? true),
   });
 }
 
