@@ -34,11 +34,11 @@ export function useSocialLogin() {
 
   // 구글 로그인
   const loginWithGoogle = async () => {
-    if (!canStartLogin()) {
-      return;
-    }
     if (!termsAgreed) {
       throw new Error("Terms agreement is required before login.");
+    }
+    if (!canStartLogin()) {
+      return;
     }
     try {
       GoogleSignin.configure({
@@ -85,7 +85,9 @@ export function useSocialLogin() {
     if (!termsAgreed) {
       throw new Error("Terms agreement is required before login.");
     }
-
+    if (!canStartLogin()) {
+      return;
+    }
     try {
       const response = await mutationToGuestLogin.mutateAsync({
         termsAgreed,
