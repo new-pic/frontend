@@ -6,7 +6,7 @@ import {
   useFeedPublishingPipelineActive,
   useFeedPublishingStore,
 } from "@features/feed/feed-processing";
-import { Button, ButtonSpinner, ButtonText } from "@shared/ui";
+import { Button, ButtonText } from "@shared/ui";
 import { router } from "expo-router";
 import { Alert } from "react-native";
 import { UseSaveFeedFormReturn } from "../lib/use-save-feed-form";
@@ -71,15 +71,12 @@ export function SaveFeedButton({ mode, form, feedId }: SaveFeedButtonProps) {
       className="flex-1 h-12.5 p-0 rounded-xl"
       variant="gradient"
       disabled={isPending}
+      isLoading={isPending}
       onPress={handlePress}
     >
-      {isPending ? (
-        <ButtonSpinner />
-      ) : (
-        <ButtonText size="lg" className="font-semibold">
-          {isCreate ? "게시하기" : "수정하기"}
-        </ButtonText>
-      )}
+      <ButtonText size="lg" className="font-semibold">
+        {isCreate ? "게시하기" : "수정하기"}
+      </ButtonText>
     </Button>
   );
 }

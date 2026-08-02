@@ -8,7 +8,6 @@ import { normalizeAuthReturnTo } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import {
   Button,
-  ButtonSpinner,
   ButtonText,
   HStack,
   Input,
@@ -20,13 +19,10 @@ import { Href, router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 
-const sanitizeCode = (value: string) =>
-  value.replace(/\D/g, "").slice(0, 6);
+const sanitizeCode = (value: string) => value.replace(/\D/g, "").slice(0, 6);
 
 const getErrorMessage = (error: unknown) =>
-  error instanceof Error
-    ? error.message
-    : "잠시 후 다시 시도해주세요.";
+  error instanceof Error ? error.message : "잠시 후 다시 시도해주세요.";
 
 export interface RtcJoinFormProps {
   initialCode?: string;
@@ -55,15 +51,9 @@ export function RtcJoinForm({
   showHeader = true,
 }: RtcJoinFormProps) {
   const joinRoomMutation = rtcViewerQuery.useJoinRtcRoom();
-  const isInitialized = useAuthStore(
-    (state) => state.isInitialized,
-  );
-  const accessToken = useAuthStore(
-    (state) => state.accessToken,
-  );
-  const [code, setCode] = useState(() =>
-    sanitizeCode(initialCode ?? ""),
-  );
+  const isInitialized = useAuthStore((state) => state.isInitialized);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const [code, setCode] = useState(() => sanitizeCode(initialCode ?? ""));
   const isRequestPending = joinRoomMutation.isPending;
   const isSubmitting = !isInitialized || isRequestPending;
 
@@ -115,9 +105,7 @@ export function RtcJoinForm({
         <Input className="h-14 rounded-xl">
           <InputField
             value={code}
-            onChangeText={(value) =>
-              setCode(sanitizeCode(value))
-            }
+            onChangeText={(value) => setCode(sanitizeCode(value))}
             placeholder="6자리 숫자"
             keyboardType="number-pad"
             maxLength={6}
@@ -149,11 +137,9 @@ export function RtcJoinForm({
           size="lg"
           className="flex-1"
           disabled={isSubmitting}
+          isLoading={isSubmitting}
           onPress={() => void handleJoin()}
         >
-          {isSubmitting ? (
-            <ButtonSpinner color="white" />
-          ) : null}
           <ButtonText>
             {!isInitialized
               ? "세션 확인 중..."

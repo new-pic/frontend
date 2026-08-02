@@ -1,6 +1,6 @@
 import { feedQuery, type CreateFeedCommentRequest } from "@entities/feed";
 import { useMemberAccess } from "@shared/hooks";
-import { Button, ButtonSpinner, ButtonText, Text, VStack } from "@shared/ui";
+import { Button, ButtonText, Text, VStack } from "@shared/ui";
 import { useWatch } from "react-hook-form";
 import type { UseCreateFeedCommentFormReturn } from "../lib/use-create-feed-comment-form";
 
@@ -9,10 +9,7 @@ interface SaveCommentButtonProps {
   form: UseCreateFeedCommentFormReturn;
 }
 
-export function SaveCommentButton({
-  feedId,
-  form,
-}: SaveCommentButtonProps) {
+export function SaveCommentButton({ feedId, form }: SaveCommentButtonProps) {
   const requireMember = useMemberAccess();
   const mutationToCreateComment = feedQuery.useCreateFeedComment({ feedId });
   const content = useWatch({
@@ -41,13 +38,10 @@ export function SaveCommentButton({
         disabled={
           mutationToCreateComment.isPending || content.trim().length === 0
         }
+        isLoading={mutationToCreateComment.isPending}
         onPress={handlePress}
       >
-        {mutationToCreateComment.isPending ? (
-          <ButtonSpinner color="white" />
-        ) : (
-          <ButtonText>등록</ButtonText>
-        )}
+        <ButtonText>등록</ButtonText>
       </Button>
       {mutationToCreateComment.isError ? (
         <Text size="xs" className="text-destructive">

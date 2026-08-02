@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  ButtonSpinner,
   ButtonText,
   Center,
   HStack,
@@ -9,8 +8,8 @@ import {
   VStack,
 } from "@shared/ui";
 import { useWindowDimensions } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import QRCode from "react-native-qrcode-svg";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export interface SharingCameraSheetProps {
   joinCode: string;
@@ -130,16 +129,12 @@ export function SharingCameraSheet({
                 size="lg"
                 className="flex-1"
                 disabled={isStarting || !canStart}
+                isLoading={isStarting}
                 onPress={onStart}
                 accessibilityLabel="실시간 공유 시작"
               >
-                {isStarting && <ButtonSpinner color="#ffffff" />}
                 <ButtonText>
-                  {isStarting
-                    ? "공유 중..."
-                    : canStart
-                      ? "공유하기"
-                      : "카메라 준비 중"}
+                  {canStart ? "공유하기" : "카메라 준비 중"}
                 </ButtonText>
               </Button>
             </HStack>

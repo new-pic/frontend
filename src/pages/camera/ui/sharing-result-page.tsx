@@ -2,7 +2,6 @@ import { RTC_MAX_SELECTED_PHOTOS } from "@entities/rtc";
 import { saveImageToMediaLibrary } from "@shared/lib";
 import {
   Button,
-  ButtonSpinner,
   ButtonText,
   HStack,
   PhotoGalleryModal,
@@ -42,14 +41,11 @@ export function SharingResultPage({
     () => new Set(),
   );
   const [isSaving, setIsSaving] = useState(false);
-  const [galleryIndex, setGalleryIndex] = useState<number | null>(
-    null,
-  );
-  const [permissionResponse, requestPermission] =
-    MediaLibrary.usePermissions({
-      writeOnly: true,
-      granularPermissions: ["photo"],
-    });
+  const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
+  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions({
+    writeOnly: true,
+    granularPermissions: ["photo"],
+  });
 
   useEffect(() => {
     const availableImageIds = new Set(images.map((image) => image.id));
@@ -99,9 +95,7 @@ export function SharingResultPage({
       return;
     }
 
-    setSelectedImageIds((previousIds) =>
-      new Set(previousIds).add(image.id),
-    );
+    setSelectedImageIds((previousIds) => new Set(previousIds).add(image.id));
   };
 
   const handleToggleAll = () => {
@@ -112,9 +106,7 @@ export function SharingResultPage({
       return;
     }
 
-    setSelectedImageIds(
-      new Set(selectableImages.map(({ id }) => id)),
-    );
+    setSelectedImageIds(new Set(selectableImages.map(({ id }) => id)));
   };
 
   const requestWritePermission = async (): Promise<boolean> => {
@@ -189,9 +181,7 @@ export function SharingResultPage({
               공유 사진
             </Text>
             <Pressable
-              disabled={
-                images.length === 0 || isSaving || isPending
-              }
+              disabled={images.length === 0 || isSaving || isPending}
               onPress={handleToggleAll}
               accessibilityRole="button"
               accessibilityLabel={
@@ -231,19 +221,13 @@ export function SharingResultPage({
           <Button
             variant="gradient"
             size="lg"
-            disabled={
-              selectedImages.length === 0 ||
-              isSaving ||
-              isPending
-            }
+            disabled={selectedImages.length === 0 || isSaving || isPending}
+            isLoading={isSaving}
             onPress={handleSaveSelectedImages}
             accessibilityLabel={`${selectedImages.length}장의 선택한 사진 저장`}
           >
-            {isSaving && <ButtonSpinner color="#ffffff" />}
             <ButtonText>
-              {isSaving
-                ? "저장 중..."
-                : `선택한 사진 저장 (${selectedImages.length})`}
+              {`선택한 사진 저장 (${selectedImages.length})`}
             </ButtonText>
           </Button>
           <Button

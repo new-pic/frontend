@@ -3,17 +3,13 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { env } from "@shared/config";
 import { normalizeAuthReturnTo } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
-import {
-  Href,
-  router,
-  useLocalSearchParams,
-} from "expo-router";
+import { Href, router, useLocalSearchParams } from "expo-router";
 
 export function useSocialLogin() {
   const { returnTo: returnToParam } = useLocalSearchParams<{
     returnTo?: string | string[];
   }>();
-  const mutationToServiceLogin = authQuery.useGoogleLogin();
+  const mutationToServiceGoogleLogin = authQuery.useGoogleLogin();
   const mutationToGuestLogin = authQuery.useGuestLogin();
 
   const isGuest = useAuthStore((state) => state.isGuest);
@@ -44,7 +40,7 @@ export function useSocialLogin() {
       return;
     }
 
-    const response = await mutationToServiceLogin.mutateAsync({
+    const response = await mutationToServiceGoogleLogin.mutateAsync({
       idToken,
       isGuest,
       termsAgreed,
@@ -86,7 +82,9 @@ export function useSocialLogin() {
   return {
     loginWithGoogle,
     loginToGuest,
-    isLoading:
-      mutationToServiceLogin.isPending || mutationToGuestLogin.isPending,
+    disabled:
+      mutationToServiceGoogleLogin.isPending || mutationToGuestLogin.isPending,
+    isGoogleLoading: mutationToServiceGoogleLogin.isPending,
+    isGuestLoading: mutationToGuestLogin.isPending,
   };
 }

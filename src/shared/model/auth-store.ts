@@ -1,10 +1,7 @@
 import { decodeAccessToken } from "@shared/lib/jwt";
 import * as SecureStore from "expo-secure-store";
 import { create } from "zustand";
-import {
-  AUTH_ENTRY_INTENT,
-  type AuthEntryIntent,
-} from "./auth-entry-intent";
+import { AUTH_ENTRY_INTENT, type AuthEntryIntent } from "./auth-entry-intent";
 
 const ACCESS_TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
