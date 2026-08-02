@@ -24,6 +24,13 @@ const {
   getNextRtcStoredPhotoExpiryDelay,
   mergeUniqueRtcStoredPhotos,
 } = require("../lib/rtc-stored-photo-visibility.ts");
+const {
+  formatRtcStoredPhotoCreatedAt,
+  getRtcStoredPhotoExpiryState,
+  getRtcStoredPhotoExpiryTransitionDelay,
+} = require("../lib/rtc-stored-photo-details.ts");
+
+const EXPIRING_SOON_THRESHOLD_MS = 10 * 60 * 1000;
 
 function createPhoto({
   id,
@@ -124,4 +131,68 @@ test("cursor 페이지를 순서대로 병합하고 중복 사진을 한 번만 
       { id: "photo-2", roomId: "room-2" },
     ],
   );
+});
+
+test("만료까지 10분 이하로 남은 사진만 곧 만료 상태로 분류한다", () => {
+  const nowMs = Date.parse("2026-08-02T03:00:00.000Z");
+
+  assert.equal(
+    getRtcStoredPhotoExpiryState(
+      "2026-08-02T03:10:00.000Z",
+      nowMs,
+      EXPIRING_SOON_THRESHOLD_MS,
+    ),
+    "EXPIRING_SOON",
+  );
+  assert.equal(
+    getRtcStoredPhotoExpiryState(
+      "2026-08-02T03:10:00.001Z",
+      nowMs,
+      EXPIRING_SOON_THRESHOLD_MS,
+    ),
+    "ACTIVE",
+  );
+  assert.equal(
+    getRtcStoredPhotoExpiryState(
+      "2026-08-02T03:00:00.000Z",
+      nowMs,
+      EXPIRING_SOON_THRESHOLD_MS,
+    ),
+    "EXPIRED",
+  );
+});
+
+test("곧 만료 경계와 실제 만료 시점에만 갱신하도록 지연을 계산한다", () => {
+  const nowMs = Date.parse("2026-08-02T03:00:00.000Z");
+
+  assert.equal(
+    getRtcStoredPhotoExpiryTransitionDelay(
+      "2026-08-02T03:12:00.000Z",
+      nowMs,
+      EXPIRING_SOON_THRESHOLD_MS,
+    ),
+    2 * 60 * 1000,
+  );
+  assert.equal(
+    getRtcStoredPhotoExpiryTransitionDelay(
+      "2026-08-02T03:05:00.000Z",
+      nowMs,
+      EXPIRING_SOON_THRESHOLD_MS,
+    ),
+    5 * 60 * 1000,
+  );
+});
+
+test("촬영 시각을 기기 locale의 절대 시간으로 표시한다", () => {
+  const createdAt = "2026-08-02T03:58:00.000Z";
+  const expected = new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(Date.parse(createdAt));
+
+  assert.equal(formatRtcStoredPhotoCreatedAt(createdAt), expected);
+  assert.equal(formatRtcStoredPhotoCreatedAt("invalid"), null);
 });

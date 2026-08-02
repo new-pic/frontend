@@ -1,4 +1,5 @@
 import { RTC_MAX_SELECTED_PHOTOS } from "@entities/rtc";
+import { saveImageToMediaLibrary } from "@shared/lib";
 import {
   Button,
   ButtonSpinner,
@@ -10,7 +11,6 @@ import {
   Text,
   VStack,
 } from "@shared/ui";
-import { File, Paths } from "expo-file-system";
 import * as MediaLibrary from "expo-media-library";
 import { useEffect, useMemo, useState } from "react";
 import { Alert } from "react-native";
@@ -28,61 +28,6 @@ export interface SharingResultPageProps {
   isPending?: boolean;
   isFetchingNextPage?: boolean;
   onEndReached?: () => void;
-}
-
-const REMOTE_URI_PATTERN = /^https:\/\//i;
-const LOCAL_FILE_URI_PATTERN = /^file:\/\//i;
-const IMAGE_EXTENSION_PATTERN = /\.(jpe?g|png|gif|webp|heic|heif)$/i;
-
-function getRemoteImageExtension(uri: string): string {
-  const pathWithoutQuery = uri.split(/[?#]/, 1)[0];
-  return pathWithoutQuery.match(IMAGE_EXTENSION_PATTERN)?.[0] ?? ".jpg";
-}
-
-function getTemporaryImageFile(
-  image: SharingResultImage,
-  index: number,
-): File {
-  const safeId =
-    image.id.replace(/[^a-z0-9_-]/gi, "-").slice(0, 40) || "image";
-  const extension = getRemoteImageExtension(image.imageUrl);
-
-  return new File(
-    Paths.cache,
-    `rtc-${safeId}-${Date.now()}-${index}${extension}`,
-  );
-}
-
-async function saveImageToMediaLibrary(
-  image: SharingResultImage,
-  index: number,
-): Promise<void> {
-  if (!REMOTE_URI_PATTERN.test(image.imageUrl)) {
-    if (!LOCAL_FILE_URI_PATTERN.test(image.imageUrl)) {
-      throw new Error("지원하지 않는 사진 경로입니다.");
-    }
-    await MediaLibrary.Asset.create(image.imageUrl);
-    return;
-  }
-
-  const temporaryFile = getTemporaryImageFile(image, index);
-
-  try {
-    const downloadedFile = await File.downloadFileAsync(
-      image.imageUrl,
-      temporaryFile,
-      { idempotent: true },
-    );
-    await MediaLibrary.Asset.create(downloadedFile.uri);
-  } finally {
-    try {
-      if (temporaryFile.exists) {
-        temporaryFile.delete();
-      }
-    } catch {
-      // 갤러리 저장 성공 여부와 무관한 캐시 정리 실패는 무시합니다.
-    }
-  }
 }
 
 export function SharingResultPage({
@@ -199,9 +144,9 @@ export function SharingResultPage({
     let savedCount = 0;
 
     try {
-      for (const [index, image] of selectedImages.entries()) {
+      for (const image of selectedImages) {
         try {
-          await saveImageToMediaLibrary(image, index);
+          await saveImageToMediaLibrary(image);
           savedCount += 1;
         } catch {
           failedImageIds.push(image.id);

@@ -5,7 +5,11 @@ import {
   IconChevronLeft,
 } from "@tabler/icons-react-native";
 import { Image } from "expo-image";
-import { useEffect, useState } from "react";
+import {
+  type ReactNode,
+  useEffect,
+  useState,
+} from "react";
 import {
   Modal,
   StyleSheet,
@@ -29,6 +33,14 @@ export interface PhotoGalleryImage {
   imageUrl: string;
 }
 
+export interface PhotoGalleryRenderContext<
+  T extends PhotoGalleryImage = PhotoGalleryImage,
+> {
+  activeImage: T;
+  activeIndex: number;
+  totalCount: number;
+}
+
 interface PhotoGalleryModalProps<
   T extends PhotoGalleryImage = PhotoGalleryImage,
 > {
@@ -37,6 +49,15 @@ interface PhotoGalleryModalProps<
   initialIndex: number;
   selectedImageIds?: ReadonlySet<string>;
   onToggleSelection?: (image: T) => void;
+  renderHeaderRight?: (
+    context: PhotoGalleryRenderContext<T>,
+  ) => ReactNode;
+  renderImageOverlay?: (
+    context: PhotoGalleryRenderContext<T>,
+  ) => ReactNode;
+  renderFooterDetails?: (
+    context: PhotoGalleryRenderContext<T>,
+  ) => ReactNode;
   onClose: () => void;
 }
 
@@ -48,6 +69,9 @@ export function PhotoGalleryModal<
   initialIndex,
   selectedImageIds,
   onToggleSelection,
+  renderHeaderRight,
+  renderImageOverlay,
+  renderFooterDetails,
   onClose,
 }: PhotoGalleryModalProps<T>) {
   const safeInitialIndex = clampPhotoGalleryIndex(
@@ -57,6 +81,13 @@ export function PhotoGalleryModal<
   const [activeIndex, setActiveIndex] =
     useState(safeInitialIndex);
   const activeImage = images[activeIndex];
+  const renderContext = activeImage
+    ? {
+        activeImage,
+        activeIndex,
+        totalCount: images.length,
+      }
+    : null;
 
   useEffect(() => {
     if (open) setActiveIndex(safeInitialIndex);
@@ -89,7 +120,11 @@ export function PhotoGalleryModal<
               <Text size="lg" className="font-semibold">
                 사진 미리보기
               </Text>
-              <Box className="w-12" />
+              <Box className="w-12 items-center">
+                {renderContext
+                  ? renderHeaderRight?.(renderContext)
+                  : null}
+              </Box>
             </HStack>
 
             <VStack className="relative flex-1">
@@ -142,17 +177,26 @@ export function PhotoGalleryModal<
                   </Text>
                 </Pressable>
               ) : null}
+
+              {renderContext
+                ? renderImageOverlay?.(renderContext)
+                : null}
             </VStack>
 
-            <HStack className="items-center justify-center border-t border-outline-light px-6 py-4">
-              <Text
-                size="lg"
-                className="font-semibold"
-                style={{ fontVariant: ["tabular-nums"] }}
-              >
-                {activeIndex + 1} / {images.length}
-              </Text>
-            </HStack>
+            <VStack className="items-center gap-2 border-t border-outline-light px-6 py-4">
+              <HStack className="items-center justify-center">
+                <Text
+                  size="lg"
+                  className="font-semibold"
+                  style={{ fontVariant: ["tabular-nums"] }}
+                >
+                  {activeIndex + 1} / {images.length}
+                </Text>
+              </HStack>
+              {renderContext
+                ? renderFooterDetails?.(renderContext)
+                : null}
+            </VStack>
           </VStack>
         </SafeAreaView>
       </SafeAreaProvider>

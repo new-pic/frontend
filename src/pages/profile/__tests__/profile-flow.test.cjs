@@ -81,6 +81,23 @@ test("최근 촬영 사진은 grid에서 선택한 사진으로 공용 갤러리
   assert.match(source, /initialIndex=\{galleryIndex \?\? 0\}/);
 });
 
+test("최근 촬영 사진 상세는 만료 안내와 촬영 시각 및 다운로드를 제공한다", () => {
+  const source = readSource("../ui/profile-rtc-photo-page.tsx");
+  const mediaSource = readSource(
+    "../../../shared/lib/media/save-image-to-media-library.ts",
+  );
+
+  assert.match(source, /renderHeaderRight/);
+  assert.match(source, /IconDownload/);
+  assert.match(source, /RtcStoredPhotoExpiryBadge/);
+  assert.match(source, /expiresAt=\{activeImage\.expiresAt\}/);
+  assert.match(source, /RtcStoredPhotoCreatedAt/);
+  assert.match(source, /createdAt=\{activeImage\.createdAt\}/);
+  assert.match(mediaSource, /File\.downloadFileAsync/);
+  assert.match(mediaSource, /MediaLibrary\.Asset\.create/);
+  assert.match(mediaSource, /temporaryFile\.delete\(\)/);
+});
+
 test("버그 제보 메뉴는 공용 외부 링크를 연다", () => {
   const profileSource = readSource("../ui/profile-page.tsx");
   const externalLinksSource = readSource(

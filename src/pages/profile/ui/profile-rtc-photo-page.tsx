@@ -2,12 +2,16 @@ import { rtcStoredPhotoQuery } from "@entities/rtc-stored-photo";
 import {
   mergeUniqueRtcStoredPhotos,
   RTC_STORED_PHOTO_GALLERY_CONFIG,
+  RtcStoredPhotoCreatedAt,
+  RtcStoredPhotoExpiryBadge,
   useActiveRtcStoredPhotos,
 } from "@features/rtc-photo/browse-stored-photos";
+import { useSaveRtcStoredPhoto } from "@features/rtc-photo/save-stored-photo";
 import {
   Box,
   Button,
   ButtonIcon,
+  ButtonSpinner,
   ButtonText,
   Center,
   HStack,
@@ -16,9 +20,13 @@ import {
   Text,
   VStack,
 } from "@shared/ui";
-import { IconChevronLeft } from "@tabler/icons-react-native";
+import {
+  IconChevronLeft,
+  IconDownload,
+} from "@tabler/icons-react-native";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
+import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function ProfileRtcPhotoPage() {
@@ -35,6 +43,41 @@ export function ProfileRtcPhotoPage() {
     [photosQuery.data?.pages],
   );
   const activePhotos = useActiveRtcStoredPhotos(photos);
+  const { isSaving, savePhoto } = useSaveRtcStoredPhoto();
+
+  const handleDownloadPhoto = async (
+    photo: (typeof activePhotos)[number],
+  ) => {
+    const result = await savePhoto(photo);
+
+    if (result === "SAVED") {
+      Alert.alert(
+        "사진 저장 완료",
+        "현재 사진을 사진 보관함에 저장했습니다.",
+      );
+      return;
+    }
+    if (result === "PERMISSION_DENIED") {
+      Alert.alert(
+        "사진 권한 필요",
+        "사진을 저장하려면 사진 보관함 추가 권한이 필요합니다.",
+      );
+      return;
+    }
+    if (result === "EXPIRED") {
+      Alert.alert(
+        "사진 만료",
+        "사진 보관 기간이 지나 저장할 수 없습니다.",
+      );
+      return;
+    }
+    if (result === "FAILED") {
+      Alert.alert(
+        "사진 저장 실패",
+        "사진을 저장하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      );
+    }
+  };
 
   const handleEndReached = () => {
     if (
@@ -100,6 +143,33 @@ export function ProfileRtcPhotoPage() {
         open={galleryIndex !== null}
         images={activePhotos}
         initialIndex={galleryIndex ?? 0}
+        renderHeaderRight={({ activeImage }) => (
+          <Button
+            variant="ghost"
+            size="icon"
+            disabled={isSaving}
+            accessibilityLabel={
+              isSaving ? "사진 저장 중" : "현재 사진 다운로드"
+            }
+            onPress={() => void handleDownloadPhoto(activeImage)}
+          >
+            {isSaving ? (
+              <ButtonSpinner color="#111111" />
+            ) : (
+              <ButtonIcon as={IconDownload} />
+            )}
+          </Button>
+        )}
+        renderImageOverlay={({ activeImage }) => (
+          <RtcStoredPhotoExpiryBadge
+            expiresAt={activeImage.expiresAt}
+          />
+        )}
+        renderFooterDetails={({ activeImage }) => (
+          <RtcStoredPhotoCreatedAt
+            createdAt={activeImage.createdAt}
+          />
+        )}
         onClose={() => setGalleryIndex(null)}
       />
     </SafeAreaView>
