@@ -67,7 +67,6 @@ export function useReadMyFeeds(params: PaginationParams) {
 }
 
 export function myFeedsInfiniteQueryOptions(params: PaginationParams) {
-  const isGuest = useAuthStore.getState().isGuest;
   return infiniteQueryOptions({
     queryKey: userQueryKeys.myFeedList(params),
     queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
