@@ -4,6 +4,7 @@ import { env } from "@shared/config";
 import { normalizeAuthReturnTo } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import { Href, router, useLocalSearchParams } from "expo-router";
+import { useRef } from "react";
 
 export function useSocialLogin() {
   const { returnTo: returnToParam } = useLocalSearchParams<{
@@ -17,46 +18,66 @@ export function useSocialLogin() {
   const termsAgreed = useAuthStore((state) => state.termsAgreed);
   const returnTo = normalizeAuthReturnTo(returnToParam);
 
+  const loginLockRef = useRef<boolean>(false);
+
+  const canStartLogin = () => {
+    if (loginLockRef.current) {
+      return false;
+    }
+    loginLockRef.current = true;
+    return true;
+  };
+
+  const finishLogin = () => {
+    loginLockRef.current = false;
+  };
+
   // 구글 로그인
   const loginWithGoogle = async () => {
+    if (!canStartLogin()) {
+      return;
+    }
     if (!termsAgreed) {
       throw new Error("Terms agreement is required before login.");
     }
+    try {
+      GoogleSignin.configure({
+        webClientId: env.WEB_GOOGLE_CLIENT_ID,
+        iosClientId: env.IOS_GOOGLE_CLIENT_ID,
+      });
+      await GoogleSignin.hasPlayServices();
+      const signInResponse = await GoogleSignin.signIn();
+      if (signInResponse.type !== "success") {
+        // 구글 로그인 실패
+        return;
+      }
 
-    GoogleSignin.configure({
-      webClientId: env.WEB_GOOGLE_CLIENT_ID,
-      iosClientId: env.IOS_GOOGLE_CLIENT_ID,
-    });
-    await GoogleSignin.hasPlayServices();
-    const signInResponse = await GoogleSignin.signIn();
-    if (signInResponse.type !== "success") {
-      // 구글 로그인 실패
-      return;
-    }
+      const { idToken } = signInResponse.data;
+      if (!idToken) {
+        // idToken이 없는 경우 처리
+        return;
+      }
 
-    const { idToken } = signInResponse.data;
-    if (!idToken) {
-      // idToken이 없는 경우 처리
-      return;
-    }
-
-    const response = await mutationToServiceGoogleLogin.mutateAsync({
-      idToken,
-      isGuest,
-      termsAgreed,
-    });
-    await setSession({
-      accessToken: response.accessToken,
-      refreshToken: response.refreshToken,
-      termsAgreed: response.termsAgreed,
-    });
-    if (response.status === "LOGIN_SUCCESS") {
-      router.replace(returnTo as Href);
-    } else if (response.status === "NEED_NICKNAME") {
-      router.replace({
-        pathname: "/profile/edit",
-        params: { returnTo },
-      } as Href);
+      const response = await mutationToServiceGoogleLogin.mutateAsync({
+        idToken,
+        isGuest,
+        termsAgreed,
+      });
+      await setSession({
+        accessToken: response.accessToken,
+        refreshToken: response.refreshToken,
+        termsAgreed: response.termsAgreed,
+      });
+      if (response.status === "LOGIN_SUCCESS") {
+        router.replace(returnTo as Href);
+      } else if (response.status === "NEED_NICKNAME") {
+        router.replace({
+          pathname: "/profile/edit",
+          params: { returnTo },
+        } as Href);
+      }
+    } finally {
+      finishLogin();
     }
   };
 
@@ -65,18 +86,22 @@ export function useSocialLogin() {
       throw new Error("Terms agreement is required before login.");
     }
 
-    const response = await mutationToGuestLogin.mutateAsync({
-      termsAgreed,
-    });
-    if (!response.accessToken) {
-      return;
+    try {
+      const response = await mutationToGuestLogin.mutateAsync({
+        termsAgreed,
+      });
+      if (!response.accessToken) {
+        return;
+      }
+      await setSession({
+        accessToken: response.accessToken,
+        refreshToken: response.refreshToken,
+        termsAgreed: response.termsAgreed,
+      });
+      router.replace(returnTo as Href);
+    } finally {
+      finishLogin();
     }
-    await setSession({
-      accessToken: response.accessToken,
-      refreshToken: response.refreshToken,
-      termsAgreed: response.termsAgreed,
-    });
-    router.replace(returnTo as Href);
   };
 
   return {
