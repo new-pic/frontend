@@ -77,7 +77,7 @@ test("프로필 이미지는 optional이고 닉네임만으로 제출할 수 있
 test("선택한 이미지는 제출 시 Expo File 요청으로 변환한다", async () => {
   const request = await prepareProfileUpdateRequest({
     nickname: "뉴픽",
-    profileImage: {
+    profileImageFile: {
       uri: "file:///cache/profile.jpg",
       fileName: "profile.jpg",
       mimeType: "image/jpeg",
@@ -85,8 +85,8 @@ test("선택한 이미지는 제출 시 Expo File 요청으로 변환한다", as
   });
 
   assert.equal(request.nickname, "뉴픽");
-  assert.ok(request.profileImage instanceof MockFile);
-  assert.equal(request.profileImage.uri, "file:///cache/profile.jpg");
+  assert.ok(request.profileImageFile instanceof MockFile);
+  assert.equal(request.profileImageFile.uri, "file:///cache/profile.jpg");
   assert.equal(UpdateProfileRequestSchema.safeParse(request).success, true);
 });
 
@@ -137,10 +137,7 @@ test("프로필 수정 API는 expo/fetch multipart 클라이언트를 사용한�
 
   assert.match(querySource, /uploadFetchClient\.patch/);
   assert.match(querySource, /ObjectToFormData\(request\)/);
-  assert.doesNotMatch(
-    querySource,
-    /privateApiClient\.patch\("\/users\/me"/,
-  );
+  assert.doesNotMatch(querySource, /privateApiClient\.patch\("\/users\/me"/);
   assert.match(fieldSource, /launchImageLibraryAsync/);
   assert.doesNotMatch(fieldSource, /사진 삭제|사진 제거/);
 });
