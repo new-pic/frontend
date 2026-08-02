@@ -1,5 +1,6 @@
 import { apiClient, privateApiClient, uploadFetchClient } from "@shared/api";
 import { ObjectToFormData } from "@shared/lib";
+import { useAuthStore } from "@shared/model";
 import {
   type InfiniteData,
   type QueryClient,
@@ -124,12 +125,10 @@ async function optimisticallyUpdateFeedAcrossCollections(
     ),
   );
 
-  const previousFeedCaches: FeedCacheSnapshot = matchingQueries.map(
-    (query) => [
-      query.queryKey,
-      queryClient.getQueryData(query.queryKey),
-    ],
-  );
+  const previousFeedCaches: FeedCacheSnapshot = matchingQueries.map((query) => [
+    query.queryKey,
+    queryClient.getQueryData(query.queryKey),
+  ]);
 
   matchingQueries.forEach((query) => {
     queryClient.setQueryData(query.queryKey, (data: unknown) =>
@@ -224,6 +223,11 @@ export function useCreateFeedComment({ feedId }: { feedId: string }) {
     mutationFn: async (
       data: CreateFeedCommentRequest,
     ): Promise<FeedCommentResponse> => {
+      const isGuest = useAuthStore.getState().isGuest;
+
+      if (isGuest) {
+        throw new Error("Member account is required.");
+      }
       const response = await privateApiClient.post(
         `/feed/${feedId}/comments`,
         data,
@@ -261,6 +265,11 @@ export function useCreateFeed() {
     mutationFn: async (
       request: CreateFeedRequest,
     ): Promise<FeedAiJobResponseDto> => {
+      const isGuest = useAuthStore.getState().isGuest;
+
+      if (isGuest) {
+        throw new Error("Member account is required.");
+      }
       const formData = ObjectToFormData(request);
       const response = await uploadFetchClient.post({ url: "/feed", formData });
       return response.data;
@@ -274,6 +283,11 @@ export function useUpdateFeed({ feedId }: { feedId?: string }) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: UpdateFeedRequest) => {
+      const isGuest = useAuthStore.getState().isGuest;
+
+      if (isGuest) {
+        throw new Error("Member account is required.");
+      }
       if (!feedId) throw new Error("feedId is required for updating feed");
       const response = await privateApiClient.patch(`/feed/${feedId}`, data);
       return response.data;
@@ -302,6 +316,11 @@ export function useDeleteFeed() {
 
   return useMutation({
     mutationFn: async (feedId: string) => {
+      const isGuest = useAuthStore.getState().isGuest;
+
+      if (isGuest) {
+        throw new Error("Member account is required.");
+      }
       const response = await privateApiClient.delete(`/feed/${feedId}`);
       return response.data;
     },
@@ -334,6 +353,11 @@ export function useSaveFeed() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (feedId: string) => {
+      const isGuest = useAuthStore.getState().isGuest;
+
+      if (isGuest) {
+        throw new Error("Member account is required.");
+      }
       const response = await privateApiClient.post(`/feed/${feedId}/pick`);
       return response.data;
     },
@@ -364,6 +388,11 @@ export function useUnsaveFeed() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (feedId: string) => {
+      const isGuest = useAuthStore.getState().isGuest;
+
+      if (isGuest) {
+        throw new Error("Member account is required.");
+      }
       const response = await privateApiClient.delete(`/feed/${feedId}/pick`);
       return response.data;
     },
@@ -392,6 +421,11 @@ export function useLikeFeed() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (feedId: string) => {
+      const isGuest = useAuthStore.getState().isGuest;
+
+      if (isGuest) {
+        throw new Error("Member account is required.");
+      }
       const response = await privateApiClient.post(`/feed/${feedId}/like`);
       return response.data;
     },
@@ -420,6 +454,11 @@ export function useUnlikeFeed() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (feedId: string) => {
+      const isGuest = useAuthStore.getState().isGuest;
+
+      if (isGuest) {
+        throw new Error("Member account is required.");
+      }
       const response = await privateApiClient.delete(`/feed/${feedId}/like`);
       return response.data;
     },

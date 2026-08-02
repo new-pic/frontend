@@ -24,11 +24,7 @@ export const userQueryKeys = {
   all: QUERY_KEY,
   meAll: [...QUERY_KEY, "me"] as const,
   me: (userId: string | null) =>
-    [
-      ...QUERY_KEY,
-      "me",
-      getUserQueryIdentity(userId),
-    ] as const,
+    [...QUERY_KEY, "me", getUserQueryIdentity(userId)] as const,
   myFeeds: [...QUERY_KEY, "me", "feeds"] as const,
   myFeedList: (params: PaginationParams) =>
     [...QUERY_KEY, "me", "feeds", params] as const,
@@ -54,8 +50,7 @@ export function useReadMe(options?: { enabled?: boolean }) {
       const response = await privateApiClient.get("/users/me");
       return response.data;
     },
-    enabled:
-      Boolean(userId && accessToken) && (options?.enabled ?? true),
+    enabled: Boolean(userId && accessToken) && (options?.enabled ?? true),
   });
 }
 
@@ -67,6 +62,7 @@ export function useReadMyFeeds(params: PaginationParams) {
 }
 
 export function myFeedsInfiniteQueryOptions(params: PaginationParams) {
+  const isGuest = useAuthStore.getState().isGuest;
   return infiniteQueryOptions({
     queryKey: userQueryKeys.myFeedList(params),
     queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
@@ -82,6 +78,7 @@ export function myFeedsInfiniteQueryOptions(params: PaginationParams) {
     initialPageParam: params.cursor,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 1000 * 60 * 5, // 5분
+    enabled: !isGuest,
   });
 }
 
@@ -94,6 +91,7 @@ export function useReadLikedFeeds(params: PaginationParams) {
 }
 
 export function likedFeedsInfiniteQueryOptions(params: PaginationParams) {
+  const isGuest = useAuthStore.getState().isGuest;
   return infiniteQueryOptions({
     queryKey: userQueryKeys.likedFeedList(params),
     queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
@@ -109,6 +107,7 @@ export function likedFeedsInfiniteQueryOptions(params: PaginationParams) {
     initialPageParam: params.cursor,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 1000 * 60 * 5, // 5분
+    enabled: !isGuest,
   });
 }
 
@@ -120,34 +119,23 @@ export function useReadSavedFeeds(
   params: PaginationParams,
   options?: { enabled?: boolean },
 ) {
+  const isGuest = useAuthStore.getState().isGuest;
   return useInfiniteQuery({
-    ...savedFeedsInfiniteQueryOptions(params),
-    enabled: options?.enabled,
-  });
-}
-
-export function savedFeedsInfiniteQueryOptions(
-  params: PaginationParams,
-) {
-  return infiniteQueryOptions({
     queryKey: userQueryKeys.savedFeedList(params),
     queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
-      const response = await privateApiClient.get(
-        "/users/me/references",
-        {
-          params: {
-            ...params,
-            cursor: pageParam,
-          },
-          signal,
+      const response = await privateApiClient.get("/users/me/references", {
+        params: {
+          ...params,
+          cursor: pageParam,
         },
-      );
+        signal,
+      });
       return response.data;
     },
     initialPageParam: params.cursor,
-    getNextPageParam: (lastPage) =>
-      lastPage.nextCursor ?? undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 1000 * 60 * 5,
+    enabled: options?.enabled || !isGuest,
   });
 }
 
@@ -187,6 +175,11 @@ export function useUpdateProfile() {
 
   return useMutation({
     mutationFn: async (data: ProfileRequest) => {
+      const isGuest = useAuthStore.getState().isGuest;
+
+      if (isGuest) {
+        throw new Error("Member account is required.");
+      }
       const request = UpdateProfileRequestSchema.parse(data);
       const response = await uploadFetchClient.patch({
         url: "/users/me",
