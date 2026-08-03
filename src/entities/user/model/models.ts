@@ -17,7 +17,6 @@ export type TokenResponse = z.infer<typeof TokenResponseSchema>;
 export type GoogleLoginResponse = z.infer<typeof GoogleLoginResponseSchema>;
 
 export type SosialLoginStatus = z.infer<typeof SocialLoginStatusSchema>;
-export type UserType = "GUEST" | "NORMAL" | "ADMIN";
 
 export type ProfileRequest = z.infer<typeof UpdateProfileRequestSchema>;
 

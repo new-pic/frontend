@@ -14,7 +14,7 @@ const parseTokenState = (token: string | null) => {
   const decodedUserType = decodeAccessToken.userType(token);
   return {
     userId: decodedUserId,
-    isGuest: decodedUserType === "guest",
+    isGuest: decodedUserType === "GUEST",
   };
 };
 

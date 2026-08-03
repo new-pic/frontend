@@ -1,17 +1,17 @@
 import { z } from "zod";
 import {
+  RtcRoomEventPayloadSchema,
+  RtcRoomHostSchema,
+  RtcRoomParticipantSchema,
+  RtcRoomResponseSchema,
+} from "./rtc-room-schema";
+import {
   RtcCreateRoomRequestSchema,
   RtcEndRoomRequestSchema,
   RtcEndRoomResponseSchema,
   RtcJoinRoomRequestSchema,
   RtcSavedImageSchema,
 } from "./schema";
-import {
-  RtcRoomEventPayloadSchema,
-  RtcRoomHostSchema,
-  RtcRoomParticipantSchema,
-  RtcRoomResponseSchema,
-} from "./rtc-room-schema";
 
 export const API_QUERY_KEY = ["rtc"];
 
@@ -26,21 +26,13 @@ export interface RtcCreateRoomResponse {
 
 export type RtcRoomHost = z.infer<typeof RtcRoomHostSchema>;
 
-export type RtcRoomParticipant = z.infer<
-  typeof RtcRoomParticipantSchema
->;
+export type RtcRoomParticipant = z.infer<typeof RtcRoomParticipantSchema>;
 
 export type RtcRoomResponse = z.infer<typeof RtcRoomResponseSchema>;
 
-export type RtcRoomEventPayload = z.infer<
-  typeof RtcRoomEventPayloadSchema
->;
+export type RtcRoomEventPayload = z.infer<typeof RtcRoomEventPayloadSchema>;
 
-export type RtcRoomEventType =
-  | "snapshot"
-  | "participants"
-  | "status"
-  | "ended";
+export type RtcRoomEventType = "snapshot" | "participants" | "status" | "ended";
 
 export type RtcRoomEvent =
   | {
@@ -120,4 +112,15 @@ export type RtcEndRoomRequest = z.infer<typeof RtcEndRoomRequestSchema>;
 export interface RtcEndRoomMutationRequest {
   roomId: string;
   request?: RtcEndRoomRequestInput;
+}
+
+export interface RtcLeaveRoomRequest {
+  participantId: string;
+}
+
+export interface RtcLeaveRoomResponse {
+  roomId: string;
+  participantId: string;
+  status: "LEFT";
+  leftAt: string;
 }

@@ -1,10 +1,11 @@
-import { Box, Button, ButtonText, Center, Text, VStack } from "@shared/ui";
+import { Button, ButtonText, Center, Text, VStack } from "@shared/ui";
 import { ActivityIndicator, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export interface SharingWaitingPageProps {
   hostNickname?: string;
   onCancel: () => void;
+  isCanceling?: boolean;
   isConnecting?: boolean;
   connectionError?: string | null;
   onRetry?: () => void;
@@ -13,6 +14,7 @@ export interface SharingWaitingPageProps {
 export function SharingWaitingPage({
   hostNickname,
   onCancel,
+  isCanceling = false,
   isConnecting = false,
   connectionError,
   onRetry,
@@ -46,8 +48,8 @@ export function SharingWaitingPage({
                 {connectionError
                   ? connectionError
                   : isConnecting
-                  ? "실시간 공유에 연결하고 있어요"
-                  : "잠시만 기다려주세요"}
+                    ? "실시간 공유에 연결하고 있어요"
+                    : "잠시만 기다려주세요"}
               </Text>
             </VStack>
 
@@ -65,20 +67,26 @@ export function SharingWaitingPage({
               <Button
                 variant="outline"
                 size="lg"
+                disabled={isCanceling}
+                isLoading={isCanceling}
                 onPress={onCancel}
-                accessibilityLabel="실시간 공유 대기 취소"
+                accessibilityLabel={
+                  isCanceling ? "RTC 방에서 나가는 중" : "실시간 공유 대기 취소"
+                }
               >
-                <ButtonText>취소하기</ButtonText>
+                <ButtonText>
+                  {isCanceling ? "나가는 중..." : "취소하기"}
+                </ButtonText>
               </Button>
             </VStack>
           </VStack>
         </Center>
 
-        <Box
+        {/* <Box
           className="h-24 w-full bg-outline-light"
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
-        />
+        /> */}
       </VStack>
     </SafeAreaView>
   );

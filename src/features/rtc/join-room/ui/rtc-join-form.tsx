@@ -1,4 +1,5 @@
 import { rtcViewerQuery } from "@entities/rtc";
+import { getApiErrorMessage } from "@shared/api";
 import {
   createCameraJoinPath,
   createRtcJoinPath,
@@ -16,13 +17,10 @@ import {
   VStack,
 } from "@shared/ui";
 import { Href, router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert } from "react-native";
 
 const sanitizeCode = (value: string) => value.replace(/\D/g, "").slice(0, 6);
-
-const getErrorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : "잠시 후 다시 시도해주세요.";
 
 export interface RtcJoinFormProps {
   initialCode?: string;
@@ -56,6 +54,7 @@ export function RtcJoinForm({
   const [code, setCode] = useState(() => sanitizeCode(initialCode ?? ""));
   const isRequestPending = joinRoomMutation.isPending;
   const isSubmitting = !isInitialized || isRequestPending;
+  const joinLockRef = useRef(false);
 
   useEffect(() => {
     if (initialCode) {
@@ -64,7 +63,9 @@ export function RtcJoinForm({
   }, [initialCode]);
 
   const handleJoin = async () => {
-    if (isSubmitting) return;
+    if (isSubmitting || joinLockRef.current) {
+      return;
+    }
 
     if (!accessToken) {
       const returnTo =
@@ -86,13 +87,23 @@ export function RtcJoinForm({
       return;
     }
 
+    joinLockRef.current = true;
+
     try {
       await joinRoomMutation.mutateAsync({
         code,
       });
       router.replace(RTC_NAVIGATION.paths.viewer as Href);
     } catch (error) {
-      Alert.alert("RTC 방 참여 실패", getErrorMessage(error));
+      Alert.alert(
+        "RTC 방 참여 실패",
+        getApiErrorMessage(
+          error,
+          "방에 참여하지 못했습니다. 코드를 확인하고 다시 시도해주세요.",
+        ),
+      );
+    } finally {
+      joinLockRef.current = false;
     }
   };
 

@@ -1,30 +1,20 @@
 import {
   RTC_MAX_SELECTED_PHOTOS,
   RtcEndRoomResponse,
+  rtcViewerQuery,
   useRtcStore,
 } from "@entities/rtc";
 import {
-  rtcStoredPhotoQuery,
   RTC_STORED_PHOTO_MAX_TAKE,
+  rtcStoredPhotoQuery,
 } from "@entities/rtc-stored-photo";
-import { RtcViewerReactionPicker } from "@features/rtc/reactions";
 import { useRtcViewerEntry } from "@features/rtc/join-room";
+import { RtcViewerReactionPicker } from "@features/rtc/reactions";
+import { getApiErrorMessage } from "@shared/api";
 import { RTC_NAVIGATION } from "@shared/config";
-import {
-  Button,
-  ButtonText,
-  Center,
-  Text,
-  VStack,
-} from "@shared/ui";
+import { Button, ButtonText, Center, Text, VStack } from "@shared/ui";
 import { Href, router } from "expo-router";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RtcViewerLiveKitPage } from "./rtc-livekit-page";
@@ -36,20 +26,13 @@ interface RtcViewerResultPageProps {
   onDone: () => void;
 }
 
-function RtcViewerResultPage({
-  roomId,
-  onDone,
-}: RtcViewerResultPageProps) {
-  const photosQuery =
-    rtcStoredPhotoQuery.useReadRoomRtcStoredPhotos({
-      roomId,
-      take: RTC_STORED_PHOTO_MAX_TAKE,
-    });
+function RtcViewerResultPage({ roomId, onDone }: RtcViewerResultPageProps) {
+  const photosQuery = rtcStoredPhotoQuery.useReadRoomRtcStoredPhotos({
+    roomId,
+    take: RTC_STORED_PHOTO_MAX_TAKE,
+  });
   const images = useMemo(() => {
-    const uniqueImages = new Map<
-      string,
-      { id: string; imageUrl: string }
-    >();
+    const uniqueImages = new Map<string, { id: string; imageUrl: string }>();
 
     for (const page of photosQuery.data?.pages ?? []) {
       for (const photo of page.items) {
@@ -65,9 +48,7 @@ function RtcViewerResultPage({
 
   if (photosQuery.isError) {
     return (
-      <SafeAreaView
-        style={{ flex: 1, backgroundColor: "white" }}
-      >
+      <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
         <Center className="flex-1 bg-white px-6">
           <VStack className="w-full gap-4">
             <Text size="lg" bold className="text-center">
@@ -98,10 +79,7 @@ function RtcViewerResultPage({
       isPending={photosQuery.isPending}
       isFetchingNextPage={photosQuery.isFetchingNextPage}
       onEndReached={() => {
-        if (
-          photosQuery.hasNextPage &&
-          !photosQuery.isFetchingNextPage
-        ) {
+        if (photosQuery.hasNextPage && !photosQuery.isFetchingNextPage) {
           void photosQuery.fetchNextPage();
         }
       }}
@@ -109,27 +87,58 @@ function RtcViewerResultPage({
     />
   );
 }
-
 export function RtcViewerPage() {
-  const viewerSession = useRtcStore(
-    (state) => state.viewerSession,
-  );
-  const liveKitConnection = useRtcStore(
-    (state) => state.liveKitConnection,
-  );
-  const clearViewerSession = useRtcStore(
-    (state) => state.clearViewerSession,
-  );
-  const [resultRoomId, setResultRoomId] = useState<string | null>(
-    null,
-  );
+  const { mutateAsync: leaveRoom, isPending: isLeavingRoom } =
+    rtcViewerQuery.useLeaveRtcRoom();
+
+  const viewerSession = useRtcStore((state) => state.viewerSession);
+  const liveKitConnection = useRtcStore((state) => state.liveKitConnection);
+  const clearViewerSession = useRtcStore((state) => state.clearViewerSession);
+  const [resultRoomId, setResultRoomId] = useState<string | null>(null);
   const hasPresentedEndedAlertRef = useRef(false);
-  const hasViewerConnection =
-    liveKitConnection?.role === "VIEWER";
+  const leaveLockRef = useRef(false);
+  const hasViewerConnection = liveKitConnection?.role === "VIEWER";
   const viewerEntry = useRtcViewerEntry({
     enabled: Boolean(viewerSession) && !hasViewerConnection,
     session: viewerSession,
   });
+
+  const finishViewerExit = useCallback(() => {
+    clearViewerSession();
+    router.replace("/feed" as Href);
+  }, [clearViewerSession]);
+  const handleCancelBeforeLiveKit = useCallback(async () => {
+    const participantId = viewerSession?.participantId;
+
+    if (!participantId || isLeavingRoom || leaveLockRef.current) {
+      return;
+    }
+
+    leaveLockRef.current = true;
+
+    try {
+      await leaveRoom({
+        participantId,
+      });
+
+      finishViewerExit();
+    } catch (error) {
+      Alert.alert(
+        "RTC 방 나가기 실패",
+        getApiErrorMessage(
+          error,
+          "방에서 나가지 못했습니다. 잠시 후 다시 시도해주세요.",
+        ),
+      );
+    } finally {
+      leaveLockRef.current = false;
+    }
+  }, [
+    finishViewerExit,
+    isLeavingRoom,
+    leaveRoom,
+    viewerSession?.participantId,
+  ]);
 
   useEffect(() => {
     if (
@@ -140,12 +149,6 @@ export function RtcViewerPage() {
       router.replace(RTC_NAVIGATION.paths.join as Href);
     }
   }, [resultRoomId, viewerSession]);
-
-  const leaveViewer = useCallback(() => {
-    clearViewerSession();
-    router.replace("/feed" as Href);
-  }, [clearViewerSession]);
-
   useEffect(() => {
     if (
       viewerEntry.phase !== "ROOM_ENDED" ||
@@ -176,10 +179,7 @@ export function RtcViewerPage() {
 
   if (resultRoomId !== null) {
     return (
-      <RtcViewerResultPage
-        roomId={resultRoomId}
-        onDone={leaveViewer}
-      />
+      <RtcViewerResultPage roomId={resultRoomId} onDone={finishViewerExit} />
     );
   }
 
@@ -190,7 +190,7 @@ export function RtcViewerPage() {
   ) {
     return (
       <SharingWaitingPage
-        hostNickname={viewerEntry.hostNickname}
+        hostNickname={viewerEntry.room?.host.nickname}
         isConnecting={
           viewerEntry.phase === "REQUESTING_TOKEN" ||
           viewerEntry.streamState === "CONNECTING" ||
@@ -202,7 +202,10 @@ export function RtcViewerPage() {
             ? viewerEntry.retryToken
             : undefined
         }
-        onCancel={leaveViewer}
+        isCanceling={isLeavingRoom}
+        onCancel={() => {
+          void handleCancelBeforeLiveKit();
+        }}
       />
     );
   }
@@ -211,6 +214,7 @@ export function RtcViewerPage() {
     <RtcViewerLiveKitPage
       connection={liveKitConnection}
       roomId={viewerSession.roomId}
+      rtcRoom={viewerEntry.room}
       reactionPicker={
         <RtcViewerReactionPicker
           active
@@ -218,7 +222,7 @@ export function RtcViewerPage() {
           participantId={viewerSession.participantId}
         />
       }
-      onCancel={leaveViewer}
+      onCancel={finishViewerExit}
       onRoomEnded={handleRoomEnded}
     />
   );
