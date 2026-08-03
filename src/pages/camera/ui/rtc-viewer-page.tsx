@@ -96,6 +96,7 @@ export function RtcViewerPage() {
   const clearViewerSession = useRtcStore((state) => state.clearViewerSession);
   const [resultRoomId, setResultRoomId] = useState<string | null>(null);
   const hasPresentedEndedAlertRef = useRef(false);
+  const leaveLockRef = useRef(false);
   const hasViewerConnection = liveKitConnection?.role === "VIEWER";
   const viewerEntry = useRtcViewerEntry({
     enabled: Boolean(viewerSession) && !hasViewerConnection,
@@ -109,9 +110,11 @@ export function RtcViewerPage() {
   const handleCancelBeforeLiveKit = useCallback(async () => {
     const participantId = viewerSession?.participantId;
 
-    if (!participantId || isLeavingRoom) {
+    if (!participantId || isLeavingRoom || leaveLockRef.current) {
       return;
     }
+
+    leaveLockRef.current = true;
 
     try {
       await leaveRoom({
@@ -127,6 +130,8 @@ export function RtcViewerPage() {
           "방에서 나가지 못했습니다. 잠시 후 다시 시도해주세요.",
         ),
       );
+    } finally {
+      leaveLockRef.current = false;
     }
   }, [
     finishViewerExit,
