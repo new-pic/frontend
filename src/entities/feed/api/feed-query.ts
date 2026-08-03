@@ -160,7 +160,7 @@ export function feedsInfiniteQueryOptions(params: FeedListParams) {
   return infiniteQueryOptions({
     queryKey: feedQueryKeys.list(params),
     queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
-      const response = await apiClient.get("/feed", {
+      const response = await privateApiClient.get("/feed", {
         params: {
           ...params,
           cursor: pageParam,
