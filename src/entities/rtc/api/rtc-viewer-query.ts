@@ -40,9 +40,7 @@ export const useJoinRtcRoom = () => {
  */
 export const useCreateViewerLiveKitToken = () => {
   return useMutation({
-    mutationFn: async ({
-      participantId,
-    }: RtcViewerLiveKitTokenRequest) => {
+    mutationFn: async ({ participantId }: RtcViewerLiveKitTokenRequest) => {
       assertRtcAppAccessToken();
       const id = verifyRtcId(participantId, "RTC 참여자 ID");
 
