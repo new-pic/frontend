@@ -20,7 +20,9 @@ function readPayloadMessage(payload: unknown): string | undefined {
   const message = record.message;
   if (typeof message === "string") return message.trim() || undefined;
   if (Array.isArray(message)) {
-    const joined = message.filter((item) => typeof item === "string").join("\n");
+    const joined = message
+      .filter((item) => typeof item === "string")
+      .join("\n");
     return joined || undefined;
   }
 
@@ -35,14 +37,11 @@ function readPayloadMessage(payload: unknown): string | undefined {
   return undefined;
 }
 
-export function getApiErrorMessage(
-  error: unknown,
-  fallback: string,
-): string {
+export function getApiErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiRequestError) return error.message;
 
   if (axios.isAxiosError(error)) {
-    return readPayloadMessage(error.response?.data) ?? error.message ?? fallback;
+    return readPayloadMessage(error.response?.data) ?? fallback;
   }
 
   if (error instanceof Error && error.message) return error.message;
