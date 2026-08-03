@@ -14,7 +14,7 @@ const parseTokenState = (token: string | null) => {
   const decodedUserType = decodeAccessToken.userType(token);
   return {
     userId: decodedUserId,
-    isGuest: decodedUserType === "guest",
+    isGuest: decodedUserType === "GUEST",
   };
 };
 
@@ -97,6 +97,15 @@ export const useAuthStore = create<AuthStore>()((set) => ({
     try {
       const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
       const { userId, isGuest } = parseTokenState(token);
+
+      console.log(
+        "initializeAuthState: token",
+        token,
+        "userId",
+        userId,
+        "isGuest",
+        isGuest,
+      );
 
       if (token) {
         set({

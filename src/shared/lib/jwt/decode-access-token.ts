@@ -1,6 +1,6 @@
 import { jwtDecode } from "jwt-decode";
 
-type UserType = "user" | "guest" | "admin";
+type UserType = "USER" | "GUEST" | "ADMIN";
 
 interface DecodedToken {
   sub: string;
@@ -24,7 +24,7 @@ const decodeUserType = (token: string): UserType | null => {
     const decodedToken = jwtDecode<DecodedToken>(token);
     return decodedToken.userType;
   } catch {
-    return "user";
+    return "USER";
   }
 };
 
