@@ -614,7 +614,7 @@ function ViewerRoomContent({
       (participant) => participant.permissions?.canPublish,
     );
   const hostNickname =
-    hostParticipant?.name || hostParticipant?.identity || undefined;
+    hostParticipant?.name || hostParticipant?.identity || "게스트";
 
   const isLeavingRef = useRef(false);
   const deliveredResultRef = useRef<RtcEndRoomResponse | null>(null);

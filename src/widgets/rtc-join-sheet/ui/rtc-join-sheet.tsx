@@ -1,7 +1,4 @@
-import {
-  RtcJoinForm,
-  RtcJoinFormHeader,
-} from "@features/rtc/join-room";
+import { RtcJoinForm, RtcJoinFormHeader } from "@features/rtc/join-room";
 import { BottomSheetModal, VStack } from "@shared/ui";
 import { ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,11 +17,7 @@ export function RtcJoinSheet({
   const insets = useSafeAreaInsets();
 
   return (
-    <BottomSheetModal
-      open={open}
-      onClose={onClose}
-      lockedSnapPoint="50%"
-    >
+    <BottomSheetModal open={open} onClose={onClose} lockedSnapPoint="50%">
       <VStack
         className="flex-1 gap-5 px-6 pt-4"
         style={{ paddingBottom: Math.max(24, insets.bottom) }}
