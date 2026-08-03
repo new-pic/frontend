@@ -98,15 +98,6 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
       const { userId, isGuest } = parseTokenState(token);
 
-      console.log(
-        "initializeAuthState: token",
-        token,
-        "userId",
-        userId,
-        "isGuest",
-        isGuest,
-      );
-
       if (token) {
         set({
           isLoggedIn: true,
