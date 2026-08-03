@@ -610,8 +610,7 @@ function ViewerRoomContent({
     ({ participant }) => !participant.isLocal,
   );
   const [isLeaving, setIsLeaving] = useState(false);
-  const hostNickname = rtcRoom?.host.nickname ?? "호스트";
-
+  const hostNickname = rtcRoom?.host.nickname.trim() || "호스트";
   const isLeavingRef = useRef(false);
   const deliveredResultRef = useRef<RtcEndRoomResponse | null>(null);
 
@@ -708,7 +707,7 @@ function ViewerRoomContent({
       edges={["top", "bottom"]}
       style={{ flex: 1, backgroundColor: "white" }}
     >
-      <View className="relative min-h-20 flex-row items-center justify-center bg-white px-16 py-4">
+      <View className="relative min-h-24 flex-row items-center justify-center bg-white px-16 py-4">
         <Button
           variant="ghost"
           size="icon"
@@ -722,9 +721,16 @@ function ViewerRoomContent({
         >
           <ButtonIcon as={IconX} className="h-7 w-7" />
         </Button>
-        <Text size="2xl" bold className="text-center text-foreground">
-          사진에 찍히는 내 모습
-        </Text>
+
+        <VStack className="items-center gap-1">
+          <Text className="text-center text-label-muted">
+            {hostNickname} 님의 실시간 공유
+          </Text>
+
+          <Text size="2xl" bold className="text-center text-foreground">
+            사진에 찍히는 내 모습
+          </Text>
+        </VStack>
       </View>
 
       <View className="relative flex-1 overflow-hidden bg-black">
