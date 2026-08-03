@@ -6,6 +6,7 @@ import {
   RTC_ROOM_ENDED_RPC_METHOD,
   RtcEndRoomResponse,
   RtcLiveKitConnection,
+  RtcRoomResponse,
   RtcVideoPublisher,
   RtcVideoPublisherFactory,
 } from "@entities/rtc";
@@ -14,7 +15,6 @@ import {
   LiveKitRoom,
   RoomContext,
   useConnectionState,
-  useRemoteParticipants,
   useRoomContext,
   useTracks,
   VideoTrack,
@@ -59,6 +59,7 @@ interface RtcHostLiveKitPageProps {
 interface RtcViewerLiveKitPageProps {
   connection: RtcLiveKitConnection;
   roomId: string;
+  rtcRoom: RtcRoomResponse | null;
   reactionPicker: ReactNode;
   onCancel: () => void | Promise<void>;
   onRoomEnded: (result: RtcEndRoomResponse) => void | Promise<void>;
@@ -586,6 +587,7 @@ export function RtcHostLiveKitPage({
 interface ViewerRoomContentProps {
   connectionError: string | null;
   roomId: string;
+  rtcRoom: RtcRoomResponse | null;
   reactionPicker: ReactNode;
   onCancel: () => void | Promise<void>;
   onRoomEnded: (result: RtcEndRoomResponse) => void | Promise<void>;
@@ -594,13 +596,13 @@ interface ViewerRoomContentProps {
 function ViewerRoomContent({
   connectionError,
   roomId,
+  rtcRoom,
   reactionPicker,
   onCancel,
   onRoomEnded,
 }: ViewerRoomContentProps) {
   const room = useRoomContext();
   const connectionState = useConnectionState();
-  const remoteParticipants = useRemoteParticipants();
   const cameraTracks = useTracks([Track.Source.Camera], {
     onlySubscribed: true,
   });
@@ -608,13 +610,7 @@ function ViewerRoomContent({
     ({ participant }) => !participant.isLocal,
   );
   const [isLeaving, setIsLeaving] = useState(false);
-  const hostParticipant =
-    remoteCameraTrack?.participant ??
-    remoteParticipants.find(
-      (participant) => participant.permissions?.canPublish,
-    );
-  const hostNickname =
-    hostParticipant?.name || hostParticipant?.identity || "게스트";
+  const hostNickname = rtcRoom?.host.nickname ?? "호스트";
 
   const isLeavingRef = useRef(false);
   const deliveredResultRef = useRef<RtcEndRoomResponse | null>(null);
@@ -755,6 +751,7 @@ function ViewerRoomContent({
 export function RtcViewerLiveKitPage({
   connection,
   roomId,
+  rtcRoom,
   reactionPicker,
   onCancel,
   onRoomEnded,
@@ -780,6 +777,7 @@ export function RtcViewerLiveKitPage({
       <ViewerRoomContent
         connectionError={connectionError}
         roomId={roomId}
+        rtcRoom={rtcRoom}
         reactionPicker={reactionPicker}
         onCancel={onCancel}
         onRoomEnded={onRoomEnded}

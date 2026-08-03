@@ -1,5 +1,8 @@
 import {
+  mergeRtcRoomEvent,
   rtcQuery,
+  RtcRoomResponse,
+  RtcRoomResponseSchema,
   rtcViewerQuery,
   type RtcRoomEvent,
   type RtcViewerSession,
@@ -30,7 +33,7 @@ interface UseRtcViewerEntryOptions {
 interface UseRtcViewerEntryResult {
   phase: RtcViewerEntryPhase;
   streamState: RtcViewerEntryStreamState;
-  hostNickname?: string;
+  room: RtcRoomResponse | null;
   tokenErrorMessage: string | null;
   retryToken: () => void;
 }
@@ -40,10 +43,7 @@ const getErrorMessage = (error: unknown) =>
     ? error.message
     : "실시간 공유 연결 정보를 불러오지 못했습니다.";
 
-function waitForReconnect(
-  delayMs: number,
-  signal: AbortSignal,
-): Promise<void> {
+function waitForReconnect(delayMs: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve) => {
     const timeoutId = setTimeout(resolve, delayMs);
     signal.addEventListener(
@@ -61,20 +61,18 @@ export function useRtcViewerEntry({
   enabled,
   session,
 }: UseRtcViewerEntryOptions): UseRtcViewerEntryResult {
-  const viewerTokenMutation =
-    rtcViewerQuery.useCreateViewerLiveKitToken();
+  const viewerTokenMutation = rtcViewerQuery.useCreateViewerLiveKitToken();
   const createViewerToken = viewerTokenMutation.mutateAsync;
   const resetViewerToken = viewerTokenMutation.reset;
-  const [phase, setPhase] =
-    useState<RtcViewerEntryPhase>("IDLE");
+  const [phase, setPhase] = useState<RtcViewerEntryPhase>("IDLE");
   const [streamState, setStreamState] =
     useState<RtcViewerEntryStreamState>("IDLE");
-  const [hostNickname, setHostNickname] = useState<
-    string | undefined
-  >();
-  const [tokenErrorMessage, setTokenErrorMessage] = useState<
-    string | null
-  >(null);
+
+  const [room, setRoom] = useState<RtcRoomResponse | null>(null);
+
+  const [tokenErrorMessage, setTokenErrorMessage] = useState<string | null>(
+    null,
+  );
   const sessionKey = session
     ? `${session.roomId.trim()}:${session.participantId.trim()}`
     : "";
@@ -90,11 +88,14 @@ export function useRtcViewerEntry({
     tokenAttemptedRef.current = false;
     tokenPendingRef.current = false;
     roomEndedRef.current = false;
-    setHostNickname(undefined);
     setTokenErrorMessage(null);
     setPhase(enabled && session ? "WAITING_FOR_LIVE" : "IDLE");
     setStreamState(enabled && session ? "CONNECTING" : "IDLE");
   }, [enabled, sessionKey]);
+
+  useEffect(() => {
+    setRoom(null);
+  }, [sessionKey]);
 
   const requestLiveKitToken = useCallback(() => {
     if (
@@ -168,16 +169,22 @@ export function useRtcViewerEntry({
       event: RtcRoomEvent,
       streamController: AbortController,
     ) => {
-      if (
-        event.type !== "heartbeat" &&
-        event.payload.roomId !== roomId
-      ) {
+      if (event.type !== "heartbeat" && event.payload.roomId !== roomId) {
         return;
       }
 
-      if (event.type !== "heartbeat") {
-        const nickname = event.payload.host?.nickname.trim();
-        if (nickname && isMounted) setHostNickname(nickname);
+      if (event.type === "snapshot") {
+        const parsedRoom = RtcRoomResponseSchema.safeParse(event.payload);
+
+        if (parsedRoom.success && isMounted) {
+          setRoom(parsedRoom.data);
+        }
+      } else if (event.type !== "heartbeat" && isMounted) {
+        setRoom((currentRoom) => {
+          if (!currentRoom) return currentRoom;
+
+          return mergeRtcRoomEvent(currentRoom, event) ?? currentRoom;
+        });
       }
 
       const signal = resolveRtcViewerRoomSignal(event);
@@ -202,22 +209,15 @@ export function useRtcViewerEntry({
     const run = async () => {
       let retryAttempt = 0;
 
-      while (
-        !lifecycleController.signal.aborted &&
-        !isTerminal
-      ) {
+      while (!lifecycleController.signal.aborted && !isTerminal) {
         const streamController = new AbortController();
         const abortStream = () => streamController.abort();
-        lifecycleController.signal.addEventListener(
-          "abort",
-          abortStream,
-          { once: true },
-        );
+        lifecycleController.signal.addEventListener("abort", abortStream, {
+          once: true,
+        });
 
         if (isMounted) {
-          setStreamState(
-            retryAttempt === 0 ? "CONNECTING" : "RECONNECTING",
-          );
+          setStreamState(retryAttempt === 0 ? "CONNECTING" : "RECONNECTING");
         }
 
         try {
@@ -227,39 +227,22 @@ export function useRtcViewerEntry({
             onOpen: () => {
               if (isMounted) setStreamState("OPEN");
             },
-            onEvent: (event) =>
-              handleEvent(event, streamController),
+            onEvent: (event) => handleEvent(event, streamController),
           });
         } catch {
-          if (
-            isMounted &&
-            !lifecycleController.signal.aborted &&
-            !isTerminal
-          ) {
+          if (isMounted && !lifecycleController.signal.aborted && !isTerminal) {
             setStreamState("RECONNECTING");
           }
         } finally {
-          lifecycleController.signal.removeEventListener(
-            "abort",
-            abortStream,
-          );
+          lifecycleController.signal.removeEventListener("abort", abortStream);
         }
 
-        if (
-          lifecycleController.signal.aborted ||
-          isTerminal
-        ) {
+        if (lifecycleController.signal.aborted || isTerminal) {
           break;
         }
 
-        const reconnectDelayMs = Math.min(
-          1_000 * 2 ** retryAttempt,
-          15_000,
-        );
-        await waitForReconnect(
-          reconnectDelayMs,
-          lifecycleController.signal,
-        );
+        const reconnectDelayMs = Math.min(1_000 * 2 ** retryAttempt, 15_000);
+        await waitForReconnect(reconnectDelayMs, lifecycleController.signal);
         retryAttempt += 1;
       }
     };
@@ -275,7 +258,7 @@ export function useRtcViewerEntry({
   return {
     phase,
     streamState,
-    hostNickname,
+    room,
     tokenErrorMessage,
     retryToken,
   };
