@@ -86,31 +86,9 @@ export function SharingCameraSheet({
                 QR 읽은 사람
               </Text>
 
-              <HStack className="items-center gap-3">
-                <HStack className="items-center">
-                  {visibleParticipantNames.length > 0 ? (
-                    visibleParticipantNames.map((name, index) => (
-                      <Center
-                        key={`${name}-${index}`}
-                        className="-ml-2 h-10 w-10 rounded-full border-2 border-white bg-outline-light first:ml-0"
-                        accessibilityLabel={`${name} 참여 중`}
-                      >
-                        <Text bold className="text-foreground">
-                          {name.slice(0, 1)}
-                        </Text>
-                      </Center>
-                    ))
-                  ) : (
-                    <Box
-                      className="h-10 w-10 rounded-full bg-outline-light"
-                      accessibilityLabel="참여자 프로필"
-                    />
-                  )}
-                </HStack>
-                <Text size="lg" bold className="min-w-10 text-right">
-                  {safeParticipantCount}명
-                </Text>
-              </HStack>
+              <Text size="lg" bold className="min-w-10 text-right">
+                {safeParticipantCount}명
+              </Text>
             </HStack>
 
             <HStack className="gap-4">

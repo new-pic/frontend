@@ -5,6 +5,8 @@ import {
   RtcJoinRoomRequest,
   RtcJoinRoomRequestSchema,
   RtcJoinRoomResponse,
+  RtcLeaveRoomRequest,
+  RtcLeaveRoomResponse,
   RtcViewerLiveKitTokenRequest,
   RtcViewerLiveKitTokenResponse,
   isCurrentRtcViewerSession,
@@ -65,6 +67,26 @@ export const useCreateViewerLiveKitToken = () => {
         url: response.url,
         token: response.token,
       });
+    },
+  });
+};
+
+/**
+ * RTC 방에서 참여자 퇴장
+ */
+export const useLeaveRtcRoom = () => {
+  return useMutation({
+    mutationFn: async ({ participantId }: RtcLeaveRoomRequest) => {
+      assertRtcAppAccessToken();
+
+      const id = verifyRtcId(participantId, "RTC 참여자 ID");
+
+      const response = await privateApiClient.patch<RtcLeaveRoomResponse>(
+        `/rtc/participants/${id}/leave`,
+        undefined,
+      );
+
+      return response.data;
     },
   });
 };
