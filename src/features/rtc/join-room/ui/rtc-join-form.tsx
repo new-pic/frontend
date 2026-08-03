@@ -63,7 +63,9 @@ export function RtcJoinForm({
   }, [initialCode]);
 
   const handleJoin = async () => {
-    if (isSubmitting) return;
+    if (isSubmitting || joinLockRef.current) {
+      return;
+    }
 
     if (!accessToken) {
       const returnTo =
