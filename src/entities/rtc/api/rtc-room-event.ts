@@ -77,18 +77,18 @@ export function parseRtcRoomEvent(message: SseMessage): RtcRoomEvent | null {
     return parseUnnamedRtcRoomEvent(data);
   }
 
-  if (!RTC_ROOM_EVENT_TYPES.has(message.event as RtcRoomEventType)) {
-    return null;
+  if (message.event === "snapshot") {
+    const parsedRoom = RtcRoomResponseSchema.safeParse(data);
+
+    if (!parsedRoom.success) {
+      return null;
+    }
+
+    return {
+      type: "snapshot",
+      payload: parsedRoom.data,
+    };
   }
 
   const parsedPayload = RtcRoomEventPayloadSchema.safeParse(data);
-
-  if (!parsedPayload.success) {
-    return null;
-  }
-
-  return {
-    type: message.event as RtcRoomEventType,
-    payload: parsedPayload.data,
-  };
 }
