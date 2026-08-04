@@ -16,11 +16,12 @@ const {
   mergeRtcRoomEvent,
 } = require("../../../../entities/rtc/api/rtc-room-event-state.ts");
 const {
+  parseRtcRoomEvent,
+} = require("../../../../entities/rtc/api/rtc-room-event.ts");
+const {
   RtcRoomEventPayloadSchema,
 } = require("../../../../entities/rtc/model/rtc-room-schema.ts");
-const {
-  createSseParser,
-} = require("../../../../shared/api/sse-parser.ts");
+const { createSseParser } = require("../../../../shared/api/sse-parser.ts");
 
 test("RTC 카메라 메뉴는 busy 상태를 live보다 우선한다", () => {
   assert.equal(
@@ -35,6 +36,79 @@ test("RTC 카메라 메뉴는 busy 상태를 live보다 우선한다", () => {
     resolveRtcCameraMenuMode({ isBusy: false, isLive: false }),
     "IDLE",
   );
+});
+
+test("event 이름이 없는 RTC SSE를 snapshot으로 해석한다", () => {
+  const event = parseRtcRoomEvent({
+    event: "message",
+    data: JSON.stringify({
+      roomId: "room-1",
+      status: "WAITING",
+      expiresAt: "2026-08-04T12:00:00.000Z",
+      host: {
+        nickname: "호스트",
+        profileImage: null,
+      },
+      participants: [
+        {
+          nickname: "민서",
+          role: "VIEWER",
+          profileImage: null,
+        },
+      ],
+    }),
+  });
+
+  assert.equal(event?.type, "snapshot");
+  assert.equal(event?.payload.participants.length, 1);
+  assert.equal(event?.payload.participants[0].nickname, "민서");
+});
+
+test("초기 snapshot은 기존 room cache가 없어도 방 상태를 생성한다", () => {
+  const event = parseRtcRoomEvent({
+    event: "message",
+    data: JSON.stringify({
+      roomId: "room-1",
+      status: "WAITING",
+      expiresAt: "2026-08-04T12:00:00.000Z",
+      host: {
+        nickname: "호스트",
+        profileImage: null,
+      },
+      participants: [
+        {
+          nickname: "민서",
+          role: "VIEWER",
+          profileImage: null,
+        },
+      ],
+    }),
+  });
+
+  assert.ok(event);
+
+  const room = mergeRtcRoomEvent(undefined, event);
+
+  assert.equal(room?.roomId, "room-1");
+  assert.equal(room?.participants.length, 1);
+});
+
+test("event 이름이 없는 ENDED 상태를 종료 이벤트로 해석한다", () => {
+  const event = parseRtcRoomEvent({
+    event: "message",
+    data: JSON.stringify({
+      roomId: "room-1",
+      status: "ENDED",
+      expiresAt: "2026-08-04T12:00:00.000Z",
+      host: {
+        nickname: "호스트",
+        profileImage: null,
+      },
+      participants: [],
+    }),
+  });
+
+  assert.equal(event?.type, "ended");
 });
 
 test("RTC 종료 진행 상태만 pending으로 분류한다", () => {
@@ -54,17 +128,10 @@ test("RTC 종료 요청과 결과 전달 단계에서만 카메라 입력을 차
 });
 
 test("카메라 종료 오버레이는 lifecycle을 유지한 채 입력과 화면 이탈을 차단한다", () => {
-  const pageSource = readSource(
-    "../../../../pages/camera/ui/camera-page.tsx",
-  );
-  const overlaySource = readSource(
-    "../ui/rtc-finalization-overlay.tsx",
-  );
+  const pageSource = readSource("../../../../pages/camera/ui/camera-page.tsx");
+  const overlaySource = readSource("../ui/rtc-finalization-overlay.tsx");
 
-  assert.match(
-    pageSource,
-    /usePreventRemove\(isFinalizationBlocking/,
-  );
+  assert.match(pageSource, /usePreventRemove\(isFinalizationBlocking/);
   assert.match(
     pageSource,
     /BackHandler\.addEventListener\(\s*"hardwareBackPress",\s*\(\) => true/,
@@ -78,9 +145,7 @@ test("카메라 종료 오버레이는 lifecycle을 유지한 채 입력과 화�
 });
 
 test("사진이 포함된 RTC 종료 요청은 호스트 인증과 upload fetch를 사용한다", () => {
-  const source = readSource(
-    "../../../../entities/rtc/api/rtc-host-query.ts",
-  );
+  const source = readSource("../../../../entities/rtc/api/rtc-host-query.ts");
 
   assert.match(source, /const headers = createRtcHostHeaders\(id\)/);
   assert.match(source, /uploadFetchClient\.patch\(\{/);
@@ -93,16 +158,11 @@ test("사진이 포함된 RTC 종료 요청은 호스트 인증과 upload fetch�
 });
 
 test("RTC 종료 실패는 인라인 문구 대신 재시도 Alert로 표시한다", () => {
-  const source = readSource(
-    "../../../../pages/camera/ui/rtc-livekit-page.tsx",
-  );
+  const source = readSource("../../../../pages/camera/ui/rtc-livekit-page.tsx");
 
   assert.match(source, /Alert\.alert\(\s*"RTC 방 종료 실패"/);
   assert.match(source, /text: "종료 처리 다시 시도"/);
-  assert.doesNotMatch(
-    source,
-    /<ButtonText>종료 처리 다시 시도<\/ButtonText>/,
-  );
+  assert.doesNotMatch(source, /<ButtonText>종료 처리 다시 시도<\/ButtonText>/);
 });
 
 test("RTC SSE 재연결 지연은 지수 증가 후 15초로 제한한다", () => {
@@ -125,9 +185,9 @@ test("분할된 participants SSE를 검증하고 room cache에 병합한다", ()
     }
   });
 
-  parser.push("event: participants\ndata: {\"roomId\":\"room-1\",");
+  parser.push('event: participants\ndata: {"roomId":"room-1",');
   parser.push(
-    "\"status\":\"LIVE\",\"participants\":[{\"nickname\":\"민지\",\"role\":\"VIEWER\",\"profileImage\":null}]}\n\n",
+    '"status":"LIVE","participants":[{"nickname":"민지","role":"VIEWER","profileImage":null}]}\n\n',
   );
 
   assert.equal(events.length, 1);

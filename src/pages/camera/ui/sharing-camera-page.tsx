@@ -15,7 +15,6 @@ export interface SharingCameraSheetProps {
   joinCode: string;
   qrValue: string;
   participantCount: number;
-  participantNames?: string[];
   isStarting?: boolean;
   canStart?: boolean;
   onCancel: () => void;
@@ -26,7 +25,6 @@ export function SharingCameraSheet({
   joinCode,
   qrValue,
   participantCount,
-  participantNames = [],
   isStarting = false,
   canStart = true,
   onCancel,
@@ -34,10 +32,6 @@ export function SharingCameraSheet({
 }: SharingCameraSheetProps) {
   const { width } = useWindowDimensions();
   const qrSize = Math.min(236, Math.max(176, width - 112));
-  const visibleParticipantNames = participantNames
-    .map((name) => name.trim())
-    .filter(Boolean)
-    .slice(0, 3);
   const safeParticipantCount = Math.max(0, participantCount);
 
   return (
