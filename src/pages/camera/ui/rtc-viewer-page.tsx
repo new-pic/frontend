@@ -72,7 +72,7 @@ function RtcViewerResultPage({
 
   // RPC로 받은 사진도 없고 API까지 실패한 경우에만
   // 전체 오류 화면을 표시한다.
-  if (photosQuery.isError && images.length === 0) {
+  if (!photosQuery.isPending && images.length === 0) {
     return (
       <SafeAreaView
         style={{
