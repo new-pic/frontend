@@ -219,6 +219,7 @@ export function CameraPage() {
   const roomId = hostSession?.roomId ?? "";
   const roomQuery = rtcHostQuery.useReadRtcRoom(roomId, {
     enabled: Boolean(hostSession) && isCameraPageFocused,
+    refetchInterval: false,
   });
   useRtcRoomEvents({
     roomId,

@@ -16,6 +16,9 @@ const {
   mergeRtcRoomEvent,
 } = require("../../../../entities/rtc/api/rtc-room-event-state.ts");
 const {
+  parseRtcRoomEvent,
+} = require("../../../../entities/rtc/api/rtc-room-event.ts");
+const {
   RtcRoomEventPayloadSchema,
 } = require("../../../../entities/rtc/model/rtc-room-schema.ts");
 const { createSseParser } = require("../../../../shared/api/sse-parser.ts");
