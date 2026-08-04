@@ -58,7 +58,6 @@ function parseUnnamedRtcRoomEvent(data: unknown): RtcRoomEvent | null {
 
   return null;
 }
-
 export function parseRtcRoomEvent(message: SseMessage): RtcRoomEvent | null {
   if (message.event === "heartbeat") {
     return { type: "heartbeat" };
@@ -72,11 +71,17 @@ export function parseRtcRoomEvent(message: SseMessage): RtcRoomEvent | null {
     return null;
   }
 
-  // 서버가 event: 필드를 생략하면 공용 Parser가 message로 설정함
+  // 서버가 event: 필드를 생략하면 공용 Parser가 message로 설정한다.
   if (message.event === "message") {
     return parseUnnamedRtcRoomEvent(data);
   }
 
+  // 지원하지 않는 named event는 무시한다.
+  if (!RTC_ROOM_EVENT_TYPES.has(message.event as RtcRoomEventType)) {
+    return null;
+  }
+
+  // Snapshot은 방 전체 정보가 모두 있어야 한다.
   if (message.event === "snapshot") {
     const parsedRoom = RtcRoomResponseSchema.safeParse(data);
 
@@ -90,5 +95,15 @@ export function parseRtcRoomEvent(message: SseMessage): RtcRoomEvent | null {
     };
   }
 
+  // participants, status, ended는 부분 Payload를 허용한다.
   const parsedPayload = RtcRoomEventPayloadSchema.safeParse(data);
+
+  if (!parsedPayload.success) {
+    return null;
+  }
+
+  return {
+    type: message.event as RtcRoomEventType,
+    payload: parsedPayload.data,
+  };
 }
