@@ -688,7 +688,6 @@ export function CameraPage() {
           joinCode={hostSession.joinCode}
           qrValue={qrValue}
           participantCount={participants.length}
-          participantNames={participants.map(({ nickname }) => nickname)}
           canStart={isVisionCameraRunning}
           isStarting={
             createHostTokenMutation.isPending || endRoomMutation.isPending
