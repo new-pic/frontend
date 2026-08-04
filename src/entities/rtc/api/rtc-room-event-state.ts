@@ -14,6 +14,10 @@ export function mergeRtcRoomEvent(
     const parsedRoom = RtcRoomResponseSchema.safeParse(event.payload);
 
     if (parsedRoom.success) {
+      if (room && parsedRoom.data.roomId !== room.roomId) {
+        return room;
+      }
+
       return parsedRoom.data;
     }
   }
