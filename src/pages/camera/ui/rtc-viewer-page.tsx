@@ -151,16 +151,11 @@ export function RtcViewerPage() {
 
   const hasViewerConnection = liveKitConnection?.role === "VIEWER";
 
-  /*
-   * LiveKit 연결 이후에도 SSE 구독을 유지한다.
-   *
-   * 기존:
-   * enabled: Boolean(viewerSession) &&
-   *   !hasViewerConnection
-   *
-   * 변경:
-   * Viewer Session이 존재하는 동안 계속 SSE 구독
-   */
+  // LiveKit 연결 이후에도 SSE 구독을 유지한다.
+  const viewerEntry = useRtcViewerEntry({
+    enabled: Boolean(viewerSession),
+    session: viewerSession,
+  });
   const viewerEntry = useRtcViewerEntry({
     enabled: Boolean(viewerSession),
     session: viewerSession,
