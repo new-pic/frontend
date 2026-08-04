@@ -1,8 +1,8 @@
 import { feedQuery } from "@entities/feed";
 import {
   RTC_MAX_CAPTURED_PHOTOS,
-  rtcHostQuery,
   RtcEndRoomResponse,
+  rtcHostQuery,
   RtcLiveKitConnection,
   useRtcStore,
 } from "@entities/rtc";
@@ -14,15 +14,18 @@ import {
 import {
   adaptFeedToGuideSelection,
   CAMERA_GUIDE_NAVIGATION,
-  CameraGuideNavigationSearchParams,
   CameraGuideFeedbackBanner,
+  CameraGuideNavigationSearchParams,
   CameraGuideOverlay,
   CameraGuideReferenceOverlay,
   GuideFeedBottomSheet,
   GuideSelectionControl,
   useCameraGuideController,
 } from "@features/camera/guide-feed";
-import { RtcHostReactionBubbles } from "@features/rtc/reactions";
+import {
+  prepareRtcEndImages,
+  useResetMyRtcStoredPhotos,
+} from "@features/rtc/finalize-session";
 import {
   isRtcFinalizationBlocking,
   isRtcFinalizationPending,
@@ -31,35 +34,19 @@ import {
   type RtcHostFinalizationState,
   useRtcRoomEvents,
 } from "@features/rtc/host-controls";
-import {
-  prepareRtcEndImages,
-  useResetMyRtcStoredPhotos,
-} from "@features/rtc/finalize-session";
+import { RtcHostReactionBubbles } from "@features/rtc/reactions";
 import { visionCameraRtcFrameSink } from "@newpic/vision-camera-rtc";
 import { getApiErrorMessage } from "@shared/api";
-import {
-  RTC_NAVIGATION,
-  RtcNavigationSearchParams,
-} from "@shared/config";
+import { RTC_NAVIGATION, RtcNavigationSearchParams } from "@shared/config";
 import { getFirstSearchParam, useConfirm } from "@shared/lib";
 import { Box, FramingGridOverlay, VStack } from "@shared/ui";
 import { CameraHeader } from "@widgets/camera-header";
 import { RtcJoinSheet } from "@widgets/rtc-join-sheet";
-import * as Linking from "expo-linking";
 import type { File } from "expo-file-system";
-import {
-  router,
-  useFocusEffect,
-  useLocalSearchParams,
-} from "expo-router";
+import * as Linking from "expo-linking";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { usePreventRemove } from "expo-router/react-navigation";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, BackHandler } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CapturedPhotosLayer } from "./captured-photos-layer";
@@ -69,9 +56,8 @@ import { SharingEndSelectionPage } from "./sharing-end-selection-page";
 import { SharingResultPage } from "./sharing-result-page";
 
 type CameraMode = "VISION_CAMERA" | "RESULT";
-type CameraPageSearchParams =
-  RtcNavigationSearchParams &
-    CameraGuideNavigationSearchParams;
+type CameraPageSearchParams = RtcNavigationSearchParams &
+  CameraGuideNavigationSearchParams;
 
 interface ResultImage {
   id: string;
@@ -84,17 +70,12 @@ interface EndPhotoSelectionRequest {
 }
 
 const getErrorMessage = (error: unknown) =>
-  error instanceof Error
-    ? error.message
-    : "잠시 후 다시 시도해주세요.";
+  error instanceof Error ? error.message : "잠시 후 다시 시도해주세요.";
 
 export function CameraPage() {
-  const searchParams =
-    useLocalSearchParams<CameraPageSearchParams>();
-  const joinCodeParam =
-    searchParams[RTC_NAVIGATION.params.code];
-  const joinSheetParam =
-    searchParams[RTC_NAVIGATION.params.joinSheet];
+  const searchParams = useLocalSearchParams<CameraPageSearchParams>();
+  const joinCodeParam = searchParams[RTC_NAVIGATION.params.code];
+  const joinSheetParam = searchParams[RTC_NAVIGATION.params.joinSheet];
   const initialGuideFeedId = getFirstSearchParam(
     searchParams[CAMERA_GUIDE_NAVIGATION.params.feedId],
   )?.trim();
@@ -112,71 +93,46 @@ export function CameraPage() {
     ? joinCodeParam[0]
     : joinCodeParam;
   const shouldRestoreJoinSheet =
-    (Array.isArray(joinSheetParam)
-      ? joinSheetParam[0]
-      : joinSheetParam) ===
+    (Array.isArray(joinSheetParam) ? joinSheetParam[0] : joinSheetParam) ===
     RTC_NAVIGATION.values.joinSheetOpen;
   const hostSession = useRtcStore((state) => state.hostSession);
-  const clearHostSession = useRtcStore(
-    (state) => state.clearHostSession,
-  );
+  const clearHostSession = useRtcStore((state) => state.clearHostSession);
   const clearLiveKitConnection = useRtcStore(
     (state) => state.clearLiveKitConnection,
   );
   const createRoomMutation = rtcHostQuery.useCreateRtcRoom();
-  const createHostTokenMutation =
-    rtcHostQuery.useCreateHostLiveKitToken();
+  const createHostTokenMutation = rtcHostQuery.useCreateHostLiveKitToken();
   const endRoomMutation = rtcHostQuery.useEndRtcRoom();
   const resetMyRtcStoredPhotos = useResetMyRtcStoredPhotos();
-  const [cameraMode, setCameraMode] =
-    useState<CameraMode>("VISION_CAMERA");
-  const [isShareSheetOpen, setIsShareSheetOpen] =
-    useState(false);
-  const [isJoinSheetOpen, setIsJoinSheetOpen] =
-    useState(false);
-  const [isGuideSheetOpen, setIsGuideSheetOpen] =
-    useState(false);
-  const [isGuideReferenceVisible, setIsGuideReferenceVisible] =
-    useState(false);
+  const [cameraMode, setCameraMode] = useState<CameraMode>("VISION_CAMERA");
+  const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
+  const [isJoinSheetOpen, setIsJoinSheetOpen] = useState(false);
+  const [isGuideSheetOpen, setIsGuideSheetOpen] = useState(false);
+  const [isGuideReferenceVisible, setIsGuideReferenceVisible] = useState(false);
   const [cameraGeometry, setCameraGeometry] =
     useState<CameraRuntimeGeometry | null>(null);
-  const [joinInitialCode, setJoinInitialCode] =
-    useState<string | undefined>();
-  const [isCameraPageFocused, setIsCameraPageFocused] =
-    useState(false);
-  const [isVisionCameraActive, setIsVisionCameraActive] =
-    useState(true);
-  const [isVisionCameraRunning, setIsVisionCameraRunning] =
-    useState(false);
+  const [joinInitialCode, setJoinInitialCode] = useState<string | undefined>();
+  const [isCameraPageFocused, setIsCameraPageFocused] = useState(false);
+  const [isVisionCameraActive, setIsVisionCameraActive] = useState(true);
+  const [isVisionCameraRunning, setIsVisionCameraRunning] = useState(false);
   const [broadcastConnection, setBroadcastConnection] =
     useState<RtcLiveKitConnection | null>(null);
-  const [capturedPhotos, setCapturedPhotos] = useState<
-    SessionPhoto[]
-  >([]);
-  const [resultImages, setResultImages] = useState<
-    ResultImage[] | null
-  >(null);
-  const [isEndPhotoSelectionOpen, setIsEndPhotoSelectionOpen] =
-    useState(false);
-  const [isCapturedPhotosOpen, setIsCapturedPhotosOpen] =
-    useState(false);
+  const [capturedPhotos, setCapturedPhotos] = useState<SessionPhoto[]>([]);
+  const [resultImages, setResultImages] = useState<ResultImage[] | null>(null);
+  const [isEndPhotoSelectionOpen, setIsEndPhotoSelectionOpen] = useState(false);
+  const [isCapturedPhotosOpen, setIsCapturedPhotosOpen] = useState(false);
   const [endRequestId, setEndRequestId] = useState(0);
   const [finalizationState, setFinalizationState] =
     useState<RtcHostFinalizationState>("IDLE");
-  const isFinalizationBlocking = isRtcFinalizationBlocking(
-    finalizationState,
-  );
+  const isFinalizationBlocking = isRtcFinalizationBlocking(finalizationState);
   const isVisionCameraRunningRef = useRef(false);
   const isCameraPageFocusedRef = useRef(false);
-  const endPhotoSelectionRequestRef =
-    useRef<EndPhotoSelectionRequest | null>(null);
-  const selectedEndPhotosRef = useRef<SessionPhoto[] | null>(
+  const endPhotoSelectionRequestRef = useRef<EndPhotoSelectionRequest | null>(
     null,
   );
+  const selectedEndPhotosRef = useRef<SessionPhoto[] | null>(null);
   const preparedEndImagesRef = useRef<File[] | null>(null);
-  const appliedInitialGuideFeedIdRef = useRef<string | null>(
-    null,
-  );
+  const appliedInitialGuideFeedIdRef = useRef<string | null>(null);
   const cameraGuide = useCameraGuideController({
     cameraActive:
       cameraMode === "VISION_CAMERA" &&
@@ -185,9 +141,7 @@ export function CameraPage() {
       isVisionCameraRunning,
     geometry: cameraGeometry,
   });
-  const hasGuideError = Object.values(cameraGuide.errors).some(
-    Boolean,
-  );
+  const hasGuideError = Object.values(cameraGuide.errors).some(Boolean);
   const initialGuideNotApplied =
     Boolean(initialGuideFeedId) &&
     appliedInitialGuideFeedIdRef.current !== initialGuideFeedId;
@@ -195,9 +149,8 @@ export function CameraPage() {
     initialGuideNotApplied && initialGuideQuery.isError;
   const isGuideReferenceAvailable = Boolean(
     cameraGeometry &&
-      cameraGuide.presentedGuide?.outline &&
-      cameraGeometry.aspectRatio ===
-        cameraGuide.presentedGuide.cameraAspectRatio,
+    cameraGuide.presentedGuide?.outline &&
+    cameraGeometry.aspectRatio === cameraGuide.presentedGuide.cameraAspectRatio,
   );
   const openConfirm = useConfirm();
 
@@ -226,11 +179,7 @@ export function CameraPage() {
     appliedInitialGuideFeedIdRef.current = initialGuideFeedId;
     setIsGuideReferenceVisible(false);
     cameraGuide.selectGuide(initialGuideSelection);
-  }, [
-    cameraGuide.selectGuide,
-    initialGuideFeedId,
-    initialGuideSelection,
-  ]);
+  }, [cameraGuide.selectGuide, initialGuideFeedId, initialGuideSelection]);
 
   useEffect(() => {
     return () => {
@@ -270,7 +219,6 @@ export function CameraPage() {
   const roomId = hostSession?.roomId ?? "";
   const roomQuery = rtcHostQuery.useReadRtcRoom(roomId, {
     enabled: Boolean(hostSession) && isCameraPageFocused,
-    refetchInterval: false,
   });
   useRtcRoomEvents({
     roomId,
@@ -282,8 +230,7 @@ export function CameraPage() {
       hostSession
         ? Linking.createURL(RTC_NAVIGATION.paths.join, {
             queryParams: {
-              [RTC_NAVIGATION.params.code]:
-                hostSession.joinCode,
+              [RTC_NAVIGATION.params.code]: hostSession.joinCode,
             },
           })
         : "",
@@ -319,8 +266,7 @@ export function CameraPage() {
 
     const confirmed = await openConfirm({
       title: "실시간 공유를 시작할까요?",
-      message:
-        "촬영 화면이 참여자에게 실시간으로 공유됩니다.",
+      message: "촬영 화면이 참여자에게 실시간으로 공유됩니다.",
       confirmText: "공유 준비하기",
       cancelText: "취소",
     });
@@ -341,17 +287,13 @@ export function CameraPage() {
   };
 
   const handleRequestEndRoom = useCallback(async () => {
-    if (
-      !broadcastConnection ||
-      isRtcFinalizationPending(finalizationState)
-    ) {
+    if (!broadcastConnection || isRtcFinalizationPending(finalizationState)) {
       return;
     }
 
     const confirmed = await openConfirm({
       title: "실시간 공유를 종료할까요?",
-      message:
-        "종료 전에 방에 저장할 촬영 사진을 선택할 수 있습니다.",
+      message: "종료 전에 방에 저장할 촬영 사진을 선택할 수 있습니다.",
       confirmText: "종료하기",
       cancelText: "계속 공유",
       destructive: true,
@@ -365,8 +307,7 @@ export function CameraPage() {
     setJoinInitialCode(undefined);
     setIsJoinSheetOpen(true);
     router.setParams({
-      [RTC_NAVIGATION.params.joinSheet]:
-        RTC_NAVIGATION.values.joinSheetOpen,
+      [RTC_NAVIGATION.params.joinSheet]: RTC_NAVIGATION.values.joinSheetOpen,
     });
   };
 
@@ -404,22 +345,15 @@ export function CameraPage() {
     ) {
       return;
     }
-    if (
-      !isCameraPageFocusedRef.current ||
-      !isVisionCameraRunningRef.current
-    ) {
-      Alert.alert(
-        "카메라 준비 중",
-        "카메라가 시작된 뒤 다시 공유해주세요.",
-      );
+    if (!isCameraPageFocusedRef.current || !isVisionCameraRunningRef.current) {
+      Alert.alert("카메라 준비 중", "카메라가 시작된 뒤 다시 공유해주세요.");
       return;
     }
 
     try {
-      const response =
-        await createHostTokenMutation.mutateAsync({
-          roomId: hostSession.roomId,
-        });
+      const response = await createHostTokenMutation.mutateAsync({
+        roomId: hostSession.roomId,
+      });
       if (
         !isCameraPageFocusedRef.current ||
         !isVisionCameraRunningRef.current
@@ -443,18 +377,13 @@ export function CameraPage() {
       setBroadcastConnection(connection);
       setIsShareSheetOpen(false);
     } catch (error) {
-      Alert.alert(
-        "실시간 공유 시작 실패",
-        getErrorMessage(error),
-      );
+      Alert.alert("실시간 공유 시작 실패", getErrorMessage(error));
     }
   };
 
   const handlePrepareEndRoom = async (): Promise<void> => {
     if (!hostSession) {
-      throw new Error(
-        "RTC 방 정보가 없습니다. 방 종료를 다시 시도해주세요.",
-      );
+      throw new Error("RTC 방 정보가 없습니다. 방 종료를 다시 시도해주세요.");
     }
 
     if (preparedEndImagesRef.current) return;
@@ -479,14 +408,10 @@ export function CameraPage() {
 
   const handleEndRoom = async (): Promise<RtcEndRoomResponse> => {
     if (!hostSession) {
-      throw new Error(
-        "RTC 방 정보가 없습니다. 방 종료를 다시 시도해주세요.",
-      );
+      throw new Error("RTC 방 정보가 없습니다. 방 종료를 다시 시도해주세요.");
     }
     if (!preparedEndImagesRef.current) {
-      throw new Error(
-        "방에 저장할 사진 준비를 완료하지 못했습니다.",
-      );
+      throw new Error("방에 저장할 사진 준비를 완료하지 못했습니다.");
     }
 
     try {
@@ -507,9 +432,7 @@ export function CameraPage() {
     }
   };
 
-  const handleConfirmEndPhotoSelection = (
-    selectedPhotos: SessionPhoto[],
-  ) => {
+  const handleConfirmEndPhotoSelection = (selectedPhotos: SessionPhoto[]) => {
     const request = endPhotoSelectionRequestRef.current;
     if (!request) return;
 
@@ -544,9 +467,7 @@ export function CameraPage() {
     isVisionCameraRunningRef.current = false;
     setIsVisionCameraRunning(false);
     setIsVisionCameraActive(false);
-    setResultImages(
-      savedImages.length > 0 ? savedImages : localImages,
-    );
+    setResultImages(savedImages.length > 0 ? savedImages : localImages);
     setCameraMode("RESULT");
 
     if (savedImages.length > 0) {
@@ -582,8 +503,7 @@ export function CameraPage() {
   const handleSelectGuide = useCallback(
     (selection: Parameters<typeof cameraGuide.selectGuide>[0]) => {
       if (initialGuideFeedId) {
-        appliedInitialGuideFeedIdRef.current =
-          initialGuideFeedId;
+        appliedInitialGuideFeedIdRef.current = initialGuideFeedId;
       }
       setIsGuideReferenceVisible(false);
       cameraGuide.selectGuide(selection);
@@ -618,10 +538,7 @@ export function CameraPage() {
 
   if (cameraMode === "RESULT" && resultImages) {
     return (
-      <SharingResultPage
-        images={resultImages}
-        onDone={handleCloseResult}
-      />
+      <SharingResultPage images={resultImages} onDone={handleCloseResult} />
     );
   }
 
@@ -646,16 +563,12 @@ export function CameraPage() {
                       createRoomMutation.isPending ||
                       createHostTokenMutation.isPending ||
                       endRoomMutation.isPending ||
-                      isRtcFinalizationPending(
-                        finalizationState,
-                      )
+                      isRtcFinalizationPending(finalizationState)
                     }
                     isCameraReady={isVisionCameraRunning}
                     onSharePress={() => void handleOpenShare()}
                     onJoinPress={handleOpenJoinSheet}
-                    onEndRoomPress={() =>
-                      void handleRequestEndRoom()
-                    }
+                    onEndRoomPress={() => void handleRequestEndRoom()}
                   />
                 }
               />
@@ -678,9 +591,7 @@ export function CameraPage() {
             onOpenPhotos={() => setIsCapturedPhotosOpen(true)}
             videoFrameSink={visionCameraRtcFrameSink}
             poseFrameSink={cameraGuide.poseDetection.frameSink}
-            guideAspectRatio={
-              cameraGuide.presentedGuide?.cameraAspectRatio
-            }
+            guideAspectRatio={cameraGuide.presentedGuide?.cameraAspectRatio}
             onRuntimeGeometryChange={handleCameraGeometryChange}
             previewOverlay={
               <>
@@ -693,8 +604,7 @@ export function CameraPage() {
                     {isGuideReferenceVisible ? (
                       <CameraGuideReferenceOverlay
                         imageUrl={
-                          cameraGuide.presentedGuide.selection
-                            .detailImageUrl
+                          cameraGuide.presentedGuide.selection.detailImageUrl
                         }
                         sourceSize={
                           cameraGuide.presentedGuide.outline.sourceSize
@@ -706,18 +616,14 @@ export function CameraPage() {
                       previewSize={cameraGeometry.previewSize}
                       outline={cameraGuide.presentedGuide.outline}
                       warning={
-                        cameraGuide.alignment.alignmentState ===
-                        "MISALIGNED"
+                        cameraGuide.alignment.alignmentState === "MISALIGNED"
                       }
                     />
                   </>
                 ) : null}
                 {broadcastConnection && hostSession ? (
                   <RtcHostReactionBubbles
-                    active={
-                      isCameraPageFocused &&
-                      isVisionCameraActive
-                    }
+                    active={isCameraPageFocused && isVisionCameraActive}
                     roomId={hostSession.roomId}
                   />
                 ) : null}
@@ -732,8 +638,7 @@ export function CameraPage() {
               <GuideSelectionControl
                 selectedGuide={cameraGuide.selectedGuide}
                 isPreparing={
-                  (initialGuideNotApplied &&
-                    initialGuideQuery.isPending) ||
+                  (initialGuideNotApplied && initialGuideQuery.isPending) ||
                   cameraGuide.isPreparing ||
                   cameraGuide.isTargetLoading ||
                   cameraGuide.isOutlineLoading
@@ -762,9 +667,7 @@ export function CameraPage() {
       {broadcastConnection ? (
         <RtcHostLiveKitPage
           connection={broadcastConnection}
-          isActive={
-            isCameraPageFocused && isVisionCameraActive
-          }
+          isActive={isCameraPageFocused && isVisionCameraActive}
           onPrepareEndRoom={handlePrepareEndRoom}
           onEndRoom={handleEndRoom}
           onStopped={handleHostStopped}
@@ -784,13 +687,10 @@ export function CameraPage() {
           joinCode={hostSession.joinCode}
           qrValue={qrValue}
           participantCount={participants.length}
-          participantNames={participants.map(
-            ({ nickname }) => nickname,
-          )}
+          participantNames={participants.map(({ nickname }) => nickname)}
           canStart={isVisionCameraRunning}
           isStarting={
-            createHostTokenMutation.isPending ||
-            endRoomMutation.isPending
+            createHostTokenMutation.isPending || endRoomMutation.isPending
           }
           onCancel={() => void handleCancelShare()}
           onStart={() => void handleStartShare()}
