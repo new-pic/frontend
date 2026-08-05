@@ -1,13 +1,9 @@
 import { rtcQuery } from "@entities/rtc";
 import { useMemo } from "react";
-import {
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { adaptRtcReactionEmojis } from "../lib/rtc-reaction-domain";
 import { useRtcReactionChannel } from "../model/use-rtc-reaction-channel";
+import { RtcViewerReactionButton } from "./rtc-viewer-reaction-button";
 
 interface RtcViewerReactionPickerProps {
   active: boolean;
@@ -31,8 +27,7 @@ export function RtcViewerReactionPicker({
     role: "VIEWER",
     participantId,
   });
-  const canSend =
-    channel.status === "CONNECTED" && emojis.length > 0;
+  const canSend = channel.status === "CONNECTED" && emojis.length > 0;
 
   if (!active) return null;
 
@@ -69,23 +64,12 @@ export function RtcViewerReactionPicker({
             showsHorizontalScrollIndicator={false}
           >
             {emojis.map((emoji) => (
-              <Pressable
+              <RtcViewerReactionButton
                 key={emoji.id}
-                accessibilityRole="button"
-                accessibilityLabel={`${emoji.label} 반응 보내기`}
+                emoji={emoji}
                 disabled={!canSend}
-                onPress={() => channel.sendReaction(emoji.id)}
-                className={`h-14 w-14 items-center justify-center rounded-full bg-background-muted ${canSend ? "" : "opacity-40"}`}
-                style={({ pressed }) => ({
-                  transform: [
-                    { scale: pressed && canSend ? 0.9 : 1 },
-                  ],
-                })}
-              >
-                <Text className="text-3xl leading-10">
-                  {emoji.symbol}
-                </Text>
-              </Pressable>
+                onSend={channel.sendReaction}
+              />
             ))}
             {emojis.length === 0 && !emojiQuery.isError ? (
               <Text className="px-3 text-sm text-label-muted">

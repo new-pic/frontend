@@ -18,3 +18,15 @@ export const RTC_REACTION_BUBBLE_CONFIG = {
   laneCount: 3,
   riseDistance: 170,
 } as const;
+
+export const RTC_REACTION_EMOJI_CONFIG = {
+  animationDurationMs: 480,
+  bubbleRiseDistance: 18,
+
+  buttonPeakScale: 1.2,
+  buttonSettleScale: 0.9,
+  ringPeakScale: 1.2,
+
+  blockedShakeDistance: 4,
+  blockedShakeDurationMs: 100,
+} as const;
