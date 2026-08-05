@@ -85,8 +85,10 @@ export function RtcViewerReactionButton({
         duration: blockedShakeDurationMs,
       }),
     );
-  }, [blockedTranslateX]);
-
+    AccessibilityInfo.announceForAccessibility(
+      `${emoji.label} 반응을 보내지 못했어요`,
+    );
+  }, [emoji.label, blockedTranslateX]);
   const handlePress = useCallback(() => {
     const sent = onSend(emoji.id);
 
