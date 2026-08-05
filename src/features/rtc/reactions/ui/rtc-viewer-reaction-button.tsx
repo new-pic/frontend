@@ -223,7 +223,7 @@ export function RtcViewerReactionButton({
           accessibilityHint={
             disabled
               ? "반응 서버 연결 후 사용할 수 있습니다."
-              : "두 번 탭하여 반응을 보냅니다."
+              : "선택한 반응을 전송합니다."
           }
           accessibilityState={{
             disabled,
