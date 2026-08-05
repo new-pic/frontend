@@ -156,10 +156,6 @@ export function RtcViewerPage() {
     enabled: Boolean(viewerSession),
     session: viewerSession,
   });
-  const viewerEntry = useRtcViewerEntry({
-    enabled: Boolean(viewerSession),
-    session: viewerSession,
-  });
 
   useEffect(() => {
     if (hasViewerConnection) {
