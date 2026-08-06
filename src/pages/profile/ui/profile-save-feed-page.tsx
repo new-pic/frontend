@@ -14,13 +14,8 @@ import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function ProfileSaveFeedPage() {
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isPending,
-  } = usersQuery.useReadSavedFeeds({ take: 24 });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
+    usersQuery.useReadSavedFeeds({ take: 24 });
   const feeds = data?.pages.flatMap((page) => page.items) ?? [];
   const feedImages = feeds.map((feed) => ({
     id: feed.id,
@@ -28,7 +23,7 @@ export function ProfileSaveFeedPage() {
   }));
 
   const handleGoProfile = () => {
-    router.replace("/profile");
+    router.back();
   };
 
   const handleEndReached = () => {
