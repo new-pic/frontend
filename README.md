@@ -1,58 +1,59 @@
-# Welcome to your Expo app 👋
+<img src="./assets/images/icon.png" width="100" alt="Newpic logo" />
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# Newpic - 프론트엔드
 
-## Get started
+Newpic은 원하는 구도와 포즈로 사진을 촬영할 수 있도록 **실시간 포즈 가이드와 원격 촬영 기능**을 제공하는 모바일 서비스입니다.  
+사진을 찍는 사람과 찍히는 사람 모두의 촬영 부담을 줄이고  
+원하는 순간과 구도를 보다 쉽게 사진으로 남길 수 있도록 돕습니다.
+<br/>
+<br/>
 
-1. Install dependencies
+## 주요 기능 ✨
 
-   ```bash
-   npm install
-   ```
+- 사진 촬영
+- 포즈 오버레이
+- 실시간 포즈 비교 / 피드백
+- RTC 기반 실시간 촬영 화면 공유
+- 피드 업로드
+- 기타
 
-2. Start the app
+## 기술 스택 🛠️
 
-   ```bash
-   npx expo start
-   ```
+### 1. App
 
-In the output, you'll find options to open the app in a
+- React Native
+- Expo
+- Typescript
+- Expo Router
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### 2. State / Server State
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- Tanstack Query
+- Zustand
 
-## Get a fresh project
+### 3. Camera
 
-When you're ready, run:
+- React Native Vision Camera
+- MediaPipe Pose Landmarker
 
-```bash
-npm run reset-project
+### 4. RTC
+
+- Livekit / WebRTC
+
+### 5. Network
+
+- Axios
+
+## 프로젝트 구조 📁
+
+```text
+src/
+├── app/
+├── pages/
+├── widgets/
+├── features/
+├── entities/
+└── shared/
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
-
-뀨
+자세한 설계 결정은 [아키텍처 문서](./docs/adr/001-frontend-architecture.md)에서 관리합니다.
