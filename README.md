@@ -1,4 +1,4 @@
-<img src="./assets/images/icon.png" width="100" />
+<img src="./assets/images/icon.png" width="100" alt="Newpic logo" />
 
 # Newpic - 프론트엔드
 
