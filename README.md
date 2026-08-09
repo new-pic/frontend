@@ -18,24 +18,24 @@ Newpic은 원하는 구도와 포즈로 사진을 촬영할 수 있도록 **실�
 
 
 ## 기술 스택 🛠️
-#### 1. App
-- React Native
-- Expo
-- Typescript
-- Expo Router
+        ### 1. App
+        - React Native
+        - Expo
+        - Typescript
+        - Expo Router
 
-#### 2. State / Server State
-- Tanstack Query
-- Zustand
+        ### 2. State / Server State
+        - Tanstack Query
+        - Zustand
 
-#### 3. Camera
-- React Native Vision Camera
-- MediaPipe Pose Landmarker
+        ### 3. Camera
+        - React Native Vision Camera
+        - MediaPipe Pose Landmarker
 
-#### 4. RTC
-- Livekit / WebRTC
+        ### 4. RTC
+        - Livekit / WebRTC
 
-#### 5. Network
+        ### 5. Network
 - Axios
 
 ## 프로젝트 구조 📁
