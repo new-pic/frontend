@@ -12,7 +12,7 @@
       "bundleIdentifier": "com.significance.newpic",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to your Camera to capture photos and videos.",
+        "NSCameraUsageDescription": "NewPic은 사진 촬영과 원격 촬영 화면 공유를 위해 카메라를 사용합니다. 예를 들어 촬영 가이드에 맞춰 사진을 찍거나 친구에게 현재 카메라 화면을 실시간으로 공유할 때 사용합니다.",
         "NSMicrophoneUsageDescription": "$(PRODUCT_NAME) needs access to your Microphone to record audio for video recordings."
       }
     },
@@ -48,7 +48,7 @@
       [
         "@config-plugins/react-native-webrtc",
         {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "cameraPermission": "NewPic은 사진 촬영과 원격 촬영 화면 공유를 위해 카메라를 사용합니다. 예를 들어 촬영 가이드에 맞춰 사진을 찍거나 친구에게 현재 카메라 화면을 실시간으로 공유할 때 사용합니다.",
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone"
         }
       ],
@@ -77,7 +77,7 @@
         "expo-image-picker",
         {
           "photosPermission": "프로필 사진을 선택하기 위해 사진 보관함 접근이 필요합니다.",
-          "cameraPermission": "Allow $(PRODUCT_NAME) to open the camera"
+          "cameraPermission": "NewPic은 사진 촬영과 원격 촬영 화면 공유를 위해 카메라를 사용합니다. 예를 들어 촬영 가이드에 맞춰 사진을 찍거나 친구에게 현재 카메라 화면을 실시간으로 공유할 때 사용합니다."
         }
       ],
       ["expo-media-library"],
