@@ -730,7 +730,7 @@ export function CustomCamera({
     return (
       <VStack className="h-full items-center justify-center bg-white">
         <Text className="mb-4 font-bold text-black">
-          사진 촬영과 원격 촬영 기능을 사용하려면 카메라 접근이
+          사진 촬영과 원격 촬영 화면 공유를 사용하려면 카메라 접근이
           필요합니다.
         </Text>
         <Button variant="outline" onPress={requestPermission}>
