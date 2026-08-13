@@ -31,6 +31,7 @@ interface FeedDetailContentProps {
   contentBottomPadding: number;
   commentSort: CommentSort;
   setCommentSort: (sort: CommentSort) => void;
+  onReportComment: (commentId: string) => void;
 }
 
 export function FeedDetailContent({
@@ -39,6 +40,7 @@ export function FeedDetailContent({
   contentBottomPadding,
   commentSort,
   setCommentSort,
+  onReportComment,
 }: FeedDetailContentProps) {
   const feedLike = useFeedLikeController({
     feedId: feed.id,
@@ -275,7 +277,10 @@ export function FeedDetailContent({
           ) : null
         }
         renderItem={({ item }) => (
-          <FeedCommentItem comment={item} />
+          <FeedCommentItem
+            comment={item}
+            onReport={() => onReportComment(item.id)}
+          />
         )}
       />
     </View>
