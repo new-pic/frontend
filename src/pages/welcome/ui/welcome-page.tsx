@@ -132,7 +132,7 @@ export function WelcomPage() {
             isChecked={termsAgreed}
             isDisabled={disabled || hasExistingSession}
             onChange={setTermsAgreed}
-            accessibilityLabel="이용약관 동의"
+            accessibilityLabel="이용약관 및 개인정보 처리방침 동의"
           >
             <CheckboxIndicator className="h-6 w-6 rounded-md">
               <CheckboxIcon as={IconCheck} className="h-4 w-4" />
@@ -146,7 +146,7 @@ export function WelcomPage() {
           >
             <Text size="sm">
               <Text className="font-semibold text-link-text underline">
-                이용약관
+                이용약관 및 개인정보 처리방침
               </Text>
               에 동의합니다.
             </Text>
