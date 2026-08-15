@@ -21,7 +21,7 @@ import {
   IconChevronDown,
   IconChevronUp,
 } from "@tabler/icons-react-native";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -44,6 +44,7 @@ export function ReportContentModal({
   onClose,
 }: ReportContentModalProps) {
   const [isReasonListOpen, setIsReasonListOpen] = useState(false);
+  const isSubmittingRef = useRef(false);
   const form = useContentReportForm();
   const reportMutation = feedReportQuery.useCreateContentReport();
   const reason = useWatch({ control: form.control, name: "reason" });

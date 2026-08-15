@@ -114,3 +114,18 @@ test("신고 대상에 맞는 제목 label을 반환한다", () => {
     "댓글",
   );
 });
+
+test("신고 제출은 ref 잠금으로 연속 요청을 차단한다", () => {
+  const source = fs.readFileSync(
+    require.resolve("../ui/report-content-modal.tsx"),
+    "utf8",
+  );
+
+  assert.match(source, /const isSubmittingRef = useRef\(false\)/);
+  assert.match(source, /if \(isSubmittingRef\.current\) return/);
+  assert.match(source, /isSubmittingRef\.current = true/);
+  assert.match(
+    source,
+    /onError:[\s\S]*isSubmittingRef\.current = false/,
+  );
+});
