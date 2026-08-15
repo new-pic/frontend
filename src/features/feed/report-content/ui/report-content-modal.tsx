@@ -61,7 +61,17 @@ export function ReportContentModal({
   };
 
   const handleSubmit = form.handleSubmit((request) => {
-    reportMutation.mutate({ target, request });
+    if (isSubmittingRef.current) return;
+
+    isSubmittingRef.current = true;
+    reportMutation.mutate(
+      { target, request },
+      {
+        onError: () => {
+          isSubmittingRef.current = false;
+        },
+      },
+    );
   });
 
   if (reportMutation.isSuccess) {
