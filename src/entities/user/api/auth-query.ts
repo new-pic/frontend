@@ -3,6 +3,10 @@ import { useMutation } from "@tanstack/react-query";
 
 import {
   API_QUERY_KEY,
+  AppleLoginRequest,
+  AppleLoginRequestSchema,
+  AppleLoginResponse,
+  AppleLoginResponseSchema,
   getSocialLoginRequestMode,
   GoogleLoginRequest,
   GoogleLoginRequestSchema,
@@ -17,6 +21,27 @@ import {
 import { getAndCreateDeviceUUID } from "../../../shared/lib/device-uuid";
 
 const QUERY_KEY = [API_QUERY_KEY, "auth"];
+
+export function useAppleLogin() {
+  return useMutation({
+    mutationFn: async ({
+      isGuest,
+      ...appleCredential
+    }: AppleLoginRequest & {
+      isGuest: boolean;
+    }): Promise<AppleLoginResponse> => {
+      const requestMode = getSocialLoginRequestMode(isGuest);
+      const apiClientToUse =
+        requestMode ===
+        SOCIAL_LOGIN_REQUEST_MODE.AUTHENTICATED_ACCOUNT_LINK
+          ? privateApiClient
+          : apiClient;
+      const request = AppleLoginRequestSchema.parse(appleCredential);
+      const response = await apiClientToUse.post("/auth/apple", request);
+      return AppleLoginResponseSchema.parse(response.data);
+    },
+  });
+}
 
 export function useGoogleLogin() {
   return useMutation({

@@ -14,16 +14,20 @@ import {
   VStack,
 } from "@shared/ui";
 import { IconCheck } from "@tabler/icons-react-native";
+import * as AppleAuthentication from "expo-apple-authentication";
 import * as Linking from "expo-linking";
 import { useState } from "react";
-import { Alert, Image, Pressable } from "react-native";
+import { Alert, Image, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function WelcomPage() {
   const {
     disabled,
+    isAppleLoginAvailable,
+    isAppleLoading,
     isGuestLoading,
     isGoogleLoading,
+    loginWithApple,
     loginWithGoogle,
     loginToGuest,
   } = useSocialLogin();
@@ -61,6 +65,17 @@ export function WelcomPage() {
     setLoginError(null);
     try {
       await loginWithGoogle();
+    } catch {
+      setLoginError("계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    }
+  };
+
+  const handleAppleLogin = async () => {
+    if (!ensureTermsAgreed()) return;
+
+    setLoginError(null);
+    try {
+      await loginWithApple();
     } catch {
       setLoginError("계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.");
     }
@@ -108,14 +123,24 @@ export function WelcomPage() {
             <GoogleLogo width={24} height={24} />
             <ButtonText>구글로 시작하기</ButtonText>
           </Button>
-          {/* <Button
-            variant="outline"
-            className="rounded-full bg-black"
-            disabled={disabled}
-          >
-            <AppleLogo width={24} height={24} />
-            <ButtonText className="text-white">애플로 시작하기</ButtonText>
-          </Button> */}
+          {isAppleLoginAvailable ? (
+            <View
+              pointerEvents={disabled ? "none" : "auto"}
+              style={{ opacity: disabled && !isAppleLoading ? 0.4 : 1 }}
+            >
+              <AppleAuthentication.AppleAuthenticationButton
+                buttonType={
+                  AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
+                }
+                buttonStyle={
+                  AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
+                }
+                cornerRadius={999}
+                style={{ width: "100%", height: 48 }}
+                onPress={handleAppleLogin}
+              />
+            </View>
+          ) : null}
           <Button
             variant="ghost"
             disabled={disabled}

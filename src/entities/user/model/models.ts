@@ -1,5 +1,7 @@
 import { z } from "zod";
 import {
+  AppleLoginRequestSchema,
+  AppleLoginResponseSchema,
   GoogleLoginRequestSchema,
   GoogleLoginResponseSchema,
   GuestLoginRequestSchema,
@@ -10,10 +12,12 @@ import {
 
 export const API_QUERY_KEY = ["user"] as const;
 
+export type AppleLoginRequest = z.infer<typeof AppleLoginRequestSchema>;
 export type GoogleLoginRequest = z.infer<typeof GoogleLoginRequestSchema>;
 export type GuestLoginRequest = z.infer<typeof GuestLoginRequestSchema>;
 
 export type TokenResponse = z.infer<typeof TokenResponseSchema>;
+export type AppleLoginResponse = z.infer<typeof AppleLoginResponseSchema>;
 export type GoogleLoginResponse = z.infer<typeof GoogleLoginResponseSchema>;
 
 export type SosialLoginStatus = z.infer<typeof SocialLoginStatusSchema>;
