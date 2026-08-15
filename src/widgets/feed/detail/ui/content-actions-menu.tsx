@@ -3,12 +3,18 @@ import { Button, ButtonIcon, Pressable, Text } from "@shared/ui";
 import { IconDotsVertical } from "@tabler/icons-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
+  type LayoutChangeEvent,
   Modal,
   Pressable as NativePressable,
   StyleSheet,
   View,
   useWindowDimensions,
 } from "react-native";
+import {
+  CONTENT_ACTION_MENU_EDGE_INSET,
+  CONTENT_ACTION_MENU_TRIGGER_GAP,
+  getContentActionMenuTop,
+} from "../model/content-action-menu-layout";
 
 export interface ContentActionMenuItem {
   key: string;
@@ -19,6 +25,13 @@ export interface ContentActionMenuItem {
 }
 
 const MENU_DISMISS_DELAY_MS = 200;
+
+interface TriggerLayout {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 interface ContentActionsMenuProps {
   accessibilityLabel: string;
@@ -34,13 +47,31 @@ export function ContentActionsMenu({
   iconClassName = "h-6 w-6",
 }: ContentActionsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [menuPosition, setMenuPosition] = useState({
-    top: 52,
-    right: 20,
-  });
+  const [triggerLayout, setTriggerLayout] = useState<TriggerLayout | null>(null);
+  const [menuHeight, setMenuHeight] = useState<number | null>(null);
   const triggerRef = useRef<View>(null);
   const actionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { width: windowWidth } = useWindowDimensions();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const isMenuPositioned = !triggerLayout || menuHeight !== null;
+  const menuPosition = triggerLayout
+    ? {
+        top:
+          menuHeight === null
+            ? triggerLayout.y +
+              triggerLayout.height +
+              CONTENT_ACTION_MENU_TRIGGER_GAP
+            : getContentActionMenuTop({
+                triggerY: triggerLayout.y,
+                triggerHeight: triggerLayout.height,
+                menuHeight,
+                windowHeight,
+              }),
+        right: Math.max(
+          CONTENT_ACTION_MENU_EDGE_INSET,
+          windowWidth - triggerLayout.x - triggerLayout.width,
+        ),
+      }
+    : { top: 52, right: 20 };
 
   useEffect(
     () => () => {
@@ -53,17 +84,21 @@ export function ContentActionsMenu({
 
   const handleOpen = () => {
     if (!triggerRef.current) {
+      setTriggerLayout(null);
+      setMenuHeight(null);
       setIsOpen(true);
       return;
     }
 
     triggerRef.current.measureInWindow((x, y, width, height) => {
-      setMenuPosition({
-        top: y + height + 4,
-        right: Math.max(12, windowWidth - x - width),
-      });
+      setTriggerLayout({ x, y, width, height });
+      setMenuHeight(null);
       setIsOpen(true);
     });
+  };
+
+  const handleMenuLayout = (event: LayoutChangeEvent) => {
+    setMenuHeight(event.nativeEvent.layout.height);
   };
 
   return (
@@ -98,7 +133,13 @@ export function ContentActionsMenu({
           <View
             accessibilityRole="menu"
             accessibilityViewIsModal
-            style={[styles.menu, menuPosition]}
+            pointerEvents={isMenuPositioned ? "auto" : "none"}
+            style={[
+              styles.menu,
+              menuPosition,
+              !isMenuPositioned && styles.measuringMenu,
+            ]}
+            onLayout={handleMenuLayout}
           >
             {items.map((item, index) => (
               <View key={item.key}>
@@ -149,6 +190,9 @@ const styles = StyleSheet.create({
     minHeight: 48,
     justifyContent: "center",
     paddingHorizontal: 18,
+  },
+  measuringMenu: {
+    opacity: 0,
   },
   separator: {
     height: StyleSheet.hairlineWidth,
