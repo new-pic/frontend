@@ -97,6 +97,7 @@
     "test:feed-publishing": "node --test src/features/feed/feed-processing/__tests__/feed-publishing.test.cjs",
     "test:saved-feed-sync": "node --test src/features/feed/update-feed-pick/__tests__/saved-feed-sync.test.cjs",
     "test:feed-like": "node --test src/features/feed/update-feed-like/__tests__/feed-like-interaction.test.cjs src/entities/feed/__tests__/feed-like-cache.test.cjs",
+    "test:content-report": "node --test src/features/feed/report-content/__tests__/*.test.cjs",
     "test:feed-detail": "node --test src/widgets/feed/detail/__tests__/*.test.cjs",
     "test:feed-browse": "node --test src/features/feed/browse-feed-detail/__tests__/feed-detail-navigation.test.cjs",
     "test:photo-grid": "node --test src/shared/ui/photo-grid/__tests__/photo-grid-layout.test.cjs",

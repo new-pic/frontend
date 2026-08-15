@@ -1,4 +1,6 @@
 import type { FeedCommentResponse } from "@entities/feed";
+import { canReportContent } from "@features/feed/report-content";
+import { useAuthStore } from "@shared/model";
 import {
   Avatar,
   AvatarFallbackText,
@@ -9,6 +11,7 @@ import {
   VStack,
 } from "@shared/ui";
 import { CommentSort } from "../model";
+import { ContentActionsMenu } from "./content-actions-menu";
 
 interface FeedCommentsHeaderProps {
   commentCount: number;
@@ -20,7 +23,19 @@ function formatCommentDate(createdAt: string) {
   return new Date(createdAt).toLocaleDateString("ko-KR");
 }
 
-export function FeedCommentItem({ comment }: { comment: FeedCommentResponse }) {
+export function FeedCommentItem({
+  comment,
+  onReport,
+}: {
+  comment: FeedCommentResponse;
+  onReport: () => void;
+}) {
+  const userId = useAuthStore((state) => state.userId);
+  const canReport = canReportContent({
+    authorId: comment.user.id,
+    currentUserId: userId,
+  });
+
   return (
     <HStack className="px-6 py-4 items-start" space="md">
       <Avatar className="h-10 w-10">
@@ -32,9 +47,26 @@ export function FeedCommentItem({ comment }: { comment: FeedCommentResponse }) {
           <Text size="md" className="font-semibold">
             {comment.user.nickname}
           </Text>
-          <Text size="sm" className="text-label-muted">
-            {formatCommentDate(comment.createdAt)}
-          </Text>
+          <HStack className="items-center" space="xs">
+            <Text size="sm" className="text-label-muted">
+              {formatCommentDate(comment.createdAt)}
+            </Text>
+            {canReport ? (
+              <ContentActionsMenu
+                accessibilityLabel={`${comment.user.nickname}님의 댓글 더보기`}
+                accessibilityHint="댓글 신고 메뉴를 엽니다"
+                iconClassName="h-5 w-5"
+                items={[
+                  {
+                    key: "report",
+                    label: "신고하기",
+                    destructive: true,
+                    onPress: onReport,
+                  },
+                ]}
+              />
+            ) : null}
+          </HStack>
         </HStack>
         <Text size="md" className="leading-6">
           {comment.content}

@@ -106,7 +106,7 @@ test("버그 제보 메뉴는 공용 외부 링크를 연다", () => {
 
   assert.match(
     externalLinksSource,
-    /BUG_REPORT: "https:\/\/forms\.gle\/Cr5erBoRrnHyayRw8"/,
+    /BUG_REPORT:[\s\S]*"https:\/\/working-skunk-fbd\.notion\.site\/3bbfdee90e2f809f9160e46dd034b6f0"/,
   );
   assert.match(
     profileSource,

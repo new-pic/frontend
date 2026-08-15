@@ -1,8 +1,10 @@
-import { FeedResponse } from "@entities/feed";
+import { ContentReportTarget, FeedResponse } from "@entities/feed";
 import { FeedCameraGuideFab } from "@features/camera/guide-feed";
+import { ReportContentModal } from "@features/feed/report-content";
+import { useMemberAccess } from "@shared/hooks";
 import { SlidePageView } from "@shared/ui";
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CommentSort } from "../model";
@@ -41,6 +43,9 @@ export function FeedDetailPager({
   const [commentSort, setCommentSort] = useState<CommentSort>("latest");
   const [activePageIndex, setActivePageIndex] =
     useState<number>(initialPageIndex);
+  const [reportTarget, setReportTarget] =
+    useState<ContentReportTarget | null>(null);
+  const requireMember = useMemberAccess();
   const insets = useSafeAreaInsets();
   const activeFeed = useMemo(() => {
     if (activePageIndex < 0 || activePageIndex >= feeds.length) {
@@ -64,6 +69,14 @@ export function FeedDetailPager({
     }
   };
 
+  const handleRequestReport = useCallback(
+    async (target: ContentReportTarget) => {
+      if (!(await requireMember())) return;
+      setReportTarget(target);
+    },
+    [requireMember],
+  );
+
   return (
     <View style={{ flex: 1 }}>
       {activeFeed ? (
@@ -71,6 +84,9 @@ export function FeedDetailPager({
           key={activeFeed.id}
           feed={activeFeed}
           onBack={onBack ?? (() => router.back())}
+          onReport={() =>
+            void handleRequestReport({ type: "feed", id: activeFeed.id })
+          }
         />
       ) : null}
       <SlidePageView
@@ -86,6 +102,9 @@ export function FeedDetailPager({
                 commentSort={commentSort}
                 setCommentSort={setCommentSort}
                 isActivePage={activePageIndex === feedIndex}
+                onReportComment={(commentId) =>
+                  void handleRequestReport({ type: "comment", id: commentId })
+                }
               />
             ) : null}
           </SlidePageView.Item>
@@ -101,6 +120,13 @@ export function FeedDetailPager({
               ? () => onGuidePress(activeFeed)
               : undefined
           }
+        />
+      ) : null}
+      {reportTarget ? (
+        <ReportContentModal
+          key={`${reportTarget.type}-${reportTarget.id}`}
+          target={reportTarget}
+          onClose={() => setReportTarget(null)}
         />
       ) : null}
     </View>
