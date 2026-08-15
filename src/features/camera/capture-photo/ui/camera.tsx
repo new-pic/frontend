@@ -40,8 +40,8 @@ import {
   getSupportedCameraZoomLevels,
   isResolutionMatchingAspectRatio,
   orientCameraResolution,
-  resolveCameraDisplayZoomMultiplier,
   resolveCameraChromePresentation,
+  resolveCameraDisplayZoomMultiplier,
   resolveCameraStageAlignment,
 } from "../lib";
 import type {
@@ -69,8 +69,10 @@ function roundDisplayZoom(value: number) {
  * 일반 JS callback을 전달하면 Camera thread에서 호출할 수 없습니다.
  * Nitro HybridObject처럼 Worklet에서 동기 호출 가능한 객체만 전달해야 합니다.
  */
-export interface NativeCameraFrameSink
-  extends HybridObject<{ ios: "swift"; android: "kotlin" }> {
+export interface NativeCameraFrameSink extends HybridObject<{
+  ios: "swift";
+  android: "kotlin";
+}> {
   pushFrame(frame: Frame): boolean | void;
 }
 
@@ -99,12 +101,8 @@ interface CustomCameraProps {
   guideAspectRatio?: CameraAspectRatio;
   previewOverlay?: ReactNode;
   previewControl?: ReactNode;
-  renderStageControl?: (
-    props: CameraStageRenderProps,
-  ) => ReactNode;
-  onRuntimeGeometryChange?: (
-    geometry: CameraRuntimeGeometry | null,
-  ) => void;
+  renderStageControl?: (props: CameraStageRenderProps) => ReactNode;
+  onRuntimeGeometryChange?: (geometry: CameraRuntimeGeometry | null) => void;
 }
 
 // 실제 카메라와 무거운 훅들을 담당하는 내부 컴포넌트
@@ -130,20 +128,15 @@ function CameraView({
   const cameraRef = useRef<CameraRef>(null);
   const isTakingPhotoRef = useRef(false);
 
-  const [internalPhotos, setInternalPhotos] = useState<SessionPhoto[]>(
-    [],
-  );
+  const [internalPhotos, setInternalPhotos] = useState<SessionPhoto[]>([]);
   const sessionPhotos = photos ?? internalPhotos;
   const hasReachedPhotoLimit =
-    maxPhotos !== undefined &&
-    sessionPhotos.length >= maxPhotos;
-  const [captureSettings, setCaptureSettings] =
-    useState<CameraCaptureSettings>(
-      DEFAULT_CAMERA_CAPTURE_SETTINGS,
-    );
+    maxPhotos !== undefined && sessionPhotos.length >= maxPhotos;
+  const [captureSettings, setCaptureSettings] = useState<CameraCaptureSettings>(
+    DEFAULT_CAMERA_CAPTURE_SETTINGS,
+  );
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isPhotoOutputConfigured, setIsPhotoOutputConfigured] =
-    useState(false);
+  const [isPhotoOutputConfigured, setIsPhotoOutputConfigured] = useState(false);
   const [previewSize, setPreviewSize] = useState<{
     width: number;
     height: number;
@@ -161,15 +154,12 @@ function CameraView({
     captureSettings.aspectRatio,
   );
 
-  const [cameraDevice, setCameraDevice] = useState<"front" | "back">(
-    "back",
-  );
+  const [cameraDevice, setCameraDevice] = useState<"front" | "back">("back");
   const device = useCameraDevice(cameraDevice, {
     physicalDevices: ["ultra-wide-angle", "wide-angle", "telephoto"],
   });
   const hasPhysicalFlash = device?.hasFlash ?? false;
-  const initialMinZoom =
-    device?.minZoom ?? DEFAULT_CAMERA_DISPLAY_ZOOM;
+  const initialMinZoom = device?.minZoom ?? DEFAULT_CAMERA_DISPLAY_ZOOM;
   const initialMaxZoom = Math.max(
     initialMinZoom,
     Math.min(device?.maxZoom ?? MAX_PINCH_ZOOM, MAX_PINCH_ZOOM),
@@ -184,14 +174,10 @@ function CameraView({
   });
 
   const zoom = useSharedValue(initialZoomConfiguration.rawZoom);
-  const pinchStartZoom = useSharedValue(
-    initialZoomConfiguration.rawZoom,
-  );
+  const pinchStartZoom = useSharedValue(initialZoomConfiguration.rawZoom);
   const minZoom = useSharedValue(initialMinZoom);
   const maxZoom = useSharedValue(initialMaxZoom);
-  const displayZoomMultiplier = useSharedValue(
-    initialDisplayZoomMultiplier,
-  );
+  const displayZoomMultiplier = useSharedValue(initialDisplayZoomMultiplier);
   const configuredZoomDeviceIdRef = useRef<string | null>(null);
 
   const [displayZoom, setDisplayZoom] = useState(
@@ -234,10 +220,7 @@ function CameraView({
     () => [photoOutput, frameOutput],
     [frameOutput, photoOutput],
   );
-  const cameraConstraints = useMemo<Constraint[]>(
-    () => [{ fps: 30 }],
-    [],
-  );
+  const cameraConstraints = useMemo<Constraint[]>(() => [{ fps: 30 }], []);
   const currentPhotoResolution = photoOutput.currentResolution;
   const currentPhotoWidth = currentPhotoResolution?.width;
   const currentPhotoHeight = currentPhotoResolution?.height;
@@ -278,8 +261,7 @@ function CameraView({
   }, []);
 
   useAnimatedReaction(
-    () =>
-      roundDisplayZoom(zoom.value * displayZoomMultiplier.value),
+    () => roundDisplayZoom(zoom.value * displayZoomMultiplier.value),
     (nextZoom, previousZoom) => {
       if (nextZoom !== previousZoom) {
         scheduleOnRN(updateDisplayZoom, nextZoom);
@@ -289,15 +271,10 @@ function CameraView({
   );
 
   const applyZoomConfiguration = useCallback(
-    (
-      configuration: ReturnType<
-        typeof createCameraZoomConfiguration
-      >,
-    ) => {
+    (configuration: ReturnType<typeof createCameraZoomConfiguration>) => {
       minZoom.value = configuration.rawMinZoom;
       maxZoom.value = configuration.rawMaxZoom;
-      displayZoomMultiplier.value =
-        configuration.displayZoomMultiplier;
+      displayZoomMultiplier.value = configuration.displayZoomMultiplier;
       zoom.value = configuration.rawZoom;
       pinchStartZoom.value = configuration.rawZoom;
       setDisplayZoomRange({
@@ -306,13 +283,7 @@ function CameraView({
       });
       setDisplayZoom(roundDisplayZoom(configuration.displayZoom));
     },
-    [
-      displayZoomMultiplier,
-      maxZoom,
-      minZoom,
-      pinchStartZoom,
-      zoom,
-    ],
+    [displayZoomMultiplier, maxZoom, minZoom, pinchStartZoom, zoom],
   );
 
   useEffect(() => {
@@ -323,8 +294,10 @@ function CameraView({
       nextMinZoom,
       Math.min(device.maxZoom, MAX_PINCH_ZOOM),
     );
-    const nextDisplayZoomMultiplier =
-      resolveCameraDisplayZoomMultiplier(null, device);
+    const nextDisplayZoomMultiplier = resolveCameraDisplayZoomMultiplier(
+      null,
+      device,
+    );
     const configuration = createCameraZoomConfiguration({
       rawMinZoom: nextMinZoom,
       rawMaxZoom: nextMaxZoom,
@@ -351,10 +324,7 @@ function CameraView({
   }, [device]);
 
   useEffect(() => {
-    if (
-      !guideAspectRatio ||
-      guideAspectRatio === captureSettings.aspectRatio
-    ) {
+    if (!guideAspectRatio || guideAspectRatio === captureSettings.aspectRatio) {
       return;
     }
 
@@ -381,10 +351,11 @@ function CameraView({
 
     if (!controller || !device) return;
 
-    const nextDisplayZoomMultiplier =
-      resolveCameraDisplayZoomMultiplier(controller, device);
-    const isNewDevice =
-      configuredZoomDeviceIdRef.current !== device.id;
+    const nextDisplayZoomMultiplier = resolveCameraDisplayZoomMultiplier(
+      controller,
+      device,
+    );
+    const isNewDevice = configuredZoomDeviceIdRef.current !== device.id;
     const configuration = createCameraZoomConfiguration({
       rawMinZoom: controller.minZoom,
       rawMaxZoom: Math.min(controller.maxZoom, MAX_PINCH_ZOOM),
@@ -402,10 +373,7 @@ function CameraView({
     configureZoomForCurrentSession();
 
     onStarted?.();
-  }, [
-    configureZoomForCurrentSession,
-    onStarted,
-  ]);
+  }, [configureZoomForCurrentSession, onStarted]);
 
   const pinchGesture = useMemo(
     () =>
@@ -478,21 +446,14 @@ function CameraView({
    * - 플래시 모드는 off -> on -> auto 순으로 전환
    * - 촬영 시점의 Photo capture settings에만 전달
    */
-  const handleChangeFlashMode = (
-    flashMode: CameraPhotoFlashMode,
-  ) => {
+  const handleChangeFlashMode = (flashMode: CameraPhotoFlashMode) => {
     setCaptureSettings((currentSettings) => ({
       ...currentSettings,
-      flashMode:
-        hasPhysicalFlash || flashMode === "off"
-          ? flashMode
-          : "off",
+      flashMode: hasPhysicalFlash || flashMode === "off" ? flashMode : "off",
     }));
   };
 
-  const handleChangeAspectRatio = (
-    aspectRatio: CameraAspectRatio,
-  ) => {
+  const handleChangeAspectRatio = (aspectRatio: CameraAspectRatio) => {
     if (
       !isPhotoOutputConfigured ||
       captureSettings.aspectRatio === aspectRatio
@@ -562,10 +523,7 @@ function CameraView({
         captureSettings.flashMode,
         hasPhysicalFlash,
       );
-      const photo = await photoOutput.capturePhotoToFile(
-        { flashMode },
-        {},
-      );
+      const photo = await photoOutput.capturePhotoToFile({ flashMode }, {});
       const photoUri = photo.filePath.startsWith("file://")
         ? photo.filePath
         : `file://${photo.filePath}`;
@@ -577,16 +535,10 @@ function CameraView({
       if (onPhotoTaken) {
         onPhotoTaken(nextPhoto);
       } else {
-        setInternalPhotos((previous) => [
-          ...previous,
-          nextPhoto,
-        ]);
+        setInternalPhotos((previous) => [...previous, nextPhoto]);
       }
 
-      if (
-        maxPhotos !== undefined &&
-        sessionPhotos.length + 1 >= maxPhotos
-      ) {
+      if (maxPhotos !== undefined && sessionPhotos.length + 1 >= maxPhotos) {
         onPhotoLimitReached?.(maxPhotos);
       }
     } catch (error) {
@@ -634,8 +586,7 @@ function CameraView({
               onLayout={({ nativeEvent }) => {
                 const { width, height } = nativeEvent.layout;
                 setPreviewSize((current) =>
-                  current?.width === width &&
-                  current.height === height
+                  current?.width === width && current.height === height
                     ? current
                     : { width, height },
                 );
@@ -679,14 +630,10 @@ function CameraView({
               ? sessionPhotos[sessionPhotos.length - 1]
               : null
           }
-          isTakePhotoDisabled={
-            hasReachedPhotoLimit || !isPhotoOutputConfigured
-          }
+          isTakePhotoDisabled={hasReachedPhotoLimit || !isPhotoOutputConfigured}
           onTakePhoto={handleTakePhoto}
           onChangePosition={handleChangePosition}
-          onThumbnailPress={
-            sessionPhotos.length > 0 ? onOpenPhotos : undefined
-          }
+          onThumbnailPress={sessionPhotos.length > 0 ? onOpenPhotos : undefined}
         />
       </VStack>
 
@@ -729,9 +676,9 @@ export function CustomCamera({
   if (!hasPermission) {
     return (
       <VStack className="h-full items-center justify-center bg-white">
-        <Text className="mb-4 font-bold text-black">
-          사진 촬영과 원격 촬영 화면 공유를 사용하려면 카메라 접근이
-          필요합니다.
+        <Text className="mb-4 font-bold text-black whitespace-pre-line">
+          {`사진 촬영과 원격 촬영 화면 공유를 사용하려면 
+          카메라 접근이 필요합니다.`}
         </Text>
         <Button variant="outline" onPress={requestPermission}>
           <ButtonText>계속</ButtonText>
