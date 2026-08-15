@@ -1,9 +1,11 @@
+import AppleLogo from "@assets/icons/apple-logo.svg";
 import GoogleLogo from "@assets/icons/google-logo.svg";
 import { useSocialLogin } from "@features/user/save-social-login";
 import { EXTERNAL_LINKS } from "@shared/constants";
 import { useAuthStore } from "@shared/model";
 import {
   Button,
+  ButtonSpinner,
   ButtonText,
   Center,
   Checkbox,
@@ -14,10 +16,9 @@ import {
   VStack,
 } from "@shared/ui";
 import { IconCheck } from "@tabler/icons-react-native";
-import * as AppleAuthentication from "expo-apple-authentication";
 import * as Linking from "expo-linking";
 import { useState } from "react";
-import { Alert, Image, Pressable, View } from "react-native";
+import { Alert, Image, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function WelcomPage() {
@@ -124,22 +125,23 @@ export function WelcomPage() {
             <ButtonText>구글로 시작하기</ButtonText>
           </Button>
           {isAppleLoginAvailable ? (
-            <View
-              pointerEvents={disabled ? "none" : "auto"}
-              style={{ opacity: disabled && !isAppleLoading ? 0.4 : 1 }}
+            <Button
+              variant="outline"
+              className="rounded-full bg-black"
+              disabled={disabled}
+              onPress={handleAppleLogin}
             >
-              <AppleAuthentication.AppleAuthenticationButton
-                buttonType={
-                  AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
-                }
-                buttonStyle={
-                  AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
-                }
-                cornerRadius={999}
-                style={{ width: "100%", height: 48 }}
-                onPress={handleAppleLogin}
-              />
-            </View>
+              {isAppleLoading ? (
+                <ButtonSpinner color="white" />
+              ) : (
+                <>
+                  <AppleLogo width={24} height={24} />
+                  <ButtonText className="text-white">
+                    애플로 시작하기
+                  </ButtonText>
+                </>
+              )}
+            </Button>
           ) : null}
           <Button
             variant="ghost"

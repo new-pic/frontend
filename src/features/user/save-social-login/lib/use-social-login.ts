@@ -1,8 +1,10 @@
 import { authQuery, usersQuery } from "@entities/user";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { getApiErrorMessage } from "@shared/api";
 import { env } from "@shared/config";
 import { normalizeAuthReturnTo } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
+import axios from "axios";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { Href, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -15,6 +17,13 @@ function isAppleLoginCanceled(error: unknown) {
     "code" in error &&
     error.code === "ERR_REQUEST_CANCELED"
   );
+}
+
+function getErrorCode(error: unknown) {
+  if (typeof error !== "object" || error === null || !("code" in error)) {
+    return undefined;
+  }
+  return typeof error.code === "string" ? error.code : undefined;
 }
 
 export function useSocialLogin() {
@@ -31,6 +40,7 @@ export function useSocialLogin() {
   const termsAgreed = useAuthStore((state) => state.termsAgreed);
   const returnTo = normalizeAuthReturnTo(returnToParam);
   const [isAppleLoginAvailable, setIsAppleLoginAvailable] = useState(false);
+  const [isAppleLoginInProgress, setIsAppleLoginInProgress] = useState(false);
 
   const loginLockRef = useRef<boolean>(false);
 
@@ -42,7 +52,14 @@ export function useSocialLogin() {
       .then((isAvailable) => {
         if (isMounted) setIsAppleLoginAvailable(isAvailable);
       })
-      .catch(() => {
+      .catch((error: unknown) => {
+        console.error("[AppleLogin] availability check failed", {
+          code: getErrorCode(error),
+          message: getApiErrorMessage(
+            error,
+            "Apple 로그인 지원 여부를 확인하지 못했습니다.",
+          ),
+        });
         if (isMounted) setIsAppleLoginAvailable(false);
       });
 
@@ -68,20 +85,35 @@ export function useSocialLogin() {
       throw new Error("Terms agreement is required before login.");
     }
     if (!canStartLogin()) {
+      console.warn("[AppleLogin] duplicate request blocked");
       return;
     }
+    setIsAppleLoginInProgress(true);
+    let stage = "system-authorization";
     try {
+      console.info("[AppleLogin] system authorization started");
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
       });
+      console.info("[AppleLogin] system credential received", {
+        hasIdentityToken: Boolean(credential.identityToken),
+        hasAuthorizationCode: Boolean(credential.authorizationCode),
+        hasFirstName: Boolean(credential.fullName?.givenName),
+        hasLastName: Boolean(credential.fullName?.familyName),
+      });
       if (!credential.identityToken) {
         throw new Error("Apple identity token was not provided.");
       }
 
       const isLinkingGuestAccount = isGuest;
+      stage = "backend-authentication";
+      console.info("[AppleLogin] backend authentication started", {
+        apiBaseUrl: env.API_URL,
+        isGuestAccountLink: isLinkingGuestAccount,
+      });
       const response = await mutationToServiceAppleLogin.mutateAsync({
         identityToken: credential.identityToken,
         authorizationCode: credential.authorizationCode ?? undefined,
@@ -90,6 +122,11 @@ export function useSocialLogin() {
         isGuest: isLinkingGuestAccount,
         termsAgreed,
       });
+      console.info("[AppleLogin] backend authentication succeeded", {
+        status: response.status,
+        termsAgreed: response.termsAgreed,
+      });
+      stage = "session-save";
       await setSession({
         accessToken: response.accessToken,
         refreshToken: response.refreshToken,
@@ -107,9 +144,21 @@ export function useSocialLogin() {
         router.replace(returnTo as Href);
       }
     } catch (error) {
-      if (isAppleLoginCanceled(error)) return;
+      if (isAppleLoginCanceled(error)) {
+        console.info("[AppleLogin] system authorization canceled");
+        return;
+      }
+      console.error("[AppleLogin] failed", {
+        stage,
+        code: getErrorCode(error),
+        httpStatus: axios.isAxiosError(error)
+          ? error.response?.status
+          : undefined,
+        message: getApiErrorMessage(error, "Apple 로그인에 실패했습니다."),
+      });
       throw error;
     } finally {
+      setIsAppleLoginInProgress(false);
       finishLogin();
     }
   };
@@ -197,11 +246,11 @@ export function useSocialLogin() {
     loginWithGoogle,
     loginToGuest,
     disabled:
-      mutationToServiceAppleLogin.isPending ||
+      isAppleLoginInProgress ||
       mutationToServiceGoogleLogin.isPending ||
       mutationToGuestLogin.isPending,
     isAppleLoginAvailable,
-    isAppleLoading: mutationToServiceAppleLogin.isPending,
+    isAppleLoading: isAppleLoginInProgress,
     isGoogleLoading: mutationToServiceGoogleLogin.isPending,
     isGuestLoading: mutationToGuestLogin.isPending,
   };

@@ -224,11 +224,18 @@ test("Apple 로그인은 iOS 지원 여부를 확인하고 시스템 인증 결�
   const appConfig = JSON.parse(readSource("app.json"));
 
   assert.match(welcomeSource, /isAppleLoginAvailable \? \(/);
-  assert.match(welcomeSource, /AppleAuthentication\.AppleAuthenticationButton/);
+  assert.match(welcomeSource, /<AppleLogo width=\{24\} height=\{24\} \/>/);
+  assert.match(
+    welcomeSource,
+    /<ButtonText className="text-white">[\s\S]*애플로 시작하기[\s\S]*<\/ButtonText>/,
+  );
   assert.match(loginSource, /Platform\.OS !== "ios"/);
   assert.match(loginSource, /AppleAuthentication\.isAvailableAsync\(\)/);
   assert.match(loginSource, /AppleAuthentication\.signInAsync\(/);
   assert.match(loginSource, /ERR_REQUEST_CANCELED/);
+  assert.match(loginSource, /setIsAppleLoginInProgress\(true\)/);
+  assert.match(loginSource, /setIsAppleLoginInProgress\(false\)/);
+  assert.match(welcomeSource, /<ButtonSpinner color="white" \/>/);
   assert.match(authQuerySource, /post\("\/auth\/apple", request\)/);
   assert.equal(appConfig.expo.ios.usesAppleSignIn, true);
   assert.equal(
