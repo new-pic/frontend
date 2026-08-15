@@ -56,6 +56,11 @@ export function ReportContentModal({
   )?.label;
   const isPending = reportMutation.isPending;
 
+  const resetMutationIfIdle = () => {
+    if (isSubmittingRef.current) return;
+    reportMutation.reset();
+  };
+
   const handleClose = () => {
     if (isPending) return;
     onClose();
@@ -68,7 +73,7 @@ export function ReportContentModal({
     reportMutation.mutate(
       { target, request },
       {
-        onError: () => {
+        onSettled: () => {
           isSubmittingRef.current = false;
         },
       },
@@ -162,7 +167,7 @@ export function ReportContentModal({
                           accessibilityState={{ checked: isSelected }}
                           className="min-h-12 flex-row items-center justify-between border-b border-outline-light px-4 last:border-b-0"
                           onPress={() => {
-                            reportMutation.reset();
+                            resetMutationIfIdle();
                             field.onChange(option.value);
                             setIsReasonListOpen(false);
                           }}
@@ -201,7 +206,7 @@ export function ReportContentModal({
                     value={field.value ?? ""}
                     onBlur={field.onBlur}
                     onChangeText={(value) => {
-                      reportMutation.reset();
+                      resetMutationIfIdle();
                       field.onChange(value);
                     }}
                     placeholder="신고 내용을 입력해주세요."

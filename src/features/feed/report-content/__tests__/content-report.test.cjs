@@ -115,7 +115,7 @@ test("신고 대상에 맞는 제목 label을 반환한다", () => {
   );
 });
 
-test("신고 제출은 ref 잠금으로 연속 요청을 차단한다", () => {
+test("신고 제출 잠금은 연속 요청과 진행 중 mutation reset을 차단한다", () => {
   const source = fs.readFileSync(
     require.resolve("../ui/report-content-modal.tsx"),
     "utf8",
@@ -126,6 +126,11 @@ test("신고 제출은 ref 잠금으로 연속 요청을 차단한다", () => {
   assert.match(source, /isSubmittingRef\.current = true/);
   assert.match(
     source,
-    /onError:[\s\S]*isSubmittingRef\.current = false/,
+    /onSettled:[\s\S]*isSubmittingRef\.current = false/,
   );
+  assert.match(
+    source,
+    /const resetMutationIfIdle = \(\) => \{[\s\S]*if \(isSubmittingRef\.current\) return;[\s\S]*reportMutation\.reset\(\)/,
+  );
+  assert.equal(source.match(/resetMutationIfIdle\(\)/g)?.length, 2);
 });
