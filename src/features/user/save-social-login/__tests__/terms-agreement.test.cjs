@@ -44,6 +44,8 @@ Module._load = function mockAuthDependencies(request, parent, isMain) {
 };
 
 const {
+  AppleLoginRequestSchema,
+  AppleLoginResponseSchema,
   GoogleLoginRequestSchema,
   GoogleLoginResponseSchema,
   GuestLoginRequestSchema,
@@ -71,7 +73,20 @@ test.beforeEach(() => {
   });
 });
 
-test("Google과 Guest 로그인 요청은 termsAgreed가 필수다", () => {
+test("Apple, Google과 Guest 로그인 요청은 termsAgreed가 필수다", () => {
+  assert.equal(
+    AppleLoginRequestSchema.safeParse({
+      identityToken: "apple-identity-token",
+      termsAgreed: true,
+    }).success,
+    true,
+  );
+  assert.equal(
+    AppleLoginRequestSchema.safeParse({
+      identityToken: "apple-identity-token",
+    }).success,
+    false,
+  );
   assert.equal(
     GoogleLoginRequestSchema.safeParse({
       idToken: "google-id-token",
@@ -105,6 +120,13 @@ test("로그인 응답은 termsAgreed boolean을 검증한다", () => {
   };
 
   assert.equal(TokenResponseSchema.safeParse(tokenResponse).success, true);
+  assert.equal(
+    AppleLoginResponseSchema.safeParse({
+      ...tokenResponse,
+      status: "ACCOUNT_RECOVERED",
+    }).success,
+    true,
+  );
   assert.equal(
     GoogleLoginResponseSchema.safeParse({
       ...tokenResponse,
@@ -180,16 +202,45 @@ test("Welcome UI와 로그인 use-case가 동의 전 요청을 이중 차단한�
   assert.equal(
     (welcomeSource.match(/if \(!ensureTermsAgreed\(\)\) return;/g) ?? [])
       .length,
-    2,
+    3,
   );
   assert.match(welcomeSource, /Alert\.alert\([\s\S]*"이용약관 동의 필요"/);
   assert.equal(
     (loginSource.match(/if \(!termsAgreed\)/g) ?? []).length,
-    2,
+    3,
   );
   assert.match(
     welcomeSource,
     /Linking\.openURL\(EXTERNAL_LINKS\.TERMS_OF_SERVICE\)[\s\S]*setTermsAgreed\(true\)/,
+  );
+});
+
+test("Apple 로그인은 iOS 지원 여부를 확인하고 시스템 인증 결과를 서버에 전달한다", () => {
+  const welcomeSource = readSource("src/pages/welcome/ui/welcome-page.tsx");
+  const loginSource = readSource(
+    "src/features/user/save-social-login/lib/use-social-login.ts",
+  );
+  const authQuerySource = readSource("src/entities/user/api/auth-query.ts");
+  const appConfig = JSON.parse(readSource("app.json"));
+
+  assert.match(welcomeSource, /isAppleLoginAvailable \? \(/);
+  assert.match(welcomeSource, /<AppleLogo width=\{24\} height=\{24\} \/>/);
+  assert.match(
+    welcomeSource,
+    /<ButtonText className="text-white">[\s\S]*애플로 시작하기[\s\S]*<\/ButtonText>/,
+  );
+  assert.match(loginSource, /Platform\.OS !== "ios"/);
+  assert.match(loginSource, /AppleAuthentication\.isAvailableAsync\(\)/);
+  assert.match(loginSource, /AppleAuthentication\.signInAsync\(/);
+  assert.match(loginSource, /ERR_REQUEST_CANCELED/);
+  assert.match(loginSource, /setIsAppleLoginInProgress\(true\)/);
+  assert.match(loginSource, /setIsAppleLoginInProgress\(false\)/);
+  assert.match(welcomeSource, /<ButtonSpinner color="white" \/>/);
+  assert.match(authQuerySource, /post\("\/auth\/apple", request\)/);
+  assert.equal(appConfig.expo.ios.usesAppleSignIn, true);
+  assert.equal(
+    appConfig.expo.plugins.includes("expo-apple-authentication"),
+    true,
   );
 });
 

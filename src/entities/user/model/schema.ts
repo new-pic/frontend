@@ -6,6 +6,14 @@ export const GoogleLoginRequestSchema = z.object({
   termsAgreed: z.boolean(),
 });
 
+export const AppleLoginRequestSchema = z.object({
+  identityToken: z.string().min(1),
+  authorizationCode: z.string().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  termsAgreed: z.boolean(),
+});
+
 export const GuestLoginRequestSchema = z.object({
   deviceId: z.string().min(1),
   termsAgreed: z.boolean(),
@@ -20,11 +28,15 @@ export const TokenResponseSchema = z.object({
 export const SocialLoginStatusSchema = z.enum([
   "LOGIN_SUCCESS",
   "NEED_NICKNAME",
+  "ACCOUNT_RECOVERED",
 ]);
 
-export const GoogleLoginResponseSchema = TokenResponseSchema.extend({
+export const SocialLoginResponseSchema = TokenResponseSchema.extend({
   status: SocialLoginStatusSchema,
 });
+
+export const GoogleLoginResponseSchema = SocialLoginResponseSchema;
+export const AppleLoginResponseSchema = SocialLoginResponseSchema;
 
 export const NicknameSchema = z
   .string()

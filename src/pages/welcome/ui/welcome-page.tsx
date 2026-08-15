@@ -1,9 +1,11 @@
+import AppleLogo from "@assets/icons/apple-logo.svg";
 import GoogleLogo from "@assets/icons/google-logo.svg";
 import { useSocialLogin } from "@features/user/save-social-login";
 import { EXTERNAL_LINKS } from "@shared/constants";
 import { useAuthStore } from "@shared/model";
 import {
   Button,
+  ButtonSpinner,
   ButtonText,
   Center,
   Checkbox,
@@ -22,8 +24,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export function WelcomPage() {
   const {
     disabled,
+    isAppleLoginAvailable,
+    isAppleLoading,
     isGuestLoading,
     isGoogleLoading,
+    loginWithApple,
     loginWithGoogle,
     loginToGuest,
   } = useSocialLogin();
@@ -61,6 +66,17 @@ export function WelcomPage() {
     setLoginError(null);
     try {
       await loginWithGoogle();
+    } catch {
+      setLoginError("계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    }
+  };
+
+  const handleAppleLogin = async () => {
+    if (!ensureTermsAgreed()) return;
+
+    setLoginError(null);
+    try {
+      await loginWithApple();
     } catch {
       setLoginError("계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.");
     }
@@ -108,14 +124,25 @@ export function WelcomPage() {
             <GoogleLogo width={24} height={24} />
             <ButtonText>구글로 시작하기</ButtonText>
           </Button>
-          {/* <Button
-            variant="outline"
-            className="rounded-full bg-black"
-            disabled={disabled}
-          >
-            <AppleLogo width={24} height={24} />
-            <ButtonText className="text-white">애플로 시작하기</ButtonText>
-          </Button> */}
+          {isAppleLoginAvailable ? (
+            <Button
+              variant="outline"
+              className="rounded-full bg-black"
+              disabled={disabled}
+              onPress={handleAppleLogin}
+            >
+              {isAppleLoading ? (
+                <ButtonSpinner color="white" />
+              ) : (
+                <>
+                  <AppleLogo width={24} height={24} />
+                  <ButtonText className="text-white">
+                    애플로 시작하기
+                  </ButtonText>
+                </>
+              )}
+            </Button>
+          ) : null}
           <Button
             variant="ghost"
             disabled={disabled}

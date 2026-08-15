@@ -21,7 +21,7 @@ import {
   IconChevronDown,
   IconChevronUp,
 } from "@tabler/icons-react-native";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -44,6 +44,7 @@ export function ReportContentModal({
   onClose,
 }: ReportContentModalProps) {
   const [isReasonListOpen, setIsReasonListOpen] = useState(false);
+  const isSubmittingRef = useRef(false);
   const form = useContentReportForm();
   const reportMutation = feedReportQuery.useCreateContentReport();
   const reason = useWatch({ control: form.control, name: "reason" });
@@ -54,6 +55,11 @@ export function ReportContentModal({
     (option) => option.value === reason,
   )?.label;
   const isPending = reportMutation.isPending;
+
+  const resetMutationIfIdle = () => {
+    if (isSubmittingRef.current) return;
+    reportMutation.reset();
+  };
 
   const handleClose = () => {
     if (isPending) return;
@@ -67,7 +73,7 @@ export function ReportContentModal({
     reportMutation.mutate(
       { target, request },
       {
-        onError: () => {
+        onSettled: () => {
           isSubmittingRef.current = false;
         },
       },
@@ -161,7 +167,7 @@ export function ReportContentModal({
                           accessibilityState={{ checked: isSelected }}
                           className="min-h-12 flex-row items-center justify-between border-b border-outline-light px-4 last:border-b-0"
                           onPress={() => {
-                            reportMutation.reset();
+                            resetMutationIfIdle();
                             field.onChange(option.value);
                             setIsReasonListOpen(false);
                           }}
@@ -200,7 +206,7 @@ export function ReportContentModal({
                     value={field.value ?? ""}
                     onBlur={field.onBlur}
                     onChangeText={(value) => {
-                      reportMutation.reset();
+                      resetMutationIfIdle();
                       field.onChange(value);
                     }}
                     placeholder="신고 내용을 입력해주세요."
