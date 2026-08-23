@@ -5,7 +5,7 @@ import {
 } from "@features/feed/feed-processing";
 import { TagBottomSheet, TagList } from "@features/tags/select-feed-tags";
 import { gradients } from "@shared/constants";
-import { useDebouncedValue } from "@shared/hooks";
+import { useDebouncedValue } from "@shared/lib/debounce";
 import { useAuthStore } from "@shared/model";
 
 import { Fab, Input, InputField, Text, VStack } from "@shared/ui";

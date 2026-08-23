@@ -1,6 +1,6 @@
 import { feedQuery } from "@entities/feed";
 import { colors } from "@shared/constants";
-import { useDebouncedValue } from "@shared/hooks";
+import { useDebouncedValue } from "@shared/lib/debounce";
 import {
   Badge,
   BadgeIcon,
