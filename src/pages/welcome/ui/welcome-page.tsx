@@ -57,22 +57,22 @@ export function WelcomPage() {
     }
   };
 
-  const handleGuestLogin = async () => {
-    handleLogin({
+  const handleGuestLogin = () => {
+    return handleLogin({
       loginFn: guestLogin.login,
       errorMessage: "게스트 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.",
     });
   };
 
-  const handleGoogleLogin = async () => {
-    handleLogin({
+  const handleGoogleLogin = () => {
+    return handleLogin({
       loginFn: googleLogin.login,
       errorMessage: "계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.",
     });
   };
 
-  const handleAppleLogin = async () => {
-    handleLogin({
+  const handleAppleLogin = () => {
+    return handleLogin({
       loginFn: appleLogin.login,
       errorMessage: "계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.",
     });

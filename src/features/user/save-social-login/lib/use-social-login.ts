@@ -1,10 +1,13 @@
-import { authQuery, usersQuery } from "@entities/user";
+import {
+  authQuery,
+  type SocialLoginResponse,
+  usersQuery,
+} from "@entities/user";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { getApiErrorMessage } from "@shared/api";
 import { env } from "@shared/config";
 import { normalizeAuthReturnTo } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
-import axios from "axios";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { Href, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -26,6 +29,8 @@ function getErrorCode(error: unknown) {
   return typeof error.code === "string" ? error.code : undefined;
 }
 
+type LoginProvider = "apple" | "google" | "guest";
+
 export function useSocialLogin() {
   const { returnTo: returnToParam } = useLocalSearchParams<{
     returnTo?: string | string[];
@@ -40,7 +45,8 @@ export function useSocialLogin() {
   const termsAgreed = useAuthStore((state) => state.termsAgreed);
   const returnTo = normalizeAuthReturnTo(returnToParam);
   const [isAppleLoginAvailable, setIsAppleLoginAvailable] = useState(false);
-  const [isAppleLoginInProgress, setIsAppleLoginInProgress] = useState(false);
+  const [activeLoginProvider, setActiveLoginProvider] =
+    useState<LoginProvider | null>(null);
 
   const loginLockRef = useRef<boolean>(false);
 
@@ -68,52 +74,62 @@ export function useSocialLogin() {
     };
   }, []);
 
-  const canStartLogin = () => {
+  const beginLogin = (provider: LoginProvider) => {
+    if (!termsAgreed) {
+      throw new Error("Terms agreement is required before login.");
+    }
     if (loginLockRef.current) {
       return false;
     }
     loginLockRef.current = true;
+    setActiveLoginProvider(provider);
     return true;
   };
 
   const finishLogin = () => {
     loginLockRef.current = false;
+    setActiveLoginProvider(null);
+  };
+
+  const completeSocialLogin = async (
+    response: SocialLoginResponse,
+    isLinkingGuestAccount: boolean,
+  ) => {
+    await setSession({
+      accessToken: response.accessToken,
+      refreshToken: response.refreshToken,
+      termsAgreed: response.termsAgreed,
+    });
+    if (isLinkingGuestAccount) {
+      await resetCurrentUser();
+    }
+    if (response.status === "NEED_NICKNAME") {
+      router.replace({
+        pathname: "/profile/edit",
+        params: { returnTo },
+      } as Href);
+    } else {
+      router.replace(returnTo as Href);
+    }
   };
 
   const loginWithApple = async () => {
-    if (!termsAgreed) {
-      throw new Error("Terms agreement is required before login.");
-    }
-    if (!canStartLogin()) {
+    if (!beginLogin("apple")) {
       console.warn("[AppleLogin] duplicate request blocked");
       return;
     }
-    setIsAppleLoginInProgress(true);
-    let stage = "system-authorization";
     try {
-      console.info("[AppleLogin] system authorization started");
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
       });
-      console.info("[AppleLogin] system credential received", {
-        hasIdentityToken: Boolean(credential.identityToken),
-        hasAuthorizationCode: Boolean(credential.authorizationCode),
-        hasFirstName: Boolean(credential.fullName?.givenName),
-        hasLastName: Boolean(credential.fullName?.familyName),
-      });
       if (!credential.identityToken) {
         throw new Error("Apple identity token was not provided.");
       }
 
       const isLinkingGuestAccount = isGuest;
-      stage = "backend-authentication";
-      console.info("[AppleLogin] backend authentication started", {
-        apiBaseUrl: env.API_URL,
-        isGuestAccountLink: isLinkingGuestAccount,
-      });
       const response = await mutationToServiceAppleLogin.mutateAsync({
         identityToken: credential.identityToken,
         authorizationCode: credential.authorizationCode ?? undefined,
@@ -122,53 +138,23 @@ export function useSocialLogin() {
         isGuest: isLinkingGuestAccount,
         termsAgreed,
       });
-      console.info("[AppleLogin] backend authentication succeeded", {
-        status: response.status,
-        termsAgreed: response.termsAgreed,
-      });
-      stage = "session-save";
-      await setSession({
-        accessToken: response.accessToken,
-        refreshToken: response.refreshToken,
-        termsAgreed: response.termsAgreed,
-      });
-      if (isLinkingGuestAccount) {
-        await resetCurrentUser();
-      }
-      if (response.status === "NEED_NICKNAME") {
-        router.replace({
-          pathname: "/profile/edit",
-          params: { returnTo },
-        } as Href);
-      } else {
-        router.replace(returnTo as Href);
-      }
+
+      await completeSocialLogin(response, isLinkingGuestAccount);
     } catch (error) {
       if (isAppleLoginCanceled(error)) {
         console.info("[AppleLogin] system authorization canceled");
         return;
       }
-      console.error("[AppleLogin] failed", {
-        stage,
-        code: getErrorCode(error),
-        httpStatus: axios.isAxiosError(error)
-          ? error.response?.status
-          : undefined,
-        message: getApiErrorMessage(error, "Apple 로그인에 실패했습니다."),
-      });
+
       throw error;
     } finally {
-      setIsAppleLoginInProgress(false);
       finishLogin();
     }
   };
 
   // 구글 로그인
   const loginWithGoogle = async () => {
-    if (!termsAgreed) {
-      throw new Error("Terms agreement is required before login.");
-    }
-    if (!canStartLogin()) {
+    if (!beginLogin("google")) {
       return;
     }
     try {
@@ -195,32 +181,14 @@ export function useSocialLogin() {
         isGuest: isLinkingGuestAccount,
         termsAgreed,
       });
-      await setSession({
-        accessToken: response.accessToken,
-        refreshToken: response.refreshToken,
-        termsAgreed: response.termsAgreed,
-      });
-      if (isLinkingGuestAccount) {
-        await resetCurrentUser();
-      }
-      if (response.status === "NEED_NICKNAME") {
-        router.replace({
-          pathname: "/profile/edit",
-          params: { returnTo },
-        } as Href);
-      } else {
-        router.replace(returnTo as Href);
-      }
+      await completeSocialLogin(response, isLinkingGuestAccount);
     } finally {
       finishLogin();
     }
   };
 
   const loginToGuest = async () => {
-    if (!termsAgreed) {
-      throw new Error("Terms agreement is required before login.");
-    }
-    if (!canStartLogin()) {
+    if (!beginLogin("guest")) {
       return;
     }
     try {
@@ -245,19 +213,16 @@ export function useSocialLogin() {
     appleLogin: {
       login: loginWithApple,
       isAvailable: isAppleLoginAvailable,
-      isLoading: isAppleLoginInProgress,
+      isLoading: activeLoginProvider === "apple",
     },
     googleLogin: {
       login: loginWithGoogle,
-      isLoading: mutationToServiceGoogleLogin.isPending,
+      isLoading: activeLoginProvider === "google",
     },
     guestLogin: {
       login: loginToGuest,
-      isLoading: mutationToGuestLogin.isPending,
+      isLoading: activeLoginProvider === "guest",
     },
-    disabled:
-      isAppleLoginInProgress ||
-      mutationToServiceGoogleLogin.isPending ||
-      mutationToGuestLogin.isPending,
+    disabled: activeLoginProvider !== null,
   };
 }
