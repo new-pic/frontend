@@ -49,37 +49,42 @@ export function WelcomPage() {
     return false;
   };
 
-  const handleGuestLogin = async () => {
+  const handleLogin = async ({
+    loginFn,
+    errorMessage,
+  }: {
+    loginFn: () => Promise<void>;
+    errorMessage: string;
+  }) => {
     if (!ensureTermsAgreed()) return;
 
     setLoginError(null);
     try {
-      await loginToGuest();
+      await loginFn();
     } catch {
-      setLoginError("게스트 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.");
+      setLoginError(errorMessage);
     }
+  };
+
+  const handleGuestLogin = async () => {
+    handleLogin({
+      loginFn: loginToGuest,
+      errorMessage: "게스트 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.",
+    });
   };
 
   const handleGoogleLogin = async () => {
-    if (!ensureTermsAgreed()) return;
-
-    setLoginError(null);
-    try {
-      await loginWithGoogle();
-    } catch {
-      setLoginError("계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.");
-    }
+    handleLogin({
+      loginFn: loginWithGoogle,
+      errorMessage: "계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.",
+    });
   };
 
   const handleAppleLogin = async () => {
-    if (!ensureTermsAgreed()) return;
-
-    setLoginError(null);
-    try {
-      await loginWithApple();
-    } catch {
-      setLoginError("계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.");
-    }
+    handleLogin({
+      loginFn: loginWithApple,
+      errorMessage: "계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.",
+    });
   };
 
   const handleOpenTermsOfService = async () => {
