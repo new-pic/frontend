@@ -242,16 +242,22 @@ export function useSocialLogin() {
   };
 
   return {
-    loginWithApple,
-    loginWithGoogle,
-    loginToGuest,
+    appleLogin: {
+      login: loginWithApple,
+      isAvailable: isAppleLoginAvailable,
+      isLoading: isAppleLoginInProgress,
+    },
+    googleLogin: {
+      login: loginWithGoogle,
+      isLoading: mutationToServiceGoogleLogin.isPending,
+    },
+    guestLogin: {
+      login: loginToGuest,
+      isLoading: mutationToGuestLogin.isPending,
+    },
     disabled:
       isAppleLoginInProgress ||
       mutationToServiceGoogleLogin.isPending ||
       mutationToGuestLogin.isPending,
-    isAppleLoginAvailable,
-    isAppleLoading: isAppleLoginInProgress,
-    isGoogleLoading: mutationToServiceGoogleLogin.isPending,
-    isGuestLoading: mutationToGuestLogin.isPending,
   };
 }

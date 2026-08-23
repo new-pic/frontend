@@ -22,16 +22,7 @@ import { Alert, Image, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function WelcomPage() {
-  const {
-    disabled,
-    isAppleLoginAvailable,
-    isAppleLoading,
-    isGuestLoading,
-    isGoogleLoading,
-    loginWithApple,
-    loginWithGoogle,
-    loginToGuest,
-  } = useSocialLogin();
+  const { disabled, appleLogin, googleLogin, guestLogin } = useSocialLogin();
   const [loginError, setLoginError] = useState<string | null>(null);
   const termsAgreed = useAuthStore((state) => state.termsAgreed);
   const hasExistingSession = useAuthStore((state) =>
@@ -68,21 +59,21 @@ export function WelcomPage() {
 
   const handleGuestLogin = async () => {
     handleLogin({
-      loginFn: loginToGuest,
+      loginFn: guestLogin.login,
       errorMessage: "게스트 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.",
     });
   };
 
   const handleGoogleLogin = async () => {
     handleLogin({
-      loginFn: loginWithGoogle,
+      loginFn: googleLogin.login,
       errorMessage: "계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.",
     });
   };
 
   const handleAppleLogin = async () => {
     handleLogin({
-      loginFn: loginWithApple,
+      loginFn: appleLogin.login,
       errorMessage: "계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.",
     });
   };
@@ -123,20 +114,20 @@ export function WelcomPage() {
             variant="outline"
             className="rounded-full"
             disabled={disabled}
-            isLoading={isGoogleLoading}
+            isLoading={googleLogin.isLoading}
             onPress={handleGoogleLogin}
           >
             <GoogleLogo width={24} height={24} />
             <ButtonText>구글로 시작하기</ButtonText>
           </Button>
-          {isAppleLoginAvailable ? (
+          {appleLogin.isAvailable ? (
             <Button
               variant="outline"
               className="rounded-full bg-black"
               disabled={disabled}
               onPress={handleAppleLogin}
             >
-              {isAppleLoading ? (
+              {appleLogin.isLoading ? (
                 <ButtonSpinner color="white" />
               ) : (
                 <>
@@ -151,7 +142,7 @@ export function WelcomPage() {
           <Button
             variant="ghost"
             disabled={disabled}
-            isLoading={isGuestLoading}
+            isLoading={guestLogin.isLoading}
             onPress={handleGuestLogin}
           >
             <ButtonText>로그인 없이 사용하기</ButtonText>
