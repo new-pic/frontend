@@ -9,8 +9,10 @@ import {
 import { Button, ButtonText } from "@shared/ui";
 import { router } from "expo-router";
 import { Alert } from "react-native";
-import { UseSaveFeedFormReturn } from "../lib/use-save-feed-form";
-import { FeedFormMode } from "../model";
+import {
+  FeedFormMode,
+  UseSaveFeedFormReturn,
+} from "../model";
 
 interface SaveFeedButtonProps {
   mode: FeedFormMode;

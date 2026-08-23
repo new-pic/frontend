@@ -191,7 +191,7 @@ test("로그아웃하면 약관 동의 상태도 초기화한다", async () => {
 test("Welcome UI와 로그인 use-case가 동의 전 요청을 이중 차단한다", () => {
   const welcomeSource = readSource("src/pages/welcome/ui/welcome-page.tsx");
   const loginSource = readSource(
-    "src/features/user/save-social-login/lib/use-social-login.ts",
+    "src/features/user/save-social-login/model/use-social-login.ts",
   );
 
   assert.equal(
@@ -219,7 +219,7 @@ test("Welcome UI와 로그인 use-case가 동의 전 요청을 이중 차단한�
 test("Apple 로그인은 iOS 지원 여부를 확인하고 시스템 인증 결과를 서버에 전달한다", () => {
   const welcomeSource = readSource("src/pages/welcome/ui/welcome-page.tsx");
   const loginSource = readSource(
-    "src/features/user/save-social-login/lib/use-social-login.ts",
+    "src/features/user/save-social-login/model/use-social-login.ts",
   );
   const authQuerySource = readSource("src/entities/user/api/auth-query.ts");
   const appConfig = JSON.parse(readSource("app.json"));
@@ -252,7 +252,7 @@ test("Apple 로그인은 iOS 지원 여부를 확인하고 시스템 인증 결�
 
 test("Apple과 Google 로그인은 세션 저장과 후속 이동을 공유한다", () => {
   const loginSource = readSource(
-    "src/features/user/save-social-login/lib/use-social-login.ts",
+    "src/features/user/save-social-login/model/use-social-login.ts",
   );
 
   assert.match(

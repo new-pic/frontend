@@ -1,6 +1,6 @@
 import { HStack, Text, Textarea, TextareaInput, VStack } from "@shared/ui";
 import { Controller, useWatch } from "react-hook-form";
-import { useCreateFeedCommentForm } from "../lib/use-create-feed-comment-form";
+import { useCreateFeedCommentForm } from "../model/use-create-feed-comment-form";
 import { SaveCommentButton } from "./save-comment-button";
 
 interface FeedCommentFormProps {

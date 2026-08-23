@@ -1,4 +1,4 @@
-export { useSetupForm } from "./lib/use-setup-form";
+export { useSetupForm } from "./model/use-setup-form";
 export type {
   ProfileEditFormValues,
   SelectedProfileImage,

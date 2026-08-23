@@ -14,7 +14,7 @@ import {
   stageFileForUpload,
 } from "@shared/lib";
 import { useForm } from "react-hook-form";
-import { FeedFormMode } from "../model";
+import { FeedFormMode } from "./models";
 
 export interface UseSaveFeedFormProps {
   mode: FeedFormMode;

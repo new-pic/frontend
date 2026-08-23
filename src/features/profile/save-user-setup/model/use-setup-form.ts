@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import {
   ProfileEditFormSchema,
   ProfileEditFormValues,
-} from "../model/profile-edit-form-schema";
+} from "./profile-edit-form-schema";
 
 export type UseSetupFormReturn = ReturnType<typeof useSetupForm>;
 

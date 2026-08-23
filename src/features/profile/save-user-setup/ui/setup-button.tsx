@@ -5,8 +5,8 @@ import { Button, ButtonText } from "@shared/ui";
 import { Href, router, useLocalSearchParams } from "expo-router";
 import { Alert } from "react-native";
 import { prepareProfileUpdateRequest } from "../lib/prepare-profile-update-request";
-import { UseSetupFormReturn } from "../lib/use-setup-form";
 import type { ProfileEditFormValues } from "../model/profile-edit-form-schema";
+import type { UseSetupFormReturn } from "../model/use-setup-form";
 
 export function SetupButton({ form }: { form: UseSetupFormReturn }) {
   const { returnTo: returnToParam } = useLocalSearchParams<{
