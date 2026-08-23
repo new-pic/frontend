@@ -36,7 +36,7 @@ Module._load = function mockAuthDependencies(request, parent, isMain) {
       decodeAccessToken: {
         userId: () => "test-user-id",
         userType: (token) =>
-          token.includes("guest") ? "guest" : "user",
+          token.includes("guest") ? "GUEST" : "USER",
       },
     };
   }
@@ -45,10 +45,9 @@ Module._load = function mockAuthDependencies(request, parent, isMain) {
 
 const {
   AppleLoginRequestSchema,
-  AppleLoginResponseSchema,
   GoogleLoginRequestSchema,
-  GoogleLoginResponseSchema,
   GuestLoginRequestSchema,
+  SocialLoginResponseSchema,
   TokenResponseSchema,
 } = require("../../../../entities/user/model/schema.ts");
 const {
@@ -112,7 +111,7 @@ test("Apple, Google과 Guest 로그인 요청은 termsAgreed가 필수다", () =
   );
 });
 
-test("로그인 응답은 termsAgreed boolean을 검증한다", () => {
+test("소셜 로그인 응답은 공통 계약과 status를 검증한다", () => {
   const tokenResponse = {
     accessToken: "access-token",
     refreshToken: "refresh-token",
@@ -120,20 +119,16 @@ test("로그인 응답은 termsAgreed boolean을 검증한다", () => {
   };
 
   assert.equal(TokenResponseSchema.safeParse(tokenResponse).success, true);
-  assert.equal(
-    AppleLoginResponseSchema.safeParse({
-      ...tokenResponse,
-      status: "ACCOUNT_RECOVERED",
-    }).success,
-    true,
-  );
-  assert.equal(
-    GoogleLoginResponseSchema.safeParse({
-      ...tokenResponse,
-      status: "LOGIN_SUCCESS",
-    }).success,
-    true,
-  );
+  for (const status of [
+    "LOGIN_SUCCESS",
+    "NEED_NICKNAME",
+    "ACCOUNT_RECOVERED",
+  ]) {
+    assert.equal(
+      SocialLoginResponseSchema.safeParse({ ...tokenResponse, status }).success,
+      true,
+    );
+  }
   assert.equal(
     TokenResponseSchema.safeParse({
       accessToken: "access-token",
@@ -196,18 +191,24 @@ test("로그아웃하면 약관 동의 상태도 초기화한다", async () => {
 test("Welcome UI와 로그인 use-case가 동의 전 요청을 이중 차단한다", () => {
   const welcomeSource = readSource("src/pages/welcome/ui/welcome-page.tsx");
   const loginSource = readSource(
-    "src/features/user/save-social-login/lib/use-social-login.ts",
+    "src/features/user/save-social-login/model/use-social-login.ts",
   );
 
   assert.equal(
     (welcomeSource.match(/if \(!ensureTermsAgreed\(\)\) return;/g) ?? [])
       .length,
-    3,
+    1,
   );
+  assert.equal((welcomeSource.match(/handleLogin\(\{/g) ?? []).length, 3);
+  assert.equal((welcomeSource.match(/return handleLogin\(\{/g) ?? []).length, 3);
   assert.match(welcomeSource, /Alert\.alert\([\s\S]*"이용약관 동의 필요"/);
   assert.equal(
     (loginSource.match(/if \(!termsAgreed\)/g) ?? []).length,
-    3,
+    1,
+  );
+  assert.match(
+    loginSource,
+    /const beginLogin = \(provider: LoginProvider\) => \{[\s\S]*if \(!termsAgreed\)[\s\S]*loginLockRef\.current = true;[\s\S]*setActiveLoginProvider\(provider\)/,
   );
   assert.match(
     welcomeSource,
@@ -218,12 +219,12 @@ test("Welcome UI와 로그인 use-case가 동의 전 요청을 이중 차단한�
 test("Apple 로그인은 iOS 지원 여부를 확인하고 시스템 인증 결과를 서버에 전달한다", () => {
   const welcomeSource = readSource("src/pages/welcome/ui/welcome-page.tsx");
   const loginSource = readSource(
-    "src/features/user/save-social-login/lib/use-social-login.ts",
+    "src/features/user/save-social-login/model/use-social-login.ts",
   );
   const authQuerySource = readSource("src/entities/user/api/auth-query.ts");
   const appConfig = JSON.parse(readSource("app.json"));
 
-  assert.match(welcomeSource, /isAppleLoginAvailable \? \(/);
+  assert.match(welcomeSource, /appleLogin\.isAvailable \? \(/);
   assert.match(welcomeSource, /<AppleLogo width=\{24\} height=\{24\} \/>/);
   assert.match(
     welcomeSource,
@@ -233,14 +234,44 @@ test("Apple 로그인은 iOS 지원 여부를 확인하고 시스템 인증 결�
   assert.match(loginSource, /AppleAuthentication\.isAvailableAsync\(\)/);
   assert.match(loginSource, /AppleAuthentication\.signInAsync\(/);
   assert.match(loginSource, /ERR_REQUEST_CANCELED/);
-  assert.match(loginSource, /setIsAppleLoginInProgress\(true\)/);
-  assert.match(loginSource, /setIsAppleLoginInProgress\(false\)/);
+  assert.match(loginSource, /useState<LoginProvider \| null>\(null\)/);
+  assert.match(loginSource, /beginLogin\("apple"\)/);
+  assert.match(loginSource, /beginLogin\("google"\)/);
+  assert.match(loginSource, /beginLogin\("guest"\)/);
+  assert.match(loginSource, /isLoading: activeLoginProvider === "apple"/);
+  assert.match(loginSource, /isLoading: activeLoginProvider === "google"/);
+  assert.match(loginSource, /isLoading: activeLoginProvider === "guest"/);
   assert.match(welcomeSource, /<ButtonSpinner color="white" \/>/);
   assert.match(authQuerySource, /post\("\/auth\/apple", request\)/);
   assert.equal(appConfig.expo.ios.usesAppleSignIn, true);
   assert.equal(
     appConfig.expo.plugins.includes("expo-apple-authentication"),
     true,
+  );
+});
+
+test("Apple과 Google 로그인은 세션 저장과 후속 이동을 공유한다", () => {
+  const loginSource = readSource(
+    "src/features/user/save-social-login/model/use-social-login.ts",
+  );
+
+  assert.match(
+    loginSource,
+    /const completeSocialLogin = async \([\s\S]*response: SocialLoginResponse,[\s\S]*isLinkingGuestAccount: boolean/,
+  );
+  assert.equal(
+    (loginSource.match(/await completeSocialLogin\(/g) ?? []).length,
+    2,
+  );
+  assert.equal((loginSource.match(/await setSession\(\{/g) ?? []).length, 2);
+  assert.equal(
+    (loginSource.match(/response\.status === "NEED_NICKNAME"/g) ?? [])
+      .length,
+    1,
+  );
+  assert.equal(
+    (loginSource.match(/await resetCurrentUser\(\)/g) ?? []).length,
+    1,
   );
 });
 

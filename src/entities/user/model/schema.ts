@@ -35,9 +35,6 @@ export const SocialLoginResponseSchema = TokenResponseSchema.extend({
   status: SocialLoginStatusSchema,
 });
 
-export const GoogleLoginResponseSchema = SocialLoginResponseSchema;
-export const AppleLoginResponseSchema = SocialLoginResponseSchema;
-
 export const NicknameSchema = z
   .string()
   .min(1, "닉네임은 최소 1글자 이상이어야 합니다.")

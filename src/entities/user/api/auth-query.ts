@@ -5,16 +5,14 @@ import {
   API_QUERY_KEY,
   AppleLoginRequest,
   AppleLoginRequestSchema,
-  AppleLoginResponse,
-  AppleLoginResponseSchema,
   getSocialLoginRequestMode,
   GoogleLoginRequest,
   GoogleLoginRequestSchema,
-  GoogleLoginResponse,
-  GoogleLoginResponseSchema,
   GuestLoginRequest,
   GuestLoginRequestSchema,
   SOCIAL_LOGIN_REQUEST_MODE,
+  SocialLoginResponse,
+  SocialLoginResponseSchema,
   TokenResponse,
   TokenResponseSchema,
 } from "../model";
@@ -29,7 +27,7 @@ export function useAppleLogin() {
       ...appleCredential
     }: AppleLoginRequest & {
       isGuest: boolean;
-    }): Promise<AppleLoginResponse> => {
+    }): Promise<SocialLoginResponse> => {
       const requestMode = getSocialLoginRequestMode(isGuest);
       const apiClientToUse =
         requestMode ===
@@ -38,7 +36,7 @@ export function useAppleLogin() {
           : apiClient;
       const request = AppleLoginRequestSchema.parse(appleCredential);
       const response = await apiClientToUse.post("/auth/apple", request);
-      return AppleLoginResponseSchema.parse(response.data);
+      return SocialLoginResponseSchema.parse(response.data);
     },
   });
 }
@@ -51,7 +49,7 @@ export function useGoogleLogin() {
       termsAgreed,
     }: GoogleLoginRequest & {
       isGuest: boolean;
-    }): Promise<GoogleLoginResponse> => {
+    }): Promise<SocialLoginResponse> => {
       const requestMode = getSocialLoginRequestMode(isGuest);
       const apiClientToUse =
         requestMode ===
@@ -63,7 +61,7 @@ export function useGoogleLogin() {
         termsAgreed,
       });
       const response = await apiClientToUse.post("/auth/google", request);
-      return GoogleLoginResponseSchema.parse(response.data);
+      return SocialLoginResponseSchema.parse(response.data);
     },
   });
 }

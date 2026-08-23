@@ -2,7 +2,7 @@ import { feedQuery, type CreateFeedCommentRequest } from "@entities/feed";
 import { useMemberAccess } from "@shared/hooks";
 import { Button, ButtonText, Text, VStack } from "@shared/ui";
 import { useWatch } from "react-hook-form";
-import type { UseCreateFeedCommentFormReturn } from "../lib/use-create-feed-comment-form";
+import type { UseCreateFeedCommentFormReturn } from "../model/use-create-feed-comment-form";
 
 interface SaveCommentButtonProps {
   feedId: string;

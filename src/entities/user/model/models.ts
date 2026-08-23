@@ -1,10 +1,9 @@
 import { z } from "zod";
 import {
   AppleLoginRequestSchema,
-  AppleLoginResponseSchema,
   GoogleLoginRequestSchema,
-  GoogleLoginResponseSchema,
   GuestLoginRequestSchema,
+  SocialLoginResponseSchema,
   SocialLoginStatusSchema,
   TokenResponseSchema,
   UpdateProfileRequestSchema,
@@ -17,8 +16,7 @@ export type GoogleLoginRequest = z.infer<typeof GoogleLoginRequestSchema>;
 export type GuestLoginRequest = z.infer<typeof GuestLoginRequestSchema>;
 
 export type TokenResponse = z.infer<typeof TokenResponseSchema>;
-export type AppleLoginResponse = z.infer<typeof AppleLoginResponseSchema>;
-export type GoogleLoginResponse = z.infer<typeof GoogleLoginResponseSchema>;
+export type SocialLoginResponse = z.infer<typeof SocialLoginResponseSchema>;
 
 export type SosialLoginStatus = z.infer<typeof SocialLoginStatusSchema>;
 

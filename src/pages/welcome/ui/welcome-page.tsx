@@ -22,16 +22,7 @@ import { Alert, Image, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function WelcomPage() {
-  const {
-    disabled,
-    isAppleLoginAvailable,
-    isAppleLoading,
-    isGuestLoading,
-    isGoogleLoading,
-    loginWithApple,
-    loginWithGoogle,
-    loginToGuest,
-  } = useSocialLogin();
+  const { disabled, appleLogin, googleLogin, guestLogin } = useSocialLogin();
   const [loginError, setLoginError] = useState<string | null>(null);
   const termsAgreed = useAuthStore((state) => state.termsAgreed);
   const hasExistingSession = useAuthStore((state) =>
@@ -49,37 +40,42 @@ export function WelcomPage() {
     return false;
   };
 
-  const handleGuestLogin = async () => {
+  const handleLogin = async ({
+    loginFn,
+    errorMessage,
+  }: {
+    loginFn: () => Promise<void>;
+    errorMessage: string;
+  }) => {
     if (!ensureTermsAgreed()) return;
 
     setLoginError(null);
     try {
-      await loginToGuest();
+      await loginFn();
     } catch {
-      setLoginError("게스트 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.");
+      setLoginError(errorMessage);
     }
   };
 
-  const handleGoogleLogin = async () => {
-    if (!ensureTermsAgreed()) return;
-
-    setLoginError(null);
-    try {
-      await loginWithGoogle();
-    } catch {
-      setLoginError("계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.");
-    }
+  const handleGuestLogin = () => {
+    return handleLogin({
+      loginFn: guestLogin.login,
+      errorMessage: "게스트 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.",
+    });
   };
 
-  const handleAppleLogin = async () => {
-    if (!ensureTermsAgreed()) return;
+  const handleGoogleLogin = () => {
+    return handleLogin({
+      loginFn: googleLogin.login,
+      errorMessage: "계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.",
+    });
+  };
 
-    setLoginError(null);
-    try {
-      await loginWithApple();
-    } catch {
-      setLoginError("계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.");
-    }
+  const handleAppleLogin = () => {
+    return handleLogin({
+      loginFn: appleLogin.login,
+      errorMessage: "계정 연결에 실패했습니다. 잠시 후 다시 시도해주세요.",
+    });
   };
 
   const handleOpenTermsOfService = async () => {
@@ -118,20 +114,20 @@ export function WelcomPage() {
             variant="outline"
             className="rounded-full"
             disabled={disabled}
-            isLoading={isGoogleLoading}
+            isLoading={googleLogin.isLoading}
             onPress={handleGoogleLogin}
           >
             <GoogleLogo width={24} height={24} />
             <ButtonText>구글로 시작하기</ButtonText>
           </Button>
-          {isAppleLoginAvailable ? (
+          {appleLogin.isAvailable ? (
             <Button
               variant="outline"
               className="rounded-full bg-black"
               disabled={disabled}
               onPress={handleAppleLogin}
             >
-              {isAppleLoading ? (
+              {appleLogin.isLoading ? (
                 <ButtonSpinner color="white" />
               ) : (
                 <>
@@ -146,7 +142,7 @@ export function WelcomPage() {
           <Button
             variant="ghost"
             disabled={disabled}
-            isLoading={isGuestLoading}
+            isLoading={guestLogin.isLoading}
             onPress={handleGuestLogin}
           >
             <ButtonText>로그인 없이 사용하기</ButtonText>

@@ -1,1 +1,1 @@
-export { useSocialLogin } from "./lib/use-social-login";
+export { useSocialLogin } from "./model/use-social-login";
