@@ -45,10 +45,9 @@ Module._load = function mockAuthDependencies(request, parent, isMain) {
 
 const {
   AppleLoginRequestSchema,
-  AppleLoginResponseSchema,
   GoogleLoginRequestSchema,
-  GoogleLoginResponseSchema,
   GuestLoginRequestSchema,
+  SocialLoginResponseSchema,
   TokenResponseSchema,
 } = require("../../../../entities/user/model/schema.ts");
 const {
@@ -112,7 +111,7 @@ test("Apple, Google과 Guest 로그인 요청은 termsAgreed가 필수다", () =
   );
 });
 
-test("로그인 응답은 termsAgreed boolean을 검증한다", () => {
+test("소셜 로그인 응답은 공통 계약과 status를 검증한다", () => {
   const tokenResponse = {
     accessToken: "access-token",
     refreshToken: "refresh-token",
@@ -120,20 +119,16 @@ test("로그인 응답은 termsAgreed boolean을 검증한다", () => {
   };
 
   assert.equal(TokenResponseSchema.safeParse(tokenResponse).success, true);
-  assert.equal(
-    AppleLoginResponseSchema.safeParse({
-      ...tokenResponse,
-      status: "ACCOUNT_RECOVERED",
-    }).success,
-    true,
-  );
-  assert.equal(
-    GoogleLoginResponseSchema.safeParse({
-      ...tokenResponse,
-      status: "LOGIN_SUCCESS",
-    }).success,
-    true,
-  );
+  for (const status of [
+    "LOGIN_SUCCESS",
+    "NEED_NICKNAME",
+    "ACCOUNT_RECOVERED",
+  ]) {
+    assert.equal(
+      SocialLoginResponseSchema.safeParse({ ...tokenResponse, status }).success,
+      true,
+    );
+  }
   assert.equal(
     TokenResponseSchema.safeParse({
       accessToken: "access-token",
