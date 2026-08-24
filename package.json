@@ -77,6 +77,8 @@
     "@types/react": "~19.2.2",
     "babel-plugin-module-resolver": "^5.0.3",
     "babel-preset-expo": "^56.0.15",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~56.0.4",
     "nitrogen": "0.35.10",
     "react-native-svg-transformer": "^1.5.3",
     "tailwindcss": "^4.3.1",
