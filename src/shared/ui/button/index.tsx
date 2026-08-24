@@ -192,10 +192,11 @@ const Button = React.forwardRef<
         {...props}
         accessibilityState={{ disabled: buttonDisabled, busy: isLoading }}
         disabled={buttonDisabled}
-        children={buttonChildren}
         className={buttonStyle({ variant, size, class: className })}
         context={{ variant, size }}
-      />
+      >
+        {buttonChildren}
+      </UIButton>
     );
   },
 );
