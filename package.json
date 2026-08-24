@@ -72,6 +72,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@feature-sliced/steiger-plugin": "^0.7.0",
     "@tailwindcss/postcss": "^4.3.1",
     "@tanstack/eslint-plugin-query": "^5.101.2",
     "@types/react": "~19.2.2",
@@ -81,6 +82,7 @@
     "eslint-config-expo": "~56.0.4",
     "nitrogen": "0.35.10",
     "react-native-svg-transformer": "^1.5.3",
+    "steiger": "^0.6.0",
     "tailwindcss": "^4.3.1",
     "typescript": "~6.0.3"
   },
@@ -91,6 +93,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
+    "fsd:check": "steiger ./src",
+    "fsd:watch": "steiger ./src --watch",
     "test:camera-settings": "node --test src/features/camera/capture-photo/__tests__/*.test.cjs",
     "test:pose-detection": "node --test src/features/camera/pose-detection/__tests__/pose-detection.test.cjs",
     "test:pose-match": "node --test src/features/camera/pose-matching/__tests__/pose-matching.test.cjs",
