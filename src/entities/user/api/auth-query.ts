@@ -2,7 +2,6 @@ import { apiClient, privateApiClient } from "@shared/api";
 import { useMutation } from "@tanstack/react-query";
 
 import {
-  API_QUERY_KEY,
   AppleLoginRequest,
   AppleLoginRequestSchema,
   getSocialLoginRequestMode,
@@ -17,8 +16,6 @@ import {
   TokenResponseSchema,
 } from "../model";
 import { getAndCreateDeviceUUID } from "../../../shared/lib/device-uuid";
-
-const QUERY_KEY = [API_QUERY_KEY, "auth"];
 
 export function useAppleLogin() {
   return useMutation({

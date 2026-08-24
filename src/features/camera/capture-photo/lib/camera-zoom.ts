@@ -5,7 +5,7 @@ const LEGACY_ULTRA_WIDE_DISPLAY_ZOOM_MULTIPLIER = 0.5;
 
 interface CameraZoomDeviceCapabilities {
   isVirtualDevice: boolean;
-  physicalDevices: ReadonlyArray<{ type: string }>;
+  physicalDevices: readonly { type: string }[];
   zoomLensSwitchFactors: readonly number[];
 }
 

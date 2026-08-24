@@ -161,7 +161,7 @@ function PhotoGridSkeleton({
 
 export interface PhotoGridProps<T extends PhotoGridImage = PhotoGridImage> {
   images: T[];
-  selectedImages?: Array<{ id: string }>;
+  selectedImages?: { id: string }[];
   columns?: number;
   gap?: number;
   onPress?: (image: T, index: number) => void;

@@ -105,7 +105,7 @@ function HostRoomContent({
     string | null
   >(null);
   const [isPublishing, setIsPublishing] = useState(false);
-  const [isStopping, setIsStopping] = useState(false);
+  const [, setIsStopping] = useState(false);
   isActiveRef.current = isActive;
   canPublishRef.current = canPublish;
 

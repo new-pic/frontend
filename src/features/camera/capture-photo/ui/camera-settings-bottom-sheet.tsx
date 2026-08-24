@@ -16,10 +16,10 @@ import type {
   CameraPhotoFlashMode,
 } from "../model/models";
 
-const FLASH_OPTIONS: Array<{
+const FLASH_OPTIONS: {
   mode: CameraPhotoFlashMode;
   label: string;
-}> = [
+}[] = [
   { mode: "off", label: "끔" },
   { mode: "on", label: "켬" },
   { mode: "auto", label: "AUTO" },

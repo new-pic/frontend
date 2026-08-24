@@ -53,11 +53,9 @@ type FeedListInfiniteData = InfiniteData<
  * `[QueryKey, 캐시 데이터]` 튜플들의 배열 형태입니다.
  * 낙관적 업데이트 실패 시 원래 상태로 롤백(Rollback)하는 데 사용됩니다.
  */
-type FeedListCacheSnapshot = Array<
-  [QueryKey, FeedListInfiniteData | undefined]
->;
+type FeedListCacheSnapshot = [QueryKey, FeedListInfiniteData | undefined][];
 
-type FeedCacheSnapshot = Array<[QueryKey, unknown]>;
+type FeedCacheSnapshot = [QueryKey, unknown][];
 
 /**
  * @description 피드 목록 낙관적 업데이트 함수

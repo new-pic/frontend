@@ -29,7 +29,7 @@ export function getNextRtcStoredPhotoExpiryDelay(
 }
 
 export function mergeUniqueRtcStoredPhotos(
-  pages: Array<{ items: RtcStoredPhoto[] }> | undefined,
+  pages: { items: RtcStoredPhoto[] }[] | undefined,
 ) {
   const photosById = new Map<string, RtcStoredPhoto>();
 
