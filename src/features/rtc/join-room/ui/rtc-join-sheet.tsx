@@ -1,7 +1,7 @@
-import { RtcJoinForm, RtcJoinFormHeader } from "@features/rtc/join-room";
 import { BottomSheetModal, VStack } from "@shared/ui";
 import { ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { RtcJoinForm, RtcJoinFormHeader } from "./rtc-join-form";
 
 interface RtcJoinSheetProps {
   open: boolean;

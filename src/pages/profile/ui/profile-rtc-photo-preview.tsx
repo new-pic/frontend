@@ -12,7 +12,7 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { memo, useEffect, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { shouldShowProfileRtcPhotoPreview } from "../model/preview-visibility";
+import { shouldShowProfileRtcPhotoPreview } from "../model/profile-rtc-photo-preview-visibility";
 
 function getDisplayablePhotos(
   photos: RtcStoredPhoto[],

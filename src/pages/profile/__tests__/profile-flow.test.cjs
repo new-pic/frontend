@@ -24,7 +24,7 @@ const {
 } = require("../../../entities/user/model/user-query-identity.ts");
 const {
   shouldShowProfileRtcPhotoPreview,
-} = require("../../../widgets/profile/rtc-photo-preview/model/preview-visibility.ts");
+} = require("../model/profile-rtc-photo-preview-visibility.ts");
 
 test("프로필 Query identity는 사용자별로 분리된다", () => {
   assert.equal(getUserQueryIdentity("guest-user"), "guest-user");
@@ -101,7 +101,7 @@ test("최근 촬영 사진 상세는 만료 안내와 촬영 시각 및 다운�
 test("버그 제보 메뉴는 공용 외부 링크를 연다", () => {
   const profileSource = readSource("../ui/profile-page.tsx");
   const externalLinksSource = readSource(
-    "../../../shared/constants/external-links.ts",
+    "../../../shared/config/external-links.ts",
   );
 
   assert.match(
@@ -118,7 +118,7 @@ test("버그 제보 메뉴는 공용 외부 링크를 연다", () => {
 test("서비스 약관 메뉴는 공용 외부 링크를 연다", () => {
   const profileSource = readSource("../ui/profile-page.tsx");
   const externalLinksSource = readSource(
-    "../../../shared/constants/external-links.ts",
+    "../../../shared/config/external-links.ts",
   );
 
   assert.match(
