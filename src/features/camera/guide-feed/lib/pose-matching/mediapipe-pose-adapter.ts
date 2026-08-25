@@ -1,7 +1,7 @@
 import type {
   CommonJoint,
   MediaPipeInputPose,
-} from "../model";
+} from "./types";
 
 export interface MediaPipePoseLandmark {
   x: number;

@@ -4,7 +4,7 @@ import {
   useRef,
   useState,
 } from "react";
-import type { PoseSceneMatchResult } from "../../pose-matching";
+import type { PoseSceneMatchResult } from "../lib/pose-matching";
 import {
   advancePoseGuideAlignmentPolicy,
   createPoseGuideAlignmentPolicyState,

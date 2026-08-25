@@ -13,7 +13,7 @@ import type {
   QuarterTurn,
   ResizeMode,
   SourcePoseToCaptureTransform,
-} from "../model";
+} from "./types";
 
 function assertPositiveSize(size: CoordinateSize, label: string) {
   if (

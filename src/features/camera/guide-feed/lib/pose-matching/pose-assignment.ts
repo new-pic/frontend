@@ -1,9 +1,9 @@
 import type {
   CommonPose,
   PoseAssignment,
-  PoseMatchConfig,
   PosePairMatch,
-} from "../model";
+} from "./types";
+import type { PoseMatchConfig } from "./pose-match-config";
 import { matchPosePair } from "./pose-geometry";
 
 interface AssignmentCandidate {

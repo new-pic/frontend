@@ -1,17 +1,17 @@
 import type {
-  CameraAspectRatio,
-  CameraResolution,
-} from "../model/models";
+  CameraGuideAspectRatio,
+} from "../model/types";
+import type { CoordinateSize } from "./pose-matching";
 
 const SUPPORTED_ASPECT_RATIOS = {
   "4:3": 4 / 3,
   "16:9": 16 / 9,
-} as const satisfies Record<CameraAspectRatio, number>;
+} as const satisfies Record<CameraGuideAspectRatio, number>;
 
 function getOrientationIndependentRatio({
   width,
   height,
-}: CameraResolution) {
+}: CoordinateSize) {
   if (
     !Number.isFinite(width) ||
     !Number.isFinite(height) ||
@@ -30,12 +30,12 @@ function getOrientationIndependentRatio({
  * symmetrically.
  */
 export function resolveFeedCameraAspectRatio(
-  sourceSize: CameraResolution,
-): CameraAspectRatio {
+  sourceSize: CoordinateSize,
+): CameraGuideAspectRatio {
   const sourceRatio = getOrientationIndependentRatio(sourceSize);
   const candidates = Object.entries(
     SUPPORTED_ASPECT_RATIOS,
-  ) as [CameraAspectRatio, number][];
+  ) as [CameraGuideAspectRatio, number][];
 
   return candidates.reduce(
     (closest, candidate) =>

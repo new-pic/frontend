@@ -1,5 +1,5 @@
 import type { ImageRef } from "expo-image";
-import type { LoadedFeedReferenceImage } from "../model";
+import type { LoadedFeedReferenceImage } from "./feed-pose-target-preparer";
 
 /**
  * Loads the selected Feed source once so its decoded size can choose the

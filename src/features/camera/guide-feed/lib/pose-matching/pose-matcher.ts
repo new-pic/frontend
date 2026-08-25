@@ -1,14 +1,16 @@
 import {
-  DEFAULT_POSE_MATCH_CONFIG,
   type CommonPose,
   type PoseAssignment,
   type PoseFeedback,
   type PoseJointGroup,
-  type PoseMatchConfig,
   type PoseMismatchCause,
   type PosePairMatch,
   type PoseSceneMatchResult,
-} from "../model";
+} from "./types";
+import {
+  DEFAULT_POSE_MATCH_CONFIG,
+  type PoseMatchConfig,
+} from "./pose-match-config";
 import { assignPoses } from "./pose-assignment";
 
 function getLowestJointGroup(

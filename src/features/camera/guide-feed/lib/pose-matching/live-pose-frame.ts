@@ -2,7 +2,7 @@ import type {
   CommonPose,
   CoordinateSize,
   ResizeMode,
-} from "../model";
+} from "./types";
 import { projectMediaPipePoseToCapture } from "./coordinate-transform";
 import { adaptMediaPipePoses } from "./mediapipe-pose-adapter";
 

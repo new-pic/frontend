@@ -22,7 +22,7 @@ const {
   MAX_POSE_COUNT,
   resolvePoseCount,
   resolvePoseDetectionConfig,
-} = require("../model/pose-detection-config.ts");
+} = require("../pose-detection-config.ts");
 
 test("unknown target count defaults to the four-person cap", () => {
   assert.equal(resolvePoseCount(), 4);

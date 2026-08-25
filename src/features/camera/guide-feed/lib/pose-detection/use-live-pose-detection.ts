@@ -5,7 +5,7 @@ import {
 } from "@newpic/vision-camera-pose";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AppState } from "react-native";
-import { adaptNativeDetectedPoseFrame } from "../lib/native-pose-result-adapter";
+import { adaptNativeDetectedPoseFrame } from "./native-pose-result-adapter";
 import {
   type PoseDetectionConfig,
   resolvePoseDetectionConfig,

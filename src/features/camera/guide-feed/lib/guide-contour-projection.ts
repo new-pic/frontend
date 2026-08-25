@@ -2,7 +2,7 @@ import {
   calculateCanvasRenderRect,
   type CoordinateSize,
   type PreviewPoint,
-} from "../../pose-matching";
+} from "./pose-matching";
 import type {
   CameraGuideContour,
   CameraGuideOutline,

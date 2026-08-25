@@ -5,7 +5,7 @@ import type {
 import type {
   CommonPose,
   SourcePoseToCaptureTransform,
-} from "../model";
+} from "./types";
 import { projectDWPosePoseToCapture } from "./coordinate-transform";
 import { adaptDWPoseResult } from "./dwpose-pose-adapter";
 

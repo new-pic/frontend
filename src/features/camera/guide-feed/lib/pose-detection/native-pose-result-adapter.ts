@@ -1,5 +1,5 @@
 import type { NativeDetectedPoseFrame } from "@newpic/vision-camera-pose";
-import type { DetectedPoseFrame } from "../model/types";
+import type { DetectedPoseFrame } from "./types";
 
 const QUARTER_TURNS = [0, 90, 180, 270] as const;
 

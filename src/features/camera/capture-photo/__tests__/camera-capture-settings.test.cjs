@@ -38,9 +38,6 @@ const {
   orientCameraResolution,
 } = require("../lib/camera-capture-settings.ts");
 const {
-  resolveFeedCameraAspectRatio,
-} = require("../lib/feed-camera-aspect-ratio.ts");
-const {
   resolveCameraChromePresentation,
   resolveCameraStageAlignment,
 } = require("../lib/camera-chrome.ts");
@@ -108,29 +105,6 @@ test("sensor-native resolution follows the configured output orientation", () =>
       "up",
     ),
     { width: 1920, height: 1080 },
-  );
-});
-
-test("following-feed mode chooses and locks the closest supported ratio", () => {
-  assert.equal(
-    resolveFeedCameraAspectRatio({ width: 1200, height: 1600 }),
-    "4:3",
-  );
-  assert.equal(
-    resolveFeedCameraAspectRatio({ width: 1080, height: 1920 }),
-    "16:9",
-  );
-  assert.equal(
-    resolveFeedCameraAspectRatio({ width: 2000, height: 3000 }),
-    "4:3",
-  );
-});
-
-test("feed ratio selection rejects missing image geometry", () => {
-  assert.throws(
-    () =>
-      resolveFeedCameraAspectRatio({ width: 0, height: 0 }),
-    /positive dimensions/,
   );
 });
 

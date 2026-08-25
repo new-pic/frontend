@@ -1,6 +1,6 @@
 import type { FeedPoseResponse } from "@entities/feed";
-import { resolveFeedCameraAspectRatio } from "../../capture-photo/lib/feed-camera-aspect-ratio";
-import { adaptDWPoseResult } from "../lib/dwpose-pose-adapter";
+import { resolveFeedCameraAspectRatio } from "../feed-camera-aspect-ratio";
+import { adaptDWPoseResult } from "./dwpose-pose-adapter";
 import type {
   CoordinateSize,
   DWPoseSourcePose,

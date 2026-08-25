@@ -7,7 +7,7 @@ import type {
   CommonJoint,
   CoordinateSize,
   DWPoseSourcePose,
-} from "../model";
+} from "./types";
 
 export const DWPOSE_KEYPOINT_FORMAT = "dwpose_xy_score" as const;
 
