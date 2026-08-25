@@ -1,10 +1,13 @@
 import { RTC_MAX_SELECTED_PHOTOS } from "@entities/rtc";
-import type { SessionPhoto } from "@features/camera/capture-photo";
 import { uriToFile } from "@shared/lib";
 import type { File } from "expo-file-system";
 
+export interface RtcEndPhotoInput {
+  uri: string;
+}
+
 export async function prepareRtcEndImages(
-  photos: SessionPhoto[],
+  photos: readonly RtcEndPhotoInput[],
 ): Promise<File[]> {
   if (photos.length > RTC_MAX_SELECTED_PHOTOS) {
     throw new Error(
