@@ -1,7 +1,7 @@
 import { ContentReportTarget, FeedResponse } from "@entities/feed";
 import { FeedCameraGuideFab } from "@features/camera/guide-feed";
 import { ReportContentModal } from "@features/feed/report-content";
-import { useMemberAccess } from "@shared/hooks";
+import { useRequireMember } from "@features/user/guard-member";
 import { SlidePageView } from "@shared/ui";
 import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
@@ -45,7 +45,7 @@ export function FeedDetailPager({
     useState<number>(initialPageIndex);
   const [reportTarget, setReportTarget] =
     useState<ContentReportTarget | null>(null);
-  const requireMember = useMemberAccess();
+  const requireMember = useRequireMember();
   const insets = useSafeAreaInsets();
   const activeFeed = useMemo(() => {
     if (activePageIndex < 0 || activePageIndex >= feeds.length) {
@@ -102,6 +102,7 @@ export function FeedDetailPager({
                 commentSort={commentSort}
                 setCommentSort={setCommentSort}
                 isActivePage={activePageIndex === feedIndex}
+                requireMember={requireMember}
                 onReportComment={(commentId) =>
                   void handleRequestReport({ type: "comment", id: commentId })
                 }

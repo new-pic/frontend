@@ -6,7 +6,7 @@ import {
   useFeedLikeController,
 } from "@features/feed/update-feed-like";
 import { FeedPickButton } from "@features/feed/update-feed-pick";
-import { colors } from "@shared/constants";
+import { colors } from "@shared/ui/theme";
 import {
   Avatar,
   AvatarFallbackText,
@@ -32,6 +32,7 @@ interface FeedDetailContentProps {
   commentSort: CommentSort;
   setCommentSort: (sort: CommentSort) => void;
   onReportComment: (commentId: string) => void;
+  requireMember: () => Promise<boolean>;
 }
 
 export function FeedDetailContent({
@@ -41,10 +42,12 @@ export function FeedDetailContent({
   commentSort,
   setCommentSort,
   onReportComment,
+  requireMember,
 }: FeedDetailContentProps) {
   const feedLike = useFeedLikeController({
     feedId: feed.id,
     isLiked: feed.isLiked,
+    requireMember,
   });
   const detailTime = formatFeedDetailTime({
     createdAt: feed.createdAt,
@@ -180,6 +183,7 @@ export function FeedDetailContent({
                     feedId={feed.id}
                     isPicked={feed.isPicked}
                     tone="on-image"
+                    requireMember={requireMember}
                   />
                 </HStack>
                 <HStack
@@ -251,7 +255,10 @@ export function FeedDetailContent({
               sort={commentSort}
               onChangeSort={setCommentSort}
             />
-            <FeedCommentForm feedId={feed.id} />
+            <FeedCommentForm
+              feedId={feed.id}
+              requireMember={requireMember}
+            />
           </>
         }
         ListEmptyComponent={

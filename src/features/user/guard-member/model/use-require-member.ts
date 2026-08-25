@@ -3,9 +3,11 @@ import { useAuthStore } from "@shared/model";
 import { router } from "expo-router";
 import { useCallback } from "react";
 
-export function useMemberAccess() {
+export function useRequireMember() {
   const isGuest = useAuthStore((state) => state.isGuest);
-  const prepareGoogleLink = useAuthStore((state) => state.prepareGoogleLink);
+  const prepareGoogleLink = useAuthStore(
+    (state) => state.prepareGoogleLink,
+  );
   const openConfirm = useConfirm();
 
   return useCallback(async () => {
