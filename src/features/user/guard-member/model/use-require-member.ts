@@ -5,8 +5,8 @@ import { useCallback } from "react";
 
 export function useRequireMember() {
   const isGuest = useAuthStore((state) => state.isGuest);
-  const prepareGoogleLink = useAuthStore(
-    (state) => state.prepareGoogleLink,
+  const prepareAccountLink = useAuthStore(
+    (state) => state.prepareAccountLink,
   );
   const openConfirm = useConfirm();
 
@@ -21,10 +21,10 @@ export function useRequireMember() {
     });
 
     if (shouldLogin) {
-      prepareGoogleLink();
+      prepareAccountLink();
       router.replace("/");
     }
 
     return false;
-  }, [isGuest, openConfirm, prepareGoogleLink]);
+  }, [isGuest, openConfirm, prepareAccountLink]);
 }

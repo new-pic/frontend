@@ -96,7 +96,9 @@ function ProfileButtonMenu() {
 export function ProfilePage() {
   const openConfirm = useConfirm();
   const isGuest = useAuthStore((state) => state.isGuest);
-  const prepareGoogleLink = useAuthStore((state) => state.prepareGoogleLink);
+  const prepareAccountLink = useAuthStore(
+    (state) => state.prepareAccountLink,
+  );
   const logout = useAuthStore((state) => state.logout);
   const { data } = usersQuery.useReadMe();
 
@@ -112,7 +114,7 @@ export function ProfilePage() {
   };
 
   const handleGoLogin = () => {
-    prepareGoogleLink();
+    prepareAccountLink();
     router.replace({
       pathname: "/",
       params: {
