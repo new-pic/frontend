@@ -1,5 +1,5 @@
 import { feedQuery } from "@entities/feed";
-import { colors } from "@shared/constants";
+import { colors } from "@shared/ui/theme";
 import { useDebouncedValue } from "@shared/lib/debounce";
 import {
   Badge,

@@ -1,4 +1,4 @@
-import { colors } from "@shared/constants";
+import { colors } from "@shared/ui/theme";
 import { Center, Spinner, Text, VStack } from "@shared/ui";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";

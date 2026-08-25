@@ -1,4 +1,4 @@
-import { colors } from "@shared/constants";
+import { colors } from "@shared/ui/theme";
 import { Text } from "@shared/ui";
 import { IconEye, IconEyeOff } from "@tabler/icons-react-native";
 import { Image } from "expo-image";

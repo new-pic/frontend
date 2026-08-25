@@ -1,5 +1,5 @@
 import type { FeedResponse } from "@entities/feed";
-import { gradients } from "@shared/constants";
+import { gradients } from "@shared/ui/theme";
 import { Pressable } from "@shared/ui";
 import { IconCamera } from "@tabler/icons-react-native";
 import { LinearGradient } from "expo-linear-gradient";

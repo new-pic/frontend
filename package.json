@@ -117,7 +117,7 @@
     "test:bottom-sheet": "node --test src/shared/ui/bottomsheet/__tests__/bottom-sheet-presentation.test.cjs",
     "test:rtc-viewer-ui": "node --test src/shared/ui/framing-grid-overlay/__tests__/framing-grid-overlay.test.cjs",
     "test:photo-gallery": "node --test src/shared/ui/photo-gallery/__tests__/photo-gallery-state.test.cjs",
-    "test:ui-metrics": "node --test src/shared/constants/__tests__/ui-metrics.test.cjs"
+    "test:ui-metrics": "node --test src/shared/ui/theme/__tests__/ui-metrics.test.cjs"
   },
   "private": true,
   "pnpm": {

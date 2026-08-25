@@ -1,4 +1,4 @@
-import { MOBILE_UI_METRICS } from "@shared/constants";
+import { MOBILE_UI_METRICS } from "@shared/ui/theme";
 import { IconHeartFilled } from "@tabler/icons-react-native";
 import { type ReactNode, useCallback, useMemo } from "react";
 import { View } from "react-native";

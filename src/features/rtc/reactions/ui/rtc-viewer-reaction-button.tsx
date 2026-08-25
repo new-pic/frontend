@@ -1,4 +1,4 @@
-import { colors } from "@shared/constants";
+import { colors } from "@shared/ui/theme";
 import * as Haptics from "expo-haptics";
 import { useCallback } from "react";
 import {

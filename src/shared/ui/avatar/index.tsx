@@ -2,7 +2,7 @@
 import { createAvatar } from "@gluestack-ui/core/avatar/creator";
 import type { VariantProps } from "@gluestack-ui/utils/nativewind-utils";
 import { tva, withStyleContext } from "@gluestack-ui/utils/nativewind-utils";
-import { colors } from "@shared/constants";
+import { colors } from "@shared/ui/theme";
 import React from "react";
 import { Image, Text, View } from "react-native";
 const SCOPE = "AVATAR";
