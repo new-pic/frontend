@@ -22,24 +22,26 @@ const savedFeedsKey = [["user"], "user", "me", "saved-feeds"];
 let fetchCount = 0;
 const originalLoad = Module._load;
 Module._load = function load(request, parent, isMain) {
-  if (request === "@entities/user/api/user-query") {
+  if (request === "@entities/feed") {
     return {
-      userQueryKeys: {
-        savedFeeds: savedFeedsKey,
-      },
-      savedFeedsInfiniteQueryOptions: ({ take }) => ({
-        queryKey: [...savedFeedsKey, { take }],
-        queryFn: async () => {
-          fetchCount += 1;
-          return {
-            items: [{ id: "newly-saved-feed" }],
-            nextCursor: null,
-          };
+      feedQuery: {
+        feedQueryKeys: {
+          savedFeeds: savedFeedsKey,
         },
-        initialPageParam: undefined,
-        getNextPageParam: (lastPage) =>
-          lastPage.nextCursor ?? undefined,
-      }),
+        savedFeedsInfiniteQueryOptions: ({ take }) => ({
+          queryKey: [...savedFeedsKey, { take }],
+          queryFn: async () => {
+            fetchCount += 1;
+            return {
+              items: [{ id: "newly-saved-feed" }],
+              nextCursor: null,
+            };
+          },
+          initialPageParam: undefined,
+          getNextPageParam: (lastPage) =>
+            lastPage.nextCursor ?? undefined,
+        }),
+      },
     };
   }
   return originalLoad.call(this, request, parent, isMain);

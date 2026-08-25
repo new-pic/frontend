@@ -3,7 +3,6 @@ import {
   type FeedListParams,
   type FeedListResponse,
 } from "@entities/feed";
-import { usersQuery } from "@entities/user";
 import {
   type InfiniteData,
   type QueryKey,
@@ -37,15 +36,15 @@ function getFeedDetailCollectionQueryOptions(
 
   switch (source) {
     case "mine":
-      return usersQuery.myFeedsInfiniteQueryOptions(
+      return feedQuery.myFeedsInfiniteQueryOptions(
         paginationParams,
       ) as unknown as FeedDetailCollectionQueryOptions;
     case "saved":
-      return usersQuery.savedFeedsInfiniteQueryOptions(
+      return feedQuery.savedFeedsInfiniteQueryOptions(
         paginationParams,
       ) as unknown as FeedDetailCollectionQueryOptions;
     case "liked":
-      return usersQuery.likedFeedsInfiniteQueryOptions(
+      return feedQuery.likedFeedsInfiniteQueryOptions(
         paginationParams,
       ) as unknown as FeedDetailCollectionQueryOptions;
     case "public":

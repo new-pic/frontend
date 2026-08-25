@@ -1,5 +1,4 @@
-import { feedQueryKeys } from "@entities/feed/api/feed-query";
-import { userQueryKeys } from "@entities/user/api/user-query";
+import { feedQuery } from "@entities/feed";
 import type { QueryClient } from "@tanstack/react-query";
 
 interface FeedListRefreshEntry {
@@ -16,11 +15,11 @@ const refreshes = new WeakMap<QueryClient, FeedListRefreshEntry>();
 function resetPublishedFeedLists(queryClient: QueryClient) {
   return Promise.all([
     queryClient.resetQueries(
-      { queryKey: feedQueryKeys.lists },
+      { queryKey: feedQuery.feedQueryKeys.lists },
       { cancelRefetch: true, throwOnError: true },
     ),
     queryClient.resetQueries(
-      { queryKey: userQueryKeys.myFeeds },
+      { queryKey: feedQuery.feedQueryKeys.myFeeds },
       { cancelRefetch: true, throwOnError: true },
     ),
   ]).then(() => undefined);

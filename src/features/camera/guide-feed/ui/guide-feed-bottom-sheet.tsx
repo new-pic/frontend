@@ -1,4 +1,4 @@
-import { usersQuery } from "@entities/user";
+import { feedQuery } from "@entities/feed";
 import { adaptFeedToGuideSelection } from "../lib/feed-guide-selection-adapter";
 import type { GuideFeedSelection } from "../model";
 import {
@@ -30,7 +30,7 @@ export function GuideFeedBottomSheet({
   onClear,
   onClose,
 }: GuideFeedBottomSheetProps) {
-  const savedFeedsQuery = usersQuery.useReadSavedFeeds(
+  const savedFeedsQuery = feedQuery.useReadSavedFeeds(
     { take: 24 },
     { enabled: open },
   );

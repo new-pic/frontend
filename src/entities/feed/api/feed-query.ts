@@ -24,6 +24,7 @@ import {
   FeedListResponse,
   FeedResponse,
   FeedTagResponse,
+  UserFeedListParams,
   UpdateFeedRequest,
 } from "../model";
 import { updateFeedInCacheData } from "./feed-cache";
@@ -33,11 +34,41 @@ const QUERY_KEY = [API_QUERY_KEY, "feed"] as const;
 // 피드 목록 쿼리 키
 const FEED_LIST_QUERY_KEY = [...QUERY_KEY, "list"] as const;
 
+// 기존 사용자 피드 컬렉션 캐시와 호환되도록 query key 값은 유지합니다.
+const USER_FEED_COLLECTION_QUERY_KEY = [["user"], "user"] as const;
+
 export const feedQueryKeys = {
   all: QUERY_KEY,
   lists: FEED_LIST_QUERY_KEY,
   list: (params: FeedListParams) => [...FEED_LIST_QUERY_KEY, params] as const,
   item: (feedId?: string) => [...QUERY_KEY, "item", feedId] as const,
+  myFeeds: [...USER_FEED_COLLECTION_QUERY_KEY, "me", "feeds"] as const,
+  myFeedList: (params: UserFeedListParams) =>
+    [...USER_FEED_COLLECTION_QUERY_KEY, "me", "feeds", params] as const,
+  likedFeeds: [
+    ...USER_FEED_COLLECTION_QUERY_KEY,
+    "me",
+    "liked-feeds",
+  ] as const,
+  likedFeedList: (params: UserFeedListParams) =>
+    [
+      ...USER_FEED_COLLECTION_QUERY_KEY,
+      "me",
+      "liked-feeds",
+      params,
+    ] as const,
+  savedFeeds: [
+    ...USER_FEED_COLLECTION_QUERY_KEY,
+    "me",
+    "saved-feeds",
+  ] as const,
+  savedFeedList: (params: UserFeedListParams) =>
+    [
+      ...USER_FEED_COLLECTION_QUERY_KEY,
+      "me",
+      "saved-feeds",
+      params,
+    ] as const,
 } as const;
 
 // useInfiniteQuery의 반환 data 타입
@@ -170,6 +201,87 @@ export function feedsInfiniteQueryOptions(params: FeedListParams) {
     initialPageParam: params.cursor,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 1000 * 60 * 5, // 5분
+  });
+}
+
+/** 내가 작성한 피드 컬렉션을 조회합니다. */
+export function useReadMyFeeds(params: UserFeedListParams) {
+  const isGuest = useAuthStore((state) => state.isGuest);
+
+  return useInfiniteQuery({
+    ...myFeedsInfiniteQueryOptions(params),
+    enabled: !isGuest,
+  });
+}
+
+export function myFeedsInfiniteQueryOptions(params: UserFeedListParams) {
+  return infiniteQueryOptions({
+    queryKey: feedQueryKeys.myFeedList(params),
+    queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
+      const response = await privateApiClient.get("/users/me/feeds", {
+        params: { ...params, cursor: pageParam },
+        signal,
+      });
+      return response.data;
+    },
+    initialPageParam: params.cursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+/** 내가 좋아요한 피드 컬렉션을 조회합니다. */
+export function useReadLikedFeeds(params: UserFeedListParams) {
+  const isGuest = useAuthStore((state) => state.isGuest);
+
+  return useInfiniteQuery({
+    ...likedFeedsInfiniteQueryOptions(params),
+    enabled: !isGuest,
+  });
+}
+
+export function likedFeedsInfiniteQueryOptions(params: UserFeedListParams) {
+  return infiniteQueryOptions({
+    queryKey: feedQueryKeys.likedFeedList(params),
+    queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
+      const response = await privateApiClient.get("/users/me/liked-feeds", {
+        params: { ...params, cursor: pageParam },
+        signal,
+      });
+      return response.data;
+    },
+    initialPageParam: params.cursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+/** 카메라 가이드로 사용할 수 있는 저장 피드 컬렉션을 조회합니다. */
+export function useReadSavedFeeds(
+  params: UserFeedListParams,
+  options?: { enabled?: boolean },
+) {
+  const isGuest = useAuthStore((state) => state.isGuest);
+
+  return useInfiniteQuery({
+    ...savedFeedsInfiniteQueryOptions(params),
+    enabled: !isGuest && (options?.enabled ?? true),
+  });
+}
+
+export function savedFeedsInfiniteQueryOptions(params: UserFeedListParams) {
+  return infiniteQueryOptions({
+    queryKey: feedQueryKeys.savedFeedList(params),
+    queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
+      const response = await privateApiClient.get("/users/me/references", {
+        params: { ...params, cursor: pageParam },
+        signal,
+      });
+      return response.data;
+    },
+    initialPageParam: params.cursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    staleTime: 1000 * 60 * 5,
   });
 }
 

@@ -34,6 +34,8 @@ export interface FeedListParams {
   q?: string;
 }
 
+export type UserFeedListParams = Pick<FeedListParams, "take" | "cursor">;
+
 export interface CommentListParams {
   take?: number;
   cursor?: string;

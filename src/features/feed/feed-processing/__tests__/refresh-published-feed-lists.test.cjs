@@ -19,11 +19,15 @@ require.extensions[".ts"] = (module, filename) => {
 
 const originalModuleLoad = Module._load;
 Module._load = function mockQueryKeys(request, parent, isMain) {
-  if (request === "@entities/feed/api/feed-query") {
-    return { feedQueryKeys: { lists: ["feed", "list"] } };
-  }
-  if (request === "@entities/user/api/user-query") {
-    return { userQueryKeys: { myFeeds: ["user", "me", "feeds"] } };
+  if (request === "@entities/feed") {
+    return {
+      feedQuery: {
+        feedQueryKeys: {
+          lists: ["feed", "list"],
+          myFeeds: ["user", "me", "feeds"],
+        },
+      },
+    };
   }
   return originalModuleLoad.call(this, request, parent, isMain);
 };
