@@ -6,7 +6,6 @@ import {
   UpdateFeedRequestSchema,
   UpdateFeedFormSchema,
 } from "@entities/feed";
-import type { CreateFeedPublishingCommand } from "@features/feed/feed-processing";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { getApiErrorMessage } from "@shared/api";
 import {
@@ -15,6 +14,7 @@ import {
 } from "@shared/lib";
 import { useForm } from "react-hook-form";
 import { FeedFormMode } from "./models";
+import type { CreateFeedPublishingCommand } from "./feed-publishing-types";
 
 export interface UseSaveFeedFormProps {
   mode: FeedFormMode;

@@ -3,12 +3,12 @@ import {
   FeedProcessingBadge,
   FeedProcessingCoordinator,
   FeedPublishingCoordinator,
-} from "@features/feed/feed-processing";
+} from "@features/feed/save-feed";
 import {
   CAMERA_GUIDE_NAVIGATION,
   CameraGuideNavigationSearchParams,
   createCameraGuidePath,
-} from "@features/camera/guide-feed/model/camera-guide-navigation";
+} from "@features/camera/guide-feed";
 import {
   createCameraJoinPath,
   createRtcJoinPath,
@@ -32,7 +32,6 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./global.css";
 
-import "@shared/api/interceptors";
 import {
   shouldLeaveAuthEntry,
   useAuthStore,

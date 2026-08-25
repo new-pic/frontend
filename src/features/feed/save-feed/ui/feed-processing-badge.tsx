@@ -1,4 +1,4 @@
-import { colors } from "@shared/constants";
+import { colors } from "@shared/ui/theme";
 import { deleteStagedUploadFile } from "@shared/lib";
 import { Pressable, Text } from "@shared/ui";
 import {
