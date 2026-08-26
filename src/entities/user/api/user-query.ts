@@ -209,6 +209,17 @@ export function useUpdateProfile() {
   });
 }
 
+/**
+ * 회원 탈퇴 유예 요청
+ */
+export function useRequestAccountWithdrawal() {
+  return useMutation({
+    mutationFn: async () => {
+      await privateApiClient.delete("/users/me");
+    },
+  });
+}
+
 export function useResetCurrentUser() {
   const queryClient = useQueryClient();
 
