@@ -173,3 +173,19 @@ test("회원 탈퇴는 유예 API 성공 후에만 세션과 Query cache를 정�
     /await mutateAsync\(\)[\s\S]*await logout\(\)[\s\S]*queryClient\.clear\(\)[\s\S]*router\.replace\("\/"\)/,
   );
 });
+
+test("이미 탈퇴 유예 중인 응답은 완료 상태로 정규화한다", () => {
+  const querySource = readSource(
+    "../../../entities/user/api/user-query.ts",
+  );
+
+  assert.match(
+    querySource,
+    /ACCOUNT_WITHDRAWAL_PENDING_MESSAGE = "탈퇴 유예 중"/,
+  );
+  assert.match(
+    querySource,
+    /if \(isAccountWithdrawalPendingError\(error\)\) return;/,
+  );
+  assert.match(querySource, /throw error;/);
+});
