@@ -140,10 +140,56 @@ test("프로필 하단 메뉴는 모바일 기본 텍스트 크기를 사용한�
     "버그 제보하기",
     "서비스 약관",
     "로그아웃",
+    "회원 탈퇴",
   ]) {
     assert.match(
       source,
       new RegExp(`size="md"[^>]*>\\s*${label}\\s*<`),
     );
   }
+});
+
+test("회원 탈퇴 메뉴는 로그인한 비게스트 회원에게만 로그아웃 아래 표시된다", () => {
+  const source = readSource("../ui/profile-page.tsx");
+
+  assert.match(source, /isLoggedIn && !isGuest/);
+  assert.match(source, /로그아웃[\s\S]*회원 탈퇴/);
+  assert.match(source, /disabled=\{isDeleting\}/);
+  assert.match(source, /onPress=\{deleteAccount\}/);
+});
+
+test("회원 탈퇴는 유예 API 성공 후에만 세션과 Query cache를 정리한다", () => {
+  const querySource = readSource(
+    "../../../entities/user/api/user-query.ts",
+  );
+  const featureSource = readSource(
+    "../../../features/user/delete-account/model/use-delete-account.ts",
+  );
+
+  assert.match(querySource, /privateApiClient\.delete\("\/users\/me"\)/);
+  assert.match(featureSource, /계정과 작성 데이터는 30일 후 삭제됩니다/);
+  assert.match(
+    featureSource,
+    /await mutateAsync\(\)[\s\S]*await logout\(\)[\s\S]*queryClient\.clear\(\)[\s\S]*router\.replace\("\/"\)/,
+  );
+  assert.match(
+    featureSource,
+    /try \{\s*await logout\(\);\s*\} finally \{\s*queryClient\.clear\(\);\s*router\.replace\("\/"\);/,
+  );
+});
+
+test("이미 탈퇴 유예 중인 응답은 완료 상태로 정규화한다", () => {
+  const querySource = readSource(
+    "../../../entities/user/api/user-query.ts",
+  );
+
+  assert.match(
+    querySource,
+    /ACCOUNT_WITHDRAWAL_PENDING_MESSAGE = "탈퇴 유예 중"/,
+  );
+  assert.match(
+    querySource,
+    /if \(isAccountWithdrawalPendingError\(error\)\) return;/,
+  );
+  assert.match(querySource, /throw error;/);
 });

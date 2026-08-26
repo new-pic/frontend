@@ -1,4 +1,5 @@
 import { usersQuery } from "@entities/user";
+import { useDeleteAccount } from "@features/user/delete-account";
 import { EXTERNAL_LINKS, gradients } from "@shared/constants";
 import { useConfirm } from "@shared/lib";
 import { useAuthStore } from "@shared/model/auth-store";
@@ -94,10 +95,12 @@ function ProfileButtonMenu() {
 
 export function ProfilePage() {
   const openConfirm = useConfirm();
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const isGuest = useAuthStore((state) => state.isGuest);
   const prepareGoogleLink = useAuthStore((state) => state.prepareGoogleLink);
   const logout = useAuthStore((state) => state.logout);
   const { data } = usersQuery.useReadMe();
+  const { deleteAccount, isDeleting } = useDeleteAccount();
 
   const handleLogout = async () => {
     const response = await openConfirm({
@@ -219,6 +222,20 @@ export function ProfilePage() {
                 로그아웃
               </Text>
             </Pressable>
+            {isLoggedIn && !isGuest ? (
+              <>
+                <Divider className="bg-outline" />
+                <Pressable
+                  className="p-6"
+                  disabled={isDeleting}
+                  onPress={deleteAccount}
+                >
+                  <Text size="md" className="text-red-500 font-semibold">
+                    회원 탈퇴
+                  </Text>
+                </Pressable>
+              </>
+            ) : null}
           </VStack>
         </VStack>
       </ScrollView>

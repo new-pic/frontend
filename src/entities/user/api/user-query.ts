@@ -1,5 +1,9 @@
 import type { FeedListResponse } from "@entities/feed";
-import { privateApiClient, uploadFetchClient } from "@shared/api";
+import {
+  getApiErrorMessage,
+  privateApiClient,
+  uploadFetchClient,
+} from "@shared/api";
 import { ObjectToFormData } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import {
@@ -19,6 +23,13 @@ import {
 } from "../model";
 
 const QUERY_KEY = [API_QUERY_KEY, "user"] as const;
+const ACCOUNT_WITHDRAWAL_PENDING_MESSAGE = "탈퇴 유예 중";
+
+function isAccountWithdrawalPendingError(error: unknown) {
+  return getApiErrorMessage(error, "").includes(
+    ACCOUNT_WITHDRAWAL_PENDING_MESSAGE,
+  );
+}
 
 export const userQueryKeys = {
   all: QUERY_KEY,
@@ -205,6 +216,22 @@ export function useUpdateProfile() {
       await queryClient.invalidateQueries({
         queryKey: userQueryKeys.me(userId),
       });
+    },
+  });
+}
+
+/**
+ * 회원 탈퇴 유예 요청
+ */
+export function useRequestAccountWithdrawal() {
+  return useMutation({
+    mutationFn: async () => {
+      try {
+        await privateApiClient.delete("/users/me");
+      } catch (error) {
+        if (isAccountWithdrawalPendingError(error)) return;
+        throw error;
+      }
     },
   });
 }
