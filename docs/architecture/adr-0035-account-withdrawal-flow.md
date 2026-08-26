@@ -10,6 +10,8 @@ use-case로 분리한다.
   탈퇴 성공 후 세션과 Query cache 정리 및 화면 이동을 소유한다.
 - `pages/profile`은 로그인한 비게스트 회원에게만 탈퇴 메뉴를 노출하고
   Feature를 조합한다.
+- 서버가 이미 탈퇴 유예 중인 계정에 오류 응답을 반환하더라도 Entity API
+  adapter에서 완료 상태로 정규화한다.
 
 API가 즉시 영구 삭제가 아닌 30일 탈퇴 유예를 생성하므로 내부 mutation은
 `requestAccountWithdrawal`로 명명하고, 사용자에게 표시되는 메뉴만
@@ -28,6 +30,10 @@ API가 즉시 영구 삭제가 아닌 30일 탈퇴 유예를 생성하므로 내
 서버는 일반 회원을 `DELETION_PENDING` 상태로 변경하고 모든 로그인 세션을
 종료한다. 계정과 작성 데이터는 30일 동안 유지되며 같은 계정으로 다시
 인증하면 복구할 수 있다. 게스트와 최고 관리자 계정은 요청할 수 없다.
+
+운영 API는 이미 `DELETION_PENDING`인 계정의 반복 요청을 200이 아닌 오류로
+반환한다. 이 상태는 탈퇴 use-case의 목표가 이미 달성된 경우이므로 일반
+실패처럼 현재 세션을 유지하면 서버 상태와 앱 상태가 어긋난다.
 
 ## Alternatives
 
@@ -64,7 +70,7 @@ Delete Account Feature
 User Entity mutation
   ↓ privateApiClient
 DELETE /users/me
-  ↓ success only
+  ↓ success or already DELETION_PENDING
 AuthStore logout → QueryClient clear → Expo Router auth entry
 ```
 
@@ -86,6 +92,7 @@ AuthStore의 `logout` 뒤에, 네이티브와 Web 확인창 차이는 `useConfir
 얻은 것:
 
 - 탈퇴 API 실패 시 기존 세션과 cache 보존
+- 이미 탈퇴 유예 중인 계정도 완료로 처리해 서버와 앱의 인증 상태 일치
 - 서버 성공 이후 이전 계정 데이터가 메모리에 남지 않도록 전체 Query
   cache 제거
 - 게스트와 미로그인 상태에서 탈퇴 진입 차단
@@ -100,6 +107,9 @@ AuthStore의 `logout` 뒤에, 네이티브와 Web 확인창 차이는 `useConfir
   시 이전 사용자 데이터가 남지 않는 안전성을 우선한다.
 - 서버가 모든 세션을 종료하더라도 현재 기기의 SecureStore 정리는 별도로
   완료되어야 한다.
+- 이미 탈퇴 유예 중인지 판별하는 공식 오류 코드가 없어 현재 서버의
+  `탈퇴 유예 중` 메시지에 의존한다. 백엔드가 반복 DELETE를 200으로
+  처리하거나 안정적인 error code를 제공하면 이 호환 처리를 제거할 수 있다.
 
 ## Result
 
@@ -108,8 +118,10 @@ AuthStore의 `logout` 뒤에, 네이티브와 Web 확인창 차이는 `useConfir
 - 요청 중 중복 실행을 막고 실패 시 API 오류를 표시하도록 구현했다.
 - 성공 후 AuthStore 세션과 React Query cache를 정리하고 인증 진입 화면으로
   이동하도록 구성했다.
+- 이미 탈퇴 유예 중인 서버 응답을 Entity API adapter에서 완료로 정규화해
+  같은 로컬 후처리를 실행하도록 보완했다.
 - TypeScript 검사(`pnpm exec tsc --noEmit`)를 통과했다.
-- 프로필 흐름 테스트 10개(`pnpm test:profile-flow`)를 통과했다.
+- 프로필 흐름 테스트 11개(`pnpm test:profile-flow`)를 통과했다.
 - iOS Metro export(`expo export --platform ios`)를 완료해 새 Feature의 public
   API와 경로 별칭이 실제 bundle에서 해석되는 것을 확인했다.
 - ESLint 9 실행 파일은 존재하지만 저장소에 `eslint.config.*`가 없어 lint
