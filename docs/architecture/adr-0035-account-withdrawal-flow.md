@@ -8,6 +8,10 @@ use-case로 분리한다.
 - `entities/user`는 `DELETE /users/me` 요청만 소유한다.
 - `features/user/delete-account`는 확인, 중복 요청 방지, 오류 표시,
   탈퇴 성공 후 세션과 Query cache 정리 및 화면 이동을 소유한다.
+- SecureStore의 access token과 refresh token 삭제는 서로 독립적으로 시도하고,
+  저장소 삭제 실패와 인메모리 인증 상태 초기화를 분리한다.
+- 서버 탈퇴 완료 후에는 로컬 저장소 정리 오류가 발생해도 Query cache 제거와
+  인증 진입 화면 이동을 완료한다.
 - `pages/profile`은 로그인한 비게스트 회원에게만 탈퇴 메뉴를 노출하고
   Feature를 조합한다.
 - 서버가 이미 탈퇴 유예 중인 계정에 오류 응답을 반환하더라도 Entity API
@@ -34,6 +38,12 @@ API가 즉시 영구 삭제가 아닌 30일 탈퇴 유예를 생성하므로 내
 운영 API는 이미 `DELETION_PENDING`인 계정의 반복 요청을 200이 아닌 오류로
 반환한다. 이 상태는 탈퇴 use-case의 목표가 이미 달성된 경우이므로 일반
 실패처럼 현재 세션을 유지하면 서버 상태와 앱 상태가 어긋난다.
+
+Expo SecureStore의 `deleteItemAsync`는 저장값을 삭제하지 못하면 Promise를
+reject한다. 두 토큰을 순차 삭제한 뒤 AuthStore를 초기화하면 첫 번째 삭제
+실패가 두 번째 삭제와 인메모리 상태 초기화를 모두 막는다. 또한 탈퇴
+Feature가 `await logout()` 다음에 cache와 navigation을 정리하면 같은 예외가
+서버에서 이미 종료된 계정을 현재 화면에 남기는 문제가 된다.
 
 ## Alternatives
 
@@ -71,7 +81,11 @@ User Entity mutation
   ↓ privateApiClient
 DELETE /users/me
   ↓ success or already DELETION_PENDING
-AuthStore logout → QueryClient clear → Expo Router auth entry
+AuthStore logout
+  ├ SecureStore token deletions (independent, best effort)
+  └ in-memory auth reset (always)
+  ↓ finally
+QueryClient clear → Expo Router auth entry
 ```
 
 상태와 lifecycle 소유권은 다음과 같다.
@@ -105,8 +119,10 @@ AuthStore의 `logout` 뒤에, 네이티브와 Web 확인창 차이는 `useConfir
   서버의 400 응답으로 처리한다.
 - 전체 Query cache 제거는 사용자와 무관한 cache도 함께 비우지만 계정 전환
   시 이전 사용자 데이터가 남지 않는 안전성을 우선한다.
-- 서버가 모든 세션을 종료하더라도 현재 기기의 SecureStore 정리는 별도로
-  완료되어야 한다.
+- SecureStore 삭제가 실패한 key 이름은 경고로 남기지만 토큰 값이나 오류
+  객체는 기록하지 않는다. 실패한 저장값은 기기에 남을 수 있으나 서버가
+  탈퇴 요청 성공 시 세션을 무효화하며, 앱의 현재 인증 상태와 cache 정리는
+  저장소 실패와 독립적으로 완료한다.
 - 이미 탈퇴 유예 중인지 판별하는 공식 오류 코드가 없어 현재 서버의
   `탈퇴 유예 중` 메시지에 의존한다. 백엔드가 반복 DELETE를 200으로
   처리하거나 안정적인 error code를 제공하면 이 호환 처리를 제거할 수 있다.
@@ -120,8 +136,13 @@ AuthStore의 `logout` 뒤에, 네이티브와 Web 확인창 차이는 `useConfir
   이동하도록 구성했다.
 - 이미 탈퇴 유예 중인 서버 응답을 Entity API adapter에서 완료로 정규화해
   같은 로컬 후처리를 실행하도록 보완했다.
+- access token 또는 refresh token 중 하나의 SecureStore 삭제가 실패해도 두
+  삭제를 모두 시도하고 AuthStore 상태를 초기화하도록 보완했다.
+- 탈퇴 Feature의 cache 제거와 인증 진입 화면 이동을 `finally` 경계에 두어
+  `logout` 예외가 후처리를 막지 않도록 했다.
 - TypeScript 검사(`pnpm exec tsc --noEmit`)를 통과했다.
 - 프로필 흐름 테스트 11개(`pnpm test:profile-flow`)를 통과했다.
+- 인증 저장소 실패 회귀 테스트 2개(`pnpm test:auth-session`)를 통과했다.
 - iOS Metro export(`expo export --platform ios`)를 완료해 새 Feature의 public
   API와 경로 별칭이 실제 bundle에서 해석되는 것을 확인했다.
 - ESLint 9 실행 파일은 존재하지만 저장소에 `eslint.config.*`가 없어 lint

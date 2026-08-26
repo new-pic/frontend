@@ -41,9 +41,12 @@ export function useDeleteAccount() {
       return;
     }
 
-    await logout();
-    queryClient.clear();
-    router.replace("/");
+    try {
+      await logout();
+    } finally {
+      queryClient.clear();
+      router.replace("/");
+    }
   }, [isPending, logout, mutateAsync, openConfirm, queryClient]);
 
   return {
