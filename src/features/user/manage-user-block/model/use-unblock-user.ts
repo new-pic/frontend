@@ -24,22 +24,28 @@ export function useUnblockUser() {
     async ({ userId, nickname }: UnblockUserOptions) => {
       if (isUnblockingRef.current) return false;
 
-      const shouldUnblock = await openConfirm({
-        title: "차단 해제",
-        message: `${nickname}님의 차단을 해제하시겠습니까?`,
-        confirmText: "해제",
-        cancelText: "취소",
-      });
-      if (!shouldUnblock) return false;
-
       isUnblockingRef.current = true;
+
       try {
+        const shouldUnblock = await openConfirm({
+          title: "차단 해제",
+          message: `${nickname}님의 차단을 해제하시겠습니까?`,
+          confirmText: "해제",
+          cancelText: "취소",
+        });
+
+        if (!shouldUnblock) return false;
+
         await unblockMutation.mutateAsync(userId);
+
         removeUnblockedUserFromListCache(queryClient, userId);
+
         await queryClient.invalidateQueries({
           queryKey: userBlockQuery.userBlockQueryKeys.all,
         });
+
         void refreshUserContentQueries(queryClient);
+
         return true;
       } catch (error) {
         Alert.alert(
@@ -49,6 +55,7 @@ export function useUnblockUser() {
             "사용자 차단을 해제하지 못했습니다. 다시 시도해주세요.",
           ),
         );
+
         return false;
       } finally {
         isUnblockingRef.current = false;
