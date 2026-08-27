@@ -201,7 +201,7 @@ test("Welcome UI와 로그인 use-case가 동의 전 요청을 이중 차단한�
   );
   assert.equal((welcomeSource.match(/handleLogin\(\{/g) ?? []).length, 3);
   assert.equal((welcomeSource.match(/return handleLogin\(\{/g) ?? []).length, 3);
-  assert.match(welcomeSource, /Alert\.alert\([\s\S]*"이용약관 동의 필요"/);
+  assert.match(welcomeSource, /Alert\.alert\([\s\S]*"필수 약관 동의 필요"/);
   assert.equal(
     (loginSource.match(/if \(!termsAgreed\)/g) ?? []).length,
     1,
@@ -210,10 +210,15 @@ test("Welcome UI와 로그인 use-case가 동의 전 요청을 이중 차단한�
     loginSource,
     /const beginLogin = \(provider: LoginProvider\) => \{[\s\S]*if \(!termsAgreed\)[\s\S]*loginLockRef\.current = true;[\s\S]*setActiveLoginProvider\(provider\)/,
   );
-  assert.match(
-    welcomeSource,
-    /Linking\.openURL\(EXTERNAL_LINKS\.TERMS_OF_SERVICE\)[\s\S]*setTermsAgreed\(true\)/,
+  const openTermsHandler = welcomeSource.match(
+    /const handleOpenTermsOfService = async \(\) => \{[\s\S]*?\n  \};/,
   );
+  assert.ok(openTermsHandler);
+  assert.match(
+    openTermsHandler[0],
+    /Linking\.openURL\(EXTERNAL_LINKS\.TERMS_OF_SERVICE\)/,
+  );
+  assert.doesNotMatch(openTermsHandler[0], /setTermsAgreed/);
 });
 
 test("Apple 로그인은 iOS 지원 여부를 확인하고 시스템 인증 결과를 서버에 전달한다", () => {
@@ -275,15 +280,19 @@ test("Apple과 Google 로그인은 세션 저장과 후속 이동을 공유한�
   );
 });
 
-test("이용약관 행은 기존 로그인 버튼 배치를 밀지 않는다", () => {
+test("Welcome은 약관 핵심 내용과 명시적 동의 UI를 항상 표시한다", () => {
   const welcomeSource = readSource("src/pages/welcome/ui/welcome-page.tsx");
 
+  assert.match(welcomeSource, /<ScrollView/);
+  assert.match(welcomeSource, /NewPic 서비스 이용 전 아래 내용을 확인해주세요/);
+  assert.match(welcomeSource, /소셜 로그인 정보 또는 기기/);
+  assert.match(welcomeSource, /촬영하거나 업로드한 사진과 작성한 피드·댓글/);
+  assert.match(welcomeSource, /수집 항목, 이용 목적, 보관 기간 및 삭제 방법/);
+  assert.match(welcomeSource, /이용약관 및 개인정보 처리방침 전문 보기/);
+  assert.match(welcomeSource, /\(필수\) 위 내용을 확인했으며/);
   assert.match(
     welcomeSource,
-    /className="h-full px-8 justify-center py-8 gap-14"/,
+    /onChange=\{setTermsAgreed\}/,
   );
-  assert.match(
-    welcomeSource,
-    /className="absolute bottom-0 left-8 right-8 items-center justify-center"/,
-  );
+  assert.doesNotMatch(welcomeSource, /className="absolute bottom-0/);
 });

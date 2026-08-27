@@ -13,10 +13,14 @@ Google과 Guest 로그인 요청 및 응답의 `termsAgreed`는 entity Zod
 schema에서 검증한다. 응답이 동의 완료 상태가 아니면 auth store가
 토큰 저장을 거부한다.
 
-Welcome UI는 동의 전 로그인 버튼을 누르면 안내 Alert를 표시하고
-요청을 시작하지 않는다. 로그인 use-case도 같은 조건을 다시
-검사한다. 이용약관 링크가 정상적으로 열린 경우에는 동의 상태를
-`true`로 변경한다.
+Welcome UI는 사용자가 링크를 열지 않아도 계정 정보, 사진 및 작성 콘텐츠의
+처리 목적과 상세 정책에서 확인할 항목을 볼 수 있도록 핵심 안내를 상시
+표시한다. 전체 이용약관 및 개인정보 처리방침은 외부 문서로 연결하되,
+문서를 연 행위와 동의는 분리한다. 동의 상태는 사용자가 필수 체크박스를
+직접 변경할 때만 갱신한다.
+
+동의 전 로그인 버튼을 누르면 안내 Alert를 표시하고 요청을 시작하지 않는다.
+로그인 use-case도 같은 조건을 다시 검사한다.
 
 ## Context
 
@@ -61,7 +65,9 @@ token과 동의 상태를 하나의 불변식으로 유지하면서도 로그인
 런타임에서 차단할 수 없기 때문이다.
 
 ```text
-Welcome Checkbox / Terms Link
+Welcome Legal Summary (always visible)
+  ↓ optional full document link
+Explicit Checkbox
   ↓
 AuthStore.termsAgreed
   ↓
@@ -83,6 +89,9 @@ SecureStore Tokens
 얻은 것:
 
 - UI Alert와 use-case에서 동의 전 로그인을 이중 차단
+- 링크 접근 여부와 명시적 동의 상태 분리
+- 링크를 열지 않아도 주요 데이터 처리 대상과 목적 확인 가능
+- 작은 화면에서도 전체 안내와 로그인 Action에 접근할 수 있는 스크롤 구조
 - 서버 DTO의 요청과 응답을 런타임에서 검증
 - 기존 token 보유 사용자를 별도 마이그레이션 없이 동의 완료로 처리
 - Guest에서 Google 계정 연결 시 기존 세션 동의를 재사용
@@ -95,15 +104,26 @@ SecureStore Tokens
 - 기존 token 보유자는 약관 버전과 관계없이 동의 완료로 간주한다.
 - 향후 약관 버전별 재동의가 필요하면 서버의 agreement version과
   별도 migration 정책이 필요하다.
+- 현재 공개 문서는 이용약관과 개인정보 처리방침을 하나의 URL로 제공한다.
+  문서가 분리되면 각 목적에 맞는 링크를 별도로 노출해야 한다.
 
 ## Result
 
-- Welcome 최하단에 공용 Gluestack Checkbox와 이용약관 링크를
-  배치했다.
-- 링크 열기에 성공하면 체크 상태가 활성화된다.
+- Welcome에 데이터 처리 핵심 안내, 전체 문서 링크와 공용 Gluestack
+  Checkbox를 상시 노출했다.
+- 약관 안내가 추가되어도 작은 화면에서 잘리지 않도록 Welcome을 스크롤
+  가능한 레이아웃으로 변경했다.
+- 전체 문서를 열어보는 동작은 동의 상태를 변경하지 않으며 체크박스의
+  명시적 선택만 동의로 처리한다.
 - Google과 Guest 요청 body에 `termsAgreed`가 포함된다.
 - 두 로그인 응답의 `termsAgreed`를 검증하고 false 세션의 token
   저장을 차단한다.
 - 저장된 access token은 동의 완료 상태로 복원되고 로그아웃 시
   동의 상태가 초기화된다.
 - 공용 Checkbox를 NativeWind v5 변환 경계에 맞춰 수정했다.
+- TypeScript 검사(`pnpm exec tsc --noEmit`)를 통과했다.
+- 약관 및 소셜 로그인 회귀 테스트 10개를 통과했다.
+- iOS Metro export를 완료해 새 ScrollView, Card와 CheckboxLabel이 실제
+  bundle에서 해석되는 것을 확인했다.
+- 실제 기기에서의 작은 화면 스크롤과 외부 문서 이동은 수동으로 실행하지
+  않았다.
