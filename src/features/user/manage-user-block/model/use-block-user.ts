@@ -26,26 +26,32 @@ export function useBlockUser() {
   const blockUser = useCallback(
     async ({ userId, nickname, onBlocked }: BlockUserOptions) => {
       if (isBlockingRef.current) return false;
-      if (!(await requireMember())) return false;
-
-      const shouldBlock = await openConfirm({
-        title: "사용자 차단",
-        message: `${nickname}님의 게시글과 댓글이 더 이상 표시되지 않습니다. 차단한 사용자는 프로필에서 해제할 수 있습니다.`,
-        confirmText: "차단",
-        cancelText: "취소",
-        destructive: true,
-      });
-      if (!shouldBlock) return false;
 
       isBlockingRef.current = true;
+
       try {
+        if (!(await requireMember())) return false;
+
+        const shouldBlock = await openConfirm({
+          title: "사용자 차단",
+          message: `${nickname}님의 게시글과 댓글이 더 이상 표시되지 않습니다. 차단한 사용자는 프로필에서 해제할 수 있습니다.`,
+          confirmText: "차단",
+          cancelText: "취소",
+          destructive: true,
+        });
+
+        if (!shouldBlock) return false;
+
         await blockMutation.mutateAsync(userId);
         await hideBlockedUserContent(queryClient, userId);
+
         await queryClient.invalidateQueries({
           queryKey: userBlockQuery.userBlockQueryKeys.all,
         });
+
         onBlocked?.();
         void refreshUserContentQueries(queryClient);
+
         Alert.alert("차단 완료", `${nickname}님을 차단했습니다.`);
         return true;
       } catch (error) {
@@ -56,6 +62,7 @@ export function useBlockUser() {
             "사용자를 차단하지 못했습니다. 다시 시도해주세요.",
           ),
         );
+
         return false;
       } finally {
         isBlockingRef.current = false;
