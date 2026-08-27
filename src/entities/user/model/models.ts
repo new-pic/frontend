@@ -31,3 +31,30 @@ export interface PaginationParams {
   take?: number;
   cursor?: string;
 }
+
+export interface BlockedUser {
+  id: string;
+  createdAt: string;
+  blockedUser: {
+    id: string;
+    nickname: string;
+    profileImage: string | null;
+  };
+}
+
+export interface BlockedUserListResponse {
+  items: BlockedUser[];
+  nextCursor?: string | null;
+}
+
+export interface BlockUserResponse {
+  blocked: true;
+  id: string;
+  blockedUserId: string;
+  createdAt: string;
+}
+
+export interface UnblockUserResponse {
+  blocked: false;
+  blockedUserId: string;
+}

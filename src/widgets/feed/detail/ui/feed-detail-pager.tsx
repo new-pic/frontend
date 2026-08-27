@@ -1,6 +1,7 @@
 import { ContentReportTarget, FeedResponse } from "@entities/feed";
 import { FeedCameraGuideFab } from "@features/camera/guide-feed";
 import { ReportContentModal } from "@features/feed/report-content";
+import { useBlockUser } from "@features/user/manage-user-block";
 import { useMemberAccess } from "@shared/hooks";
 import { SlidePageView } from "@shared/ui";
 import { router } from "expo-router";
@@ -46,6 +47,7 @@ export function FeedDetailPager({
   const [reportTarget, setReportTarget] =
     useState<ContentReportTarget | null>(null);
   const requireMember = useMemberAccess();
+  const { blockUser, isBlocking } = useBlockUser();
   const insets = useSafeAreaInsets();
   const activeFeed = useMemo(() => {
     if (activePageIndex < 0 || activePageIndex >= feeds.length) {
@@ -77,16 +79,32 @@ export function FeedDetailPager({
     [requireMember],
   );
 
+  const handleBack = useCallback(() => {
+    if (onBack) {
+      onBack();
+      return;
+    }
+    router.back();
+  }, [onBack]);
+
   return (
     <View style={{ flex: 1 }}>
       {activeFeed ? (
         <FeedDetailHeader
           key={activeFeed.id}
           feed={activeFeed}
-          onBack={onBack ?? (() => router.back())}
+          onBack={handleBack}
           onReport={() =>
             void handleRequestReport({ type: "feed", id: activeFeed.id })
           }
+          onBlockAuthor={() =>
+            void blockUser({
+              userId: activeFeed.author.id,
+              nickname: activeFeed.author.nickname,
+              onBlocked: handleBack,
+            })
+          }
+          isBlockingAuthor={isBlocking}
         />
       ) : null}
       <SlidePageView
@@ -105,6 +123,13 @@ export function FeedDetailPager({
                 onReportComment={(commentId) =>
                   void handleRequestReport({ type: "comment", id: commentId })
                 }
+                onBlockCommentAuthor={(author) =>
+                  void blockUser({
+                    userId: author.id,
+                    nickname: author.nickname,
+                  })
+                }
+                isBlockingAuthor={isBlocking}
               />
             ) : null}
           </SlidePageView.Item>

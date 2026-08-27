@@ -9,14 +9,20 @@ SecureStore에 access token이 존재하면 서버가 이전 로그인에서 동
 활성 token이 있는 동안에는 이 상태를 `false`로 변경할 수 없고,
 로그아웃이 token과 동의 상태를 함께 초기화한다.
 
-Google과 Guest 로그인 요청 및 응답의 `termsAgreed`는 entity Zod
+Apple, Google과 Guest 로그인 요청 및 응답의 `termsAgreed`는 entity Zod
 schema에서 검증한다. 응답이 동의 완료 상태가 아니면 auth store가
 토큰 저장을 거부한다.
 
-Welcome UI는 동의 전 로그인 버튼을 누르면 안내 Alert를 표시하고
-요청을 시작하지 않는다. 로그인 use-case도 같은 조건을 다시
-검사한다. 이용약관 링크가 정상적으로 열린 경우에는 동의 상태를
-`true`로 변경한다.
+Welcome UI는 미동의 사용자가 진입하면 약관 BottomSheet를 자동으로 열어,
+링크를 누르지 않아도 계정 정보, 사진 및 작성 콘텐츠의 처리 목적과 상세
+정책에서 확인할 항목을 볼 수 있도록 한다. 전체 이용약관 및 개인정보
+처리방침은 외부 문서로 연결하되, 문서를 연 행위와 동의는 분리한다.
+BottomSheet의 체크박스는 로컬 임시 상태만 변경하고, 사용자가
+`동의하고 계속`을 선택할 때만 auth store의 동의 상태를 갱신한다.
+
+약관은 닫을 수 있으며 Welcome 하단의 약관 보기 Action으로 다시 열 수 있다.
+동의 전 로그인 버튼을 누르면 BottomSheet를 다시 표시하고 요청을 시작하지
+않는다. 로그인 use-case도 같은 조건을 다시 검사한다.
 
 ## Context
 
@@ -24,8 +30,8 @@ Welcome UI는 동의 전 로그인 버튼을 누르면 안내 Alert를 표시하
 응답의 access/refresh token만 처리했다. 서버 DTO에 boolean
 `termsAgreed`가 추가되면서 다음 경계가 필요해졌다.
 
-- 두 로그인 요청에서 동의 상태 전송
-- 두 로그인 응답에서 서버가 확정한 동의 상태 검증
+- 각 로그인 요청에서 동의 상태 전송
+- 각 로그인 응답에서 서버가 확정한 동의 상태 검증
 - 로그인 전 UI 상태와 로그인 후 세션 상태의 일관성
 - 기존 토큰 보유 사용자의 하위 호환
 - 로그아웃과 토큰 갱신 lifecycle에서 동의 상태 유지 및 초기화
@@ -61,13 +67,17 @@ token과 동의 상태를 하나의 불변식으로 유지하면서도 로그인
 런타임에서 차단할 수 없기 때문이다.
 
 ```text
-Welcome Checkbox / Terms Link
+Welcome Entry (when terms are not agreed)
+  ↓ auto-present BottomSheet
+Legal Summary + optional full document link
+  ↓ explicit checkbox (local draft)
+Agree and Continue
   ↓
 AuthStore.termsAgreed
   ↓
 Social Login Use Case Guard
   ↓
-Google or Guest Request Schema
+Apple, Google or Guest Request Schema
   ↓
 Auth API
   ↓
@@ -82,7 +92,13 @@ SecureStore Tokens
 
 얻은 것:
 
-- UI Alert와 use-case에서 동의 전 로그인을 이중 차단
+- Welcome UI와 use-case에서 동의 전 로그인을 이중 차단
+- 링크 접근 여부와 명시적 동의 상태 분리
+- 진입 시 BottomSheet가 자동으로 열려 링크 없이 주요 데이터 처리 대상과
+  목적 확인 가능
+- 약관 안내를 중앙 로그인 레이아웃에서 분리해 기존 배치 유지
+- BottomSheet 내부 스크롤로 작은 화면에서도 전체 안내와 동의 Action에 접근
+- 체크만 하고 시트를 닫은 경우 동의로 확정되지 않는 명시적 제출 구조
 - 서버 DTO의 요청과 응답을 런타임에서 검증
 - 기존 token 보유 사용자를 별도 마이그레이션 없이 동의 완료로 처리
 - Guest에서 Google 계정 연결 시 기존 세션 동의를 재사용
@@ -95,15 +111,30 @@ SecureStore Tokens
 - 기존 token 보유자는 약관 버전과 관계없이 동의 완료로 간주한다.
 - 향후 약관 버전별 재동의가 필요하면 서버의 agreement version과
   별도 migration 정책이 필요하다.
+- 현재 공개 문서는 이용약관과 개인정보 처리방침을 하나의 URL로 제공한다.
+  문서가 분리되면 각 목적에 맞는 링크를 별도로 노출해야 한다.
 
 ## Result
 
-- Welcome 최하단에 공용 Gluestack Checkbox와 이용약관 링크를
-  배치했다.
-- 링크 열기에 성공하면 체크 상태가 활성화된다.
-- Google과 Guest 요청 body에 `termsAgreed`가 포함된다.
-- 두 로그인 응답의 `termsAgreed`를 검증하고 false 세션의 token
+- Welcome 진입 시 데이터 처리 핵심 안내, 전체 문서 링크와 공용 Gluestack
+  Checkbox를 담은 BottomSheet가 자동으로 표시된다.
+- 중앙 로그인 영역에서는 약관 Card를 제거하고 하단 재진입 Action만 남겨
+  기존 로그인 배치를 보존했다.
+- 약관 BottomSheet는 작은 화면에서도 안내와 동의 Action에 접근할 수 있도록
+  내부 스크롤을 사용한다.
+- 전체 문서를 열어보는 동작은 동의 상태를 변경하지 않으며 체크박스의
+  선택 후 `동의하고 계속`을 누른 경우에만 동의로 처리한다.
+- Apple, Google과 Guest 요청 body에 `termsAgreed`가 포함된다.
+- 각 로그인 응답의 `termsAgreed`를 검증하고 false 세션의 token
   저장을 차단한다.
 - 저장된 access token은 동의 완료 상태로 복원되고 로그아웃 시
   동의 상태가 초기화된다.
 - 공용 Checkbox를 NativeWind v5 변환 경계에 맞춰 수정했다.
+- 약관 및 소셜 로그인 회귀 테스트 12개와 공용 BottomSheet 테스트 4개를
+  통과했다.
+- TypeScript 검사(`pnpm exec tsc --noEmit`)를 통과했다.
+- iOS Metro export를 완료해 BottomSheet, Card와 CheckboxLabel이 실제
+  bundle에서 해석되는 것을 확인했다.
+- 저장소에 ESLint 9 설정 파일이 없어 lint는 실행하지 못했다.
+- 실제 기기에서의 자동 표시, 작은 화면 스크롤, 시트 재진입과 외부 문서
+  이동은 수동으로 실행하지 않았다.

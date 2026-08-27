@@ -10,12 +10,16 @@ interface FeedDetailHeaderProps {
   feed: FeedResponse;
   onBack: () => void;
   onReport: () => void;
+  onBlockAuthor: () => void;
+  isBlockingAuthor?: boolean;
 }
 
 export function FeedDetailHeader({
   feed,
   onBack,
   onReport,
+  onBlockAuthor,
+  isBlockingAuthor = false,
 }: FeedDetailHeaderProps) {
   const userId = useAuthStore((state) => state.userId);
   const canReport = canReportContent({
@@ -36,13 +40,20 @@ export function FeedDetailHeader({
       {canReport ? (
         <ContentActionsMenu
           accessibilityLabel="피드 더보기"
-          accessibilityHint="신고 메뉴를 엽니다"
+          accessibilityHint="신고 및 작성자 차단 메뉴를 엽니다"
           items={[
             {
               key: "report",
               label: "신고하기",
               destructive: true,
               onPress: onReport,
+            },
+            {
+              key: "block-author",
+              label: "작성자 차단하기",
+              destructive: true,
+              disabled: isBlockingAuthor,
+              onPress: onBlockAuthor,
             },
           ]}
         />
