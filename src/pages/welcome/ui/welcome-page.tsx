@@ -7,6 +7,7 @@ import {
   Button,
   ButtonSpinner,
   ButtonText,
+  BottomSheetModal,
   Card,
   Center,
   Checkbox,
@@ -18,26 +19,52 @@ import {
 } from "@shared/ui";
 import { IconCheck } from "@tabler/icons-react-native";
 import * as Linking from "expo-linking";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Image, Pressable, ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 export function WelcomPage() {
   const { disabled, appleLogin, googleLogin, guestLogin } = useSocialLogin();
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [isTermsSheetOpen, setIsTermsSheetOpen] = useState(false);
+  const [draftTermsAgreed, setDraftTermsAgreed] = useState(false);
+  const insets = useSafeAreaInsets();
   const termsAgreed = useAuthStore((state) => state.termsAgreed);
   const hasExistingSession = useAuthStore((state) =>
     Boolean(state.accessToken),
   );
   const setTermsAgreed = useAuthStore((state) => state.setTermsAgreed);
 
+  useEffect(() => {
+    if (!hasExistingSession && !termsAgreed) {
+      setIsTermsSheetOpen(true);
+    }
+  }, [hasExistingSession, termsAgreed]);
+
+  const openTermsSheet = () => {
+    setDraftTermsAgreed(termsAgreed);
+    setIsTermsSheetOpen(true);
+  };
+
+  const closeTermsSheet = () => {
+    setDraftTermsAgreed(termsAgreed);
+    setIsTermsSheetOpen(false);
+  };
+
+  const handleAcceptTerms = () => {
+    if (!draftTermsAgreed) return;
+
+    setTermsAgreed(true);
+    setIsTermsSheetOpen(false);
+  };
+
   const ensureTermsAgreed = () => {
     if (termsAgreed) return true;
 
-    Alert.alert(
-      "필수 약관 동의 필요",
-      "서비스를 시작하려면 안내 내용을 확인하고 이용약관과 개인정보 처리방침에 동의해주세요.",
-    );
+    openTermsSheet();
     return false;
   };
 
@@ -156,10 +183,49 @@ export function WelcomPage() {
               <ButtonText>로그인 없이 사용하기</ButtonText>
             </Button>
           </VStack>
+        </VStack>
 
-          <Card size="sm" className="gap-3 shadow-none">
+        <Pressable
+          className="min-h-11 items-center justify-center"
+          disabled={disabled}
+          accessibilityRole="button"
+          accessibilityLabel="이용약관 및 개인정보 처리방침 보기"
+          onPress={openTermsSheet}
+        >
+          <Text size="sm" className="text-label-muted underline">
+            이용약관 및 개인정보 처리방침 보기
+          </Text>
+        </Pressable>
+      </ScrollView>
+
+      <BottomSheetModal
+        open={isTermsSheetOpen}
+        onClose={closeTermsSheet}
+        snapPoints={["75%", "100%"]}
+      >
+        <ScrollView
+          style={{ flex: 1 }}
+          nestedScrollEnabled
+          contentInsetAdjustmentBehavior="never"
+          contentContainerStyle={{
+            paddingHorizontal: 24,
+            paddingTop: 24,
+            paddingBottom: Math.max(24, insets.bottom),
+            gap: 24,
+          }}
+        >
+          <VStack space="xs">
+            <Text size="xl" className="font-bold">
+              이용약관 및 개인정보 처리방침
+            </Text>
+            <Text className="text-label-muted">
+              NewPic 서비스를 시작하기 전에 아래 내용을 확인해주세요.
+            </Text>
+          </VStack>
+
+          <Card size="sm" className="gap-3 border-outline shadow-none">
             <Text size="sm" className="font-semibold">
-              NewPic 서비스 이용 전 아래 내용을 확인해주세요.
+              NewPic이 처리하는 정보
             </Text>
             <VStack className="gap-1">
               <Text size="xs">
@@ -192,9 +258,9 @@ export function WelcomPage() {
             <Checkbox
               value="terms-agreed"
               className="min-h-11 w-full items-start"
-              isChecked={termsAgreed}
+              isChecked={draftTermsAgreed}
               isDisabled={disabled || hasExistingSession}
-              onChange={setTermsAgreed}
+              onChange={setDraftTermsAgreed}
               accessibilityLabel="이용약관 및 개인정보 처리방침 필수 동의"
             >
               <CheckboxIndicator className="mt-1 h-6 w-6 rounded-md">
@@ -206,8 +272,19 @@ export function WelcomPage() {
               </CheckboxLabel>
             </Checkbox>
           </Card>
-        </VStack>
-      </ScrollView>
+
+          <Button
+            variant="gradient"
+            className="w-full h-12.5 p-0 rounded-xl"
+            disabled={!draftTermsAgreed || disabled || hasExistingSession}
+            onPress={handleAcceptTerms}
+          >
+            <ButtonText size="lg" className="font-semibold">
+              동의하고 계속
+            </ButtonText>
+          </Button>
+        </ScrollView>
+      </BottomSheetModal>
     </SafeAreaView>
   );
 }

@@ -201,7 +201,10 @@ test("Welcome UI와 로그인 use-case가 동의 전 요청을 이중 차단한�
   );
   assert.equal((welcomeSource.match(/handleLogin\(\{/g) ?? []).length, 3);
   assert.equal((welcomeSource.match(/return handleLogin\(\{/g) ?? []).length, 3);
-  assert.match(welcomeSource, /Alert\.alert\([\s\S]*"필수 약관 동의 필요"/);
+  assert.match(
+    welcomeSource,
+    /const ensureTermsAgreed = \(\) => \{[\s\S]*openTermsSheet\(\);[\s\S]*return false;/,
+  );
   assert.equal(
     (loginSource.match(/if \(!termsAgreed\)/g) ?? []).length,
     1,
@@ -219,6 +222,46 @@ test("Welcome UI와 로그인 use-case가 동의 전 요청을 이중 차단한�
     /Linking\.openURL\(EXTERNAL_LINKS\.TERMS_OF_SERVICE\)/,
   );
   assert.doesNotMatch(openTermsHandler[0], /setTermsAgreed/);
+});
+
+test("약관 안내 Card와 체크박스 label은 공용 테두리와 폰트를 사용한다", () => {
+  const welcomeSource = readSource("src/pages/welcome/ui/welcome-page.tsx");
+  const checkboxSource = readSource("src/shared/ui/checkbox/index.tsx");
+
+  assert.match(
+    welcomeSource,
+    /<Card size="sm" className="gap-3 border-outline shadow-none">/,
+  );
+  assert.match(
+    checkboxSource,
+    /checkboxLabelStyle = tva\(\{[\s\S]*font-sans/,
+  );
+  assert.doesNotMatch(
+    checkboxSource,
+    /checkboxLabelStyle = tva\(\{[\s\S]*font-body/,
+  );
+});
+
+test("약관 동의는 BottomSheet에서 명시적으로 확정한다", () => {
+  const welcomeSource = readSource("src/pages/welcome/ui/welcome-page.tsx");
+
+  assert.match(welcomeSource, /<BottomSheetModal/);
+  assert.match(welcomeSource, /open=\{isTermsSheetOpen\}/);
+  assert.match(welcomeSource, /snapPoints=\{\["75%", "100%"\]\}/);
+  assert.match(
+    welcomeSource,
+    /if \(!hasExistingSession && !termsAgreed\) \{[\s\S]*setIsTermsSheetOpen\(true\)/,
+  );
+  assert.match(welcomeSource, /isChecked=\{draftTermsAgreed\}/);
+  assert.match(welcomeSource, /onChange=\{setDraftTermsAgreed\}/);
+  assert.match(
+    welcomeSource,
+    /const handleAcceptTerms = \(\) => \{[\s\S]*setTermsAgreed\(true\);[\s\S]*setIsTermsSheetOpen\(false\)/,
+  );
+  assert.match(
+    welcomeSource,
+    /<Button[\s\S]*className="w-full h-12\.5 p-0 rounded-xl"[\s\S]*<ButtonText size="lg" className="font-semibold">[\s\S]*동의하고 계속/,
+  );
 });
 
 test("Apple 로그인은 iOS 지원 여부를 확인하고 시스템 인증 결과를 서버에 전달한다", () => {
@@ -280,19 +323,23 @@ test("Apple과 Google 로그인은 세션 저장과 후속 이동을 공유한�
   );
 });
 
-test("Welcome은 약관 핵심 내용과 명시적 동의 UI를 항상 표시한다", () => {
+test("Welcome은 진입 시 약관 핵심 내용과 명시적 동의 UI를 표시한다", () => {
   const welcomeSource = readSource("src/pages/welcome/ui/welcome-page.tsx");
 
   assert.match(welcomeSource, /<ScrollView/);
-  assert.match(welcomeSource, /NewPic 서비스 이용 전 아래 내용을 확인해주세요/);
+  assert.match(
+    welcomeSource,
+    /NewPic 서비스를 시작하기 전에 아래 내용을 확인해주세요/,
+  );
   assert.match(welcomeSource, /소셜 로그인 정보 또는 기기/);
   assert.match(welcomeSource, /촬영하거나 업로드한 사진과 작성한 피드·댓글/);
   assert.match(welcomeSource, /수집 항목, 이용 목적, 보관 기간 및 삭제 방법/);
   assert.match(welcomeSource, /이용약관 및 개인정보 처리방침 전문 보기/);
   assert.match(welcomeSource, /\(필수\) 위 내용을 확인했으며/);
+  assert.match(welcomeSource, /onChange=\{setDraftTermsAgreed\}/);
   assert.match(
     welcomeSource,
-    /onChange=\{setTermsAgreed\}/,
+    /accessibilityLabel="이용약관 및 개인정보 처리방침 보기"/,
   );
   assert.doesNotMatch(welcomeSource, /className="absolute bottom-0/);
 });
