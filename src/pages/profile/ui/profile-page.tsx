@@ -127,6 +127,10 @@ export function ProfilePage() {
     router.push("/profile/edit");
   };
 
+  const handleGoBlockedUsers = () => {
+    router.push("/profile/blocked-users");
+  };
+
   const handlePressProfile = () => {
     if (isGuest) {
       handleGoLogin();
@@ -216,6 +220,14 @@ export function ProfilePage() {
             >
               <Text size="md">서비스 약관</Text>
             </Pressable>
+            {isLoggedIn && !isGuest ? (
+              <>
+                <Divider className="bg-outline" />
+                <Pressable className="p-6" onPress={handleGoBlockedUsers}>
+                  <Text size="md">차단한 사용자</Text>
+                </Pressable>
+              </>
+            ) : null}
             <Divider className="bg-outline" />
             <Pressable className="p-6" onPress={handleLogout}>
               <Text size="md" className="text-red-500 font-semibold">

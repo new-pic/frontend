@@ -1,4 +1,5 @@
 export { ProfileEditPage } from "./ui/profile-edit-page";
+export { ProfileBlockedUsersPage } from "./ui/profile-blocked-users-page";
 export { ProfileLikeFeedPage } from "./ui/profile-like-feed-page";
 export { ProfileMyFeedPage } from "./ui/profile-my-feed-page";
 export { ProfileRtcPhotoPage } from "./ui/profile-rtc-photo-page";
