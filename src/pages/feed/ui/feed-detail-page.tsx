@@ -3,6 +3,7 @@ import {
   parseFeedDetailSource,
   useFeedDetailCollection,
 } from "@features/feed/browse-feed-detail";
+import { getFirstSearchParam } from "@shared/lib";
 import { Button, ButtonText, Center, Text } from "@shared/ui";
 import { FeedDetailPager, FeedDetailSkeleton } from "@widgets/feed/detail";
 
@@ -26,6 +27,7 @@ export function FeedDetailPage() {
     tag,
     source: sourceParam,
   } = useLocalSearchParams<"/feed/[id]", FeedDetailSearchParams>();
+  const feedId = getFirstSearchParam(id) ?? "";
   const source = parseFeedDetailSource(sourceParam);
   const parsedTake = Number(take ?? 24);
   const feedSearchParams = {
@@ -50,7 +52,7 @@ export function FeedDetailPage() {
   const feeds = feedsData?.pages.flatMap((page) => page.items) ?? [];
   const initialPageIndex = findFeedDetailInitialIndex(
     feeds,
-    id,
+    feedId,
     Number(index ?? 0),
   );
 
@@ -102,7 +104,7 @@ export function FeedDetailPage() {
   return (
     <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
       <FeedDetailPager
-        key={`${id}-${initialPageIndex}`}
+        key={`${feedId}-${initialPageIndex}`}
         feeds={feeds}
         initialPageIndex={initialPageIndex}
         onReachLastPage={handleReachLastPage}
