@@ -62,7 +62,6 @@ test.beforeEach(() => {
   useAuthStore.setState({
     accessToken: null,
     userId: null,
-    isLoggedIn: false,
     isGuest: false,
     isInitialized: false,
     termsAgreed: false,
@@ -145,7 +144,7 @@ test("동의하지 않은 세션은 토큰을 저장하지 않는다", async () 
   );
 
   assert.equal(secureValues.size, 0);
-  assert.equal(useAuthStore.getState().isLoggedIn, false);
+  assert.equal(useAuthStore.getState().accessToken, null);
 });
 
 test("저장된 토큰은 약관 동의가 완료된 세션으로 복원한다", async () => {
@@ -154,7 +153,8 @@ test("저장된 토큰은 약관 동의가 완료된 세션으로 복원한다",
   await useAuthStore.getState().initializeAuthState();
 
   assert.equal(useAuthStore.getState().termsAgreed, true);
-  assert.equal(useAuthStore.getState().isLoggedIn, true);
+  assert.equal(useAuthStore.getState().accessToken, "guest-access-token");
+  assert.equal(useAuthStore.getState().userId, "test-user-id");
   assert.equal(useAuthStore.getState().isGuest, true);
 });
 

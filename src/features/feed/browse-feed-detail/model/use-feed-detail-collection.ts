@@ -65,9 +65,10 @@ export function useFeedDetailCollection({
   enabled = true,
 }: UseFeedDetailCollectionParams) {
   const userId = useAuthStore((state) => state.userId);
+  const isGuest = useAuthStore((state) => state.isGuest);
 
   return useInfiniteQuery({
     ...getFeedDetailCollectionQueryOptions(source, userId, params),
-    enabled: enabled && (source === "public" || Boolean(userId)),
+    enabled: enabled && (source === "public" || (Boolean(userId) && !isGuest)),
   });
 }

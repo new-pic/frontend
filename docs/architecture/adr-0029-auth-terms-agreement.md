@@ -191,9 +191,8 @@ Activate Runtime Session
 - Refresh Token 조회의 직접 문자열을 제거하고
   `AUTH_SESSION_STORAGE_KEYS.REFRESH_TOKEN`을 사용하도록 통일했다.
 - 공용 Checkbox를 NativeWind v5 변환 경계에 맞춰 수정했다.
-- 현재 약관 및 소셜 로그인 회귀 테스트 12개 중 11개가 통과했다. Session
-  복원 테스트 1개는 제거된 `isLoggedIn`을 계속 검증하고 있어 실패하며, 제품
-  코드의 Session 복원 결과가 아니라 테스트의 이전 상태 계약이 남은 것이다.
+- 약관 및 소셜 로그인 회귀 테스트 12개를 현재 Session 상태 계약에 맞게
+  갱신하고 통과했다.
 - 공용 BottomSheet 테스트 4개는 기존 구현 시점에 통과했다.
 - TypeScript 검사(`pnpm exec tsc --noEmit`)를 통과했다.
 - iOS Metro export를 완료해 BottomSheet, Card와 CheckboxLabel이 실제

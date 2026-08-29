@@ -183,3 +183,6 @@ QueryClient.clear
   `authEntryIntent`로 유지했다.
 - `userId`는 Session 설정과 복원 시 Access Token에서만 계산된다.
 - HTTP endpoint, request body와 query parameter에는 `userId`를 추가하지 않았다.
+- 피드 상세의 `mine`, `saved`, `liked` collection Query는 `userId`가 있고
+  Guest가 아닌 Session에서만 활성화하며, `public` source는 인증 상태와
+  무관하게 유지했다.
