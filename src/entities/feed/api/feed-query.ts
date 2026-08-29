@@ -43,14 +43,26 @@ export const feedQueryKeys = {
   list: (params: FeedListParams) => [...FEED_LIST_QUERY_KEY, params] as const,
   item: (feedId?: string) => [...QUERY_KEY, "item", feedId] as const,
   myFeeds: [...USER_FEED_COLLECTION_QUERY_KEY, "me", "feeds"] as const,
-  myFeedList: (params: UserFeedListParams) =>
-    [...USER_FEED_COLLECTION_QUERY_KEY, "me", "feeds", params] as const,
+  myFeedList: (userId: string | null, params: UserFeedListParams) =>
+    [...USER_FEED_COLLECTION_QUERY_KEY, "me", "feeds", userId, params] as const,
   likedFeeds: [...USER_FEED_COLLECTION_QUERY_KEY, "me", "liked-feeds"] as const,
-  likedFeedList: (params: UserFeedListParams) =>
-    [...USER_FEED_COLLECTION_QUERY_KEY, "me", "liked-feeds", params] as const,
+  likedFeedList: (userId: string | null, params: UserFeedListParams) =>
+    [
+      ...USER_FEED_COLLECTION_QUERY_KEY,
+      "me",
+      "liked-feeds",
+      userId,
+      params,
+    ] as const,
   savedFeeds: [...USER_FEED_COLLECTION_QUERY_KEY, "me", "saved-feeds"] as const,
-  savedFeedList: (params: UserFeedListParams) =>
-    [...USER_FEED_COLLECTION_QUERY_KEY, "me", "saved-feeds", params] as const,
+  savedFeedList: (userId: string | null, params: UserFeedListParams) =>
+    [
+      ...USER_FEED_COLLECTION_QUERY_KEY,
+      "me",
+      "saved-feeds",
+      userId,
+      params,
+    ] as const,
   comments: [...QUERY_KEY, "comments"] as const,
   commentsByFeed: (feedId: string) =>
     [...QUERY_KEY, "comments", feedId] as const,
@@ -194,16 +206,20 @@ export function feedsInfiniteQueryOptions(params: FeedListParams) {
 /** 내가 작성한 피드 컬렉션을 조회합니다. */
 export function useReadMyFeeds(params: UserFeedListParams) {
   const isGuest = useAuthStore((state) => state.isGuest);
+  const userId = useAuthStore((state) => state.userId);
 
   return useInfiniteQuery({
-    ...myFeedsInfiniteQueryOptions(params),
-    enabled: !isGuest,
+    ...myFeedsInfiniteQueryOptions(userId, params),
+    enabled: Boolean(userId) && !isGuest,
   });
 }
 
-export function myFeedsInfiniteQueryOptions(params: UserFeedListParams) {
+export function myFeedsInfiniteQueryOptions(
+  userId: string | null,
+  params: UserFeedListParams,
+) {
   return infiniteQueryOptions({
-    queryKey: feedQueryKeys.myFeedList(params),
+    queryKey: feedQueryKeys.myFeedList(userId, params),
     queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
       const response = await privateApiClient.get("/users/me/feeds", {
         params: { ...params, cursor: pageParam },
@@ -220,16 +236,20 @@ export function myFeedsInfiniteQueryOptions(params: UserFeedListParams) {
 /** 내가 좋아요한 피드 컬렉션을 조회합니다. */
 export function useReadLikedFeeds(params: UserFeedListParams) {
   const isGuest = useAuthStore((state) => state.isGuest);
+  const userId = useAuthStore((state) => state.userId);
 
   return useInfiniteQuery({
-    ...likedFeedsInfiniteQueryOptions(params),
-    enabled: !isGuest,
+    ...likedFeedsInfiniteQueryOptions(userId, params),
+    enabled: Boolean(userId) && !isGuest,
   });
 }
 
-export function likedFeedsInfiniteQueryOptions(params: UserFeedListParams) {
+export function likedFeedsInfiniteQueryOptions(
+  userId: string | null,
+  params: UserFeedListParams,
+) {
   return infiniteQueryOptions({
-    queryKey: feedQueryKeys.likedFeedList(params),
+    queryKey: feedQueryKeys.likedFeedList(userId, params),
     queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
       const response = await privateApiClient.get("/users/me/liked-feeds", {
         params: { ...params, cursor: pageParam },
@@ -249,16 +269,20 @@ export function useReadSavedFeeds(
   options?: { enabled?: boolean },
 ) {
   const isGuest = useAuthStore((state) => state.isGuest);
+  const userId = useAuthStore((state) => state.userId);
 
   return useInfiniteQuery({
-    ...savedFeedsInfiniteQueryOptions(params),
-    enabled: !isGuest && (options?.enabled ?? true),
+    ...savedFeedsInfiniteQueryOptions(userId, params),
+    enabled: Boolean(userId) && !isGuest && (options?.enabled ?? true),
   });
 }
 
-export function savedFeedsInfiniteQueryOptions(params: UserFeedListParams) {
+export function savedFeedsInfiniteQueryOptions(
+  userId: string | null,
+  params: UserFeedListParams,
+) {
   return infiniteQueryOptions({
-    queryKey: feedQueryKeys.savedFeedList(params),
+    queryKey: feedQueryKeys.savedFeedList(userId, params),
     queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
       const response = await privateApiClient.get("/users/me/references", {
         params: { ...params, cursor: pageParam },

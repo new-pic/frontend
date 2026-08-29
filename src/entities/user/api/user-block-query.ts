@@ -17,12 +17,16 @@ const QUERY_KEY = [API_QUERY_KEY, "user", "blocks"] as const;
 
 export const userBlockQueryKeys = {
   all: QUERY_KEY,
-  list: (params: PaginationParams) => [...QUERY_KEY, params] as const,
+  list: (userId: string | null, params: PaginationParams) =>
+    [...QUERY_KEY, userId, params] as const,
 } as const;
 
-export function blockedUsersInfiniteQueryOptions(params: PaginationParams) {
+export function blockedUsersInfiniteQueryOptions(
+  userId: string | null,
+  params: PaginationParams,
+) {
   return infiniteQueryOptions({
-    queryKey: userBlockQueryKeys.list(params),
+    queryKey: userBlockQueryKeys.list(userId, params),
     queryFn: async ({
       pageParam,
       signal,
@@ -45,10 +49,11 @@ export function blockedUsersInfiniteQueryOptions(params: PaginationParams) {
 export function useReadBlockedUsers(params: PaginationParams) {
   const accessToken = useAuthStore((state) => state.accessToken);
   const isGuest = useAuthStore((state) => state.isGuest);
+  const userId = useAuthStore((state) => state.userId);
 
   return useInfiniteQuery({
-    ...blockedUsersInfiniteQueryOptions(params),
-    enabled: Boolean(accessToken) && !isGuest,
+    ...blockedUsersInfiniteQueryOptions(userId, params),
+    enabled: Boolean(userId && accessToken) && !isGuest,
   });
 }
 

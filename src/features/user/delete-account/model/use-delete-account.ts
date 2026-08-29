@@ -2,7 +2,6 @@ import { usersQuery } from "@entities/user";
 import { getApiErrorMessage } from "@shared/api";
 import { useConfirm } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
-import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useCallback } from "react";
 import { Alert } from "react-native";
@@ -10,7 +9,6 @@ import { Alert } from "react-native";
 export function useDeleteAccount() {
   const openConfirm = useConfirm();
   const logout = useAuthStore((state) => state.logout);
-  const queryClient = useQueryClient();
   const { isPending, mutateAsync } = usersQuery.useRequestAccountWithdrawal();
 
   const deleteAccount = useCallback(async () => {
@@ -43,10 +41,9 @@ export function useDeleteAccount() {
     try {
       await logout();
     } finally {
-      queryClient.clear();
       router.replace("/");
     }
-  }, [isPending, logout, mutateAsync, openConfirm, queryClient]);
+  }, [isPending, logout, mutateAsync, openConfirm]);
 
   return {
     deleteAccount,
