@@ -5,9 +5,13 @@ import { SaveCommentButton } from "./save-comment-button";
 
 interface FeedCommentFormProps {
   feedId: string;
+  requireMember: () => Promise<boolean>;
 }
 
-export function FeedCommentForm({ feedId }: FeedCommentFormProps) {
+export function FeedCommentForm({
+  feedId,
+  requireMember,
+}: FeedCommentFormProps) {
   const form = useCreateFeedCommentForm();
   const content = useWatch({
     control: form.control,
@@ -37,7 +41,11 @@ export function FeedCommentForm({ feedId }: FeedCommentFormProps) {
         <Text size="xs" className="text-label-muted">
           {content.length}/500
         </Text>
-        <SaveCommentButton feedId={feedId} form={form} />
+        <SaveCommentButton
+          feedId={feedId}
+          form={form}
+          requireMember={requireMember}
+        />
       </HStack>
       {form.formState.errors.content?.message ? (
         <Text size="xs" className="text-destructive">

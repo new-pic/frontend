@@ -1,11 +1,6 @@
 // 피드 게시하기 / 수정하기 공통 사용 버튼
 
 import type { UpdateFeedRequest } from "@entities/feed";
-import {
-  type CreateFeedPublishingCommand,
-  useFeedPublishingPipelineActive,
-  useFeedPublishingStore,
-} from "@features/feed/feed-processing";
 import { Button, ButtonText } from "@shared/ui";
 import { router } from "expo-router";
 import { Alert } from "react-native";
@@ -13,6 +8,9 @@ import {
   FeedFormMode,
   UseSaveFeedFormReturn,
 } from "../model";
+import type { CreateFeedPublishingCommand } from "../model/feed-publishing-types";
+import { useFeedPublishingStore } from "../model/feed-publishing-store";
+import { useFeedPublishingPipelineActive } from "../model/use-feed-publishing-pipeline-active";
 
 interface SaveFeedButtonProps {
   mode: FeedFormMode;

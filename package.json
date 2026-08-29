@@ -72,13 +72,17 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@feature-sliced/steiger-plugin": "^0.7.0",
     "@tailwindcss/postcss": "^4.3.1",
     "@tanstack/eslint-plugin-query": "^5.101.2",
     "@types/react": "~19.2.2",
     "babel-plugin-module-resolver": "^5.0.3",
     "babel-preset-expo": "^56.0.15",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~56.0.4",
     "nitrogen": "0.35.10",
     "react-native-svg-transformer": "^1.5.3",
+    "steiger": "^0.6.0",
     "tailwindcss": "^4.3.1",
     "typescript": "~6.0.3"
   },
@@ -89,13 +93,15 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
+    "fsd:check": "steiger ./src",
+    "fsd:watch": "steiger ./src --watch",
     "test:camera-settings": "node --test src/features/camera/capture-photo/__tests__/*.test.cjs",
-    "test:pose-detection": "node --test src/features/camera/pose-detection/__tests__/pose-detection.test.cjs",
-    "test:pose-match": "node --test src/features/camera/pose-matching/__tests__/pose-matching.test.cjs",
+    "test:pose-detection": "node --test src/features/camera/guide-feed/lib/pose-detection/__tests__/pose-detection.test.cjs",
+    "test:pose-match": "node --test src/features/camera/guide-feed/lib/pose-matching/__tests__/pose-matching.test.cjs",
     "test:camera-guide": "node --test src/features/camera/guide-feed/__tests__/camera-guide-state.test.cjs",
     "test:rtc-reactions": "node --test src/features/rtc/reactions/__tests__/rtc-reaction-domain.test.cjs",
-    "test:feed-processing": "node --test src/features/feed/feed-processing/__tests__/*.test.cjs",
-    "test:feed-publishing": "node --test src/features/feed/feed-processing/__tests__/feed-publishing.test.cjs",
+    "test:feed-processing": "node --test src/features/feed/save-feed/__tests__/*.test.cjs",
+    "test:feed-publishing": "node --test src/features/feed/save-feed/__tests__/feed-publishing.test.cjs",
     "test:saved-feed-sync": "node --test src/features/feed/update-feed-pick/__tests__/saved-feed-sync.test.cjs",
     "test:feed-like": "node --test src/features/feed/update-feed-like/__tests__/feed-like-interaction.test.cjs src/entities/feed/__tests__/feed-like-cache.test.cjs",
     "test:content-report": "node --test src/features/feed/report-content/__tests__/*.test.cjs",
@@ -113,7 +119,7 @@
     "test:bottom-sheet": "node --test src/shared/ui/bottomsheet/__tests__/bottom-sheet-presentation.test.cjs",
     "test:rtc-viewer-ui": "node --test src/shared/ui/framing-grid-overlay/__tests__/framing-grid-overlay.test.cjs",
     "test:photo-gallery": "node --test src/shared/ui/photo-gallery/__tests__/photo-gallery-state.test.cjs",
-    "test:ui-metrics": "node --test src/shared/constants/__tests__/ui-metrics.test.cjs"
+    "test:ui-metrics": "node --test src/shared/ui/theme/__tests__/ui-metrics.test.cjs"
   },
   "private": true,
   "pnpm": {

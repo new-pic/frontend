@@ -67,7 +67,7 @@ test("RTC 참여 시트는 제목을 고정하고 keyboard 보정을 중복하�
   const source = fs.readFileSync(
     path.join(
       projectRoot,
-      "src/widgets/rtc-join-sheet/ui/rtc-join-sheet.tsx",
+      "src/features/rtc/join-room/ui/rtc-join-sheet.tsx",
     ),
     "utf8",
   );

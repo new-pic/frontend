@@ -48,7 +48,14 @@ const originalLoad = Module._load;
 Module._load = function loadWithEntityMocks(request, parent, isMain) {
   if (request === "@entities/feed") {
     return {
-      feedQuery: { feedQueryKeys: { all: ["feed"] } },
+      feedQuery: {
+        feedQueryKeys: {
+          all: ["feed"],
+          myFeeds: ["user", "my-feeds"],
+          likedFeeds: ["user", "liked-feeds"],
+          savedFeeds: ["user", "saved-feeds"],
+        },
+      },
       isFeedAuthoredBy,
       removeCommentsByAuthorFromCacheData,
       removeFeedsByAuthorFromCacheData,
@@ -58,13 +65,6 @@ Module._load = function loadWithEntityMocks(request, parent, isMain) {
     return {
       userBlockQuery: {
         userBlockQueryKeys: { all: ["user", "blocks"] },
-      },
-      usersQuery: {
-        userQueryKeys: {
-          myFeeds: ["user", "my-feeds"],
-          likedFeeds: ["user", "liked-feeds"],
-          savedFeeds: ["user", "saved-feeds"],
-        },
       },
     };
   }
@@ -258,4 +258,6 @@ test("신고 성공은 콘텐츠 cache를 변경하지 않고 차단 성공만 �
     /await blockMutation\.mutateAsync\(userId\)[\s\S]*await hideBlockedUserContent\(queryClient, userId\)/,
   );
   assert.match(blockSource, /onBlocked\?\.\(\)/);
+  assert.doesNotMatch(blockSource, /@shared\/hooks/);
+  assert.match(blockSource, /useBlockUser\(\{ requireMember \}/);
 });

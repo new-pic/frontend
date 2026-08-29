@@ -1,5 +1,5 @@
 import { useDeleteFeed } from "@features/feed/delete-feed";
-import { useEditFeed } from "@features/feed/edit-feed";
+import { router } from "expo-router";
 import { ContentActionsMenu } from "./content-actions-menu";
 
 interface FeedOwnerActionsMenuProps {
@@ -9,11 +9,13 @@ interface FeedOwnerActionsMenuProps {
 export function FeedOwnerActionsMenu({
   feedId,
 }: FeedOwnerActionsMenuProps) {
-  const editFeed = useEditFeed(feedId);
   const { deleteFeed, isDeleting } = useDeleteFeed(feedId);
 
   const handleEdit = () => {
-    editFeed();
+    router.push({
+      pathname: "/feed/edit/[id]",
+      params: { id: feedId },
+    });
   };
 
   const handleDelete = () => {

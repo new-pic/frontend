@@ -1,10 +1,10 @@
-import { colors } from "@shared/constants";
+import { colors } from "@shared/ui/theme";
+import { Image } from "expo-image";
 import {
   IconCircle,
   IconCircleCheck,
   IconPhotoOff,
 } from "@tabler/icons-react-native";
-import { Image } from "expo-image";
 import { memo, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -158,7 +158,7 @@ function PhotoGridSkeleton({
 
 export interface PhotoGridProps<T extends PhotoGridImage = PhotoGridImage> {
   images: T[];
-  selectedImages?: Array<{ id: string }>;
+  selectedImages?: { id: string }[];
   columns?: number;
   gap?: number;
   onPress?: (image: T, index: number) => void;

@@ -1,5 +1,8 @@
-import { resolveFeedCameraAspectRatio } from "../../capture-photo/lib/feed-camera-aspect-ratio";
-import type { CoordinateSize, DWPoseSourcePose } from "../../pose-matching";
+import { resolveFeedCameraAspectRatio } from "../lib/feed-camera-aspect-ratio";
+import type {
+  CoordinateSize,
+  DWPoseSourcePose,
+} from "../lib/pose-matching";
 import type {
   ActiveCameraGuide,
   CameraGuideOutline,

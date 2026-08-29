@@ -7,11 +7,10 @@ import {
   useRef,
   useState,
 } from "react";
-import type { CameraRuntimeGeometry } from "../../capture-photo";
 import {
   type DetectedPoseFrame,
   useLivePoseDetection,
-} from "../../pose-detection";
+} from "../lib/pose-detection";
 import {
   adaptDWPoseResult,
   DWPoseContractError,
@@ -19,7 +18,7 @@ import {
   prepareLivePoses,
   projectDWPosePoseToCapture,
   readExpoFeedReferenceImageSize,
-} from "../../pose-matching";
+} from "../lib/pose-matching";
 import { adaptFeedBackgroundRemoval } from "../lib/feed-guide-contour-adapter";
 import {
   cameraGuideReducer,
@@ -28,6 +27,7 @@ import {
 import { usePoseGuideAlignment } from "./use-pose-guide-alignment";
 import type {
   CameraGuideErrors,
+  CameraGuideGeometry,
   CameraGuideMatching,
   GuideFeedSelection,
 } from "./types";
@@ -64,7 +64,7 @@ function logCameraGuideStage(
 
 interface UseCameraGuideControllerOptions {
   cameraActive: boolean;
-  geometry: CameraRuntimeGeometry | null;
+  geometry: CameraGuideGeometry | null;
 }
 
 export function useCameraGuideController({
@@ -375,7 +375,7 @@ export function useCameraGuideController({
       targetReady,
     });
   const matchingInputRef = useRef<{
-    geometry: CameraRuntimeGeometry;
+    geometry: CameraGuideGeometry;
     targetPoses: typeof targetPoses;
   } | null>(null);
   matchingInputRef.current =

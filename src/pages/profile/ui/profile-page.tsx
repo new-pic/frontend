@@ -1,8 +1,9 @@
 import { usersQuery } from "@entities/user";
 import { useDeleteAccount } from "@features/user/delete-account";
-import { EXTERNAL_LINKS, gradients } from "@shared/constants";
+import { EXTERNAL_LINKS } from "@shared/config";
+import { gradients } from "@shared/ui/theme";
 import { useConfirm } from "@shared/lib";
-import { useAuthStore } from "@shared/model/auth-store";
+import { useAuthStore } from "@shared/model";
 import {
   Avatar,
   AvatarImage,
@@ -21,12 +22,12 @@ import {
   IconPencilFilled,
   IconUserFilled,
 } from "@tabler/icons-react-native";
-import { ProfileRtcPhotoPreview } from "@widgets/profile/rtc-photo-preview";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Linking from "expo-linking";
 import { router } from "expo-router";
 import { Alert, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ProfileRtcPhotoPreview } from "./profile-rtc-photo-preview";
 
 function ProfileButtonMenu() {
   const handleGoMyFeed = () => {
@@ -97,7 +98,9 @@ export function ProfilePage() {
   const openConfirm = useConfirm();
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const isGuest = useAuthStore((state) => state.isGuest);
-  const prepareGoogleLink = useAuthStore((state) => state.prepareGoogleLink);
+  const prepareAccountLink = useAuthStore(
+    (state) => state.prepareAccountLink,
+  );
   const logout = useAuthStore((state) => state.logout);
   const { data } = usersQuery.useReadMe();
   const { deleteAccount, isDeleting } = useDeleteAccount();
@@ -114,7 +117,7 @@ export function ProfilePage() {
   };
 
   const handleGoLogin = () => {
-    prepareGoogleLink();
+    prepareAccountLink();
     router.replace({
       pathname: "/",
       params: {

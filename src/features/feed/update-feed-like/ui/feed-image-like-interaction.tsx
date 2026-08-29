@@ -1,6 +1,6 @@
-import { MOBILE_UI_METRICS } from "@shared/constants";
+import { MOBILE_UI_METRICS } from "@shared/ui/theme";
 import { IconHeartFilled } from "@tabler/icons-react-native";
-import { type ReactNode, useCallback, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useMemo } from "react";
 import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -26,13 +26,11 @@ export function FeedImageLikeInteraction({
   enabled,
   onToggle,
 }: FeedImageLikeInteractionProps) {
-  const [feedback, setFeedback] = useState<FeedLikeToggleResult>("LIKED");
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.6);
 
   const showFeedback = useCallback(
     (result: FeedLikeToggleResult) => {
-      setFeedback(result);
       cancelAnimation(opacity);
       cancelAnimation(scale);
 

@@ -1,4 +1,4 @@
-import type { SseMessage } from "../../../shared/api/sse-parser";
+import type { SseMessage } from "@shared/api";
 import type { RtcRoomEvent, RtcRoomEventType } from "../model/models";
 import {
   RtcRoomEventPayloadSchema,

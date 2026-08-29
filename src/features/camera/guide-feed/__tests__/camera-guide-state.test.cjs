@@ -39,6 +39,9 @@ const {
   mapPoseFeedbackMessage,
 } = require("../lib/pose-feedback-message.ts");
 const {
+  resolveFeedCameraAspectRatio,
+} = require("../lib/feed-camera-aspect-ratio.ts");
+const {
   advancePoseGuideAlignmentPolicy,
   createPoseGuideAlignmentPolicyState,
   resetPoseGuideAlignmentPolicy,
@@ -58,6 +61,28 @@ const FEED_B = {
   thumbnailUrl: "https://example.com/b-thumb.webp",
   detailImageUrl: "https://example.com/b.webp",
 };
+
+test("피드 비율과 가장 가까운 카메라 비율을 선택한다", () => {
+  assert.equal(
+    resolveFeedCameraAspectRatio({ width: 1200, height: 1600 }),
+    "4:3",
+  );
+  assert.equal(
+    resolveFeedCameraAspectRatio({ width: 1080, height: 1920 }),
+    "16:9",
+  );
+  assert.equal(
+    resolveFeedCameraAspectRatio({ width: 2000, height: 3000 }),
+    "4:3",
+  );
+});
+
+test("피드 이미지 크기가 유효하지 않으면 비율을 선택하지 않는다", () => {
+  assert.throws(
+    () => resolveFeedCameraAspectRatio({ width: 0, height: 0 }),
+    /positive dimensions/,
+  );
+});
 
 test("가이드 선택 시 버튼에 사용할 selection이 즉시 저장된다", () => {
   const state = cameraGuideReducer(INITIAL_CAMERA_GUIDE_STATE, {

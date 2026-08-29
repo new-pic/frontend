@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { memo, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
-import type { CoordinateSize } from "../../pose-matching";
+import type { CoordinateSize } from "../lib/pose-matching";
 import { projectGuideSourceToPreviewRect } from "../lib/guide-contour-projection";
 
 interface CameraGuideReferenceOverlayProps {

@@ -1,6 +1,5 @@
 import { feedQuery } from "@entities/feed";
-import { colors } from "@shared/constants";
-import { useMemberAccess } from "@shared/hooks";
+import { colors } from "@shared/ui/theme";
 import { Button, ButtonIcon } from "@shared/ui";
 import { IconBookmarkFilled } from "@tabler/icons-react-native";
 import { useRef } from "react";
@@ -10,6 +9,7 @@ interface FeedPickButtonProps {
   feedId?: string;
   isPicked?: boolean;
   tone?: "default" | "on-image";
+  requireMember: () => Promise<boolean>;
 }
 
 const THROTTLE_DELAY = 500;
@@ -18,9 +18,9 @@ export function FeedPickButton({
   feedId,
   isPicked,
   tone = "default",
+  requireMember,
 }: FeedPickButtonProps) {
   const lastPressedAtRef = useRef(0);
-  const requireMember = useMemberAccess();
   const mutationToSave = feedQuery.useSaveFeed();
   const mutationToUnsave = feedQuery.useUnsaveFeed();
   const refreshSavedFeedGuideCache = useRefreshSavedFeedGuideCache();

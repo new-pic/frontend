@@ -7,7 +7,6 @@ import {
 import {
   type BlockedUserListResponse,
   userBlockQuery,
-  usersQuery,
 } from "@entities/user";
 import type {
   InfiniteData,
@@ -89,13 +88,13 @@ export async function refreshUserContentQueries(queryClient: QueryClient) {
       queryKey: feedQuery.feedQueryKeys.all,
     }),
     queryClient.invalidateQueries({
-      queryKey: usersQuery.userQueryKeys.myFeeds,
+      queryKey: feedQuery.feedQueryKeys.myFeeds,
     }),
     queryClient.invalidateQueries({
-      queryKey: usersQuery.userQueryKeys.likedFeeds,
+      queryKey: feedQuery.feedQueryKeys.likedFeeds,
     }),
     queryClient.invalidateQueries({
-      queryKey: usersQuery.userQueryKeys.savedFeeds,
+      queryKey: feedQuery.feedQueryKeys.savedFeeds,
     }),
   ]);
 }

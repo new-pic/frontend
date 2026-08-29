@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import type { CoordinateSize } from "../../pose-matching";
+import type { CoordinateSize } from "../lib/pose-matching";
 import {
   createGuideContourPath,
   projectGuideOutlineToPreview,

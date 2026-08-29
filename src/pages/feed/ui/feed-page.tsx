@@ -2,9 +2,9 @@ import { feedQuery } from "@entities/feed";
 import {
   useFeedPublishingPipelineActive,
   useRefreshPublishedFeeds,
-} from "@features/feed/feed-processing";
+} from "@features/feed/save-feed";
 import { TagBottomSheet, TagList } from "@features/tags/select-feed-tags";
-import { gradients } from "@shared/constants";
+import { gradients } from "@shared/ui/theme";
 import { useDebouncedValue } from "@shared/lib/debounce";
 import { useAuthStore } from "@shared/model";
 

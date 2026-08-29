@@ -2,7 +2,7 @@ import type {
   PoseAssignment,
   PoseFeedback,
   PoseSceneMatchResult,
-} from "../../pose-matching";
+} from "../lib/pose-matching";
 import {
   DEFAULT_POSE_GUIDE_FEEDBACK_CONFIG,
   type PoseGuideFeedbackConfig,

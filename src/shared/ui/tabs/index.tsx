@@ -149,12 +149,11 @@ const TabsList = React.forwardRef<
   ITabsListProps
 >(({ className, children, ...props }, ref) => {
   const context = React.useContext(TabsContext);
-
   const flatListRef = useRef<any>(null);
-
-  if (!context) return null;
-
-  const { orientation, setScrollOffset, selectedKey, listRef } = context;
+  const orientation = context?.orientation;
+  const setScrollOffset = context?.setScrollOffset;
+  const selectedKey = context?.selectedKey;
+  const listRef = context?.listRef;
 
   // Shared value for indicator sync
   const animatedScrollOffset = useSharedValue(0);
@@ -163,10 +162,10 @@ const TabsList = React.forwardRef<
    * Expose shared value to context
    */
   useEffect(() => {
-    if (context) {
-      // @ts-ignore
-      context.animatedScrollOffset = animatedScrollOffset;
-    }
+    if (!context) return;
+
+    // @ts-ignore
+    context.animatedScrollOffset = animatedScrollOffset;
   }, [context, animatedScrollOffset]);
 
   /**
@@ -202,25 +201,22 @@ const TabsList = React.forwardRef<
   /**
    * Native animated scroll handler (ONLY for iOS / Android)
    */
-  const nativeScrollHandler =
-    Platform.OS === 'web'
-      ? undefined
-      : useAnimatedScrollHandler({
-          onScroll: (event) => {
-            'worklet';
-            const x = event.contentOffset.x;
-            animatedScrollOffset.value = x;
-            runOnJS(setScrollOffset)(x);
-          },
-        });
+  const nativeScrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      'worklet';
+      const x = event.contentOffset.x;
+      animatedScrollOffset.set(x);
+      if (setScrollOffset) runOnJS(setScrollOffset)(x);
+    },
+  });
 
   /**
    * Web scroll handler (JS thread)
    */
   const handleWebScroll = (e: any) => {
     const x = e.nativeEvent.contentOffset.x;
-    animatedScrollOffset.value = x;
-    setScrollOffset(x);
+    animatedScrollOffset.set(x);
+    setScrollOffset?.(x);
   };
 
   /**
@@ -241,6 +237,8 @@ const TabsList = React.forwardRef<
       ),
     };
   }, [children]);
+
+  if (!context) return null;
 
   if (orientation === 'horizontal') {
     return (

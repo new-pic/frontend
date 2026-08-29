@@ -1,4 +1,4 @@
-import axios from "axios";
+import { isAxiosError } from "axios";
 
 export class ApiRequestError extends Error {
   readonly status: number;
@@ -40,7 +40,7 @@ function readPayloadMessage(payload: unknown): string | undefined {
 export function getApiErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiRequestError) return error.message;
 
-  if (axios.isAxiosError(error)) {
+  if (isAxiosError(error)) {
     return readPayloadMessage(error.response?.data) ?? fallback;
   }
 

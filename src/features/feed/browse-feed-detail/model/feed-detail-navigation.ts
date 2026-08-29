@@ -51,7 +51,7 @@ export function createFeedDetailHref({
 }
 
 export function findFeedDetailInitialIndex(
-  feeds: ReadonlyArray<{ id: string }>,
+  feeds: readonly { id: string }[],
   feedId: string,
   requestedIndex: number,
 ) {

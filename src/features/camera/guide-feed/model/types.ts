@@ -1,10 +1,16 @@
-import type { CameraAspectRatio } from "../../capture-photo";
 import type {
   CommonPose,
   CoordinateSize,
   DWPoseSourcePose,
   PoseSceneMatchResult,
-} from "../../pose-matching";
+} from "../lib/pose-matching";
+
+export type CameraGuideAspectRatio = "4:3" | "16:9";
+
+export interface CameraGuideGeometry {
+  aspectRatio: CameraGuideAspectRatio;
+  captureSize: CoordinateSize;
+}
 
 export interface GuideFeedSelection {
   feedId: string;
@@ -37,7 +43,7 @@ export interface CameraGuideTarget {
 export interface ActiveCameraGuide {
   selection: GuideFeedSelection;
   referenceSize: CoordinateSize;
-  cameraAspectRatio: CameraAspectRatio;
+  cameraAspectRatio: CameraGuideAspectRatio;
   outline: CameraGuideOutline | null;
   target: CameraGuideTarget | null;
 }

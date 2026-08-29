@@ -7,7 +7,7 @@ import {
   withStyleContext,
   type VariantProps,
 } from "@gluestack-ui/utils/nativewind-utils";
-import { gradients } from "@shared/constants";
+import { gradients } from "@shared/ui/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import { styled } from "nativewind";
 import React from "react";
@@ -192,10 +192,11 @@ const Button = React.forwardRef<
         {...props}
         accessibilityState={{ disabled: buttonDisabled, busy: isLoading }}
         disabled={buttonDisabled}
-        children={buttonChildren}
         className={buttonStyle({ variant, size, class: className })}
         context={{ variant, size }}
-      />
+      >
+        {buttonChildren}
+      </UIButton>
     );
   },
 );

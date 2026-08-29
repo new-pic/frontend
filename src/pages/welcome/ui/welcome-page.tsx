@@ -1,7 +1,7 @@
 import AppleLogo from "@assets/icons/apple-logo.svg";
 import GoogleLogo from "@assets/icons/google-logo.svg";
 import { useSocialLogin } from "@features/user/save-social-login";
-import { EXTERNAL_LINKS } from "@shared/constants";
+import { EXTERNAL_LINKS } from "@shared/config";
 import { useAuthStore } from "@shared/model";
 import {
   Button,

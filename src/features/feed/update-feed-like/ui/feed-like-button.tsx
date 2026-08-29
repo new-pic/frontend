@@ -1,4 +1,4 @@
-import { colors } from "@shared/constants";
+import { colors } from "@shared/ui/theme";
 import { Button, ButtonIcon } from "@shared/ui";
 import { IconHeartFilled } from "@tabler/icons-react-native";
 

@@ -43,7 +43,7 @@ interface AuthStore {
   setUserId: (userId: string) => void;
   setTermsAgreed: (termsAgreed: boolean) => void;
   logout: () => Promise<void>;
-  prepareGoogleLink: () => void;
+  prepareAccountLink: () => void;
   initializeAuthState: () => Promise<void>;
 }
 
@@ -105,7 +105,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       });
     }
   },
-  prepareGoogleLink: () =>
+  prepareAccountLink: () =>
     set(() => ({
       authEntryIntent: AUTH_ENTRY_INTENT.LINK_GUEST_ACCOUNT,
     })),

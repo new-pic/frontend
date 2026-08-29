@@ -1,5 +1,4 @@
 import { feedQuery } from "@entities/feed";
-import { useMemberAccess } from "@shared/hooks";
 import { useCallback, useRef } from "react";
 import {
   canToggleFeedLike,
@@ -10,14 +9,15 @@ import {
 interface UseFeedLikeControllerParams {
   feedId?: string;
   isLiked: boolean;
+  requireMember: () => Promise<boolean>;
 }
 
 export function useFeedLikeController({
   feedId,
   isLiked,
+  requireMember,
 }: UseFeedLikeControllerParams) {
   const lastPressedAtRef = useRef(0);
-  const requireMember = useMemberAccess();
   const mutationToLike = feedQuery.useLikeFeed();
   const mutationToUnlike = feedQuery.useUnlikeFeed();
   const isPending = mutationToLike.isPending || mutationToUnlike.isPending;

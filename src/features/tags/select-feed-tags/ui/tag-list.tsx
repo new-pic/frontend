@@ -1,4 +1,4 @@
-import { TagBadge } from "@entities/tags";
+import { TagBadge } from "@entities/tag";
 import { HStack, Icon, Pressable, Text } from "@shared/ui";
 import { IconPlus } from "@tabler/icons-react-native";
 import { FlatList } from "react-native";

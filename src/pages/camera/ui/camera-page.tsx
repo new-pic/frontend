@@ -35,13 +35,12 @@ import {
   useRtcRoomEvents,
 } from "@features/rtc/host-controls";
 import { RtcHostReactionBubbles } from "@features/rtc/reactions";
+import { RtcJoinSheet } from "@features/rtc/join-room";
 import { visionCameraRtcFrameSink } from "@newpic/vision-camera-rtc";
 import { getApiErrorMessage } from "@shared/api";
 import { RTC_NAVIGATION, RtcNavigationSearchParams } from "@shared/config";
 import { getFirstSearchParam, useConfirm } from "@shared/lib";
 import { Box, FramingGridOverlay, VStack } from "@shared/ui";
-import { CameraHeader } from "@widgets/camera-header";
-import { RtcJoinSheet } from "@widgets/rtc-join-sheet";
 import type { File } from "expo-file-system";
 import * as Linking from "expo-linking";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -50,6 +49,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, BackHandler } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CapturedPhotosLayer } from "./captured-photos-layer";
+import { CameraHeader } from "./camera-header";
 import { RtcHostLiveKitPage } from "./rtc-livekit-page";
 import { SharingCameraSheet } from "./sharing-camera-page";
 import { SharingEndSelectionPage } from "./sharing-end-selection-page";

@@ -1,6 +1,5 @@
 import { userBlockQuery } from "@entities/user";
 import { getApiErrorMessage } from "@shared/api";
-import { useMemberAccess } from "@shared/hooks";
 import { useConfirm } from "@shared/lib";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef } from "react";
@@ -16,9 +15,12 @@ interface BlockUserOptions {
   onBlocked?: () => void;
 }
 
-export function useBlockUser() {
+interface UseBlockUserParams {
+  requireMember: () => Promise<boolean>;
+}
+
+export function useBlockUser({ requireMember }: UseBlockUserParams) {
   const openConfirm = useConfirm();
-  const requireMember = useMemberAccess();
   const queryClient = useQueryClient();
   const blockMutation = userBlockQuery.useBlockUser();
   const isBlockingRef = useRef(false);

@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 import {
   CreateFeedCommentRequestSchema,
   CreateFeedFormSchema,
@@ -33,6 +33,8 @@ export interface FeedListParams {
   tag?: string;
   q?: string;
 }
+
+export type UserFeedListParams = Pick<FeedListParams, "take" | "cursor">;
 
 export interface CommentListParams {
   take?: number;
@@ -155,10 +157,10 @@ export interface FeedBackgroundRemovalContour {
   contourIndex: number;
   closed: boolean;
   areaRatio: number;
-  points: Array<{
+  points: {
     x: number;
     y: number;
-  }>;
+  }[];
 }
 
 export interface FeedBackgroundRemovalResponse {
