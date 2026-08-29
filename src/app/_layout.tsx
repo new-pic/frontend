@@ -26,7 +26,11 @@ import {
   usePathname,
 } from "expo-router";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQueryClient,
+} from "@tanstack/react-query";
 import "./global.css";
 
 import { shouldLeaveAuthEntry, useAuthStore } from "@shared/model";
@@ -39,6 +43,22 @@ if (Platform.OS !== "web") {
 }
 
 const queryClient = new QueryClient();
+
+function SessionIdentityQueryCacheCoordinator() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const unsubscribe = useAuthStore.subscribe((state, previousState) => {
+      if (state.userId !== previousState.userId) {
+        queryClient.clear();
+      }
+    });
+
+    return unsubscribe;
+  }, [queryClient]);
+
+  return null;
+}
 
 export default function RootLayout() {
   const pathname = usePathname();
@@ -132,6 +152,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <GluestackUIProvider>
         <QueryClientProvider client={queryClient}>
+          <SessionIdentityQueryCacheCoordinator />
           <FeedPublishingCoordinator />
           <FeedProcessingCoordinator />
           <Stack

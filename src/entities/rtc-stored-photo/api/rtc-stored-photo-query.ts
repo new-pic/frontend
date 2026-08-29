@@ -15,8 +15,8 @@ const QUERY_KEY = [["rtc-stored-photo"], "rtc-stored-photo"] as const;
 export const rtcStoredPhotoQueryKeys = {
   all: QUERY_KEY,
   myLists: [...QUERY_KEY, "me", "list"] as const,
-  myList: (params: RtcStoredPhotoListParams) =>
-    [...QUERY_KEY, "me", "list", params] as const,
+  myList: (userId: string | null, params: RtcStoredPhotoListParams) =>
+    [...QUERY_KEY, "me", "list", userId, params] as const,
   roomLists: (roomId: string) =>
     [...QUERY_KEY, "room", roomId, "list"] as const,
   roomList: (roomId: string, params: RtcStoredPhotoListParams) =>
@@ -40,9 +40,10 @@ export function useReadMyRtcStoredPhotos(
 ) {
   const normalizedParams = normalizeListParams(params);
   const appAccessToken = useAuthStore((state) => state.accessToken);
+  const userId = useAuthStore((state) => state.userId);
 
   return useInfiniteQuery({
-    queryKey: rtcStoredPhotoQueryKeys.myList(normalizedParams),
+    queryKey: rtcStoredPhotoQueryKeys.myList(userId, normalizedParams),
     queryFn: async ({
       pageParam,
       signal,
@@ -58,7 +59,7 @@ export function useReadMyRtcStoredPhotos(
     },
     initialPageParam: normalizedParams.cursor,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-    enabled: Boolean(appAccessToken) && (options.enabled ?? true),
+    enabled: Boolean(userId && appAccessToken) && (options.enabled ?? true),
     staleTime: 60_000,
   });
 }

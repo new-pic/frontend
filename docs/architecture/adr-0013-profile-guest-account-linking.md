@@ -8,6 +8,10 @@ Root router는 이 intent 동안 access token이 있어도 Welcome을 유지한�
 소셜 로그인 성공으로 `setSession()`이 호출되면 intent를 `DEFAULT`로
 복구하고 프로필로 돌아간다.
 
+인증 여부는 `Boolean(accessToken)`으로 파생한다. Guest token을 유지한 채
+인증 진입 화면을 표시해야 하는 예외는 인증 여부를 복제한 `isLoggedIn`이
+아니라 `authEntryIntent`로 표현한다.
+
 소셜 로그인 Query는 호출 시 받은 `isGuest` snapshot으로 요청 mode를
 결정한다. 게스트 계정 연결은 `privateApiClient`, 신규 로그인은
 `apiClient`를 사용한다. 이 mode는 Google 이외의 provider도 재사용할 수
@@ -23,6 +27,11 @@ Root router는 이 intent 동안 access token이 있어도 Welcome을 유지한�
 유지했다. Root router는 access token 존재 여부로 Welcome 이탈을
 판단했으므로 게스트가 계정 연결 CTA를 눌러도 Welcome에서 즉시 앱으로
 돌아갈 수 있었다.
+
+`isLoggedIn`은 처음에는 Session 존재와 인증 화면 표시를 분리하기 위한
+독립적인 의미가 있었다. 범용 `authEntryIntent` 도입 후에는 같은 UI intent를
+두 상태가 중복 표현했고, token 존재 여부와 조합해 모순된 상태를 만들 수
+있었다.
 
 게스트도 서버가 만든 닉네임을 갖지만 프로필 `/users/me` Query가
 비활성화돼 이를 표시하지 못했다. 같은 Query key를 회원과 공유하면 계정
@@ -60,6 +69,10 @@ public 소셜 로그인 흐름은 단순해지지만 guest token을 잃어 서�
 token은 private 계정 연결 요청에 계속 사용되며 CTA와 intent는 특정 소셜
 provider 이름을 포함하지 않는다.
 
+일반 인증 여부는 Access Token 존재 여부만으로 결정하고, 인증 화면에 머무를
+이유는 `authEntryIntent`로 결정한다. 따라서 `isLoggedIn`을 Store에서 제거해
+`accessToken`과 서로 어긋나는 파생 상태를 만들 수 없게 한다.
+
 사용자 identity가 포함된 Query key는 프로필 cache의 소유자를 명확히
 한다. 사진 preview visibility는 별도 state로 복제하지 않고 Query 결과에서
 계산해 loading/empty 상태와 UI가 어긋나지 않게 한다.
@@ -89,6 +102,8 @@ Profile
 얻는 것:
 
 - guest session을 잃지 않는 명시적인 계정 연결 lifecycle
+- 인증 상태와 인증 화면 진입 의도의 분리
+- `isLoggedIn` 중복 상태 제거로 모순된 token/로그인 상태 조합 방지
 - Google 외 provider가 재사용할 수 있는 CTA와 request mode
 - 사용자별 profile cache 분리
 - 같은 deviceId를 보장할 수 없을 때 중복 생성을 피하는 fail-closed 정책
@@ -113,3 +128,5 @@ Profile
 - 도움말을 하단 목록으로 이동하고 세 번째 빠른 메뉴를 저장한 피드로
   교체한다.
 - RTC 촬영 사진 preview는 실제 사진이 있을 때만 렌더링한다.
+- Auth Store에서 `isLoggedIn`을 제거하고 인증 여부는 Access Token 존재
+  여부로, 계정 연결 진입은 `authEntryIntent`로 판단하도록 변경했다.

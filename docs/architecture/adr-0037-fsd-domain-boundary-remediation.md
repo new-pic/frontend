@@ -90,6 +90,8 @@ Option B를 선택했다. 다음 구조적 문제를 진단을 숨기지 않고 
 제한:
 
 - `authStore`는 ADR-0034의 보류 결정에 따라 아직 `shared/model`에 남는다.
+  ADR-0038은 내부 Session invariant를 정리했지만 layer 소유권은 변경하지
+  않았다.
 - `insignificant-slice` 예외 목록은 slice가 커지거나 소비 관계가 바뀌면
   재검토해야 한다.
 - Camera/RTC native lifecycle은 자동 테스트와 Metro bundle만으로 완전하게

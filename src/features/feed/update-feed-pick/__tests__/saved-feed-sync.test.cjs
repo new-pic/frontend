@@ -28,8 +28,8 @@ Module._load = function load(request, parent, isMain) {
         feedQueryKeys: {
           savedFeeds: savedFeedsKey,
         },
-        savedFeedsInfiniteQueryOptions: ({ take }) => ({
-          queryKey: [...savedFeedsKey, { take }],
+        savedFeedsInfiniteQueryOptions: (userId, { take }) => ({
+          queryKey: [...savedFeedsKey, userId, { take }],
           queryFn: async () => {
             fetchCount += 1;
             return {
@@ -61,7 +61,8 @@ test("저장 성공 후 기존 Infinite cache를 버리고 첫 페이지를 다�
       },
     },
   });
-  const canonicalKey = [...savedFeedsKey, { take: 24 }];
+  const userId = "member-user";
+  const canonicalKey = [...savedFeedsKey, userId, { take: 24 }];
   queryClient.setQueryData(canonicalKey, {
     pages: [
       {
@@ -72,7 +73,7 @@ test("저장 성공 후 기존 Infinite cache를 버리고 첫 페이지를 다�
     pageParams: [undefined],
   });
 
-  await refreshSavedFeedGuideCache(queryClient);
+  await refreshSavedFeedGuideCache(queryClient, userId);
 
   const refreshed = queryClient.getQueryData(canonicalKey);
   assert.equal(fetchCount, 1);

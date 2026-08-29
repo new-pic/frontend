@@ -9,6 +9,7 @@ import {
   type UseInfiniteQueryOptions,
   useInfiniteQuery,
 } from "@tanstack/react-query";
+import { useAuthStore } from "@shared/model";
 import type { FeedDetailSource } from "./feed-detail-navigation";
 
 interface UseFeedDetailCollectionParams {
@@ -27,6 +28,7 @@ type FeedDetailCollectionQueryOptions = UseInfiniteQueryOptions<
 
 function getFeedDetailCollectionQueryOptions(
   source: FeedDetailSource,
+  userId: string | null,
   params: FeedListParams,
 ): FeedDetailCollectionQueryOptions {
   const paginationParams =
@@ -37,14 +39,17 @@ function getFeedDetailCollectionQueryOptions(
   switch (source) {
     case "mine":
       return feedQuery.myFeedsInfiniteQueryOptions(
+        userId,
         paginationParams,
       ) as unknown as FeedDetailCollectionQueryOptions;
     case "saved":
       return feedQuery.savedFeedsInfiniteQueryOptions(
+        userId,
         paginationParams,
       ) as unknown as FeedDetailCollectionQueryOptions;
     case "liked":
       return feedQuery.likedFeedsInfiniteQueryOptions(
+        userId,
         paginationParams,
       ) as unknown as FeedDetailCollectionQueryOptions;
     case "public":
@@ -59,8 +64,11 @@ export function useFeedDetailCollection({
   params,
   enabled = true,
 }: UseFeedDetailCollectionParams) {
+  const userId = useAuthStore((state) => state.userId);
+  const isGuest = useAuthStore((state) => state.isGuest);
+
   return useInfiniteQuery({
-    ...getFeedDetailCollectionQueryOptions(source, params),
-    enabled,
+    ...getFeedDetailCollectionQueryOptions(source, userId, params),
+    enabled: enabled && (source === "public" || (Boolean(userId) && !isGuest)),
   });
 }
