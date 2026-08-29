@@ -50,7 +50,6 @@ const seedAuthenticatedState = () => {
   useAuthStore.setState({
     accessToken: "persisted-access-token",
     userId: "member-id",
-    isLoggedIn: true,
     isGuest: false,
     isInitialized: true,
     termsAgreed: true,
@@ -61,7 +60,6 @@ const assertLoggedOutState = () => {
   const state = useAuthStore.getState();
   assert.equal(state.accessToken, null);
   assert.equal(state.userId, null);
-  assert.equal(state.isLoggedIn, false);
   assert.equal(state.isGuest, false);
   assert.equal(state.isInitialized, true);
   assert.equal(state.termsAgreed, false);

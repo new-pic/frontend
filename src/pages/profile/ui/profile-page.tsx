@@ -1,7 +1,6 @@
 import { usersQuery } from "@entities/user";
 import { useDeleteAccount } from "@features/user/delete-account";
 import { EXTERNAL_LINKS } from "@shared/config";
-import { gradients } from "@shared/ui/theme";
 import { useConfirm } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import {
@@ -16,6 +15,7 @@ import {
   Text,
   VStack,
 } from "@shared/ui";
+import { gradients } from "@shared/ui/theme";
 import {
   IconBookmarkFilled,
   IconHeartFilled,
@@ -96,7 +96,8 @@ function ProfileButtonMenu() {
 
 export function ProfilePage() {
   const openConfirm = useConfirm();
-  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const isAuthenticated = Boolean(accessToken);
   const isGuest = useAuthStore((state) => state.isGuest);
   const prepareAccountLink = useAuthStore((state) => state.prepareAccountLink);
   const logout = useAuthStore((state) => state.logout);
@@ -221,7 +222,7 @@ export function ProfilePage() {
             >
               <Text size="md">서비스 약관</Text>
             </Pressable>
-            {isLoggedIn && !isGuest ? (
+            {isAuthenticated && !isGuest ? (
               <>
                 <Divider className="bg-outline" />
                 <Pressable className="p-6" onPress={handleGoBlockedUsers}>
@@ -235,7 +236,7 @@ export function ProfilePage() {
                 로그아웃
               </Text>
             </Pressable>
-            {isLoggedIn && !isGuest ? (
+            {isAuthenticated && !isGuest ? (
               <>
                 <Divider className="bg-outline" />
                 <Pressable
