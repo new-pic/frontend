@@ -140,6 +140,10 @@ FSD의 layer import 규칙을 지키려면 회원 상태 판정과 사용자 유
 이 결정 없이 경로만 이동하면 광범위한 import 변경만 만들고 실제 계층
 책임은 개선되지 않는다. 따라서 이번 작업에서는 현재 동작을 유지한다.
 
+후속 ADR-0038은 Auth Store의 파생 상태와 Session/Query cache lifecycle을
+재검증했지만 Store의 FSD 위치는 변경하지 않았다. 따라서 이 문서의 위치
+보류 결정은 계속 유효하다.
+
 ## Trade-off
 
 얻은 것:

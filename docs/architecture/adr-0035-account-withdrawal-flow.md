@@ -143,7 +143,8 @@ AuthStore의 `logout` 뒤에, 네이티브와 Web 확인창 차이는 `useConfir
   navigation을 막지 않도록 했다. Cache 정리는 App coordinator가 담당한다.
 - TypeScript 검사(`pnpm exec tsc --noEmit`)를 통과했다.
 - 프로필 흐름 테스트 11개(`pnpm test:profile-flow`)를 통과했다.
-- 인증 저장소 실패 회귀 테스트 2개(`pnpm test:auth-session`)를 통과했다.
+- 인증 저장소의 삭제 및 부분 저장 실패 회귀 테스트 5개
+  (`pnpm test:auth-session`)를 통과했다.
 - iOS Metro export(`expo export --platform ios`)를 완료해 새 Feature의 public
   API와 경로 별칭이 실제 bundle에서 해석되는 것을 확인했다.
 - ESLint 9 실행 파일은 존재하지만 저장소에 `eslint.config.*`가 없어 lint
