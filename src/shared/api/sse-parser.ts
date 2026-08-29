@@ -16,10 +16,8 @@ function parseEventBlock(block: string): SseMessage | null {
     if (!line || line.startsWith(":")) continue;
 
     const separatorIndex = line.indexOf(":");
-    const field =
-      separatorIndex === -1 ? line : line.slice(0, separatorIndex);
-    let value =
-      separatorIndex === -1 ? "" : line.slice(separatorIndex + 1);
+    const field = separatorIndex === -1 ? line : line.slice(0, separatorIndex);
+    let value = separatorIndex === -1 ? "" : line.slice(separatorIndex + 1);
     if (value.startsWith(" ")) value = value.slice(1);
 
     if (field === "event") {

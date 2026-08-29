@@ -16,9 +16,7 @@ require.extensions[".ts"] = (module, filename) => {
   module._compile(output.outputText, filename);
 };
 
-const {
-  getFramingGridLinePercentages,
-} = require("../framing-grid-layout.ts");
+const { getFramingGridLinePercentages } = require("../framing-grid-layout.ts");
 
 const projectRoot = path.resolve(__dirname, "../../../../../");
 

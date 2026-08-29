@@ -23,7 +23,10 @@ export const userBlockQueryKeys = {
 export function blockedUsersInfiniteQueryOptions(params: PaginationParams) {
   return infiniteQueryOptions({
     queryKey: userBlockQueryKeys.list(params),
-    queryFn: async ({ pageParam, signal }): Promise<BlockedUserListResponse> => {
+    queryFn: async ({
+      pageParam,
+      signal,
+    }): Promise<BlockedUserListResponse> => {
       const response = await privateApiClient.get("/users/me/blocks", {
         params: {
           ...params,

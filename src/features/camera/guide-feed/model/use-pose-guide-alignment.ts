@@ -1,9 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { PoseSceneMatchResult } from "../lib/pose-matching";
 import {
   advancePoseGuideAlignmentPolicy,
@@ -33,12 +28,9 @@ function isSameSnapshot(
     left.active === right.active &&
     left.alignmentState === right.alignmentState &&
     left.feedback?.reason === right.feedback?.reason &&
-    left.feedback?.personPosition ===
-      right.feedback?.personPosition &&
-    left.feedback?.targetPersonCount ===
-      right.feedback?.targetPersonCount &&
-    left.feedback?.livePersonCount ===
-      right.feedback?.livePersonCount
+    left.feedback?.personPosition === right.feedback?.personPosition &&
+    left.feedback?.targetPersonCount === right.feedback?.targetPersonCount &&
+    left.feedback?.livePersonCount === right.feedback?.livePersonCount
   );
 }
 
@@ -49,10 +41,7 @@ export function usePoseGuideAlignment({
   const identityRef = useRef({ guideId, targetReady });
   identityRef.current = { guideId, targetReady };
   const policyRef = useRef(
-    createPoseGuideAlignmentPolicyState(
-      guideId,
-      targetReady,
-    ),
+    createPoseGuideAlignmentPolicyState(guideId, targetReady),
   );
   const [snapshot, setSnapshot] = useState(() =>
     toPoseGuideAlignmentSnapshot(policyRef.current),
@@ -65,15 +54,8 @@ export function usePoseGuideAlignment({
       guideId,
       targetReady,
     );
-    const nextSnapshot = toPoseGuideAlignmentSnapshot(
-      policyRef.current,
-    );
-    if (
-      !isSameSnapshot(
-        publishedSnapshotRef.current,
-        nextSnapshot,
-      )
-    ) {
+    const nextSnapshot = toPoseGuideAlignmentSnapshot(policyRef.current);
+    if (!isSameSnapshot(publishedSnapshotRef.current, nextSnapshot)) {
       publishedSnapshotRef.current = nextSnapshot;
       setSnapshot(nextSnapshot);
     }
@@ -91,25 +73,15 @@ export function usePoseGuideAlignment({
         identity.guideId,
         identity.targetReady,
       );
-      policyRef.current = advancePoseGuideAlignmentPolicy(
-        policyRef.current,
-        {
-          result,
-          targetPersonCount,
-          livePersonCount,
-          nowMs: Date.now(),
-        },
-      );
+      policyRef.current = advancePoseGuideAlignmentPolicy(policyRef.current, {
+        result,
+        targetPersonCount,
+        livePersonCount,
+        nowMs: Date.now(),
+      });
 
-      const nextSnapshot = toPoseGuideAlignmentSnapshot(
-        policyRef.current,
-      );
-      if (
-        !isSameSnapshot(
-          publishedSnapshotRef.current,
-          nextSnapshot,
-        )
-      ) {
+      const nextSnapshot = toPoseGuideAlignmentSnapshot(policyRef.current);
+      if (!isSameSnapshot(publishedSnapshotRef.current, nextSnapshot)) {
         publishedSnapshotRef.current = nextSnapshot;
         setSnapshot(nextSnapshot);
       }
@@ -123,10 +95,7 @@ export function usePoseGuideAlignment({
     snapshot.active === (guideId !== null)
       ? snapshot
       : toPoseGuideAlignmentSnapshot(
-          createPoseGuideAlignmentPolicyState(
-            guideId,
-            targetReady,
-          ),
+          createPoseGuideAlignmentPolicyState(guideId, targetReady),
         );
 
   return {

@@ -27,9 +27,7 @@ export function SharingEndSelectionPage({
     () => new Set(),
   );
   const [isConfirming, setIsConfirming] = useState(false);
-  const [galleryIndex, setGalleryIndex] = useState<number | null>(
-    null,
-  );
+  const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
 
   const images = useMemo(
     () =>
@@ -75,9 +73,7 @@ export function SharingEndSelectionPage({
       return;
     }
 
-    setSelectedPhotoIds((previousIds) =>
-      new Set(previousIds).add(id),
-    );
+    setSelectedPhotoIds((previousIds) => new Set(previousIds).add(id));
   };
 
   const handleToggleAll = () => {
@@ -88,9 +84,7 @@ export function SharingEndSelectionPage({
       return;
     }
 
-    setSelectedPhotoIds(
-      new Set(selectablePhotos.map(({ id }) => id)),
-    );
+    setSelectedPhotoIds(new Set(selectablePhotos.map(({ id }) => id)));
   };
 
   const handleConfirm = () => {
@@ -128,12 +122,11 @@ export function SharingEndSelectionPage({
             </Pressable>
           </HStack>
           <Text className="text-label-muted">
-            촬영한 사진 중 최대 {RTC_MAX_SELECTED_PHOTOS}장을 방에
-            저장할 수 있습니다.
+            촬영한 사진 중 최대 {RTC_MAX_SELECTED_PHOTOS}장을 방에 저장할 수
+            있습니다.
           </Text>
           <Text className="text-label-muted">
-            선택됨 {selectedPhotos.length} /{" "}
-            {RTC_MAX_SELECTED_PHOTOS}
+            선택됨 {selectedPhotos.length} / {RTC_MAX_SELECTED_PHOTOS}
           </Text>
         </VStack>
 

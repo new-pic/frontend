@@ -40,11 +40,11 @@ key 같은 비밀값에는 사용하지 않는다.
 
 `eas.json`의 연결은 다음과 같다.
 
-| Build profile | EAS environment | 배포 용도 |
-| --- | --- | --- |
-| `development` | `development` | 개발 클라이언트 및 내부 테스트 |
-| `preview` | `preview` | 스토어 제출 전 내부 배포 |
-| `production` | `production` | App Store 및 Google Play 제출 |
+| Build profile | EAS environment | 배포 용도                      |
+| ------------- | --------------- | ------------------------------ |
+| `development` | `development`   | 개발 클라이언트 및 내부 테스트 |
+| `preview`     | `preview`       | 스토어 제출 전 내부 배포       |
+| `production`  | `production`    | App Store 및 Google Play 제출  |
 
 ## EAS Dashboard setup checklist
 
@@ -57,11 +57,11 @@ key 같은 비밀값에는 사용하지 않는다.
 4. Environment로 **production**을 선택한다.
 5. 아래 변수를 이름 그대로 등록한다.
 
-| Variable | Production value | Visibility | 비고 |
-| --- | --- | --- | --- |
-| `EXPO_PUBLIC_API_URL` | `https://backend-production-e66d.up.railway.app/api` | Plain text | 끝에 `/`를 붙이지 않는다. |
-| `EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID` | 운영용 Web OAuth client ID | Plain text | 현재 승인된 운영 값을 확인한다. |
-| `EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID` | 운영용 iOS OAuth client ID | Plain text | bundle ID `com.significance.newpic`과 일치하는지 확인한다. |
+| Variable                           | Production value                                     | Visibility | 비고                                                       |
+| ---------------------------------- | ---------------------------------------------------- | ---------- | ---------------------------------------------------------- |
+| `EXPO_PUBLIC_API_URL`              | `https://backend-production-e66d.up.railway.app/api` | Plain text | 끝에 `/`를 붙이지 않는다.                                  |
+| `EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID` | 운영용 Web OAuth client ID                           | Plain text | 현재 승인된 운영 값을 확인한다.                            |
+| `EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID` | 운영용 iOS OAuth client ID                           | Plain text | bundle ID `com.significance.newpic`과 일치하는지 확인한다. |
 
 6. `preview` 환경이 사용할 서버를 결정한 뒤 같은 변수 세 개를 등록한다.
    스테이징 서버가 없다면 운영 서버를 사용할 수 있지만, 내부 테스트가

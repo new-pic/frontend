@@ -47,7 +47,9 @@ export function ContentActionsMenu({
   iconClassName = "h-6 w-6",
 }: ContentActionsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [triggerLayout, setTriggerLayout] = useState<TriggerLayout | null>(null);
+  const [triggerLayout, setTriggerLayout] = useState<TriggerLayout | null>(
+    null,
+  );
   const [menuHeight, setMenuHeight] = useState<number | null>(null);
   const triggerRef = useRef<View>(null);
   const actionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -158,7 +160,9 @@ export function ContentActionsMenu({
                 >
                   <Text
                     className="font-medium"
-                    style={item.destructive ? styles.destructiveText : undefined}
+                    style={
+                      item.destructive ? styles.destructiveText : undefined
+                    }
                   >
                     {item.label}
                   </Text>

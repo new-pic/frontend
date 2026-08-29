@@ -90,13 +90,10 @@ export function isResolutionMatchingAspectRatio(
   aspectRatio: CameraAspectRatio,
 ): boolean {
   const targetResolution = getPhotoTargetResolution(aspectRatio);
-  const actualRatio =
-    getOrientationIndependentAspectRatio(resolution);
-  const targetRatio =
-    getOrientationIndependentAspectRatio(targetResolution);
+  const actualRatio = getOrientationIndependentAspectRatio(resolution);
+  const targetRatio = getOrientationIndependentAspectRatio(targetResolution);
 
   return (
-    Math.abs(actualRatio - targetRatio) <=
-    RESOLUTION_ASPECT_RATIO_TOLERANCE
+    Math.abs(actualRatio - targetRatio) <= RESOLUTION_ASPECT_RATIO_TOLERANCE
   );
 }

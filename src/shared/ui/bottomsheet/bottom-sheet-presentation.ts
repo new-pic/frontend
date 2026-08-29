@@ -27,9 +27,7 @@ export function resolveBottomSheetPresentation({
 
   return {
     snapPoints:
-      platform === "android"
-        ? [lockedSnapPoint, "100%"]
-        : [lockedSnapPoint],
+      platform === "android" ? [lockedSnapPoint, "100%"] : [lockedSnapPoint],
     isPanDownToCloseEnabled: false,
   };
 }

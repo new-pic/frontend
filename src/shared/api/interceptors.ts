@@ -22,8 +22,7 @@ export const setupInterceptors = ({ instance }: InterceptorProps) => {
     (response) => response,
     async (error: AxiosError) => {
       const originalRequest = error.config as
-        | RetryableRequestConfig
-        | undefined;
+        RetryableRequestConfig | undefined;
       const logout = useAuthStore.getState().logout;
 
       if (error.response?.status !== 401 || !originalRequest) {

@@ -24,8 +24,5 @@ export function calculatePhotoGridItemWidth(
 
   const safeWidth = Math.max(0, containerWidth);
   const safeGap = Math.max(0, gap);
-  return Math.max(
-    0,
-    (safeWidth - safeGap * (columns - 1)) / columns,
-  );
+  return Math.max(0, (safeWidth - safeGap * (columns - 1)) / columns);
 }

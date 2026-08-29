@@ -74,10 +74,7 @@ test("front camera resets to its supported 1x display zoom", () => {
     physicalDevices: [{ type: "wide-angle" }],
     zoomLensSwitchFactors: [],
   };
-  const multiplier = resolveCameraDisplayZoomMultiplier(
-    null,
-    frontDevice,
-  );
+  const multiplier = resolveCameraDisplayZoomMultiplier(null, frontDevice);
   const configuration = createCameraZoomConfiguration({
     rawMinZoom: 1,
     rawMaxZoom: 8,

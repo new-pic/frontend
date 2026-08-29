@@ -20,7 +20,6 @@ const { MOBILE_UI_METRICS } = require("../ui-metrics.ts");
 test("공통 모바일 터치 영역은 iOS와 Android 권장 기준을 충족한다", () => {
   assert.ok(MOBILE_UI_METRICS.minimumTouchTarget >= 48);
   assert.ok(
-    MOBILE_UI_METRICS.standardIconSize <
-      MOBILE_UI_METRICS.minimumTouchTarget,
+    MOBILE_UI_METRICS.standardIconSize < MOBILE_UI_METRICS.minimumTouchTarget,
   );
 });

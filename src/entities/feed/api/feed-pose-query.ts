@@ -37,16 +37,10 @@ export function useReadFeedPose({ feedId }: { feedId?: string }) {
 /**
  * 카메라 오버레이용 피드 배경 제거 이미지 조회
  */
-export function useReadFeedBackgroundRemoval({
-  feedId,
-}: {
-  feedId?: string;
-}) {
+export function useReadFeedBackgroundRemoval({ feedId }: { feedId?: string }) {
   return useQuery({
     queryKey: [...BACKGROUND_REMOVAL_QUERY_KEY, feedId],
-    queryFn: async ({
-      signal,
-    }): Promise<FeedBackgroundRemovalQueryResult> => {
+    queryFn: async ({ signal }): Promise<FeedBackgroundRemovalQueryResult> => {
       if (!feedId) {
         throw new Error("feedId is required");
       }

@@ -55,9 +55,7 @@ export function BottomSheetModal({
       onClose={onClose}
       snapPoints={presentation.snapPoints}
       enableDynamicSizing={false}
-      enablePanDownToClose={
-        presentation.isPanDownToCloseEnabled
-      }
+      enablePanDownToClose={presentation.isPanDownToCloseEnabled}
       backgroundStyle={BOTTOM_SHEET_BACKGROUND_STYLE}
     >
       <ExpoBottomSheetView

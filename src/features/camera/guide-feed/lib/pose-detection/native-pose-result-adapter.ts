@@ -4,9 +4,7 @@ import type { DetectedPoseFrame } from "./types";
 const QUARTER_TURNS = [0, 90, 180, 270] as const;
 
 function toQuarterTurn(value: number) {
-  return (
-    QUARTER_TURNS.find((candidate) => candidate === value) ?? 0
-  );
+  return QUARTER_TURNS.find((candidate) => candidate === value) ?? 0;
 }
 
 export function adaptNativeDetectedPoseFrame(
@@ -29,9 +27,7 @@ export function adaptNativeDetectedPoseFrame(
     sourceFrame: {
       width: frame.sourceWidth,
       height: frame.sourceHeight,
-      rotationDegrees: toQuarterTurn(
-        frame.rotationDegrees,
-      ),
+      rotationDegrees: toQuarterTurn(frame.rotationDegrees),
       isMirrored: frame.isMirrored,
     },
   };

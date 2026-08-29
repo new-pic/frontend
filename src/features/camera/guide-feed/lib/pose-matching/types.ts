@@ -58,11 +58,7 @@ export interface PoseBoundingBox {
 }
 
 export type PoseJointGroup =
-  | "TORSO"
-  | "LEFT_ARM"
-  | "RIGHT_ARM"
-  | "LEFT_LEG"
-  | "RIGHT_LEG";
+  "TORSO" | "LEFT_ARM" | "RIGHT_ARM" | "LEFT_LEG" | "RIGHT_LEG";
 
 export type PoseFeedback =
   | "NO_PERSON"

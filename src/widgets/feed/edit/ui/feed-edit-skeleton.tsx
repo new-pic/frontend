@@ -26,7 +26,10 @@ export function FeedEditSkeleton() {
         <VStack className="flex-1 px-8 pt-6" space="lg">
           <SkeletonText startColor={skeletonColor} className="h-5 w-full" />
           <SkeletonText startColor={skeletonColor} className="h-5 w-4/5" />
-          <Skeleton startColor={skeletonColor} className="h-12 w-full mt-auto mb-4" />
+          <Skeleton
+            startColor={skeletonColor}
+            className="h-12 w-full mt-auto mb-4"
+          />
         </VStack>
       </VStack>
     </SafeAreaView>

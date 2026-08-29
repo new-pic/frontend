@@ -21,9 +21,7 @@ export type RtcNavigationSearchParams = Partial<
 >;
 
 const createCodeQuery = (code?: string): string =>
-  code
-    ? `${RTC_NAVIGATION.params.code}=${encodeURIComponent(code)}`
-    : "";
+  code ? `${RTC_NAVIGATION.params.code}=${encodeURIComponent(code)}` : "";
 
 export const createRtcJoinPath = (code?: string): string => {
   const codeQuery = createCodeQuery(code);

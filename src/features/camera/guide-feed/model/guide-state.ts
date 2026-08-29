@@ -1,8 +1,5 @@
 import { resolveFeedCameraAspectRatio } from "../lib/feed-camera-aspect-ratio";
-import type {
-  CoordinateSize,
-  DWPoseSourcePose,
-} from "../lib/pose-matching";
+import type { CoordinateSize, DWPoseSourcePose } from "../lib/pose-matching";
 import type {
   ActiveCameraGuide,
   CameraGuideOutline,
@@ -57,8 +54,7 @@ function isCurrentSelection(
   selection: GuideFeedSelection,
 ) {
   return (
-    state.requestId === requestId &&
-    state.selected?.feedId === selection.feedId
+    state.requestId === requestId && state.selected?.feedId === selection.feedId
   );
 }
 
@@ -101,13 +97,7 @@ export function cameraGuideReducer(
         active: null,
       };
     case "REFERENCE_READY": {
-      if (
-        !isCurrentSelection(
-          state,
-          action.requestId,
-          action.selection,
-        )
-      ) {
+      if (!isCurrentSelection(state, action.requestId, action.selection)) {
         return state;
       }
 
@@ -121,20 +111,12 @@ export function cameraGuideReducer(
         active: {
           ...active,
           referenceSize: action.sourceSize,
-          cameraAspectRatio: resolveFeedCameraAspectRatio(
-            action.sourceSize,
-          ),
+          cameraAspectRatio: resolveFeedCameraAspectRatio(action.sourceSize),
         },
       };
     }
     case "OUTLINE_READY": {
-      if (
-        !isCurrentSelection(
-          state,
-          action.requestId,
-          action.selection,
-        )
-      ) {
+      if (!isCurrentSelection(state, action.requestId, action.selection)) {
         return state;
       }
 
@@ -152,13 +134,7 @@ export function cameraGuideReducer(
       };
     }
     case "TARGET_READY": {
-      if (
-        !isCurrentSelection(
-          state,
-          action.requestId,
-          action.selection,
-        )
-      ) {
+      if (!isCurrentSelection(state, action.requestId, action.selection)) {
         return state;
       }
 
@@ -172,9 +148,7 @@ export function cameraGuideReducer(
         active: {
           ...active,
           referenceSize: action.sourceSize,
-          cameraAspectRatio: resolveFeedCameraAspectRatio(
-            action.sourceSize,
-          ),
+          cameraAspectRatio: resolveFeedCameraAspectRatio(action.sourceSize),
           target: {
             sourceSize: action.sourceSize,
             sourcePoses: action.sourcePoses,

@@ -1,12 +1,10 @@
 import { useAuthStore } from "@shared/model";
 import { useRtcStore } from "../model";
 
-const RTC_HOST_ACCESS_TOKEN_HEADER =
-  "x-rtc-host-access-token";
+const RTC_HOST_ACCESS_TOKEN_HEADER = "x-rtc-host-access-token";
 
 export const assertRtcAppAccessToken = (): string => {
-  const accessToken =
-    useAuthStore.getState().accessToken?.trim() ?? "";
+  const accessToken = useAuthStore.getState().accessToken?.trim() ?? "";
 
   if (!accessToken) {
     throw new Error("로그인이 필요합니다.");
@@ -18,13 +16,8 @@ export const assertRtcAppAccessToken = (): string => {
 const getRtcHostAccessToken = (roomId: string): string => {
   const hostSession = useRtcStore.getState().hostSession;
 
-  if (
-    hostSession?.roomId !== roomId ||
-    !hostSession.hostAccessToken
-  ) {
-    throw new Error(
-      "RTC 촬영자 인증 토큰이 없습니다. 방을 다시 생성해주세요.",
-    );
+  if (hostSession?.roomId !== roomId || !hostSession.hostAccessToken) {
+    throw new Error("RTC 촬영자 인증 토큰이 없습니다. 방을 다시 생성해주세요.");
   }
 
   return hostSession.hostAccessToken;
@@ -40,7 +33,6 @@ export const createRtcHostHeaders = (
   assertRtcAppAccessToken();
 
   return {
-    [RTC_HOST_ACCESS_TOKEN_HEADER]:
-      getRtcHostAccessToken(roomId),
+    [RTC_HOST_ACCESS_TOKEN_HEADER]: getRtcHostAccessToken(roomId),
   };
 };

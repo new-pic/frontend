@@ -12,9 +12,7 @@ export const visionCameraPoseFrameSink =
   );
 
 export function setVisionCameraPoseResultCallback(
-  callback:
-    | ((result: NativeDetectedPoseFrame) => void)
-    | undefined,
+  callback: ((result: NativeDetectedPoseFrame) => void) | undefined,
 ) {
   if (callback == null) {
     visionCameraPoseFrameSink.setResultCallback(undefined);
@@ -25,17 +23,13 @@ export function setVisionCameraPoseResultCallback(
     try {
       callback(result);
     } finally {
-      visionCameraPoseFrameSink.acknowledgeResult(
-        result.sequence,
-      );
+      visionCameraPoseFrameSink.acknowledgeResult(result.sequence);
     }
   });
 }
 
 export function setVisionCameraPoseErrorCallback(
-  callback:
-    | ((error: NativePoseDetectionError) => void)
-    | undefined,
+  callback: ((error: NativePoseDetectionError) => void) | undefined,
 ) {
   visionCameraPoseFrameSink.setErrorCallback(callback);
 }

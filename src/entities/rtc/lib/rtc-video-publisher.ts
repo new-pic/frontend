@@ -3,11 +3,7 @@ import {
   visionCameraRtcFrameSink,
 } from "@newpic/vision-camera-rtc";
 import type { MediaStreamTrack } from "@livekit/react-native-webrtc";
-import {
-  Track,
-  type LocalTrack,
-  type Room,
-} from "livekit-client";
+import { Track, type LocalTrack, type Room } from "livekit-client";
 
 /**
  * RTC 영상 송출 구현을 LiveKit 연결/UI에서 분리하는 경계입니다.
@@ -20,17 +16,13 @@ export interface RtcVideoPublisher {
   stop(): Promise<void>;
 }
 
-export type RtcVideoPublisherFactory = (
-  room: Room,
-) => RtcVideoPublisher;
+export type RtcVideoPublisherFactory = (room: Room) => RtcVideoPublisher;
 
 type LiveKitPublishableTrack = Parameters<
   Room["localParticipant"]["publishTrack"]
 >[0];
 
-export class VisionCameraVideoPublisher
-  implements RtcVideoPublisher
-{
+export class VisionCameraVideoPublisher implements RtcVideoPublisher {
   private rawTrack: MediaStreamTrack | null = null;
   private localTrack: LocalTrack | null = null;
   private hasReleasedTrack = false;
@@ -52,18 +44,17 @@ export class VisionCameraVideoPublisher
       this.hasReleasedTrack = false;
 
       try {
-        const publication =
-          await this.room.localParticipant.publishTrack(
-            // registerGlobals() installs the same RN-WebRTC constructor as
-            // LiveKit's global MediaStreamTrack. Keep the type adaptation
-            // isolated at this native-track boundary.
-            rawTrack as unknown as LiveKitPublishableTrack,
-            {
-              name: "vision-camera",
-              source: Track.Source.Camera,
-              simulcast: false,
-            },
-          );
+        const publication = await this.room.localParticipant.publishTrack(
+          // registerGlobals() installs the same RN-WebRTC constructor as
+          // LiveKit's global MediaStreamTrack. Keep the type adaptation
+          // isolated at this native-track boundary.
+          rawTrack as unknown as LiveKitPublishableTrack,
+          {
+            name: "vision-camera",
+            source: Track.Source.Camera,
+            simulcast: false,
+          },
+        );
 
         if (!publication.track) {
           throw new Error(
@@ -111,10 +102,7 @@ export class VisionCameraVideoPublisher
       const localTrack = this.localTrack;
       if (localTrack) {
         try {
-          await this.room.localParticipant.unpublishTrack(
-            localTrack,
-            false,
-          );
+          await this.room.localParticipant.unpublishTrack(localTrack, false);
         } catch (error) {
           firstError ??= error;
         }
@@ -172,5 +160,6 @@ export class VisionCameraVideoPublisher
   }
 }
 
-export const createVisionCameraVideoPublisher: RtcVideoPublisherFactory =
-  (room) => new VisionCameraVideoPublisher(room);
+export const createVisionCameraVideoPublisher: RtcVideoPublisherFactory = (
+  room,
+) => new VisionCameraVideoPublisher(room);

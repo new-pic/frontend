@@ -218,18 +218,13 @@ test("target two people and live one person reports count mismatch", () => {
 
 test("low-confidence landmarks are excluded from pose error", () => {
   const live = mapPose(createPose(), (value, joint) =>
-    joint === "LEFT_ELBOW"
-      ? { x: 0.95, y: 0.05, confidence: 0.1 }
-      : value,
+    joint === "LEFT_ELBOW" ? { x: 0.95, y: 0.05, confidence: 0.1 } : value,
   );
   const result = matchPoseScene([createPose()], [live]);
 
   assert.equal(result.aligned, true);
   assert.ok(result.sceneScore > 95);
-  assert.equal(
-    result.assignments[0].match.metrics.comparableJointCount,
-    12,
-  );
+  assert.equal(result.assignments[0].match.metrics.comparableJointCount, 12);
 });
 
 test("4:3 and 16:9 cover transforms map into capture coordinates", () => {
@@ -272,32 +267,31 @@ test("upright MediaPipe input is not rotated again and can be mirrored", () => {
 });
 
 test("capture canvas size supports portrait 4:3 and 16:9", () => {
-  assert.deepEqual(
-    createCaptureCanvasSize("4:3", 1200, "portrait"),
-    { width: 900, height: 1200 },
-  );
-  assert.deepEqual(
-    createCaptureCanvasSize("16:9", 1600, "portrait"),
-    { width: 900, height: 1600 },
-  );
+  assert.deepEqual(createCaptureCanvasSize("4:3", 1200, "portrait"), {
+    width: 900,
+    height: 1200,
+  });
+  assert.deepEqual(createCaptureCanvasSize("16:9", 1600, "portrait"), {
+    width: 900,
+    height: 1600,
+  });
 });
 
 test("sensor-native capture size follows output orientation", () => {
-  assert.deepEqual(
-    orientCoordinateSize({ width: 4032, height: 3024 }, 90),
-    { width: 3024, height: 4032 },
-  );
-  assert.deepEqual(
-    orientCoordinateSize({ width: 4032, height: 3024 }, 0),
-    { width: 4032, height: 3024 },
-  );
+  assert.deepEqual(orientCoordinateSize({ width: 4032, height: 3024 }, 90), {
+    width: 3024,
+    height: 4032,
+  });
+  assert.deepEqual(orientCoordinateSize({ width: 4032, height: 3024 }, 0), {
+    width: 4032,
+    height: 3024,
+  });
 });
 
 test("insufficient comparable confidence is explicit feedback", () => {
   const live = mapPose(createPose(), (value, joint) => ({
     ...value,
-    confidence:
-      joint === "NOSE" || joint === "LEFT_SHOULDER" ? 1 : 0,
+    confidence: joint === "NOSE" || joint === "LEFT_SHOULDER" ? 1 : 0,
   }));
   const result = matchPoseScene([createPose()], [live]);
 
@@ -346,10 +340,13 @@ test("DWPose and MediaPipe adapters use their own verified mappings", () => {
     y: index / 40,
     confidence: 0.8,
   }));
-  const commonDWPose = adaptDWPosePose({
-    personIndex: 3,
-    landmarks: dwpose,
-  }, { width: 400, height: 400 });
+  const commonDWPose = adaptDWPosePose(
+    {
+      personIndex: 3,
+      landmarks: dwpose,
+    },
+    { width: 400, height: 400 },
+  );
   const commonMediaPipe = adaptMediaPipePose(mediapipe);
 
   assert.equal(commonDWPose.sourcePersonIndex, 3);
@@ -362,9 +359,7 @@ test("DWPose and MediaPipe adapters use their own verified mappings", () => {
 
 function createNormalizedPoseResult(storageShape, people) {
   const normalizedPeople =
-    storageShape === "single_person"
-      ? people[0]?.landmarks ?? []
-      : people;
+    storageShape === "single_person" ? (people[0]?.landmarks ?? []) : people;
   return {
     landmarks: normalizedPeople,
     analysis: {
@@ -372,14 +367,10 @@ function createNormalizedPoseResult(storageShape, people) {
       posePersonCount: people.length,
       rawPersonCount: people.length,
       keypointFormat: "dwpose_xy_score",
-      keypointCountsPerPerson: people.map(
-        ({ landmarks }) => landmarks.length,
-      ),
+      keypointCountsPerPerson: people.map(({ landmarks }) => landmarks.length),
       scoreCountsPerPerson: people.map(
         ({ landmarks }) =>
-          landmarks.filter(
-            ({ visibility }) => visibility !== undefined,
-          ).length,
+          landmarks.filter(({ visibility }) => visibility !== undefined).length,
       ),
       averageScorePerPerson: people.map(() => 0.9),
       storageShape,
@@ -435,9 +426,7 @@ test("server per-person metadata mismatch is rejected", () => {
   const result = createNormalizedPoseResult("multi_person", [
     {
       personIndex: 0,
-      landmarks: [
-        { index: 0, x: 0.5, y: 0.2, visibility: 0.9 },
-      ],
+      landmarks: [{ index: 0, x: 0.5, y: 0.2, visibility: 0.9 }],
     },
   ]);
   result.analysis.keypointCountsPerPerson = [2];
@@ -452,9 +441,7 @@ test("non-finite DWPose pixel landmark reports its source values", () => {
   const result = createNormalizedPoseResult("single_person", [
     {
       personIndex: 0,
-      landmarks: [
-        { index: 0, x: Infinity, y: -0.01, visibility: 0.8 },
-      ],
+      landmarks: [{ index: 0, x: Infinity, y: -0.01, visibility: 0.8 }],
     },
   ]);
 
@@ -490,14 +477,8 @@ test("DWPose source pixels normalize by the pose image size", () => {
     { width: 1200, height: 1600 },
   );
 
-  assert.ok(
-    Math.abs(pose.joints.NOSE.x - 602.160892 / 1200) <
-      1e-12,
-  );
-  assert.ok(
-    Math.abs(pose.joints.NOSE.y - 716.825548 / 1600) <
-      1e-12,
-  );
+  assert.ok(Math.abs(pose.joints.NOSE.x - 602.160892 / 1200) < 1e-12);
+  assert.ok(Math.abs(pose.joints.NOSE.y - 716.825548 / 1600) < 1e-12);
   assert.equal(pose.joints.NOSE.confidence, 0.815804);
 });
 
@@ -505,9 +486,7 @@ test("DWPose source pixels outside the image are not clamped", () => {
   const pose = adaptDWPosePose(
     {
       personIndex: 0,
-      landmarks: [
-        { index: 0, x: -120, y: 1760, visibility: 0.5 },
-      ],
+      landmarks: [{ index: 0, x: -120, y: 1760, visibility: 0.5 }],
     },
     { width: 1200, height: 1600 },
   );
@@ -526,9 +505,7 @@ test("server raw keypoint diagnostics may exceed stored truncation", () => {
       visibility: 0.9,
     })),
   };
-  const result = createNormalizedPoseResult("multi_person", [
-    person,
-  ]);
+  const result = createNormalizedPoseResult("multi_person", [person]);
   result.analysis.keypointCountsPerPerson = [133];
   result.analysis.scoreCountsPerPerson = [133];
 
@@ -536,10 +513,13 @@ test("server raw keypoint diagnostics may exceed stored truncation", () => {
 });
 
 test("missing DWPose visibility becomes zero confidence", () => {
-  const pose = adaptDWPosePose({
-    personIndex: 0,
-    landmarks: [{ index: 0, x: 50, y: 20 }],
-  }, { width: 100, height: 100 });
+  const pose = adaptDWPosePose(
+    {
+      personIndex: 0,
+      landmarks: [{ index: 0, x: 50, y: 20 }],
+    },
+    { width: 100, height: 100 },
+  );
 
   assert.equal(pose.joints.NOSE.confidence, 0);
 });
@@ -590,10 +570,7 @@ test("new Feed target commits only after image and pose are ready", async () => 
 
   assert.equal(preparer.getActiveTarget(), null);
   poseGate.resolve(
-    createFeedPoseResponse(
-      "feed-a",
-      "https://example.com/feed-a.webp",
-    ),
+    createFeedPoseResponse("feed-a", "https://example.com/feed-a.webp"),
   );
   await Promise.resolve();
   assert.equal(preparer.getActiveTarget(), null);
@@ -638,10 +615,7 @@ test("late Feed preparation cannot replace the latest selection", async () => {
 
   const latestResult = await latestPreparation;
   slowPose.resolve(
-    createFeedPoseResponse(
-      "feed-b",
-      "https://example.com/feed-b.webp",
-    ),
+    createFeedPoseResponse("feed-b", "https://example.com/feed-b.webp"),
   );
   const slowResult = await slowPreparation;
 

@@ -10,24 +10,16 @@ import {
   getNextRtcStoredPhotoExpiryDelay,
 } from "../lib/rtc-stored-photo-visibility";
 
-export function useActiveRtcStoredPhotos(
-  photos: RtcStoredPhoto[],
-) {
+export function useActiveRtcStoredPhotos(photos: RtcStoredPhoto[]) {
   const queryClient = useQueryClient();
   const [nowMs, setNowMs] = useState(() => Date.now());
-  const visibility = useMemo(
-    () => {
-      const evaluatedAt = Math.max(nowMs, Date.now());
-      return {
-        activePhotos: filterActiveRtcStoredPhotos(
-          photos,
-          evaluatedAt,
-        ),
-        evaluatedAt,
-      };
-    },
-    [nowMs, photos],
-  );
+  const visibility = useMemo(() => {
+    const evaluatedAt = Math.max(nowMs, Date.now());
+    return {
+      activePhotos: filterActiveRtcStoredPhotos(photos, evaluatedAt),
+      evaluatedAt,
+    };
+  }, [nowMs, photos]);
   const nextExpiryDelay = useMemo(
     () =>
       getNextRtcStoredPhotoExpiryDelay(

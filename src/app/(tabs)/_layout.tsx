@@ -60,9 +60,7 @@ export default function TabLayout() {
         options={{
           title: "프로필",
           tabBarStyle:
-            pathname === "/profile"
-              ? undefined
-              : { display: "none" },
+            pathname === "/profile" ? undefined : { display: "none" },
           tabBarIcon: ({ color }) => <IconUserFilled color={color} size={28} />,
         }}
       />

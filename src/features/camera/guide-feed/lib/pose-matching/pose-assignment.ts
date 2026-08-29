@@ -1,8 +1,4 @@
-import type {
-  CommonPose,
-  PoseAssignment,
-  PosePairMatch,
-} from "./types";
+import type { CommonPose, PoseAssignment, PosePairMatch } from "./types";
 import type { PoseMatchConfig } from "./pose-match-config";
 import { matchPosePair } from "./pose-geometry";
 
@@ -13,10 +9,7 @@ interface AssignmentCandidate {
   match: PosePairMatch;
 }
 
-function getAssignmentCost(
-  match: PosePairMatch,
-  config: PoseMatchConfig,
-) {
+function getAssignmentCost(match: PosePairMatch, config: PoseMatchConfig) {
   const { position, scale, pose } = match.score;
   return (
     ((100 - position) / 100) * config.assignmentWeights.position +
@@ -74,12 +67,7 @@ function exactAssignment(
         : candidates[column][row];
       usedColumns.add(column);
       selection.push(candidate);
-      search(
-        row + 1,
-        usedColumns,
-        selection,
-        totalCost + candidate.cost,
-      );
+      search(row + 1, usedColumns, selection, totalCost + candidate.cost);
       selection.pop();
       usedColumns.delete(column);
     }

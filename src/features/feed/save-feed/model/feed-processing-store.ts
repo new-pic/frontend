@@ -17,24 +17,15 @@ import type {
 interface FeedProcessingStore {
   job: FeedProcessingJob | null;
   start: (dto: FeedAiJobResponseDto) => void;
-  applyStatus: (
-    jobId: string,
-    dto: FeedAiJobStatusResponseDto,
-  ) => void;
-  applyProgress: (
-    jobId: string,
-    dto: FeedAiJobProgressEventDto,
-  ) => void;
+  applyStatus: (jobId: string, dto: FeedAiJobStatusResponseDto) => void;
+  applyProgress: (jobId: string, dto: FeedAiJobProgressEventDto) => void;
   complete: (jobId: string) => void;
   fail: (jobId: string) => void;
   setTransportState: (
     jobId: string,
     state: FeedProcessingTransportState,
   ) => void;
-  setListRefreshState: (
-    jobId: string,
-    state: FeedListRefreshState,
-  ) => void;
+  setListRefreshState: (jobId: string, state: FeedListRefreshState) => void;
   dismiss: () => void;
 }
 
@@ -58,22 +49,14 @@ export const useFeedProcessingStore = create<FeedProcessingStore>()((set) => ({
     }),
   applyStatus: (jobId, dto) =>
     set((state) => ({
-      job: updateCurrentJob(
-        state.job,
-        jobId,
-        adaptFeedAiJobStatus(dto),
-      ),
+      job: updateCurrentJob(state.job, jobId, adaptFeedAiJobStatus(dto)),
     })),
   applyProgress: (jobId, dto) =>
     set((state) => ({
-      job: updateCurrentJob(
-        state.job,
-        jobId,
-        {
-          ...adaptFeedAiJobProgress(dto),
-          progressEstimateUpdatedAt: Date.now(),
-        },
-      ),
+      job: updateCurrentJob(state.job, jobId, {
+        ...adaptFeedAiJobProgress(dto),
+        progressEstimateUpdatedAt: Date.now(),
+      }),
     })),
   complete: (jobId) =>
     set((state) => ({

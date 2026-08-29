@@ -27,12 +27,10 @@ export const CameraGuideOverlay = memo(function CameraGuideOverlay({
 }: CameraGuideOverlayProps) {
   const paths = useMemo(
     () =>
-      projectGuideOutlineToPreview(outline, previewSize).map(
-        (contour) => ({
-          key: contour.contourIndex,
-          path: createGuideContourPath(contour),
-        }),
-      ),
+      projectGuideOutlineToPreview(outline, previewSize).map((contour) => ({
+        key: contour.contourIndex,
+        path: createGuideContourPath(contour),
+      })),
     [outline, previewSize],
   );
 
@@ -61,9 +59,7 @@ export const CameraGuideOverlay = memo(function CameraGuideOverlay({
             key={key}
             d={path}
             fill="none"
-            stroke={
-              warning ? GUIDE_WARNING_COLOR : GUIDE_OUTLINE_COLOR
-            }
+            stroke={warning ? GUIDE_WARNING_COLOR : GUIDE_OUTLINE_COLOR}
             strokeWidth={GUIDE_OUTLINE_WIDTH}
             strokeLinecap="round"
             strokeLinejoin="round"

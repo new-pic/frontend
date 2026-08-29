@@ -4,11 +4,7 @@ import type { FeedProcessingJob } from "./types";
 export function getPublishingCompletionHapticKey(
   task: FeedPublishingTask | null,
 ) {
-  if (
-    !task ||
-    task.command.kind !== "UPDATE" ||
-    task.phase !== "completed"
-  ) {
+  if (!task || task.command.kind !== "UPDATE" || task.phase !== "completed") {
     return null;
   }
   return `publishing:${task.id}`;

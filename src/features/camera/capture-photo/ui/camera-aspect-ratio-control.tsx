@@ -45,9 +45,7 @@ export function CameraAspectRatioControl({
             >
               <Text
                 className={
-                  isSelected
-                    ? "font-semibold text-black"
-                    : "text-white"
+                  isSelected ? "font-semibold text-black" : "text-white"
                 }
               >
                 {option}

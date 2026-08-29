@@ -27,8 +27,7 @@ export function useAppleLogin() {
     }): Promise<SocialLoginResponse> => {
       const requestMode = getSocialLoginRequestMode(isGuest);
       const apiClientToUse =
-        requestMode ===
-        SOCIAL_LOGIN_REQUEST_MODE.AUTHENTICATED_ACCOUNT_LINK
+        requestMode === SOCIAL_LOGIN_REQUEST_MODE.AUTHENTICATED_ACCOUNT_LINK
           ? privateApiClient
           : apiClient;
       const request = AppleLoginRequestSchema.parse(appleCredential);
@@ -49,8 +48,7 @@ export function useGoogleLogin() {
     }): Promise<SocialLoginResponse> => {
       const requestMode = getSocialLoginRequestMode(isGuest);
       const apiClientToUse =
-        requestMode ===
-        SOCIAL_LOGIN_REQUEST_MODE.AUTHENTICATED_ACCOUNT_LINK
+        requestMode === SOCIAL_LOGIN_REQUEST_MODE.AUTHENTICATED_ACCOUNT_LINK
           ? privateApiClient
           : apiClient;
       const request = GoogleLoginRequestSchema.parse({

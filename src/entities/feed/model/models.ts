@@ -182,11 +182,7 @@ export interface FeedTagData {
 
 export type FeedTagResponse = FeedTagData[];
 
-export type FeedAiJobStatus =
-  | "QUEUED"
-  | "PROCESSING"
-  | "COMPLETED"
-  | "FAILED";
+export type FeedAiJobStatus = "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED";
 
 export interface FeedAiJobResponseDto {
   jobId: string;

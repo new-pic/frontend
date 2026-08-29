@@ -65,10 +65,7 @@ test("Android 고정 바텀시트는 native partial 상태에 고정된다", () 
 
 test("RTC 참여 시트는 제목을 고정하고 keyboard 보정을 중복하지 않는다", () => {
   const source = fs.readFileSync(
-    path.join(
-      projectRoot,
-      "src/features/rtc/join-room/ui/rtc-join-sheet.tsx",
-    ),
+    path.join(projectRoot, "src/features/rtc/join-room/ui/rtc-join-sheet.tsx"),
     "utf8",
   );
 

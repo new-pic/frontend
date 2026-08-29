@@ -8,10 +8,7 @@ import {
 } from "@entities/feed";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { getApiErrorMessage } from "@shared/api";
-import {
-  deleteStagedUploadFile,
-  stageFileForUpload,
-} from "@shared/lib";
+import { deleteStagedUploadFile, stageFileForUpload } from "@shared/lib";
 import { useForm } from "react-hook-form";
 import { FeedFormMode } from "./models";
 import type { CreateFeedPublishingCommand } from "./feed-publishing-types";
@@ -24,9 +21,7 @@ interface SaveFeedSubmitHandlers {
   onCreate: (
     command: CreateFeedPublishingCommand,
   ) => boolean | Promise<boolean>;
-  onUpdate: (
-    request: UpdateFeedRequest,
-  ) => boolean | Promise<boolean>;
+  onUpdate: (request: UpdateFeedRequest) => boolean | Promise<boolean>;
 }
 
 export type UseSaveFeedFormReturn = ReturnType<typeof useSaveFeedForm>;

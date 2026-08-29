@@ -6,9 +6,7 @@ interface FeedOwnerActionsMenuProps {
   feedId: string;
 }
 
-export function FeedOwnerActionsMenu({
-  feedId,
-}: FeedOwnerActionsMenuProps) {
+export function FeedOwnerActionsMenu({ feedId }: FeedOwnerActionsMenuProps) {
   const { deleteFeed, isDeleting } = useDeleteFeed(feedId);
 
   const handleEdit = () => {

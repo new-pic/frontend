@@ -32,10 +32,8 @@ type VisionCameraRtcTrackNativeModule = {
   ): Promise<NativeMediaStreamTrackInfo>;
 };
 
-const nativeTrackModule = NativeModules
-  .VisionCameraRtcTrackModule as
-  | VisionCameraRtcTrackNativeModule
-  | undefined;
+const nativeTrackModule = NativeModules.VisionCameraRtcTrackModule as
+  VisionCameraRtcTrackNativeModule | undefined;
 
 export const visionCameraRtcFrameSink =
   NitroModules.createHybridObject<VisionCameraRtcFrameSink>(
@@ -53,11 +51,7 @@ export async function createVisionCameraRtcTrack({
     );
   }
 
-  const info = await nativeTrackModule.createTrack(
-    width,
-    height,
-    frameRate,
-  );
+  const info = await nativeTrackModule.createTrack(width, height, frameRate);
 
   return new MediaStreamTrack({
     ...info,

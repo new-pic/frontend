@@ -1,7 +1,4 @@
-import {
-  privateApiClient,
-  uploadFetchClient,
-} from "@shared/api";
+import { privateApiClient, uploadFetchClient } from "@shared/api";
 import { ObjectToFormData } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import { useMutation, useQuery } from "@tanstack/react-query";

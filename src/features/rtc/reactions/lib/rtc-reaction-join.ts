@@ -28,9 +28,7 @@ export function getRtcReactionJoinEvent(role: RtcReactionRole) {
     : RTC_REACTION_SOCKET_CONFIG.viewerJoinEvent;
 }
 
-export function getRtcReactionJoinRetryDelay(
-  retryAttempt: number,
-): number {
+export function getRtcReactionJoinRetryDelay(retryAttempt: number): number {
   return Math.min(
     RTC_REACTION_SOCKET_CONFIG.joinRetryBaseDelayMs *
       2 ** Math.max(0, retryAttempt),

@@ -35,9 +35,7 @@ const {
   projectGuideOutlineToPreview,
   projectGuideSourceToPreviewRect,
 } = require("../lib/guide-contour-projection.ts");
-const {
-  mapPoseFeedbackMessage,
-} = require("../lib/pose-feedback-message.ts");
+const { mapPoseFeedbackMessage } = require("../lib/pose-feedback-message.ts");
 const {
   resolveFeedCameraAspectRatio,
 } = require("../lib/feed-camera-aspect-ratio.ts");
@@ -101,10 +99,7 @@ test("피드 상세 FAB은 feedId만 Camera route contract로 전달한다", () 
       guideFeedId: "feed-a",
     },
   });
-  assert.equal(
-    createCameraGuidePath("feed/a"),
-    "/camera?guideFeedId=feed%2Fa",
-  );
+  assert.equal(createCameraGuidePath("feed/a"), "/camera?guideFeedId=feed%2Fa");
 });
 
 test("Feed DTO는 Camera Guide selection 경계에서 필요한 필드만 남긴다", () => {
@@ -119,12 +114,7 @@ test("Feed DTO는 Camera Guide selection 경계에서 필요한 필드만 남긴
   );
 });
 
-function createMatchResult({
-  score,
-  aligned,
-  feedback,
-  liveCenterX,
-}) {
+function createMatchResult({ score, aligned, feedback, liveCenterX }) {
   const hasAssignment = liveCenterX !== undefined;
   return {
     aligned,
@@ -202,8 +192,7 @@ test("background-removal DTO adapts normalized contours to a guide outline", () 
       output: {
         success: true,
         result: {
-          backgroundRemovedImage:
-            "https://example.com/mask.png",
+          backgroundRemovedImage: "https://example.com/mask.png",
           imageWidth: 511,
           imageHeight: 1024,
           contours: [
@@ -261,13 +250,9 @@ test("guide contour applies source cover directly to the preview", () => {
   });
 
   assert.equal(projected.points[0].x, 0);
-  assert.ok(
-    Math.abs(projected.points[0].y - -66.66666666666667) < 1e-9,
-  );
+  assert.ok(Math.abs(projected.points[0].y - -66.66666666666667) < 1e-9);
   assert.equal(projected.points[1].x, 300);
-  assert.ok(
-    Math.abs(projected.points[1].y - -66.66666666666667) < 1e-9,
-  );
+  assert.ok(Math.abs(projected.points[1].y - -66.66666666666667) < 1e-9);
   assert.equal(
     createGuideContourPath(projected),
     "M 150 200 Q 0 -66.667 150 -66.667 Q 300 -66.667 300 200 Q 300 466.667 150 200 Z",
@@ -277,10 +262,7 @@ test("guide contour applies source cover directly to the preview", () => {
 test("reference image and contour share the same cover render rect", () => {
   const sourceSize = { width: 9, height: 16 };
   const previewSize = { width: 300, height: 400 };
-  const renderRect = projectGuideSourceToPreviewRect(
-    sourceSize,
-    previewSize,
-  );
+  const renderRect = projectGuideSourceToPreviewRect(sourceSize, previewSize);
   const [projected] = projectGuideOutlineToPreview(
     {
       sourceSize,
@@ -757,11 +739,7 @@ test("guide identity and readiness reset all feedback state", () => {
   );
   assert.equal(state.feedback.reason, "MOVE_RIGHT");
 
-  state = resetPoseGuideAlignmentPolicy(
-    state,
-    "feed-b",
-    false,
-  );
+  state = resetPoseGuideAlignmentPolicy(state, "feed-b", false);
   assert.deepEqual(toPoseGuideAlignmentSnapshot(state), {
     guideId: "feed-b",
     active: true,

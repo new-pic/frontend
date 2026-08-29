@@ -1,8 +1,5 @@
 import type { FeedBackgroundRemovalResponse } from "@entities/feed";
-import type {
-  CameraGuideContour,
-  CameraGuideOutline,
-} from "../model/types";
+import type { CameraGuideContour, CameraGuideOutline } from "../model/types";
 
 function isFiniteNormalizedCoordinate(value: number) {
   return Number.isFinite(value) && value >= 0 && value <= 1;
@@ -24,10 +21,7 @@ function adaptContour(
   }
 
   const points = contour.points.map(({ x, y }) => {
-    if (
-      !isFiniteNormalizedCoordinate(x) ||
-      !isFiniteNormalizedCoordinate(y)
-    ) {
+    if (!isFiniteNormalizedCoordinate(x) || !isFiniteNormalizedCoordinate(y)) {
       throw new Error(
         "촬영 가이드 윤곽선 좌표가 normalized 범위를 벗어났습니다.",
       );

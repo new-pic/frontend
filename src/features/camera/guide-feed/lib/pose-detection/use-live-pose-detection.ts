@@ -17,21 +17,20 @@ import type {
   PoseDetectionStatus,
 } from "./types";
 
-export type UseLivePoseDetectionOptions =
-  PoseDetectionConfig & {
-    /**
-     * Set this only while the VisionCamera session is active and a target
-     * overlay is available and visible.
-     */
-    enabled: boolean;
-    debug?: boolean;
-    /**
-     * Receives latest-only native results without requiring React state to
-     * update at inference FPS.
-     */
-    onFrame?: (frame: DetectedPoseFrame) => void;
-    exposeFrame?: boolean;
-  };
+export type UseLivePoseDetectionOptions = PoseDetectionConfig & {
+  /**
+   * Set this only while the VisionCamera session is active and a target
+   * overlay is available and visible.
+   */
+  enabled: boolean;
+  debug?: boolean;
+  /**
+   * Receives latest-only native results without requiring React state to
+   * update at inference FPS.
+   */
+  onFrame?: (frame: DetectedPoseFrame) => void;
+  exposeFrame?: boolean;
+};
 
 export function useLivePoseDetection({
   enabled,
@@ -40,15 +39,10 @@ export function useLivePoseDetection({
   exposeFrame = true,
   ...config
 }: UseLivePoseDetectionOptions): LivePoseDetection {
-  const [appState, setAppState] = useState(
-    AppState.currentState,
-  );
-  const [frame, setFrame] =
-    useState<DetectedPoseFrame | null>(null);
-  const [error, setError] =
-    useState<PoseDetectionError | null>(null);
-  const [status, setStatus] =
-    useState<PoseDetectionStatus>("idle");
+  const [appState, setAppState] = useState(AppState.currentState);
+  const [frame, setFrame] = useState<DetectedPoseFrame | null>(null);
+  const [error, setError] = useState<PoseDetectionError | null>(null);
+  const [status, setStatus] = useState<PoseDetectionStatus>("idle");
   const shouldAcceptResultsRef = useRef(false);
   const debugRef = useRef(debug);
   const onFrameRef = useRef(onFrame);
@@ -71,10 +65,7 @@ export function useLivePoseDetection({
   const shouldRun = enabled && isForeground;
 
   useEffect(() => {
-    const subscription = AppState.addEventListener(
-      "change",
-      setAppState,
-    );
+    const subscription = AppState.addEventListener("change", setAppState);
     return () => subscription.remove();
   }, []);
 
@@ -82,8 +73,7 @@ export function useLivePoseDetection({
     setVisionCameraPoseResultCallback((nativeFrame) => {
       if (!shouldAcceptResultsRef.current) return;
 
-      const detectedFrame =
-        adaptNativeDetectedPoseFrame(nativeFrame);
+      const detectedFrame = adaptNativeDetectedPoseFrame(nativeFrame);
       onFrameRef.current?.(detectedFrame);
       if (exposeFrameRef.current) {
         setFrame(detectedFrame);

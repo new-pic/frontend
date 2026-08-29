@@ -1,7 +1,4 @@
-import type {
-  CommonJoint,
-  MediaPipeInputPose,
-} from "./types";
+import type { CommonJoint, MediaPipeInputPose } from "./types";
 
 export interface MediaPipePoseLandmark {
   x: number;
@@ -32,23 +29,21 @@ export function adaptMediaPipePose(
   return {
     coordinateSpace: "mediapipe_input_normalized",
     joints: Object.fromEntries(
-      Object.entries(MEDIAPIPE_POSE_INDEX).flatMap(
-        ([joint, index]) => {
-          const landmark = landmarks[index];
-          return landmark
-            ? [
-                [
-                  joint,
-                  {
-                    x: landmark.x,
-                    y: landmark.y,
-                    confidence: landmark.confidence ?? 0,
-                  },
-                ],
-              ]
-            : [];
-        },
-      ),
+      Object.entries(MEDIAPIPE_POSE_INDEX).flatMap(([joint, index]) => {
+        const landmark = landmarks[index];
+        return landmark
+          ? [
+              [
+                joint,
+                {
+                  x: landmark.x,
+                  y: landmark.y,
+                  confidence: landmark.confidence ?? 0,
+                },
+              ],
+            ]
+          : [];
+      }),
     ),
   };
 }
@@ -58,7 +53,5 @@ export function adaptMediaPipePoses(
     landmarks: readonly MediaPipePoseLandmark[];
   }[],
 ): MediaPipeInputPose[] {
-  return people.map(({ landmarks }) =>
-    adaptMediaPipePose(landmarks),
-  );
+  return people.map(({ landmarks }) => adaptMediaPipePose(landmarks));
 }

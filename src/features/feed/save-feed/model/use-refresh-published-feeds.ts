@@ -5,7 +5,6 @@ export function useRefreshPublishedFeeds() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () =>
-      refreshPublishedFeedLists(queryClient, { force: true }),
+    mutationFn: () => refreshPublishedFeedLists(queryClient, { force: true }),
   });
 }

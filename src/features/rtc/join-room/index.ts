@@ -1,7 +1,4 @@
-export {
-  RtcJoinForm,
-  RtcJoinFormHeader,
-} from "./ui/rtc-join-form";
+export { RtcJoinForm, RtcJoinFormHeader } from "./ui/rtc-join-form";
 export type { RtcJoinFormProps } from "./ui/rtc-join-form";
 export { RtcJoinSheet } from "./ui/rtc-join-sheet";
 export {

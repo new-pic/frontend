@@ -40,8 +40,6 @@ export const RtcEndRoomResponseSchema = z
     roomId: z.string().trim().min(1),
     status: z.string().trim().min(1),
     endedAt: z.iso.datetime({ offset: true }),
-    savedImages: z
-      .array(RtcSavedImageSchema)
-      .max(RTC_MAX_SELECTED_PHOTOS),
+    savedImages: z.array(RtcSavedImageSchema).max(RTC_MAX_SELECTED_PHOTOS),
   })
   .strict();

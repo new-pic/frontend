@@ -26,9 +26,7 @@ const {
   adaptCreatedFeedAiJob,
   adaptFeedAiJobStatus,
 } = require("../lib/feed-ai-job-adapter.ts");
-const {
-  useFeedProcessingStore,
-} = require("../model/feed-processing-store.ts");
+const { useFeedProcessingStore } = require("../model/feed-processing-store.ts");
 const {
   createFeedProcessingProgressProjection,
   projectFeedProcessingProgress,
@@ -39,10 +37,10 @@ test("분할된 SSE chunk와 CRLF를 하나의 progress event로 조립한다", 
   const messages = [];
   const parser = createSseParser((message) => messages.push(message));
 
-  parser.push("event: progress\r\ndata: {\"jobId\":\"job-1\",");
+  parser.push('event: progress\r\ndata: {"jobId":"job-1",');
   parser.push(
-    "\"status\":\"PROCESSING\",\"progressPercent\":55," +
-      "\"estimatedRemainingSeconds\":54,\"isCompleted\":false}\r\n\r\n",
+    '"status":"PROCESSING","progressPercent":55,' +
+      '"estimatedRemainingSeconds":54,"isCompleted":false}\r\n\r\n',
   );
   parser.finish();
 
@@ -74,14 +72,11 @@ test("payload가 정의되지 않은 completed와 failed는 event 이름으로 �
 });
 
 test("알 수 없는 event와 잘못된 progress payload는 무시한다", () => {
-  assert.equal(
-    parseFeedAiJobEvent({ event: "heartbeat", data: "{}" }),
-    null,
-  );
+  assert.equal(parseFeedAiJobEvent({ event: "heartbeat", data: "{}" }), null);
   assert.equal(
     parseFeedAiJobEvent({
       event: "progress",
-      data: "{\"progressPercent\":50}",
+      data: '{"progressPercent":50}',
     }),
     null,
   );
@@ -216,20 +211,14 @@ test("store는 현재 jobId의 update만 적용한다", () => {
     progressPercent: 100,
     isCompleted: true,
   });
-  assert.equal(
-    useFeedProcessingStore.getState().job.serverProgressPercent,
-    10,
-  );
+  assert.equal(useFeedProcessingStore.getState().job.serverProgressPercent, 10);
 
   useFeedProcessingStore.getState().applyStatus("job-current", {
     status: "PROCESSING",
     progressPercent: 62,
     isCompleted: false,
   });
-  assert.equal(
-    useFeedProcessingStore.getState().job.serverProgressPercent,
-    62,
-  );
+  assert.equal(useFeedProcessingStore.getState().job.serverProgressPercent, 62);
 
   const progressEstimateObservedAfter = Date.now();
   useFeedProcessingStore.getState().applyProgress("job-current", {
@@ -239,10 +228,7 @@ test("store는 현재 jobId의 update만 적용한다", () => {
     estimatedRemainingSeconds: 120,
     isCompleted: false,
   });
-  assert.equal(
-    useFeedProcessingStore.getState().job.serverProgressPercent,
-    50,
-  );
+  assert.equal(useFeedProcessingStore.getState().job.serverProgressPercent, 50);
   assert.equal(
     useFeedProcessingStore.getState().job.estimatedRemainingSeconds,
     120,

@@ -90,10 +90,7 @@ test("차단 사용자 작성 피드를 모든 collection page에서 제거한�
     ["feed-2"],
   );
   assert.equal(
-    isFeedAuthoredBy(
-      createFeed("feed-1", "blocked-user"),
-      "blocked-user",
-    ),
+    isFeedAuthoredBy(createFeed("feed-1", "blocked-user"), "blocked-user"),
     true,
   );
 });
@@ -118,10 +115,7 @@ test("차단 대상 콘텐츠가 없으면 기존 cache 참조를 유지한다",
     createComment("comment-1", "allowed-user"),
   ]);
 
-  assert.equal(
-    removeFeedsByAuthorFromCacheData(feeds, "blocked-user"),
-    feeds,
-  );
+  assert.equal(removeFeedsByAuthorFromCacheData(feeds, "blocked-user"), feeds);
   assert.equal(
     removeCommentsByAuthorFromCacheData(comments, "blocked-user"),
     comments,

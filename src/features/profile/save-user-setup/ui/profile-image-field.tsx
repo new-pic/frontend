@@ -6,10 +6,7 @@ import {
   ButtonText,
   VStack,
 } from "@shared/ui";
-import {
-  IconCamera,
-  IconUserFilled,
-} from "@tabler/icons-react-native";
+import { IconCamera, IconUserFilled } from "@tabler/icons-react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Alert } from "react-native";
 import {
@@ -70,7 +67,9 @@ export function ProfileImageField({
         className="min-h-11 px-4"
         disabled={disabled}
         onPress={handlePickImage}
-        accessibilityLabel={previewUri ? "프로필 사진 변경" : "프로필 사진 선택"}
+        accessibilityLabel={
+          previewUri ? "프로필 사진 변경" : "프로필 사진 선택"
+        }
       >
         <ButtonIcon as={IconCamera} />
         <ButtonText className="text-link-text">

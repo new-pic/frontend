@@ -28,9 +28,7 @@ test("공통 피드 상세 route는 Tabs 밖의 Root Stack이 소유한다", () 
     true,
   );
   assert.equal(
-    fs.existsSync(
-      path.join(process.cwd(), "src/app/(tabs)/feed/[id].tsx"),
-    ),
+    fs.existsSync(path.join(process.cwd(), "src/app/(tabs)/feed/[id].tsx")),
     false,
   );
 });

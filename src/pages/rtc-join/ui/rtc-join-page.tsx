@@ -2,20 +2,14 @@ import { RtcJoinForm } from "@features/rtc/join-room";
 import { Button, ButtonIcon, HStack, VStack } from "@shared/ui";
 import { IconChevronLeft } from "@tabler/icons-react-native";
 import { Href, router, useLocalSearchParams } from "expo-router";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function RtcJoinPage() {
   const { code: codeParam } = useLocalSearchParams<{
     code?: string | string[];
   }>();
-  const initialCode = Array.isArray(codeParam)
-    ? codeParam[0]
-    : codeParam;
+  const initialCode = Array.isArray(codeParam) ? codeParam[0] : codeParam;
 
   const leaveJoinPage = () => {
     if (router.canGoBack()) {

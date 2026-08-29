@@ -58,9 +58,7 @@ test("사진 미리보기는 조회 성공 후 표시 가능한 사진이 있을
 
 test("프로필 하위 화면은 탭 sibling이 아니라 Profile Stack에 속한다", () => {
   const tabsLayout = readSource("../../../app/(tabs)/_layout.tsx");
-  const profileLayout = readSource(
-    "../../../app/(tabs)/profile/_layout.tsx",
-  );
+  const profileLayout = readSource("../../../app/(tabs)/profile/_layout.tsx");
 
   assert.match(profileLayout, /<Stack/);
   assert.doesNotMatch(tabsLayout, /name="profile\/rtc-photos"/);
@@ -73,10 +71,7 @@ test("프로필 하위 화면은 탭 sibling이 아니라 Profile Stack에 속�
 test("최근 촬영 사진은 grid에서 선택한 사진으로 공용 갤러리를 연다", () => {
   const source = readSource("../ui/profile-rtc-photo-page.tsx");
 
-  assert.match(
-    source,
-    /onPress=\{\(_, index\) => setGalleryIndex\(index\)\}/,
-  );
+  assert.match(source, /onPress=\{\(_, index\) => setGalleryIndex\(index\)\}/);
   assert.match(source, /<PhotoGalleryModal/);
   assert.match(source, /initialIndex=\{galleryIndex \?\? 0\}/);
 });
@@ -108,10 +103,7 @@ test("버그 제보 메뉴는 공용 외부 링크를 연다", () => {
     externalLinksSource,
     /BUG_REPORT:[\s\S]*"https:\/\/working-skunk-fbd\.notion\.site\/3bbfdee90e2f809f9160e46dd034b6f0"/,
   );
-  assert.match(
-    profileSource,
-    /Linking\.openURL\(EXTERNAL_LINKS\.BUG_REPORT\)/,
-  );
+  assert.match(profileSource, /Linking\.openURL\(EXTERNAL_LINKS\.BUG_REPORT\)/);
   assert.match(profileSource, /accessibilityRole="link"/);
 });
 
@@ -143,10 +135,7 @@ test("프로필 하단 메뉴는 모바일 기본 텍스트 크기를 사용한�
     "로그아웃",
     "회원 탈퇴",
   ]) {
-    assert.match(
-      source,
-      new RegExp(`size="md"[^>]*>\\s*${label}\\s*<`),
-    );
+    assert.match(source, new RegExp(`size="md"[^>]*>\\s*${label}\\s*<`));
   }
 });
 
@@ -160,9 +149,7 @@ test("회원 탈퇴 메뉴는 로그인한 비게스트 회원에게만 로그�
 });
 
 test("회원 탈퇴는 유예 API 성공 후에만 세션과 Query cache를 정리한다", () => {
-  const querySource = readSource(
-    "../../../entities/user/api/user-query.ts",
-  );
+  const querySource = readSource("../../../entities/user/api/user-query.ts");
   const featureSource = readSource(
     "../../../features/user/delete-account/model/use-delete-account.ts",
   );
@@ -180,9 +167,7 @@ test("회원 탈퇴는 유예 API 성공 후에만 세션과 Query cache를 정�
 });
 
 test("이미 탈퇴 유예 중인 응답은 완료 상태로 정규화한다", () => {
-  const querySource = readSource(
-    "../../../entities/user/api/user-query.ts",
-  );
+  const querySource = readSource("../../../entities/user/api/user-query.ts");
 
   assert.match(
     querySource,

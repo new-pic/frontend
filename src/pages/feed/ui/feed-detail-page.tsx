@@ -18,10 +18,14 @@ interface FeedDetailSearchParams extends Record<string, string | string[]> {
 }
 
 export function FeedDetailPage() {
-  const { id, index, take, q, tag, source: sourceParam } = useLocalSearchParams<
-    "/feed/[id]",
-    FeedDetailSearchParams
-  >();
+  const {
+    id,
+    index,
+    take,
+    q,
+    tag,
+    source: sourceParam,
+  } = useLocalSearchParams<"/feed/[id]", FeedDetailSearchParams>();
   const source = parseFeedDetailSource(sourceParam);
   const parsedTake = Number(take ?? 24);
   const feedSearchParams = {
@@ -75,9 +79,7 @@ export function FeedDetailPage() {
     return (
       <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
         <Center className="flex-1 gap-4 px-6">
-          <Text className="text-center text-label-muted">
-            {message}
-          </Text>
+          <Text className="text-center text-label-muted">{message}</Text>
           {isError ? (
             <Button variant="outline" onPress={() => void refetch()}>
               <ButtonText>다시 시도</ButtonText>

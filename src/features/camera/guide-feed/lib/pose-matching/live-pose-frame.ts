@@ -1,8 +1,4 @@
-import type {
-  CommonPose,
-  CoordinateSize,
-  ResizeMode,
-} from "./types";
+import type { CommonPose, CoordinateSize, ResizeMode } from "./types";
 import { projectMediaPipePoseToCapture } from "./coordinate-transform";
 import { adaptMediaPipePoses } from "./mediapipe-pose-adapter";
 

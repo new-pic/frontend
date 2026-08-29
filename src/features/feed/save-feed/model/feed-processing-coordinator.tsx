@@ -31,8 +31,7 @@ function abortableDelay(ms: number, signal: AbortSignal) {
 
 function isAbortError(error: unknown, signal: AbortSignal) {
   return (
-    signal.aborted ||
-    (error instanceof Error && error.name === "AbortError")
+    signal.aborted || (error instanceof Error && error.name === "AbortError")
   );
 }
 
@@ -60,9 +59,7 @@ export function FeedProcessingCoordinator() {
       return;
     }
 
-    useFeedProcessingStore
-      .getState()
-      .setListRefreshState(jobId, "pending");
+    useFeedProcessingStore.getState().setListRefreshState(jobId, "pending");
     void refreshPublishedFeedLists(queryClient)
       .then(() => {
         useFeedProcessingStore
@@ -70,9 +67,7 @@ export function FeedProcessingCoordinator() {
           .setListRefreshState(jobId, "succeeded");
       })
       .catch(() => {
-        useFeedProcessingStore
-          .getState()
-          .setListRefreshState(jobId, "failed");
+        useFeedProcessingStore.getState().setListRefreshState(jobId, "failed");
       });
   }, [jobId, phase, queryClient]);
 
@@ -127,10 +122,7 @@ export function FeedProcessingCoordinator() {
 
       if (event.data.status === "FAILED") {
         fail();
-      } else if (
-        event.data.status === "COMPLETED" ||
-        event.data.isCompleted
-      ) {
+      } else if (event.data.status === "COMPLETED" || event.data.isCompleted) {
         complete();
       } else {
         store.applyProgress(jobId, event.data);
@@ -199,11 +191,7 @@ export function FeedProcessingCoordinator() {
           throw new Error("Feed AI job stream ended before a terminal event");
         }
       } catch (error) {
-        if (
-          isAbortError(error, signal) ||
-          terminalHandled ||
-          disposed
-        ) {
+        if (isAbortError(error, signal) || terminalHandled || disposed) {
           return;
         }
         store.setTransportState(jobId, "disconnected");

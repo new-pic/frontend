@@ -1,19 +1,10 @@
 import { colors } from "@shared/ui/theme";
 import { deleteStagedUploadFile } from "@shared/lib";
 import { Pressable, Text } from "@shared/ui";
-import {
-  IconAlertCircle,
-  IconCheck,
-  IconX,
-} from "@tabler/icons-react-native";
+import { IconAlertCircle, IconCheck, IconX } from "@tabler/icons-react-native";
 import { router } from "expo-router";
 import { useEffect, useRef } from "react";
-import {
-  ActivityIndicator,
-  AppState,
-  StyleSheet,
-  View,
-} from "react-native";
+import { ActivityIndicator, AppState, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FEED_PROCESSING_CONFIG } from "../config/feed-processing-config";
 import { triggerFeedCompletionHaptic } from "../lib/feed-processing-haptics";
@@ -24,9 +15,7 @@ import {
 } from "../model/feed-completion-haptic";
 import { useFeedProcessingStore } from "../model/feed-processing-store";
 import { useFeedPublishingStore } from "../model/feed-publishing-store";
-import {
-  useFeedProcessingDisplayProgress,
-} from "../model/use-feed-processing-display-progress";
+import { useFeedProcessingDisplayProgress } from "../model/use-feed-processing-display-progress";
 
 function getPublishingBadgeLabel(
   kind: "CREATE" | "UPDATE",
@@ -58,10 +47,7 @@ function getBadgeLabel(
     }
     return "피드 게시 완료";
   }
-  if (
-    transportState === "polling" ||
-    transportState === "disconnected"
-  ) {
+  if (transportState === "polling" || transportState === "disconnected") {
     return `피드 처리 상태 확인 중 · ${Math.round(progressPercent)}%`;
   }
   return `피드 처리 중 · ${Math.round(progressPercent)}%`;
@@ -90,10 +76,7 @@ export function FeedProcessingBadge() {
   }, [completionHapticKey]);
 
   useEffect(() => {
-    if (
-      job?.phase !== "completed" ||
-      job.listRefreshState !== "succeeded"
-    ) {
+    if (job?.phase !== "completed" || job.listRefreshState !== "succeeded") {
       return;
     }
 
@@ -180,23 +163,16 @@ export function FeedProcessingBadge() {
 
   if (!job) return null;
 
-  const isFailed =
-    job.phase === "failed" || job.listRefreshState === "failed";
+  const isFailed = job.phase === "failed" || job.listRefreshState === "failed";
   const isCompleted =
-    job.phase === "completed" &&
-    job.listRefreshState === "succeeded";
+    job.phase === "completed" && job.listRefreshState === "succeeded";
 
   return (
     <View
       pointerEvents="box-none"
       style={[styles.layer, { top: insets.top + 8 }]}
     >
-      <View
-        style={[
-          styles.badge,
-          isFailed && styles.failedBadge,
-        ]}
-      >
+      <View style={[styles.badge, isFailed && styles.failedBadge]}>
         <Pressable
           className="flex-row items-center gap-2 flex-shrink"
           style={styles.badgeContent}

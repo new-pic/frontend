@@ -1,77 +1,75 @@
-'use client';
-import React, { useEffect, useRef, useMemo } from 'react';
-import { createTabs, TabsContext } from '@gluestack-ui/core/tabs/creator';
-import { UIIcon } from '@gluestack-ui/core/icon/creator';
+"use client";
+import React, { useEffect, useRef, useMemo } from "react";
+import { createTabs, TabsContext } from "@gluestack-ui/core/tabs/creator";
+import { UIIcon } from "@gluestack-ui/core/icon/creator";
 import {
   tva,
   withStyleContext,
   useStyleContext,
   type VariantProps,
-} from '@gluestack-ui/utils/nativewind-utils';
-import { styled } from 'nativewind';
-import { Pressable, Text, View, FlatList, Platform } from 'react-native';
+} from "@gluestack-ui/utils/nativewind-utils";
+import { styled } from "nativewind";
+import { Pressable, Text, View, FlatList, Platform } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   useAnimatedScrollHandler,
   runOnJS,
-} from 'react-native-reanimated';
-import { TabsAnimatedIndicator } from './TabsAnimatedIndicator';
+} from "react-native-reanimated";
+import { TabsAnimatedIndicator } from "./TabsAnimatedIndicator";
 
-const SCOPE = 'TABS';
+const SCOPE = "TABS";
 const AnimatedView = Animated.createAnimatedComponent(View);
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 /** Styles */
 
 const tabsStyle = tva({
-  base: 'w-full gap-1',
+  base: "w-full gap-1",
 });
 
 const tabsListStyle = tva({
-  base: 'flex relative z-10 bg-muted p-1 rounded-lg',
+  base: "flex relative z-10 bg-muted p-1 rounded-lg",
   variants: {
     orientation: {
-      horizontal: 'flex-row',
-      vertical: 'flex-col',
+      horizontal: "flex-row",
+      vertical: "flex-col",
     },
   },
 });
 
 const tabsTriggerStyle = tva({
-  base: 'justify-center relative z-30 items-center web:outline-none data-[disabled=true]:opacity-40 data-[focus-visible=true]:web:ring-2 data-[focus-visible=true]:web:ring-primary/20  px-3 py-1.5 flex-row gap-1',
+  base: "justify-center relative z-30 items-center web:outline-none data-[disabled=true]:opacity-40 data-[focus-visible=true]:web:ring-2 data-[focus-visible=true]:web:ring-primary/20  px-3 py-1.5 flex-row gap-1",
   parentVariants: {
     variant: {
-      underlined: '',
-      filled: 'rounded-lg',
+      underlined: "",
+      filled: "rounded-lg",
     },
   },
 });
 
 const tabsTriggerTextStyle = tva({
-  base: 'text-foreground/70 data-[selected=true]:text-foreground font-medium data-[hover=true]:text-foreground/90 ',
- 
+  base: "text-foreground/70 data-[selected=true]:text-foreground font-medium data-[hover=true]:text-foreground/90 ",
 });
 
 const tabsTriggerIconStyle = tva({
-  base: 'h-4 w-4 fill-none pointer-events-none shrink-0 text-foreground/70 data-[selected=true]:text-foreground',
-
+  base: "h-4 w-4 fill-none pointer-events-none shrink-0 text-foreground/70 data-[selected=true]:text-foreground",
 });
 
 const tabsContentStyle = tva({
-  base: 'p-2 h-auto',
+  base: "p-2 h-auto",
 });
 
 const tabsContentWrapperStyle = tva({
-  base: 'overflow-hidden rounded-lg',
+  base: "overflow-hidden rounded-lg",
 });
 
 const tabsIndicatorStyle = tva({
-  base: 'pointer-events-none',
+  base: "pointer-events-none",
   parentVariants: {
     variant: {
-      underlined: 'border-b  border-primary',
-      filled: 'bg-background z-20  rounded-lg',
+      underlined: "border-b  border-primary",
+      filled: "bg-background z-20  rounded-lg",
     },
   },
 });
@@ -81,7 +79,7 @@ const tabsIndicatorStyle = tva({
 const Root = withStyleContext(View, SCOPE);
 
 const StyledUIIcon = styled(UIIcon, {
-  className: 'style',
+  className: "style",
 });
 
 const UITabs = createTabs({
@@ -95,13 +93,11 @@ const UITabs = createTabs({
   Indicator: View,
 });
 
-
 /** Type definitions */
 
 type ITabsProps = React.ComponentPropsWithoutRef<typeof UITabs> &
   VariantProps<typeof tabsStyle> & {
-    variant?: 'underlined' | 'filled';
-   
+    variant?: "underlined" | "filled";
   };
 
 type ITabsListProps = React.ComponentPropsWithoutRef<typeof UITabs.List>;
@@ -131,17 +127,17 @@ type ITabsIndicatorProps = React.ComponentPropsWithoutRef<
 /** Components */
 
 const Tabs = React.forwardRef<React.ComponentRef<typeof UITabs>, ITabsProps>(
-  ({ className, variant = 'filled', ...props }, ref) => {
+  ({ className, variant = "filled", ...props }, ref) => {
     return (
       <UITabs
         ref={ref}
         {...props}
         className={tabsStyle({ class: className })}
         // @ts-ignore - pass variants to context
-        context={{ variant}}
+        context={{ variant }}
       />
     );
-  }
+  },
 );
 
 const TabsList = React.forwardRef<
@@ -172,15 +168,15 @@ const TabsList = React.forwardRef<
    * Auto scroll to selected tab
    */
   useEffect(() => {
-    if (orientation !== 'horizontal' || !selectedKey) return;
+    if (orientation !== "horizontal" || !selectedKey) return;
 
     const childArray = React.Children.toArray(children);
     const triggers = childArray.filter(
-      (child: any) => child?.type?.displayName !== 'TabsIndicator'
+      (child: any) => child?.type?.displayName !== "TabsIndicator",
     );
 
     const selectedIndex = triggers.findIndex(
-      (child: any) => child?.props?.value === selectedKey
+      (child: any) => child?.props?.value === selectedKey,
     );
 
     if (selectedIndex >= 0 && flatListRef.current) {
@@ -203,7 +199,7 @@ const TabsList = React.forwardRef<
    */
   const nativeScrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
-      'worklet';
+      "worklet";
       const x = event.contentOffset.x;
       animatedScrollOffset.set(x);
       if (setScrollOffset) runOnJS(setScrollOffset)(x);
@@ -230,17 +226,17 @@ const TabsList = React.forwardRef<
     const childArray = React.Children.toArray(children);
     return {
       triggers: childArray.filter(
-        (child: any) => child?.type?.displayName !== 'TabsIndicator'
+        (child: any) => child?.type?.displayName !== "TabsIndicator",
       ),
       indicator: childArray.find(
-        (child: any) => child?.type?.displayName === 'TabsIndicator'
+        (child: any) => child?.type?.displayName === "TabsIndicator",
       ),
     };
   }, [children]);
 
   if (!context) return null;
 
-  if (orientation === 'horizontal') {
+  if (orientation === "horizontal") {
     return (
       <View
         ref={listRef}
@@ -260,7 +256,7 @@ const TabsList = React.forwardRef<
           scrollEventThrottle={16}
           style={{ zIndex: 100 }}
           onScroll={
-            Platform.OS === 'web' ? handleWebScroll : nativeScrollHandler
+            Platform.OS === "web" ? handleWebScroll : nativeScrollHandler
           }
           onScrollToIndexFailed={(info) => {
             setTimeout(() => {
@@ -293,7 +289,6 @@ const TabsList = React.forwardRef<
   );
 });
 
-
 const TabsTrigger = React.forwardRef<
   React.ComponentRef<typeof UITabs.Trigger>,
   ITabsTriggerProps
@@ -305,7 +300,7 @@ const TabsTrigger = React.forwardRef<
       ref={ref}
       {...props}
       className={tabsTriggerStyle({
-        parentVariants: { variant  },
+        parentVariants: { variant },
         class: className,
       })}
     />
@@ -350,7 +345,7 @@ const TabsContentWrapper = React.forwardRef<
         isFirstRender.current = false;
       } else {
         // Animate height changes
-        heightValue.value = withSpring(height,{duration:100});
+        heightValue.value = withSpring(height, { duration: 100 });
       }
     }
   }, [height, heightValue]);
@@ -358,7 +353,7 @@ const TabsContentWrapper = React.forwardRef<
   // Animated style for height transitions
   const animatedStyle = useAnimatedStyle(() => {
     return {
-      height: heightValue.value > 0 ? heightValue.value : 'auto',
+      height: heightValue.value > 0 ? heightValue.value : "auto",
     };
   }, []);
 
@@ -376,14 +371,11 @@ const TabsTriggerText = React.forwardRef<
   React.ComponentRef<typeof UITabs.TriggerText>,
   ITabsTriggerTextProps
 >(({ className, ...props }, ref) => {
-  
-
   return (
     <UITabs.TriggerText
       ref={ref}
       {...props}
       className={tabsTriggerTextStyle({
-       
         class: className,
       })}
     />
@@ -398,7 +390,7 @@ const TabsTriggerIcon = React.forwardRef<
 
   // Remove `dataSet` ONLY on web to avoid React DOM warning
   const safeProps =
-    Platform.OS === 'web'
+    Platform.OS === "web"
       ? (() => {
           const { dataSet, ...rest } = props as any;
           return rest;
@@ -416,7 +408,6 @@ const TabsTriggerIcon = React.forwardRef<
     />
   );
 });
-
 
 const TabsIndicator = React.forwardRef<
   React.ComponentRef<typeof UITabs.Indicator>,
@@ -451,15 +442,14 @@ const TabsIndicator = React.forwardRef<
   );
 });
 
-
-Tabs.displayName = 'Tabs';
-TabsList.displayName = 'TabsList';
-TabsTrigger.displayName = 'TabsTrigger';
-TabsContent.displayName = 'TabsContent';
-TabsContentWrapper.displayName = 'TabsContentWrapper';
-TabsTriggerText.displayName = 'TabsTriggerText';
-TabsTriggerIcon.displayName = 'TabsTriggerIcon';
-TabsIndicator.displayName = 'TabsIndicator'
+Tabs.displayName = "Tabs";
+TabsList.displayName = "TabsList";
+TabsTrigger.displayName = "TabsTrigger";
+TabsContent.displayName = "TabsContent";
+TabsContentWrapper.displayName = "TabsContentWrapper";
+TabsTriggerText.displayName = "TabsTriggerText";
+TabsTriggerIcon.displayName = "TabsTriggerIcon";
+TabsIndicator.displayName = "TabsIndicator";
 
 export {
   Tabs,
