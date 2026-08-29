@@ -1,0 +1,18 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - name: format staged files
+      run: pnpm exec prettier --check --ignore-unknown {staged_files}
+
+    - name: lint staged files
+      glob: "*.{js,jsx,ts,tsx,cjs,mjs}"
+      run: pnpm exec eslint --no-warn-ignored {staged_files}
+
+pre-push:
+  parallel: true
+  jobs:
+    - name: typecheck
+      run: pnpm typecheck
+
+    - name: check FSD architecture
+      run: pnpm fsd:check

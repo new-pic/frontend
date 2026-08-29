@@ -129,6 +129,9 @@
   },
   "private": true,
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "lefthook"
+    ],
     "overrides": {
       "lightningcss": "1.30.1"
     },
