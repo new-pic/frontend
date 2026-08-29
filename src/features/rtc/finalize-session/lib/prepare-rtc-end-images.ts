@@ -16,9 +16,7 @@ export async function prepareRtcEndImages(
   }
 
   try {
-    return await Promise.all(
-      photos.map(({ uri }) => uriToFile({ uri })),
-    );
+    return await Promise.all(photos.map(({ uri }) => uriToFile({ uri })));
   } catch {
     throw new Error(
       "선택한 사진 파일을 준비하지 못했습니다. 사진을 다시 선택해주세요.",

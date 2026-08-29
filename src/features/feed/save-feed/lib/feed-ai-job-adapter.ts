@@ -3,10 +3,7 @@ import type {
   FeedAiJobResponseDto,
   FeedAiJobStatusResponseDto,
 } from "@entities/feed";
-import type {
-  FeedProcessingJob,
-  FeedProcessingPhase,
-} from "../model/types";
+import type { FeedProcessingJob, FeedProcessingPhase } from "../model/types";
 
 function clampProgress(progressPercent: number) {
   return Math.min(100, Math.max(0, progressPercent));

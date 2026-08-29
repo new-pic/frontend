@@ -11,18 +11,13 @@ export interface RtcStore {
   liveKitConnection: RtcLiveKitConnection | null;
 
   setHostSession: (session: RtcHostSession) => void;
-  updateHostSessionExpiresAt: (
-    roomId: string,
-    expiresAt: string,
-  ) => void;
+  updateHostSessionExpiresAt: (roomId: string, expiresAt: string) => void;
   clearHostSession: () => void;
 
   setViewerSession: (session: RtcViewerSession) => void;
   clearViewerSession: () => void;
 
-  setLiveKitConnection: (
-    connection: RtcLiveKitConnection,
-  ) => void;
+  setLiveKitConnection: (connection: RtcLiveKitConnection) => void;
   clearLiveKitConnection: () => void;
   clearRtcSession: () => void;
 }

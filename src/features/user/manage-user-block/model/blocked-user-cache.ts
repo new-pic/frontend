@@ -4,10 +4,7 @@ import {
   removeCommentsByAuthorFromCacheData,
   removeFeedsByAuthorFromCacheData,
 } from "@entities/feed";
-import {
-  type BlockedUserListResponse,
-  userBlockQuery,
-} from "@entities/user";
+import { type BlockedUserListResponse, userBlockQuery } from "@entities/user";
 import type {
   InfiniteData,
   QueryClient,

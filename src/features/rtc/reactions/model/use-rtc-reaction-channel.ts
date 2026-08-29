@@ -1,10 +1,5 @@
 import { useAuthStore } from "@shared/model";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createSocketIoReactionTransport } from "../api/socket-io-reaction-transport";
 import { RTC_REACTION_SOCKET_CONFIG } from "../config/rtc-reaction-config";
 import { canSendRtcReaction } from "../lib/rtc-reaction-domain";
@@ -36,8 +31,7 @@ export const useRtcReactionChannel = ({
   > | null>(null);
   const onReactionRef = useRef(onReaction);
   const lastSentAtRef = useRef<number | null>(null);
-  const [status, setStatus] =
-    useState<RtcReactionConnectionStatus>("IDLE");
+  const [status, setStatus] = useState<RtcReactionConnectionStatus>("IDLE");
   const [error, setError] = useState<string | null>(null);
   onReactionRef.current = onReaction;
 
@@ -61,17 +55,14 @@ export const useRtcReactionChannel = ({
     }
 
     let disposed = false;
-    let transport: ReturnType<
-      typeof createSocketIoReactionTransport
-    >;
+    let transport: ReturnType<typeof createSocketIoReactionTransport>;
 
     try {
       transport = createSocketIoReactionTransport({
         accessToken: normalizedToken,
         role,
         roomId: normalizedRoomId,
-        participantId:
-          role === "VIEWER" ? normalizedParticipantId : undefined,
+        participantId: role === "VIEWER" ? normalizedParticipantId : undefined,
         onReaction: (reaction) => {
           if (!disposed && role === "HOST") {
             onReactionRef.current?.(reaction);
@@ -129,8 +120,7 @@ export const useRtcReactionChannel = ({
         return false;
       }
 
-      const sent =
-        transportRef.current?.send(normalizedEmojiId) ?? false;
+      const sent = transportRef.current?.send(normalizedEmojiId) ?? false;
       if (sent) lastSentAtRef.current = now;
       return sent;
     },

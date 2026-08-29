@@ -19,9 +19,7 @@ const {
   AUTH_ENTRY_INTENT,
   shouldLeaveAuthEntry,
 } = require("../auth-entry-intent.ts");
-const {
-  resolveStableDeviceUuid,
-} = require("../../lib/device-uuid-policy.ts");
+const { resolveStableDeviceUuid } = require("../../lib/device-uuid-policy.ts");
 const {
   getSocialLoginRequestMode,
   SOCIAL_LOGIN_REQUEST_MODE,
@@ -36,16 +34,10 @@ test("게스트 계정 연결 intent는 token을 유지해도 Welcome을 떠나�
     false,
   );
   assert.equal(
-    shouldLeaveAuthEntry(
-      "member-access-token",
-      AUTH_ENTRY_INTENT.DEFAULT,
-    ),
+    shouldLeaveAuthEntry("member-access-token", AUTH_ENTRY_INTENT.DEFAULT),
     true,
   );
-  assert.equal(
-    shouldLeaveAuthEntry(null, AUTH_ENTRY_INTENT.DEFAULT),
-    false,
-  );
+  assert.equal(shouldLeaveAuthEntry(null, AUTH_ENTRY_INTENT.DEFAULT), false);
 });
 
 test("게스트의 소셜 로그인은 인증된 계정 연결 요청을 사용한다", () => {

@@ -58,10 +58,7 @@ export function useFeedProcessingDisplayProgress(
           getProgressInput(job),
           now,
         )
-      : createFeedProcessingProgressProjection(
-          getProgressInput(job),
-          now,
-        );
+      : createFeedProcessingProgressProjection(getProgressInput(job), now);
     projectionRef.current = { jobId: job.jobId, projection };
 
     const projectedProgress = projectFeedProcessingProgress(projection, now);

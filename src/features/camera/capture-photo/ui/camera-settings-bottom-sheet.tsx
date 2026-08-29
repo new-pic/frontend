@@ -1,15 +1,6 @@
 import { colors } from "@shared/ui/theme";
-import {
-  BottomSheetModal,
-  HStack,
-  Pressable,
-  Text,
-  VStack,
-} from "@shared/ui";
-import {
-  IconBolt,
-  IconBoltOff,
-} from "@tabler/icons-react-native";
+import { BottomSheetModal, HStack, Pressable, Text, VStack } from "@shared/ui";
+import { IconBolt, IconBoltOff } from "@tabler/icons-react-native";
 import type {
   CameraAspectRatio,
   CameraCaptureSettings,
@@ -25,10 +16,7 @@ const FLASH_OPTIONS: {
   { mode: "auto", label: "AUTO" },
 ];
 
-const ASPECT_RATIO_OPTIONS: CameraAspectRatio[] = [
-  "4:3",
-  "16:9",
-];
+const ASPECT_RATIO_OPTIONS: CameraAspectRatio[] = ["4:3", "16:9"];
 
 interface CameraSettingsBottomSheetProps {
   open: boolean;
@@ -52,11 +40,7 @@ export function CameraSettingsBottomSheet({
   onAspectRatioChange,
 }: CameraSettingsBottomSheetProps) {
   return (
-    <BottomSheetModal
-      open={open}
-      onClose={onClose}
-      snapPoints={["38%"]}
-    >
+    <BottomSheetModal open={open} onClose={onClose} snapPoints={["38%"]}>
       <VStack className="flex-1 gap-6 px-6 pb-8 pt-5">
         <Text size="xl" bold>
           촬영 설정
@@ -100,9 +84,7 @@ export function CameraSettingsBottomSheet({
                       bold
                       className="text-xs"
                       style={{
-                        color: selected
-                          ? colors.brand.primary
-                          : "#111111",
+                        color: selected ? colors.brand.primary : "#111111",
                       }}
                     >
                       AUTO
@@ -110,20 +92,12 @@ export function CameraSettingsBottomSheet({
                   ) : mode === "on" ? (
                     <IconBolt
                       size={25}
-                      color={
-                        selected
-                          ? colors.brand.primary
-                          : "#111111"
-                      }
+                      color={selected ? colors.brand.primary : "#111111"}
                     />
                   ) : (
                     <IconBoltOff
                       size={25}
-                      color={
-                        selected
-                          ? colors.brand.primary
-                          : "#111111"
-                      }
+                      color={selected ? colors.brand.primary : "#111111"}
                     />
                   )}
                 </Pressable>
@@ -142,8 +116,7 @@ export function CameraSettingsBottomSheet({
           <HStack className="gap-3">
             {ASPECT_RATIO_OPTIONS.map((ratio) => {
               const selected = settings.aspectRatio === ratio;
-              const disabled =
-                isAspectRatioLocked || !isAspectRatioReady;
+              const disabled = isAspectRatioLocked || !isAspectRatioReady;
 
               return (
                 <Pressable
@@ -163,18 +136,14 @@ export function CameraSettingsBottomSheet({
                     borderColor: selected
                       ? colors.brand.primary
                       : colors.outline,
-                    backgroundColor: selected
-                      ? colors.brand.light
-                      : "white",
+                    backgroundColor: selected ? colors.brand.light : "white",
                     opacity: disabled ? 0.45 : 1,
                   }}
                 >
                   <Text
                     bold
                     style={{
-                      color: selected
-                        ? colors.brand.primary
-                        : "#111111",
+                      color: selected ? colors.brand.primary : "#111111",
                     }}
                   >
                     {ratio}

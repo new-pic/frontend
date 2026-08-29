@@ -32,8 +32,7 @@ export function useRtcStoredPhotoExpiryState(expiresAt: string) {
 
     const timeout = setTimeout(
       () => setNowMs(Date.now()),
-      transitionDelay +
-        RTC_STORED_PHOTO_GALLERY_CONFIG.expiryTimerGraceMs,
+      transitionDelay + RTC_STORED_PHOTO_GALLERY_CONFIG.expiryTimerGraceMs,
     );
     return () => clearTimeout(timeout);
   }, [transitionDelay]);

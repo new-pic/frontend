@@ -15,17 +15,11 @@ function getRemoteImageExtension(uri: string): string {
   return pathWithoutQuery.match(IMAGE_EXTENSION_PATTERN)?.[0] ?? ".jpg";
 }
 
-function createTemporaryImageFile(
-  image: MediaLibraryImageSource,
-): File {
-  const safeId =
-    image.id.replace(/[^a-z0-9_-]/gi, "-").slice(0, 40) || "image";
+function createTemporaryImageFile(image: MediaLibraryImageSource): File {
+  const safeId = image.id.replace(/[^a-z0-9_-]/gi, "-").slice(0, 40) || "image";
   const extension = getRemoteImageExtension(image.imageUrl);
 
-  return new File(
-    Paths.cache,
-    `newpic-${safeId}-${Date.now()}${extension}`,
-  );
+  return new File(Paths.cache, `newpic-${safeId}-${Date.now()}${extension}`);
 }
 
 export async function saveImageToMediaLibrary(

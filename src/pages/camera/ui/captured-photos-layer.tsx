@@ -10,12 +10,7 @@ import {
   VStack,
 } from "@shared/ui";
 import { IconChevronLeft } from "@tabler/icons-react-native";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { BackHandler, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -30,9 +25,7 @@ export function CapturedPhotosLayer({
   photos,
   onClose,
 }: CapturedPhotosLayerProps) {
-  const [galleryIndex, setGalleryIndex] = useState<number | null>(
-    null,
-  );
+  const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
   const images = useMemo(
     () =>
       photos.map(({ id, uri }) => ({

@@ -98,9 +98,7 @@ export function ProfilePage() {
   const openConfirm = useConfirm();
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const isGuest = useAuthStore((state) => state.isGuest);
-  const prepareAccountLink = useAuthStore(
-    (state) => state.prepareAccountLink,
-  );
+  const prepareAccountLink = useAuthStore((state) => state.prepareAccountLink);
   const logout = useAuthStore((state) => state.logout);
   const { data } = usersQuery.useReadMe();
   const { deleteAccount, isDeleting } = useDeleteAccount();

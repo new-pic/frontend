@@ -45,10 +45,7 @@ const {
 Module._load = originalLoad;
 
 test("4:3 uses a portrait photo target and 3:4 preview geometry", () => {
-  assert.deepEqual(
-    getPhotoTargetResolution("4:3"),
-    commonResolutions.UHD_4_3,
-  );
+  assert.deepEqual(getPhotoTargetResolution("4:3"), commonResolutions.UHD_4_3);
   assert.equal(getPortraitPreviewAspectRatio("4:3"), 3 / 4);
 });
 
@@ -69,41 +66,26 @@ test("4:3 uses an inline header and 16:9 uses an overlay header", () => {
 
 test("resolved resolution comparison is orientation independent", () => {
   assert.equal(
-    isResolutionMatchingAspectRatio(
-      { width: 4032, height: 3024 },
-      "4:3",
-    ),
+    isResolutionMatchingAspectRatio({ width: 4032, height: 3024 }, "4:3"),
     true,
   );
   assert.equal(
-    isResolutionMatchingAspectRatio(
-      { width: 1920, height: 1080 },
-      "16:9",
-    ),
+    isResolutionMatchingAspectRatio({ width: 1920, height: 1080 }, "16:9"),
     true,
   );
   assert.equal(
-    isResolutionMatchingAspectRatio(
-      { width: 4032, height: 3024 },
-      "16:9",
-    ),
+    isResolutionMatchingAspectRatio({ width: 4032, height: 3024 }, "16:9"),
     false,
   );
 });
 
 test("sensor-native resolution follows the configured output orientation", () => {
   assert.deepEqual(
-    orientCameraResolution(
-      { width: 4032, height: 3024 },
-      "right",
-    ),
+    orientCameraResolution({ width: 4032, height: 3024 }, "right"),
     { width: 3024, height: 4032 },
   );
   assert.deepEqual(
-    orientCameraResolution(
-      { width: 1920, height: 1080 },
-      "up",
-    ),
+    orientCameraResolution({ width: 1920, height: 1080 }, "up"),
     { width: 1920, height: 1080 },
   );
 });

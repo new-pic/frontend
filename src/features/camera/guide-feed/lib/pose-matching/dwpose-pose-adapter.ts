@@ -3,11 +3,7 @@ import type {
   NormalizedPosePerson,
   NormalizedPoseResult,
 } from "@entities/feed";
-import type {
-  CommonJoint,
-  CoordinateSize,
-  DWPoseSourcePose,
-} from "./types";
+import type { CommonJoint, CoordinateSize, DWPoseSourcePose } from "./types";
 
 export const DWPOSE_KEYPOINT_FORMAT = "dwpose_xy_score" as const;
 
@@ -63,10 +59,7 @@ function isNormalizedLandmark(
   return "index" in value && !("landmarks" in value);
 }
 
-function assertLandmark(
-  landmark: NormalizedPoseLandmark,
-  personIndex: number,
-) {
+function assertLandmark(landmark: NormalizedPoseLandmark, personIndex: number) {
   assertContract(
     Number.isInteger(landmark.index) && landmark.index >= 0,
     `Person ${personIndex} has an invalid landmark index.`,
@@ -79,8 +72,7 @@ function assertLandmark(
     },
   );
   assertContract(
-    Number.isFinite(landmark.x) &&
-      Number.isFinite(landmark.y),
+    Number.isFinite(landmark.x) && Number.isFinite(landmark.y),
     `Person ${personIndex}, landmark ${landmark.index} has invalid source pixel coordinates (x: ${landmark.x}, y: ${landmark.y}).`,
     {
       personIndex,
@@ -106,9 +98,7 @@ function assertLandmark(
   );
 }
 
-function normalizePeople(
-  result: NormalizedPoseResult,
-): NormalizedPosePerson[] {
+function normalizePeople(result: NormalizedPoseResult): NormalizedPosePerson[] {
   const { analysis, landmarks } = result;
 
   if (analysis.storageShape === "single_person") {
@@ -117,8 +107,7 @@ function normalizePeople(
       "single_person storage must contain a flat landmark array.",
     );
     assertContract(
-      analysis.posePersonCount === 0 ||
-        analysis.posePersonCount === 1,
+      analysis.posePersonCount === 0 || analysis.posePersonCount === 1,
       "single_person storage supports zero or one person.",
     );
 
@@ -175,9 +164,7 @@ function assertAnalysisContract(
     analysis.averageScorePerPerson,
   ];
   assertContract(
-    perPersonArrays.every(
-      (values) => values.length === people.length,
-    ),
+    perPersonArrays.every((values) => values.length === people.length),
     "Per-person analysis arrays must match posePersonCount.",
   );
 
@@ -191,31 +178,22 @@ function assertAnalysisContract(
     );
     seenPersonIndices.add(person.personIndex);
 
-    const rawKeypointCount =
-      analysis.keypointCountsPerPerson[arrayIndex];
+    const rawKeypointCount = analysis.keypointCountsPerPerson[arrayIndex];
     assertContract(
       Number.isInteger(rawKeypointCount) &&
         rawKeypointCount >= 0 &&
         person.landmarks.length ===
-          Math.min(
-            rawKeypointCount,
-            analysis.truncatedToKeypoints,
-          ),
+          Math.min(rawKeypointCount, analysis.truncatedToKeypoints),
       `Person ${person.personIndex} keypoint count does not match truncation analysis.`,
     );
     assertContract(
-      Number.isInteger(
-        analysis.scoreCountsPerPerson[arrayIndex],
-      ) &&
+      Number.isInteger(analysis.scoreCountsPerPerson[arrayIndex]) &&
         analysis.scoreCountsPerPerson[arrayIndex] >= 0 &&
-        analysis.scoreCountsPerPerson[arrayIndex] <=
-          rawKeypointCount,
+        analysis.scoreCountsPerPerson[arrayIndex] <= rawKeypointCount,
       `Person ${person.personIndex} has an invalid score count.`,
     );
     assertContract(
-      Number.isFinite(
-        analysis.averageScorePerPerson[arrayIndex],
-      ) &&
+      Number.isFinite(analysis.averageScorePerPerson[arrayIndex]) &&
         analysis.averageScorePerPerson[arrayIndex] >= 0 &&
         analysis.averageScorePerPerson[arrayIndex] <= 1,
       `Person ${person.personIndex} has an invalid average score.`,
@@ -258,33 +236,28 @@ export function adaptDWPosePose(
     },
   );
   const landmarkByIndex = new Map(
-    person.landmarks.map((landmark) => [
-      landmark.index,
-      landmark,
-    ]),
+    person.landmarks.map((landmark) => [landmark.index, landmark]),
   );
 
   return {
     coordinateSpace: "dwpose_source_normalized",
     sourcePersonIndex: person.personIndex,
     joints: Object.fromEntries(
-      Object.entries(DWPOSE_BODY_INDEX).flatMap(
-        ([joint, index]) => {
-          const landmark = landmarkByIndex.get(index);
-          return landmark
-            ? [
-                [
-                  joint,
-                  {
-                    x: landmark.x / sourceSize.width,
-                    y: landmark.y / sourceSize.height,
-                    confidence: landmark.visibility ?? 0,
-                  },
-                ],
-              ]
-            : [];
-        },
-      ),
+      Object.entries(DWPOSE_BODY_INDEX).flatMap(([joint, index]) => {
+        const landmark = landmarkByIndex.get(index);
+        return landmark
+          ? [
+              [
+                joint,
+                {
+                  x: landmark.x / sourceSize.width,
+                  y: landmark.y / sourceSize.height,
+                  confidence: landmark.visibility ?? 0,
+                },
+              ],
+            ]
+          : [];
+      }),
     ),
   };
 }

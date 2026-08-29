@@ -44,22 +44,20 @@ export interface NativePoseDetectionError {
  * The caller owns and disposes the Frame. Accepted frames are synchronously
  * copied to an owned MediaPipe input before `pushFrame()` returns.
  */
-export interface VisionCameraPoseFrameSink
-  extends HybridObject<{ ios: "swift"; android: "kotlin" }> {
+export interface VisionCameraPoseFrameSink extends HybridObject<{
+  ios: "swift";
+  android: "kotlin";
+}> {
   configure(options: NativePoseDetectionOptions): void;
   startAcceptingFrames(): void;
   stopAcceptingFrames(): void;
   releaseDetector(): void;
   pushFrame(frame: Frame): boolean;
   setResultCallback(
-    callback:
-      | ((result: NativeDetectedPoseFrame) => void)
-      | undefined,
+    callback: ((result: NativeDetectedPoseFrame) => void) | undefined,
   ): void;
   setErrorCallback(
-    callback:
-      | ((error: NativePoseDetectionError) => void)
-      | undefined,
+    callback: ((error: NativePoseDetectionError) => void) | undefined,
   ): void;
   acknowledgeResult(sequence: number): void;
 }

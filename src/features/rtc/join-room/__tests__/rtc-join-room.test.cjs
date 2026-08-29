@@ -4,9 +4,7 @@ const test = require("node:test");
 const {
   isCurrentRtcViewerSession,
 } = require("../../../../entities/rtc/model/rtc-viewer-session.ts");
-const {
-  resolveRtcViewerRoomSignal,
-} = require("../model/rtc-viewer-entry.ts");
+const { resolveRtcViewerRoomSignal } = require("../model/rtc-viewer-entry.ts");
 
 const currentSession = {
   roomId: "room-1",
@@ -91,10 +89,7 @@ test("참여 폼은 join 성공 후 토큰을 발급하지 않고 대기 화면�
   );
 
   assert.match(source, /await joinRoomMutation\.mutateAsync/);
-  assert.match(
-    source,
-    /router\.replace\(RTC_NAVIGATION\.paths\.viewer/,
-  );
+  assert.match(source, /router\.replace\(RTC_NAVIGATION\.paths\.viewer/);
   assert.doesNotMatch(source, /useCreateViewerLiveKitToken/);
 });
 

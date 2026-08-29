@@ -22,11 +22,7 @@ import {
   IconChevronUp,
 } from "@tabler/icons-react-native";
 import { useRef, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { Controller, useWatch } from "react-hook-form";
 import {
   CONTENT_REPORT_REASON_OPTIONS,
@@ -82,11 +78,7 @@ export function ReportContentModal({
 
   if (reportMutation.isSuccess) {
     return (
-      <BottomSheetModal
-        open
-        onClose={onClose}
-        lockedSnapPoint="50%"
-      >
+      <BottomSheetModal open onClose={onClose} lockedSnapPoint="50%">
         <VStack className="flex-1 items-center justify-center px-6" space="xl">
           <VStack className="items-center" space="sm">
             <Text size="xl" className="font-bold">
@@ -176,7 +168,10 @@ export function ReportContentModal({
                             {option.label}
                           </Text>
                           {isSelected ? (
-                            <Icon as={IconCheck} className="h-5 w-5 text-brand" />
+                            <Icon
+                              as={IconCheck}
+                              className="h-5 w-5 text-brand"
+                            />
                           ) : null}
                         </Pressable>
                       );

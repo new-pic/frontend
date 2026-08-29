@@ -102,14 +102,8 @@ test("가장 가까운 서버 만료 시점까지만 타이머 지연을 계산�
     }),
   ];
 
-  assert.equal(
-    getNextRtcStoredPhotoExpiryDelay(photos, nowMs),
-    3_500,
-  );
-  assert.equal(
-    getNextRtcStoredPhotoExpiryDelay([], nowMs),
-    null,
-  );
+  assert.equal(getNextRtcStoredPhotoExpiryDelay(photos, nowMs), 3_500);
+  assert.equal(getNextRtcStoredPhotoExpiryDelay([], nowMs), null);
 });
 
 test("cursor 페이지를 순서대로 병합하고 중복 사진을 한 번만 유지한다", () => {

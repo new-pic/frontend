@@ -13,14 +13,9 @@ import {
 } from "./pose-match-config";
 import { assignPoses } from "./pose-assignment";
 
-function getLowestJointGroup(
-  match: PosePairMatch,
-): PoseJointGroup {
+function getLowestJointGroup(match: PosePairMatch): PoseJointGroup {
   const groupScores = match.metrics?.jointGroupScores ?? {};
-  const entries = Object.entries(groupScores) as [
-    PoseJointGroup,
-    number,
-  ][];
+  const entries = Object.entries(groupScores) as [PoseJointGroup, number][];
 
   return entries.length > 0
     ? entries.reduce((lowest, current) =>
@@ -29,9 +24,7 @@ function getLowestJointGroup(
     : "TORSO";
 }
 
-function getLargestPairMismatch(
-  match: PosePairMatch,
-): PoseMismatchCause {
+function getLargestPairMismatch(match: PosePairMatch): PoseMismatchCause {
   if (!match.isComparable) {
     return "CONFIDENCE";
   }
@@ -102,10 +95,7 @@ function getFeedback(
 
   if (cause === "POSITION") {
     const { x, y } = metrics.centerDelta;
-    if (
-      Math.abs(x) >= Math.abs(y) &&
-      Math.abs(x) > config.directionDeadZone
-    ) {
+    if (Math.abs(x) >= Math.abs(y) && Math.abs(x) > config.directionDeadZone) {
       return x < 0 ? "MOVE_RIGHT" : "MOVE_LEFT";
     }
     if (Math.abs(y) > config.directionDeadZone) {
@@ -117,9 +107,7 @@ function getFeedback(
     cause === "SCALE" &&
     Math.abs(Math.log(metrics.scaleRatio)) > config.scaleDeadZoneLog
   ) {
-    return metrics.scaleRatio > 1
-      ? "MOVE_FARTHER"
-      : "MOVE_CLOSER";
+    return metrics.scaleRatio > 1 ? "MOVE_FARTHER" : "MOVE_CLOSER";
   }
 
   if (
@@ -140,11 +128,8 @@ export function matchPoseScene(
   livePoses: readonly CommonPose[],
   config: PoseMatchConfig = DEFAULT_POSE_MATCH_CONFIG,
 ): PoseSceneMatchResult {
-  const {
-    assignments,
-    unmatchedTargetIndices,
-    unmatchedLiveIndices,
-  } = assignPoses(targets, livePoses, config);
+  const { assignments, unmatchedTargetIndices, unmatchedLiveIndices } =
+    assignPoses(targets, livePoses, config);
   const personCountMatches = targets.length === livePoses.length;
   const allPeopleAligned =
     targets.length > 0 &&

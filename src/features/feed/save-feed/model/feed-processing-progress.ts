@@ -24,9 +24,7 @@ function normalizeProcessingServerProgress(progressPercent: number) {
   );
 }
 
-function getEstimatedEndTimeMs(
-  input: FeedProcessingProgressInput,
-) {
+function getEstimatedEndTimeMs(input: FeedProcessingProgressInput) {
   if (
     input.progressEstimateUpdatedAt === undefined ||
     input.estimatedRemainingSeconds === undefined ||

@@ -15,7 +15,6 @@ export type RtcStoredPhotoListResponse = z.infer<
   typeof RtcStoredPhotoListResponseSchema
 >;
 
-export interface RtcRoomStoredPhotoListParams
-  extends RtcStoredPhotoListParams {
+export interface RtcRoomStoredPhotoListParams extends RtcStoredPhotoListParams {
   roomId: string;
 }

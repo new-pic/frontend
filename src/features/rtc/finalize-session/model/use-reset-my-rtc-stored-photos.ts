@@ -5,8 +5,5 @@ import { resetMyRtcStoredPhotos } from "../lib/reset-my-rtc-stored-photos";
 export function useResetMyRtcStoredPhotos() {
   const queryClient = useQueryClient();
 
-  return useCallback(
-    () => resetMyRtcStoredPhotos(queryClient),
-    [queryClient],
-  );
+  return useCallback(() => resetMyRtcStoredPhotos(queryClient), [queryClient]);
 }

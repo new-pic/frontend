@@ -1,7 +1,4 @@
-import type {
-  CommonJoint,
-  PoseJointGroup,
-} from "./types";
+import type { CommonJoint, PoseJointGroup } from "./types";
 
 export interface PoseMatchConfig {
   minConfidence: number;
@@ -72,13 +69,7 @@ export const DEFAULT_POSE_MATCH_CONFIG: PoseMatchConfig = {
     RIGHT_LEG: 1.1,
   },
   jointGroups: {
-    TORSO: [
-      "NOSE",
-      "LEFT_SHOULDER",
-      "RIGHT_SHOULDER",
-      "LEFT_HIP",
-      "RIGHT_HIP",
-    ],
+    TORSO: ["NOSE", "LEFT_SHOULDER", "RIGHT_SHOULDER", "LEFT_HIP", "RIGHT_HIP"],
     LEFT_ARM: ["LEFT_SHOULDER", "LEFT_ELBOW", "LEFT_WRIST"],
     RIGHT_ARM: ["RIGHT_SHOULDER", "RIGHT_ELBOW", "RIGHT_WRIST"],
     LEFT_LEG: ["LEFT_HIP", "LEFT_KNEE", "LEFT_ANKLE"],

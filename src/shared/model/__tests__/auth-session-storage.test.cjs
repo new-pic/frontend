@@ -67,46 +67,40 @@ const assertLoggedOutState = () => {
   assert.equal(state.termsAgreed, false);
 };
 
-test(
-  "access token 삭제가 실패해도 refresh token과 인증 상태를 정리한다",
-  async () => {
-    seedAuthenticatedState();
-    rejectedKey = AUTH_SESSION_STORAGE_KEYS.ACCESS_TOKEN;
-    const originalWarn = console.warn;
-    console.warn = () => {};
+test("access token 삭제가 실패해도 refresh token과 인증 상태를 정리한다", async () => {
+  seedAuthenticatedState();
+  rejectedKey = AUTH_SESSION_STORAGE_KEYS.ACCESS_TOKEN;
+  const originalWarn = console.warn;
+  console.warn = () => {};
 
-    try {
-      await useAuthStore.getState().logout();
-    } finally {
-      console.warn = originalWarn;
-    }
+  try {
+    await useAuthStore.getState().logout();
+  } finally {
+    console.warn = originalWarn;
+  }
 
-    assert.deepEqual(requestedKeys, [
-      AUTH_SESSION_STORAGE_KEYS.ACCESS_TOKEN,
-      AUTH_SESSION_STORAGE_KEYS.REFRESH_TOKEN,
-    ]);
-    assertLoggedOutState();
-  },
-);
+  assert.deepEqual(requestedKeys, [
+    AUTH_SESSION_STORAGE_KEYS.ACCESS_TOKEN,
+    AUTH_SESSION_STORAGE_KEYS.REFRESH_TOKEN,
+  ]);
+  assertLoggedOutState();
+});
 
-test(
-  "refresh token 삭제가 실패해도 access token과 인증 상태를 정리한다",
-  async () => {
-    seedAuthenticatedState();
-    rejectedKey = AUTH_SESSION_STORAGE_KEYS.REFRESH_TOKEN;
-    const originalWarn = console.warn;
-    console.warn = () => {};
+test("refresh token 삭제가 실패해도 access token과 인증 상태를 정리한다", async () => {
+  seedAuthenticatedState();
+  rejectedKey = AUTH_SESSION_STORAGE_KEYS.REFRESH_TOKEN;
+  const originalWarn = console.warn;
+  console.warn = () => {};
 
-    try {
-      await useAuthStore.getState().logout();
-    } finally {
-      console.warn = originalWarn;
-    }
+  try {
+    await useAuthStore.getState().logout();
+  } finally {
+    console.warn = originalWarn;
+  }
 
-    assert.deepEqual(requestedKeys, [
-      AUTH_SESSION_STORAGE_KEYS.ACCESS_TOKEN,
-      AUTH_SESSION_STORAGE_KEYS.REFRESH_TOKEN,
-    ]);
-    assertLoggedOutState();
-  },
-);
+  assert.deepEqual(requestedKeys, [
+    AUTH_SESSION_STORAGE_KEYS.ACCESS_TOKEN,
+    AUTH_SESSION_STORAGE_KEYS.REFRESH_TOKEN,
+  ]);
+  assertLoggedOutState();
+});

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -6,21 +6,21 @@ import Animated, {
   withDelay,
   Easing,
   SharedValue,
-} from 'react-native-reanimated';
-import type { LayoutData } from '@gluestack-ui/core/tabs/creator';
-import { tabsAnimationConfig } from './animation-config';
-import { Platform } from 'react-native';
+} from "react-native-reanimated";
+import type { LayoutData } from "@gluestack-ui/core/tabs/creator";
+import { tabsAnimationConfig } from "./animation-config";
+import { Platform } from "react-native";
 
 interface TabsAnimatedIndicatorProps {
   selectedKey: any;
-  orientation: 'horizontal' | 'vertical';
+  orientation: "horizontal" | "vertical";
   triggerLayouts: Map<any, LayoutData>;
   scrollOffset?: number;
   animatedScrollOffset?: SharedValue<number>;
   className?: string;
   style?: any;
 }
-const isWeb = Platform.OS === 'web';
+const isWeb = Platform.OS === "web";
 
 export const TabsAnimatedIndicator = React.forwardRef<
   any,
@@ -36,7 +36,7 @@ export const TabsAnimatedIndicator = React.forwardRef<
       className,
       style,
     },
-    ref
+    ref,
   ) => {
     const animatedX = useSharedValue(0);
     const animatedY = useSharedValue(0);
@@ -70,7 +70,7 @@ export const TabsAnimatedIndicator = React.forwardRef<
             withTiming(layout.x, {
               duration: duration,
               easing: Easing.ease,
-            })
+            }),
           );
           animatedY.value = withTiming(layout.y, {
             duration: duration,
@@ -101,15 +101,16 @@ export const TabsAnimatedIndicator = React.forwardRef<
     ]);
 
     const animatedStyle = useAnimatedStyle(() => {
-      'worklet';
+      "worklet";
 
       const scrollOffsetValue = animatedScrollOffset
         ? animatedScrollOffset.value
         : scrollOffsetShared.value;
 
-      const xPos = orientation === 'horizontal'
-        ? animatedX.value - scrollOffsetValue
-        : animatedX.value;
+      const xPos =
+        orientation === "horizontal"
+          ? animatedX.value - scrollOffsetValue
+          : animatedX.value;
 
       // Web: react-native-reanimated does not reliably flush the transform
       // array to a CSS transform string, so use left/top instead.
@@ -146,13 +147,13 @@ export const TabsAnimatedIndicator = React.forwardRef<
           animatedStyle,
           style,
           {
-            position: 'absolute',
+            position: "absolute",
             zIndex: 1,
           },
         ]}
       />
     );
-  }
+  },
 );
 
-TabsAnimatedIndicator.displayName = 'TabsAnimatedIndicator';
+TabsAnimatedIndicator.displayName = "TabsAnimatedIndicator";

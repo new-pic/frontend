@@ -20,10 +20,7 @@ import {
   readExpoFeedReferenceImageSize,
 } from "../lib/pose-matching";
 import { adaptFeedBackgroundRemoval } from "../lib/feed-guide-contour-adapter";
-import {
-  cameraGuideReducer,
-  INITIAL_CAMERA_GUIDE_STATE,
-} from "./guide-state";
+import { cameraGuideReducer, INITIAL_CAMERA_GUIDE_STATE } from "./guide-state";
 import { usePoseGuideAlignment } from "./use-pose-guide-alignment";
 import type {
   CameraGuideErrors,
@@ -76,14 +73,13 @@ export function useCameraGuideController({
     INITIAL_CAMERA_GUIDE_STATE,
   );
   const [retryVersion, setRetryVersion] = useState(0);
-  const [referenceError, setReferenceError] = useState<string | null>(
-    null,
-  );
+  const [referenceError, setReferenceError] = useState<string | null>(null);
   const [outlinePreparationError, setOutlinePreparationError] = useState<
     string | null
   >(null);
-  const [targetPreparationError, setTargetPreparationError] =
-    useState<string | null>(null);
+  const [targetPreparationError, setTargetPreparationError] = useState<
+    string | null
+  >(null);
   const requestIdRef = useRef(0);
 
   const selectedFeedId = state.selected?.feedId;
@@ -148,10 +144,7 @@ export function useCameraGuideController({
           {
             feedId: selection.feedId,
             imageUrl: selection.detailImageUrl,
-            errorName:
-              error instanceof Error
-                ? error.name
-                : typeof error,
+            errorName: error instanceof Error ? error.name : typeof error,
             message: getErrorMessage(error),
           },
           "warn",
@@ -167,19 +160,13 @@ export function useCameraGuideController({
   useEffect(() => {
     const selection = state.selected;
     const queryResult = outlineQuery.data;
-    if (
-      !selection ||
-      !queryResult ||
-      queryResult.feedId !== selection.feedId
-    ) {
+    if (!selection || !queryResult || queryResult.feedId !== selection.feedId) {
       return;
     }
 
     const requestId = state.requestId;
     try {
-      const outline = adaptFeedBackgroundRemoval(
-        queryResult.response,
-      );
+      const outline = adaptFeedBackgroundRemoval(queryResult.response);
       if (requestIdRef.current !== requestId) return;
 
       logCameraGuideStage("OUTLINE_READY", {
@@ -200,20 +187,14 @@ export function useCameraGuideController({
         "OUTLINE_ADAPTER_FAILED",
         {
           feedId: selection.feedId,
-          errorName:
-            error instanceof Error ? error.name : typeof error,
+          errorName: error instanceof Error ? error.name : typeof error,
           message: getErrorMessage(error),
         },
         "warn",
       );
       setOutlinePreparationError(getErrorMessage(error));
     }
-  }, [
-    outlineQuery.data,
-    retryVersion,
-    state.requestId,
-    state.selected,
-  ]);
+  }, [outlineQuery.data, retryVersion, state.requestId, state.selected]);
 
   useEffect(() => {
     const selection = state.selected;
@@ -227,9 +208,7 @@ export function useCameraGuideController({
         ReturnType<typeof readExpoFeedReferenceImageSize>
       >;
       try {
-        sourceSize = await readExpoFeedReferenceImageSize(
-          response.imageUrl,
-        );
+        sourceSize = await readExpoFeedReferenceImageSize(response.imageUrl);
       } catch (error) {
         if (cancelled || requestIdRef.current !== requestId) return;
         logCameraGuideStage(
@@ -237,8 +216,7 @@ export function useCameraGuideController({
           {
             feedId: selection.feedId,
             imageUrl: response.imageUrl,
-            errorName:
-              error instanceof Error ? error.name : typeof error,
+            errorName: error instanceof Error ? error.name : typeof error,
             message: getErrorMessage(error),
           },
           "warn",
@@ -263,15 +241,11 @@ export function useCameraGuideController({
           {
             feedId: selection.feedId,
             storageShape: response.poseAnalysis.storageShape,
-            posePersonCount:
-              response.poseAnalysis.posePersonCount,
-            errorName:
-              error instanceof Error ? error.name : typeof error,
+            posePersonCount: response.poseAnalysis.posePersonCount,
+            errorName: error instanceof Error ? error.name : typeof error,
             message: getErrorMessage(error),
             contractDetails:
-              error instanceof DWPoseContractError
-                ? error.details
-                : undefined,
+              error instanceof DWPoseContractError ? error.details : undefined,
           },
           "warn",
         );
@@ -348,11 +322,7 @@ export function useCameraGuideController({
     state.active.selection.feedId === selectedFeedId &&
     geometry.aspectRatio === state.active.cameraAspectRatio;
   const targetPoses = useMemo(() => {
-    if (
-      !canProjectToCurrentCapture ||
-      !geometry ||
-      !state.active?.target
-    ) {
+    if (!canProjectToCurrentCapture || !geometry || !state.active?.target) {
       return [];
     }
 
@@ -367,8 +337,7 @@ export function useCameraGuideController({
     );
   }, [canProjectToCurrentCapture, geometry, state.active]);
 
-  const targetReady =
-    canProjectToCurrentCapture && targetPoses.length > 0;
+  const targetReady = canProjectToCurrentCapture && targetPoses.length > 0;
   const { snapshot: alignment, observe: observeAlignment } =
     usePoseGuideAlignment({
       guideId: selectedFeedId ?? null,
@@ -410,10 +379,7 @@ export function useCameraGuideController({
         mirrorX: frame.sourceFrame.isMirrored,
         captureResizeMode: "cover",
       });
-      const result = matchPoseScene(
-        matchingInput.targetPoses,
-        currentPoses,
-      );
+      const result = matchPoseScene(matchingInput.targetPoses, currentPoses);
       latestMatchingRef.current = {
         targetPoses: matchingInput.targetPoses,
         currentPoses,
@@ -432,9 +398,7 @@ export function useCameraGuideController({
       cameraActive &&
       canProjectToCurrentCapture &&
       Boolean(state.active?.outline),
-    targetPersonCount: targetReady
-      ? targetPoses.length
-      : undefined,
+    targetPersonCount: targetReady ? targetPoses.length : undefined,
     exposeFrame: false,
     onFrame: handlePoseFrame,
   });
@@ -443,9 +407,7 @@ export function useCameraGuideController({
     reference: referenceError,
     outline:
       outlinePreparationError ??
-      (outlineQuery.error
-        ? getErrorMessage(outlineQuery.error)
-        : null),
+      (outlineQuery.error ? getErrorMessage(outlineQuery.error) : null),
     target:
       targetPreparationError ??
       (poseQuery.error ? getErrorMessage(poseQuery.error) : null),
@@ -463,14 +425,11 @@ export function useCameraGuideController({
     selectedGuide: state.selected,
     activeGuide: state.active,
     presentedGuide:
-      state.active?.selection.feedId === selectedFeedId
-        ? state.active
-        : null,
+      state.active?.selection.feedId === selectedFeedId ? state.active : null,
     isPreparing:
       state.selected !== null &&
       state.active?.selection.feedId !== state.selected.feedId,
-    isOutlineLoading:
-      Boolean(state.selected) && outlineQuery.isPending,
+    isOutlineLoading: Boolean(state.selected) && outlineQuery.isPending,
     isTargetLoading: Boolean(state.selected) && poseQuery.isPending,
     errors,
     matching,

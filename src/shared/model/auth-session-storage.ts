@@ -17,9 +17,7 @@ export async function clearPersistedAuthSession(
 ): Promise<AuthSessionStorageCleanupResult> {
   const keys = Object.values(AUTH_SESSION_STORAGE_KEYS);
   const results = await Promise.allSettled(
-    keys.map((key) =>
-      Promise.resolve().then(() => deleteStoredValue(key)),
-    ),
+    keys.map((key) => Promise.resolve().then(() => deleteStoredValue(key))),
   );
 
   return {

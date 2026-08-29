@@ -1,13 +1,8 @@
 import { z } from "zod";
-import {
-  RtcEndRoomResponseSchema,
-  type RtcEndRoomResponse,
-} from "../model";
+import { RtcEndRoomResponseSchema, type RtcEndRoomResponse } from "../model";
 
-export const RTC_ROOM_ENDED_RPC_METHOD =
-  "newpic.rtc.room-ended.v1" as const;
-export const RTC_ROOM_ENDED_RPC_ACK =
-  "RTC_ROOM_ENDED_ACK" as const;
+export const RTC_ROOM_ENDED_RPC_METHOD = "newpic.rtc.room-ended.v1" as const;
+export const RTC_ROOM_ENDED_RPC_ACK = "RTC_ROOM_ENDED_ACK" as const;
 
 const RTC_ROOM_ENDED_MESSAGE_VERSION = 1 as const;
 const RTC_ROOM_ENDED_MESSAGE_TYPE = "RTC_ROOM_ENDED" as const;
@@ -38,8 +33,7 @@ export function encodeRtcRoomEndedRpcPayload(
 
   const payload = JSON.stringify(message);
   if (
-    new TextEncoder().encode(payload).byteLength >
-    LIVEKIT_RPC_MAX_PAYLOAD_BYTES
+    new TextEncoder().encode(payload).byteLength > LIVEKIT_RPC_MAX_PAYLOAD_BYTES
   ) {
     throw new Error(
       "RTC 종료 결과가 LiveKit RPC 최대 크기(15KiB)를 초과했습니다.",
@@ -59,9 +53,7 @@ export function decodeRtcRoomEndedRpcPayload(
   payload: string,
 ): RtcEndRoomResponse | null {
   try {
-    const message = RtcRoomEndedMessageSchema.safeParse(
-      JSON.parse(payload),
-    );
+    const message = RtcRoomEndedMessageSchema.safeParse(JSON.parse(payload));
 
     return message.success ? message.data.result : null;
   } catch {

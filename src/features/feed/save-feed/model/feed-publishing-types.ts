@@ -15,15 +15,10 @@ export interface UpdateFeedPublishingCommand {
 }
 
 export type FeedPublishingCommand =
-  | CreateFeedPublishingCommand
-  | UpdateFeedPublishingCommand;
+  CreateFeedPublishingCommand | UpdateFeedPublishingCommand;
 
 export type FeedPublishingPhase =
-  | "queued"
-  | "uploading"
-  | "updating"
-  | "completed"
-  | "failed";
+  "queued" | "uploading" | "updating" | "completed" | "failed";
 
 export interface FeedPublishingTask {
   id: string;

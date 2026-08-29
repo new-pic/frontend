@@ -1,7 +1,4 @@
-import type {
-  RtcViewerLiveKitTokenRequest,
-  RtcViewerSession,
-} from "./models";
+import type { RtcViewerLiveKitTokenRequest, RtcViewerSession } from "./models";
 
 export function isCurrentRtcViewerSession(
   session: RtcViewerSession | null,

@@ -3,13 +3,12 @@ import {
   type CoordinateSize,
   type PreviewPoint,
 } from "./pose-matching";
-import type {
-  CameraGuideContour,
-  CameraGuideOutline,
-} from "../model/types";
+import type { CameraGuideContour, CameraGuideOutline } from "../model/types";
 
-export interface ProjectedCameraGuideContour
-  extends Omit<CameraGuideContour, "points"> {
+export interface ProjectedCameraGuideContour extends Omit<
+  CameraGuideContour,
+  "points"
+> {
   points: PreviewPoint[];
 }
 
@@ -17,11 +16,7 @@ export function projectGuideSourceToPreviewRect(
   sourceSize: CoordinateSize,
   previewSize: CoordinateSize,
 ) {
-  return calculateCanvasRenderRect(
-    sourceSize,
-    previewSize,
-    "cover",
-  );
+  return calculateCanvasRenderRect(sourceSize, previewSize, "cover");
 }
 
 export function projectGuideOutlineToPreview(
@@ -57,9 +52,7 @@ function midpoint(first: PreviewPoint, second: PreviewPoint) {
   };
 }
 
-export function createGuideContourPath(
-  contour: ProjectedCameraGuideContour,
-) {
+export function createGuideContourPath(contour: ProjectedCameraGuideContour) {
   if (contour.points.length === 0) return "";
 
   const { points } = contour;
@@ -68,10 +61,7 @@ export function createGuideContourPath(
     return `M ${formatPoint(first)}`;
   }
   if (points.length === 2) {
-    const commands = [
-      `M ${formatPoint(first)}`,
-      `L ${formatPoint(points[1])}`,
-    ];
+    const commands = [`M ${formatPoint(first)}`, `L ${formatPoint(points[1])}`];
     if (contour.closed) commands.push("Z");
     return commands.join(" ");
   }

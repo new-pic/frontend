@@ -33,17 +33,11 @@ export interface CameraZoomConfiguration {
   displayZoom: number;
 }
 
-export function clampCameraZoom(
-  value: number,
-  min: number,
-  max: number,
-) {
+export function clampCameraZoom(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
-function getDeviceDisplayZoomMultiplier(
-  device: CameraZoomDeviceCapabilities,
-) {
+function getDeviceDisplayZoomMultiplier(device: CameraZoomDeviceCapabilities) {
   const firstLensSwitchFactor = device.zoomLensSwitchFactors[0];
   const hasUltraWideCamera = device.physicalDevices.some(
     ({ type }) => type === "ultra-wide-angle",
@@ -88,8 +82,7 @@ export function resolveCameraDisplayZoomMultiplier(
   const deviceMultiplier = getDeviceDisplayZoomMultiplier(device);
   if (deviceMultiplier !== 1) return deviceMultiplier;
 
-  return Number.isFinite(controllerMultiplier) &&
-    controllerMultiplier > 0
+  return Number.isFinite(controllerMultiplier) && controllerMultiplier > 0
     ? controllerMultiplier
     : 1;
 }
@@ -101,8 +94,7 @@ export function createCameraZoomConfiguration({
   preferredDisplayZoom = DEFAULT_CAMERA_DISPLAY_ZOOM,
 }: CameraZoomRangeInput): CameraZoomConfiguration {
   const safeMultiplier =
-    Number.isFinite(displayZoomMultiplier) &&
-    displayZoomMultiplier > 0
+    Number.isFinite(displayZoomMultiplier) && displayZoomMultiplier > 0
       ? displayZoomMultiplier
       : 1;
   const safeMaxZoom = Math.max(rawMinZoom, rawMaxZoom);

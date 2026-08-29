@@ -25,9 +25,7 @@ export const CreateContentReportRequestSchema = z.object({
     .optional(),
 });
 
-export type ContentReportReason = z.infer<
-  typeof ContentReportReasonSchema
->;
+export type ContentReportReason = z.infer<typeof ContentReportReasonSchema>;
 export type ContentReportFormValues = z.input<
   typeof CreateContentReportRequestSchema
 >;
@@ -36,8 +34,7 @@ export type CreateContentReportRequest = z.output<
 >;
 
 export type ContentReportTarget =
-  | { type: "feed"; id: string }
-  | { type: "comment"; id: string };
+  { type: "feed"; id: string } | { type: "comment"; id: string };
 
 interface ContentReportResponseBase {
   reported: boolean;
@@ -55,6 +52,4 @@ export interface CommentReportResponse extends ContentReportResponseBase {
   commentId: string;
 }
 
-export type ContentReportResponse =
-  | FeedReportResponse
-  | CommentReportResponse;
+export type ContentReportResponse = FeedReportResponse | CommentReportResponse;

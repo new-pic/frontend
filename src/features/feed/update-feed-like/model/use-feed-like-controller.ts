@@ -22,9 +22,7 @@ export function useFeedLikeController({
   const mutationToUnlike = feedQuery.useUnlikeFeed();
   const isPending = mutationToLike.isPending || mutationToUnlike.isPending;
 
-  const toggle = useCallback(async (): Promise<
-    FeedLikeToggleResult | null
-  > => {
+  const toggle = useCallback(async (): Promise<FeedLikeToggleResult | null> => {
     const now = Date.now();
 
     if (

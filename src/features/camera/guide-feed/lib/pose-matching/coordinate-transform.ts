@@ -69,12 +69,9 @@ function mapNormalizedPointBetweenCanvases(
 
   return {
     ...point,
-    x:
-      (point.x * renderedRect.width + renderedRect.x) /
-      destinationSize.width,
+    x: (point.x * renderedRect.width + renderedRect.x) / destinationSize.width,
     y:
-      (point.y * renderedRect.height + renderedRect.y) /
-      destinationSize.height,
+      (point.y * renderedRect.height + renderedRect.y) / destinationSize.height,
   };
 }
 
@@ -128,14 +125,11 @@ export function projectSourceCanvasToPreviewRect(
     transform.previewSize,
     transform.previewResizeMode,
   );
-  const captureScaleX =
-    captureInPreview.width / transform.captureSize.width;
-  const captureScaleY =
-    captureInPreview.height / transform.captureSize.height;
+  const captureScaleX = captureInPreview.width / transform.captureSize.width;
+  const captureScaleY = captureInPreview.height / transform.captureSize.height;
   const width = sourceInCapture.width * captureScaleX;
   const height = sourceInCapture.height * captureScaleY;
-  const unmirroredX =
-    captureInPreview.x + sourceInCapture.x * captureScaleX;
+  const unmirroredX = captureInPreview.x + sourceInCapture.x * captureScaleX;
 
   return {
     x: transform.mirrorX
@@ -157,9 +151,7 @@ function projectNormalizedPointToCapture(
   assertPositiveSize(sourceSize, "Source");
   assertPositiveSize(captureSize, "Capture");
 
-  const orientedPoint = mirrorX
-    ? { ...point, x: 1 - point.x }
-    : point;
+  const orientedPoint = mirrorX ? { ...point, x: 1 - point.x } : point;
 
   return mapNormalizedPointBetweenCanvases(
     orientedPoint,
@@ -250,9 +242,7 @@ export function capturePointToPreview(
     transform.previewSize,
     transform.previewResizeMode,
   );
-  const x = transform.mirrorX
-    ? 1 - previewNormalized.x
-    : previewNormalized.x;
+  const x = transform.mirrorX ? 1 - previewNormalized.x : previewNormalized.x;
 
   return {
     x: x * transform.previewSize.width,

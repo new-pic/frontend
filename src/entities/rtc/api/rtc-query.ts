@@ -48,23 +48,19 @@ export async function subscribeRtcRoomEvents({
   }
 
   const id = verifyRtcId(roomId, "RTC 방 ID");
-  const accessToken =
-    useAuthStore.getState().accessToken?.trim() ?? "";
+  const accessToken = useAuthStore.getState().accessToken?.trim() ?? "";
   if (!accessToken) {
     throw new Error("로그인이 필요합니다.");
   }
 
-  const response = await fetch(
-    `${env.API_URL}/rtc/rooms/${id}/events`,
-    {
-      method: "GET",
-      headers: {
-        Accept: "text/event-stream",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      signal,
+  const response = await fetch(`${env.API_URL}/rtc/rooms/${id}/events`, {
+    method: "GET",
+    headers: {
+      Accept: "text/event-stream",
+      Authorization: `Bearer ${accessToken}`,
     },
-  );
+    signal,
+  });
 
   if (!response.ok) {
     throw new Error(`RTC room stream failed (${response.status})`);

@@ -3,10 +3,7 @@ import { env } from "@shared/config";
 import { useAuthStore } from "@shared/model";
 import { fetch } from "expo/fetch";
 import type { FeedAiJobStatusResponseDto } from "../model";
-import {
-  parseFeedAiJobEvent,
-  type FeedAiJobEvent,
-} from "./feed-ai-job-event";
+import { parseFeedAiJobEvent, type FeedAiJobEvent } from "./feed-ai-job-event";
 
 interface SubscribeFeedAiJobEventsOptions {
   jobId: string;
@@ -37,19 +34,14 @@ export async function subscribeFeedAiJobEvents({
   }
 
   const accessToken = useAuthStore.getState().accessToken;
-  const response = await fetch(
-    `${env.API_URL}/feed/jobs/${jobId}/events`,
-    {
-      method: "GET",
-      headers: {
-        Accept: "text/event-stream",
-        ...(accessToken
-          ? { Authorization: `Bearer ${accessToken}` }
-          : undefined),
-      },
-      signal,
+  const response = await fetch(`${env.API_URL}/feed/jobs/${jobId}/events`, {
+    method: "GET",
+    headers: {
+      Accept: "text/event-stream",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined),
     },
-  );
+    signal,
+  });
 
   if (!response.ok) {
     throw new Error(`Feed AI job stream failed (${response.status})`);

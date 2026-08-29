@@ -38,9 +38,7 @@ export function CameraControls({
           onPress={onThumbnailPress}
           accessibilityRole="button"
           accessibilityLabel={
-            thumbnail
-              ? "촬영한 사진 목록 열기"
-              : "촬영한 사진 없음"
+            thumbnail ? "촬영한 사진 목록 열기" : "촬영한 사진 없음"
           }
           accessibilityState={{ disabled: !thumbnail }}
         >
@@ -64,9 +62,7 @@ export function CameraControls({
           disabled={isTakePhotoDisabled}
           onPress={onTakePhoto}
           accessibilityLabel={
-            isTakePhotoDisabled
-              ? "사진 촬영 한도에 도달함"
-              : "사진 촬영"
+            isTakePhotoDisabled ? "사진 촬영 한도에 도달함" : "사진 촬영"
           }
         />
         <Button

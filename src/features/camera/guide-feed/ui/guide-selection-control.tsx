@@ -2,11 +2,7 @@ import { colors } from "@shared/ui/theme";
 import { Text } from "@shared/ui";
 import { IconEye, IconEyeOff } from "@tabler/icons-react-native";
 import { Image } from "expo-image";
-import {
-  ActivityIndicator,
-  Pressable,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, View } from "react-native";
 import type { GuideFeedSelection } from "../model";
 
 interface GuideSelectionControlProps {
@@ -59,9 +55,7 @@ export function GuideSelectionControl({
             paddingVertical: 8,
           }}
         >
-          <Text className="text-xs text-white">
-            가이드 오류 · 다시 시도
-          </Text>
+          <Text className="text-xs text-white">가이드 오류 · 다시 시도</Text>
         </Pressable>
       ) : null}
 
@@ -89,11 +83,7 @@ export function GuideSelectionControl({
             backgroundColor: "rgba(0,0,0,0.62)",
             alignItems: "center",
             justifyContent: "center",
-            opacity: !isReferenceAvailable
-              ? 0.45
-              : pressed
-                ? 0.72
-                : 1,
+            opacity: !isReferenceAvailable ? 0.45 : pressed ? 0.72 : 1,
           })}
         >
           {isReferenceVisible ? (
@@ -107,9 +97,7 @@ export function GuideSelectionControl({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={
-          selectedGuide
-            ? "선택한 촬영 가이드 변경"
-            : "촬영 가이드 선택"
+          selectedGuide ? "선택한 촬영 가이드 변경" : "촬영 가이드 선택"
         }
         accessibilityState={{ selected: Boolean(selectedGuide) }}
         onPress={onOpen}

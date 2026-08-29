@@ -68,8 +68,7 @@ test("caller-provided detection calibration is preserved", () => {
 
 test("inference FPS is clamped to the approved ten FPS cap", () => {
   assert.equal(
-    resolvePoseDetectionConfig({ maxInferenceFps: 24 })
-      .maxInferenceFps,
+    resolvePoseDetectionConfig({ maxInferenceFps: 24 }).maxInferenceFps,
     MAX_POSE_INFERENCE_FPS,
   );
 });

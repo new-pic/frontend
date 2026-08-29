@@ -60,8 +60,7 @@ export const canSendRtcReaction = (
   lastSentAt: number | null,
   now: number,
   minimumIntervalMs: number,
-): boolean =>
-  lastSentAt === null || now - lastSentAt >= minimumIntervalMs;
+): boolean => lastSentAt === null || now - lastSentAt >= minimumIntervalMs;
 
 export const enqueueRtcReactionBubble = (
   current: readonly RtcReactionBubble[],

@@ -3,10 +3,7 @@ import type {
   PoseGuideFeedbackDescriptor,
 } from "../model";
 
-const PERSON_POSITION_LABELS: Record<
-  FeedbackPersonPosition,
-  string
-> = {
+const PERSON_POSITION_LABELS: Record<FeedbackPersonPosition, string> = {
   LEFT: "왼쪽 사람",
   CENTER: "가운데 사람",
   RIGHT: "오른쪽 사람",
@@ -35,10 +32,7 @@ function getFeedbackInstruction({
     case "NO_PERSON":
       return "카메라 화면 안에 사람이 보이도록 서 주세요";
     case "PERSON_COUNT_MISMATCH":
-      return getPersonCountMismatchMessage(
-        targetPersonCount,
-        livePersonCount,
-      );
+      return getPersonCountMismatchMessage(targetPersonCount, livePersonCount);
     case "MOVE_LEFT":
       return "조금 왼쪽으로 이동해 주세요";
     case "MOVE_RIGHT":

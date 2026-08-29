@@ -22,9 +22,7 @@ function clampScore(score: number) {
 
 function scoreError(error: number, tolerance: number) {
   if (!Number.isFinite(error) || tolerance <= 0) return 0;
-  return clampScore(
-    100 * Math.exp(-0.5 * (error / tolerance) ** 2),
-  );
+  return clampScore(100 * Math.exp(-0.5 * (error / tolerance) ** 2));
 }
 
 function distance(
@@ -148,12 +146,7 @@ function getBodyScale(
     "RIGHT_SHOULDER",
     config,
   );
-  const hipCenter = getPairMidpoint(
-    pose,
-    "LEFT_HIP",
-    "RIGHT_HIP",
-    config,
-  );
+  const hipCenter = getPairMidpoint(pose, "LEFT_HIP", "RIGHT_HIP", config);
   if (shoulderCenter && hipCenter) {
     measurements.push(distance(shoulderCenter, hipCenter));
   }
@@ -163,10 +156,8 @@ function getBodyScale(
   );
   if (positiveMeasurements.length > 0) {
     return (
-      positiveMeasurements.reduce(
-        (sum, measurement) => sum + measurement,
-        0,
-      ) / positiveMeasurements.length
+      positiveMeasurements.reduce((sum, measurement) => sum + measurement, 0) /
+      positiveMeasurements.length
     );
   }
 
@@ -228,8 +219,7 @@ function getJointGroupScores(
 
     scores[group] =
       errors.reduce(
-        (sum, error) =>
-          sum + scoreError(error, config.poseJointTolerance),
+        (sum, error) => sum + scoreError(error, config.poseJointTolerance),
         0,
       ) / errors.length;
   }
@@ -278,25 +268,15 @@ export function matchPosePair(
     };
   }
 
-  const targetCenter = getBodyCenter(
-    target,
-    targetBoundingBox,
-    config,
-  );
+  const targetCenter = getBodyCenter(target, targetBoundingBox, config);
   const liveCenter = getBodyCenter(live, liveBoundingBox, config);
   const centerDelta = {
     x: liveCenter.x - targetCenter.x,
     y: liveCenter.y - targetCenter.y,
   };
   const centerDistance = Math.hypot(centerDelta.x, centerDelta.y);
-  const scaleRatio = Math.sqrt(
-    liveBoundingBox.area / targetBoundingBox.area,
-  );
-  const targetBodyScale = getBodyScale(
-    target,
-    targetBoundingBox,
-    config,
-  );
+  const scaleRatio = Math.sqrt(liveBoundingBox.area / targetBoundingBox.area);
+  const targetBodyScale = getBodyScale(target, targetBoundingBox, config);
   const liveBodyScale = getBodyScale(live, liveBoundingBox, config);
   const jointErrors = getComparableJointErrors(
     target,
@@ -309,12 +289,8 @@ export function matchPosePair(
   );
   const comparableJointCount = Object.keys(jointErrors).length;
   const jointGroupScores = getJointGroupScores(jointErrors, config);
-  const isComparable =
-    comparableJointCount >= config.minimumComparableJoints;
-  const position = scoreError(
-    centerDistance,
-    config.positionTolerance,
-  );
+  const isComparable = comparableJointCount >= config.minimumComparableJoints;
+  const position = scoreError(centerDistance, config.positionTolerance);
   const scale = scoreError(
     Math.abs(Math.log(scaleRatio)),
     config.scaleLogTolerance,

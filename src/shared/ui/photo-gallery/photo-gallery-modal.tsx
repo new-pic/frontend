@@ -5,20 +5,9 @@ import {
   IconChevronLeft,
 } from "@tabler/icons-react-native";
 import { Image } from "expo-image";
-import {
-  type ReactNode,
-  useEffect,
-  useState,
-} from "react";
-import {
-  Modal,
-  StyleSheet,
-  View,
-} from "react-native";
-import {
-  SafeAreaProvider,
-  SafeAreaView,
-} from "react-native-safe-area-context";
+import { type ReactNode, useEffect, useState } from "react";
+import { Modal, StyleSheet, View } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Box } from "../box";
 import { Button, ButtonIcon } from "../button";
 import { HStack } from "../hstack";
@@ -49,15 +38,9 @@ interface PhotoGalleryModalProps<
   initialIndex: number;
   selectedImageIds?: ReadonlySet<string>;
   onToggleSelection?: (image: T) => void;
-  renderHeaderRight?: (
-    context: PhotoGalleryRenderContext<T>,
-  ) => ReactNode;
-  renderImageOverlay?: (
-    context: PhotoGalleryRenderContext<T>,
-  ) => ReactNode;
-  renderFooterDetails?: (
-    context: PhotoGalleryRenderContext<T>,
-  ) => ReactNode;
+  renderHeaderRight?: (context: PhotoGalleryRenderContext<T>) => ReactNode;
+  renderImageOverlay?: (context: PhotoGalleryRenderContext<T>) => ReactNode;
+  renderFooterDetails?: (context: PhotoGalleryRenderContext<T>) => ReactNode;
   onClose: () => void;
 }
 
@@ -74,12 +57,8 @@ export function PhotoGalleryModal<
   renderFooterDetails,
   onClose,
 }: PhotoGalleryModalProps<T>) {
-  const safeInitialIndex = clampPhotoGalleryIndex(
-    initialIndex,
-    images.length,
-  );
-  const [activeIndex, setActiveIndex] =
-    useState(safeInitialIndex);
+  const safeInitialIndex = clampPhotoGalleryIndex(initialIndex, images.length);
+  const [activeIndex, setActiveIndex] = useState(safeInitialIndex);
   const activeImage = images[activeIndex];
   const renderContext = activeImage
     ? {
@@ -121,9 +100,7 @@ export function PhotoGalleryModal<
                 사진 미리보기
               </Text>
               <Box className="w-12 items-center">
-                {renderContext
-                  ? renderHeaderRight?.(renderContext)
-                  : null}
+                {renderContext ? renderHeaderRight?.(renderContext) : null}
               </Box>
             </HStack>
 
@@ -145,9 +122,7 @@ export function PhotoGalleryModal<
                 ))}
               </SlidePageView>
 
-              {activeImage &&
-              selectedImageIds &&
-              onToggleSelection ? (
+              {activeImage && selectedImageIds && onToggleSelection ? (
                 <Pressable
                   accessibilityRole="checkbox"
                   accessibilityLabel={
@@ -171,16 +146,12 @@ export function PhotoGalleryModal<
                     <IconCircle size={28} color="white" />
                   )}
                   <Text bold className="text-white">
-                    {selectedImageIds.has(activeImage.id)
-                      ? "선택됨"
-                      : "선택"}
+                    {selectedImageIds.has(activeImage.id) ? "선택됨" : "선택"}
                   </Text>
                 </Pressable>
               ) : null}
 
-              {renderContext
-                ? renderImageOverlay?.(renderContext)
-                : null}
+              {renderContext ? renderImageOverlay?.(renderContext) : null}
             </VStack>
 
             <VStack className="items-center gap-2 border-t border-outline-light px-6 py-4">
@@ -193,9 +164,7 @@ export function PhotoGalleryModal<
                   {activeIndex + 1} / {images.length}
                 </Text>
               </HStack>
-              {renderContext
-                ? renderFooterDetails?.(renderContext)
-                : null}
+              {renderContext ? renderFooterDetails?.(renderContext) : null}
             </VStack>
           </VStack>
         </SafeAreaView>

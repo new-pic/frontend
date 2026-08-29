@@ -153,9 +153,7 @@ test("차단 성공 후 collection을 정리하고 작성자 feed item cache를 
   await hideBlockedUserContent(queryClient, "blocked-user");
 
   assert.deepEqual(
-    queryClient
-      .getQueryData(feedListKey)
-      .pages[0].items.map((feed) => feed.id),
+    queryClient.getQueryData(feedListKey).pages[0].items.map((feed) => feed.id),
     ["feed-2"],
   );
   assert.deepEqual(
@@ -237,10 +235,7 @@ test("프로필의 회원 전용 차단 목록에서 차단 해제를 제공한�
     "../../../../pages/profile/ui/profile-blocked-users-page.tsx",
   );
 
-  assert.match(
-    profileSource,
-    /!isGuest[\s\S]*차단한 사용자[\s\S]*로그아웃/,
-  );
+  assert.match(profileSource, /!isGuest[\s\S]*차단한 사용자[\s\S]*로그아웃/);
   assert.match(blockedUsersSource, /useReadBlockedUsers/);
   assert.match(blockedUsersSource, /차단 해제/);
   assert.match(blockedUsersSource, /unblockUser/);

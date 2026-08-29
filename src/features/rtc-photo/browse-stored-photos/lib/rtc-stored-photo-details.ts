@@ -1,8 +1,5 @@
 export type RtcStoredPhotoExpiryState =
-  | "ACTIVE"
-  | "EXPIRING_SOON"
-  | "EXPIRED"
-  | "INVALID";
+  "ACTIVE" | "EXPIRING_SOON" | "EXPIRED" | "INVALID";
 
 export function getRtcStoredPhotoExpiryState(
   expiresAt: string,

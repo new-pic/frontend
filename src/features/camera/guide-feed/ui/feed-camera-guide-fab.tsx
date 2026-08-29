@@ -41,8 +41,7 @@ export const FeedCameraGuideFab = memo(function FeedCameraGuideFab({
           borderCurve: "continuous",
           alignItems: "center",
           justifyContent: "center",
-          boxShadow:
-            "0 5px 16px rgba(255,90,100,0.3)",
+          boxShadow: "0 5px 16px rgba(255,90,100,0.3)",
         }}
       >
         <IconCamera size={28} color="white" strokeWidth={2.2} />

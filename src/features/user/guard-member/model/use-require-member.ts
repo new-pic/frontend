@@ -5,9 +5,7 @@ import { useCallback } from "react";
 
 export function useRequireMember() {
   const isGuest = useAuthStore((state) => state.isGuest);
-  const prepareAccountLink = useAuthStore(
-    (state) => state.prepareAccountLink,
-  );
+  const prepareAccountLink = useAuthStore((state) => state.prepareAccountLink);
   const openConfirm = useConfirm();
 
   return useCallback(async () => {

@@ -1,7 +1,4 @@
-import type {
-  ContentReportReason,
-  ContentReportTarget,
-} from "@entities/feed";
+import type { ContentReportReason, ContentReportTarget } from "@entities/feed";
 
 export const CONTENT_REPORT_REASON_OPTIONS: readonly {
   value: ContentReportReason;

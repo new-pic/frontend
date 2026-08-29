@@ -1,11 +1,5 @@
 import { rtcQuery } from "@entities/rtc";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, {
   Easing,
@@ -37,10 +31,7 @@ interface ReactionBubbleProps {
   onExpired: (renderId: string) => void;
 }
 
-function ReactionBubble({
-  bubble,
-  onExpired,
-}: ReactionBubbleProps) {
+function ReactionBubble({ bubble, onExpired }: ReactionBubbleProps) {
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(0);
   const translateX = useSharedValue(0);
@@ -63,13 +54,10 @@ function ReactionBubble({
         withTiming(0, { duration: 500 }),
       ),
     );
-    translateY.value = withTiming(
-      -RTC_REACTION_BUBBLE_CONFIG.riseDistance,
-      {
-        duration: RTC_REACTION_BUBBLE_CONFIG.durationMs,
-        easing: Easing.out(Easing.quad),
-      },
-    );
+    translateY.value = withTiming(-RTC_REACTION_BUBBLE_CONFIG.riseDistance, {
+      duration: RTC_REACTION_BUBBLE_CONFIG.durationMs,
+      easing: Easing.out(Easing.quad),
+    });
     translateX.value = withRepeat(
       withTiming(bubble.lane % 2 === 0 ? 10 : -10, {
         duration: 360,
@@ -82,13 +70,7 @@ function ReactionBubble({
       duration: 220,
       easing: Easing.out(Easing.back(1.4)),
     });
-  }, [
-    bubble.lane,
-    opacity,
-    scale,
-    translateX,
-    translateY,
-  ]);
+  }, [bubble.lane, opacity, scale, translateX, translateY]);
 
   useEffect(() => {
     const timeout = setTimeout(
@@ -103,8 +85,7 @@ function ReactionBubble({
       style={[
         styles.bubble,
         {
-          right:
-            bubble.lane * (BUBBLE_SIZE + BUBBLE_LANE_GAP),
+          right: bubble.lane * (BUBBLE_SIZE + BUBBLE_LANE_GAP),
         },
         animatedStyle,
       ]}
@@ -150,9 +131,7 @@ export function RtcHostReactionBubbles({
         symbol: emoji.symbol,
         lane: sequence % RTC_REACTION_BUBBLE_CONFIG.laneCount,
       };
-      setBubbles((current) =>
-        enqueueRtcReactionBubble(current, bubble),
-      );
+      setBubbles((current) => enqueueRtcReactionBubble(current, bubble));
       if (__DEV__) {
         console.info("[RTC Reaction] bubble enqueued", {
           roomId,

@@ -32,11 +32,7 @@ export interface RtcReactionJoinResponse {
 }
 
 export type RtcReactionConnectionStatus =
-  | "IDLE"
-  | "CONNECTING"
-  | "CONNECTED"
-  | "DISCONNECTED"
-  | "ERROR";
+  "IDLE" | "CONNECTING" | "CONNECTED" | "DISCONNECTED" | "ERROR";
 
 export interface RtcReactionChannel {
   status: RtcReactionConnectionStatus;

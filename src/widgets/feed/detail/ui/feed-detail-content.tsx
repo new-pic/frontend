@@ -16,12 +16,7 @@ import {
   VStack,
 } from "@shared/ui";
 import { LinearGradient } from "expo-linear-gradient";
-import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  View,
-} from "react-native";
+import { ActivityIndicator, FlatList, Image, View } from "react-native";
 import { CommentSort, formatFeedDetailTime } from "../model";
 import { FeedCommentItem, FeedCommentsHeader } from "./feed-comments";
 
@@ -33,10 +28,7 @@ interface FeedDetailContentProps {
   setCommentSort: (sort: CommentSort) => void;
   onReportComment: (commentId: string) => void;
   requireMember: () => Promise<boolean>;
-  onBlockCommentAuthor: (author: {
-    id: string;
-    nickname: string;
-  }) => void;
+  onBlockCommentAuthor: (author: { id: string; nickname: string }) => void;
   isBlockingAuthor?: boolean;
 }
 
@@ -122,10 +114,7 @@ export function FeedDetailContent({
                   />
                 </FeedImageLikeInteraction>
                 <LinearGradient
-                  colors={[
-                    "rgba(0,0,0,0)",
-                    "rgba(0,0,0,0.32)",
-                  ]}
+                  colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.32)"]}
                   pointerEvents="none"
                   style={{
                     position: "absolute",
@@ -235,14 +224,9 @@ export function FeedDetailContent({
               >
                 <VStack space="xs">
                   <Text size="sm" className="text-link-text mb-1">
-                    {feed.tags
-                      .map((tag: string) => `#${tag} `)
-                      .join(" ")}
+                    {feed.tags.map((tag: string) => `#${tag} `).join(" ")}
                   </Text>
-                  <Text
-                    size="md"
-                    className="whitespace-pre-line leading-6"
-                  >
+                  <Text size="md" className="whitespace-pre-line leading-6">
                     {feed.description}
                   </Text>
                 </VStack>
@@ -262,10 +246,7 @@ export function FeedDetailContent({
               sort={commentSort}
               onChangeSort={setCommentSort}
             />
-            <FeedCommentForm
-              feedId={feed.id}
-              requireMember={requireMember}
-            />
+            <FeedCommentForm feedId={feed.id} requireMember={requireMember} />
           </>
         }
         ListEmptyComponent={

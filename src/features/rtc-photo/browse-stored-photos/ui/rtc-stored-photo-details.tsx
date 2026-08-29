@@ -12,24 +12,15 @@ export function RtcStoredPhotoExpiryBadge({
   if (expiryState !== "EXPIRING_SOON") return null;
 
   return (
-    <Box
-      pointerEvents="none"
-      className="absolute right-4 top-4"
-    >
+    <Box pointerEvents="none" className="absolute right-4 top-4">
       <Badge variant="destructive" className="rounded-full px-3 py-2">
-        <BadgeText className="normal-case">
-          곧 만료될 이미지
-        </BadgeText>
+        <BadgeText className="normal-case">곧 만료될 이미지</BadgeText>
       </Badge>
     </Box>
   );
 }
 
-export function RtcStoredPhotoCreatedAt({
-  createdAt,
-}: {
-  createdAt: string;
-}) {
+export function RtcStoredPhotoCreatedAt({ createdAt }: { createdAt: string }) {
   const formattedCreatedAt = useMemo(
     () => formatRtcStoredPhotoCreatedAt(createdAt),
     [createdAt],

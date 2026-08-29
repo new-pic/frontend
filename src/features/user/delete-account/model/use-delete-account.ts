@@ -11,8 +11,7 @@ export function useDeleteAccount() {
   const openConfirm = useConfirm();
   const logout = useAuthStore((state) => state.logout);
   const queryClient = useQueryClient();
-  const { isPending, mutateAsync } =
-    usersQuery.useRequestAccountWithdrawal();
+  const { isPending, mutateAsync } = usersQuery.useRequestAccountWithdrawal();
 
   const deleteAccount = useCallback(async () => {
     if (isPending) return;

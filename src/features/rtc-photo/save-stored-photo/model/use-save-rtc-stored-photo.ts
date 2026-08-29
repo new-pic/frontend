@@ -4,27 +4,18 @@ import * as MediaLibrary from "expo-media-library";
 import { useCallback, useRef, useState } from "react";
 
 export type SaveRtcStoredPhotoResult =
-  | "SAVED"
-  | "PERMISSION_DENIED"
-  | "EXPIRED"
-  | "FAILED"
-  | "BUSY";
+  "SAVED" | "PERMISSION_DENIED" | "EXPIRED" | "FAILED" | "BUSY";
 
 export function useSaveRtcStoredPhoto() {
-  const [savingPhotoId, setSavingPhotoId] = useState<string | null>(
-    null,
-  );
+  const [savingPhotoId, setSavingPhotoId] = useState<string | null>(null);
   const isSavingRef = useRef(false);
-  const [permissionResponse, requestPermission] =
-    MediaLibrary.usePermissions({
-      writeOnly: true,
-      granularPermissions: ["photo"],
-    });
+  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions({
+    writeOnly: true,
+    granularPermissions: ["photo"],
+  });
 
   const savePhoto = useCallback(
-    async (
-      photo: RtcStoredPhoto,
-    ): Promise<SaveRtcStoredPhotoResult> => {
+    async (photo: RtcStoredPhoto): Promise<SaveRtcStoredPhotoResult> => {
       if (isSavingRef.current) return "BUSY";
       if (Date.parse(photo.expiresAt) <= Date.now()) return "EXPIRED";
 
@@ -40,9 +31,7 @@ export function useSaveRtcStoredPhoto() {
         await saveImageToMediaLibrary(photo);
         return "SAVED";
       } catch {
-        return Date.parse(photo.expiresAt) <= Date.now()
-          ? "EXPIRED"
-          : "FAILED";
+        return Date.parse(photo.expiresAt) <= Date.now() ? "EXPIRED" : "FAILED";
       } finally {
         isSavingRef.current = false;
         setSavingPhotoId(null);

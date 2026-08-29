@@ -17,11 +17,7 @@ function isExpoFile(value: unknown): value is File {
   );
 }
 
-function appendFormDataValue(
-  formData: FormData,
-  key: string,
-  value: unknown,
-) {
+function appendFormDataValue(formData: FormData, key: string, value: unknown) {
   if (value === undefined || value === null) return;
 
   if (Array.isArray(value)) {

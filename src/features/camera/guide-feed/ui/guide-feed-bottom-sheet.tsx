@@ -34,8 +34,7 @@ export function GuideFeedBottomSheet({
     { take: 24 },
     { enabled: open },
   );
-  const feeds =
-    savedFeedsQuery.data?.pages.flatMap((page) => page.items) ?? [];
+  const feeds = savedFeedsQuery.data?.pages.flatMap((page) => page.items) ?? [];
   const gridItems = feeds.map((feed) => ({
     id: feed.id,
     imageUrl: feed.thumbnailUrl,
@@ -44,10 +43,7 @@ export function GuideFeedBottomSheet({
   }));
 
   const handleEndReached = () => {
-    if (
-      !savedFeedsQuery.hasNextPage ||
-      savedFeedsQuery.isFetchingNextPage
-    ) {
+    if (!savedFeedsQuery.hasNextPage || savedFeedsQuery.isFetchingNextPage) {
       return;
     }
     void savedFeedsQuery.fetchNextPage();
@@ -99,9 +95,7 @@ export function GuideFeedBottomSheet({
                 selectedFeedId ? [{ id: selectedFeedId }] : undefined
               }
               isPending={savedFeedsQuery.isPending}
-              isFetchingNextPage={
-                savedFeedsQuery.isFetchingNextPage
-              }
+              isFetchingNextPage={savedFeedsQuery.isFetchingNextPage}
               onEndReached={handleEndReached}
               onPress={(feed) => {
                 onSelect(adaptFeedToGuideSelection(feed));

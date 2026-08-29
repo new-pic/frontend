@@ -11,10 +11,7 @@ interface CameraGuideFeedbackBannerProps {
 export function CameraGuideFeedbackBanner({
   feedback,
 }: CameraGuideFeedbackBannerProps) {
-  const message = useMemo(
-    () => mapPoseFeedbackMessage(feedback),
-    [feedback],
-  );
+  const message = useMemo(() => mapPoseFeedbackMessage(feedback), [feedback]);
   if (!message) return null;
 
   return (
@@ -46,4 +43,3 @@ export function CameraGuideFeedbackBanner({
     </View>
   );
 }
-

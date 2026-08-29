@@ -46,9 +46,7 @@ function isFeedComment(value: unknown): value is FeedCommentResponse {
   );
 }
 
-function isInfiniteFeedListData(
-  value: unknown,
-): value is InfiniteFeedListData {
+function isInfiniteFeedListData(value: unknown): value is InfiniteFeedListData {
   if (!value || typeof value !== "object") return false;
 
   const pages = (value as { pages?: unknown }).pages;

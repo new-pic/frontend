@@ -7,8 +7,10 @@ import type { Frame } from "react-native-vision-camera";
  * Frame ownership remains with the caller. `pushFrame()` never stores the
  * VisionCamera Frame and the worklet must dispose it exactly once.
  */
-export interface VisionCameraRtcFrameSink
-  extends HybridObject<{ ios: "swift"; android: "kotlin" }> {
+export interface VisionCameraRtcFrameSink extends HybridObject<{
+  ios: "swift";
+  android: "kotlin";
+}> {
   startAcceptingFrames(): void;
   stopAcceptingFrames(): void;
   pushFrame(frame: Frame): boolean;

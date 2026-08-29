@@ -11,24 +11,11 @@ export const RtcStoredPhotoSchema = z.object({
 });
 
 export const RtcStoredPhotoListParamsSchema = z.object({
-  take: z
-    .number()
-    .int()
-    .min(1)
-    .max(RTC_STORED_PHOTO_MAX_TAKE)
-    .optional(),
+  take: z.number().int().min(1).max(RTC_STORED_PHOTO_MAX_TAKE).optional(),
   cursor: z.string().trim().min(1).optional(),
 });
 
 export const RtcStoredPhotoListResponseSchema = z.object({
-  items: z
-    .array(RtcStoredPhotoSchema)
-    .max(RTC_STORED_PHOTO_MAX_TAKE),
-  nextCursor: z
-    .string()
-    .trim()
-    .min(1)
-    .nullable()
-    .optional()
-    .default(null),
+  items: z.array(RtcStoredPhotoSchema).max(RTC_STORED_PHOTO_MAX_TAKE),
+  nextCursor: z.string().trim().min(1).nullable().optional().default(null),
 });

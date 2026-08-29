@@ -27,8 +27,7 @@ export function createCameraGuideHref(feedId: string): Href {
   return {
     pathname: "/camera",
     params: {
-      [CAMERA_GUIDE_NAVIGATION.params.feedId]:
-        normalizedFeedId,
+      [CAMERA_GUIDE_NAVIGATION.params.feedId]: normalizedFeedId,
     },
   };
 }

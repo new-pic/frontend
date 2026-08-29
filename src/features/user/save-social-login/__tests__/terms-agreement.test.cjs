@@ -35,8 +35,7 @@ Module._load = function mockAuthDependencies(request, parent, isMain) {
     return {
       decodeAccessToken: {
         userId: () => "test-user-id",
-        userType: (token) =>
-          token.includes("guest") ? "GUEST" : "USER",
+        userType: (token) => (token.includes("guest") ? "GUEST" : "USER"),
       },
     };
   }
@@ -50,9 +49,7 @@ const {
   SocialLoginResponseSchema,
   TokenResponseSchema,
 } = require("../../../../entities/user/model/schema.ts");
-const {
-  useAuthStore,
-} = require("../../../../shared/model/auth-store.ts");
+const { useAuthStore } = require("../../../../shared/model/auth-store.ts");
 
 Module._load = originalModuleLoad;
 
@@ -101,8 +98,7 @@ test("Apple, Google과 Guest 로그인 요청은 termsAgreed가 필수다", () =
     true,
   );
   assert.equal(
-    GoogleLoginRequestSchema.safeParse({ idToken: "google-id-token" })
-      .success,
+    GoogleLoginRequestSchema.safeParse({ idToken: "google-id-token" }).success,
     false,
   );
   assert.equal(
@@ -200,15 +196,15 @@ test("Welcome UI와 로그인 use-case가 동의 전 요청을 이중 차단한�
     1,
   );
   assert.equal((welcomeSource.match(/handleLogin\(\{/g) ?? []).length, 3);
-  assert.equal((welcomeSource.match(/return handleLogin\(\{/g) ?? []).length, 3);
+  assert.equal(
+    (welcomeSource.match(/return handleLogin\(\{/g) ?? []).length,
+    3,
+  );
   assert.match(
     welcomeSource,
     /const ensureTermsAgreed = \(\) => \{[\s\S]*openTermsSheet\(\);[\s\S]*return false;/,
   );
-  assert.equal(
-    (loginSource.match(/if \(!termsAgreed\)/g) ?? []).length,
-    1,
-  );
+  assert.equal((loginSource.match(/if \(!termsAgreed\)/g) ?? []).length, 1);
   assert.match(
     loginSource,
     /const beginLogin = \(provider: LoginProvider\) => \{[\s\S]*if \(!termsAgreed\)[\s\S]*loginLockRef\.current = true;[\s\S]*setActiveLoginProvider\(provider\)/,
@@ -232,10 +228,7 @@ test("약관 안내 Card와 체크박스 label은 공용 테두리와 폰트를 
     welcomeSource,
     /<Card size="sm" className="gap-3 border-outline shadow-none">/,
   );
-  assert.match(
-    checkboxSource,
-    /checkboxLabelStyle = tva\(\{[\s\S]*font-sans/,
-  );
+  assert.match(checkboxSource, /checkboxLabelStyle = tva\(\{[\s\S]*font-sans/);
   assert.doesNotMatch(
     checkboxSource,
     /checkboxLabelStyle = tva\(\{[\s\S]*font-body/,
@@ -313,8 +306,7 @@ test("Apple과 Google 로그인은 세션 저장과 후속 이동을 공유한�
   );
   assert.equal((loginSource.match(/await setSession\(\{/g) ?? []).length, 2);
   assert.equal(
-    (loginSource.match(/response\.status === "NEED_NICKNAME"/g) ?? [])
-      .length,
+    (loginSource.match(/response\.status === "NEED_NICKNAME"/g) ?? []).length,
     1,
   );
   assert.equal(

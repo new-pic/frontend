@@ -22,9 +22,7 @@ const finalizationCopy = {
   },
 } as const;
 
-export function RtcFinalizationOverlay({
-  state,
-}: RtcFinalizationOverlayProps) {
+export function RtcFinalizationOverlay({ state }: RtcFinalizationOverlayProps) {
   if (!isRtcFinalizationBlocking(state)) return null;
 
   const copy = finalizationCopy[state];
@@ -43,10 +41,7 @@ export function RtcFinalizationOverlay({
         backgroundColor: "rgba(255, 255, 255, 0.94)",
       }}
     >
-      <SafeAreaView
-        edges={["top", "bottom"]}
-        style={{ flex: 1 }}
-      >
+      <SafeAreaView edges={["top", "bottom"]} style={{ flex: 1 }}>
         <Center className="flex-1 px-8">
           <VStack className="items-center gap-5">
             <Spinner

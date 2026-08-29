@@ -1,6 +1,4 @@
-import type {
-  CameraGuideAspectRatio,
-} from "../model/types";
+import type { CameraGuideAspectRatio } from "../model/types";
 import type { CoordinateSize } from "./pose-matching";
 
 const SUPPORTED_ASPECT_RATIOS = {
@@ -8,10 +6,7 @@ const SUPPORTED_ASPECT_RATIOS = {
   "16:9": 16 / 9,
 } as const satisfies Record<CameraGuideAspectRatio, number>;
 
-function getOrientationIndependentRatio({
-  width,
-  height,
-}: CoordinateSize) {
+function getOrientationIndependentRatio({ width, height }: CoordinateSize) {
   if (
     !Number.isFinite(width) ||
     !Number.isFinite(height) ||
@@ -33,15 +28,15 @@ export function resolveFeedCameraAspectRatio(
   sourceSize: CoordinateSize,
 ): CameraGuideAspectRatio {
   const sourceRatio = getOrientationIndependentRatio(sourceSize);
-  const candidates = Object.entries(
-    SUPPORTED_ASPECT_RATIOS,
-  ) as [CameraGuideAspectRatio, number][];
+  const candidates = Object.entries(SUPPORTED_ASPECT_RATIOS) as [
+    CameraGuideAspectRatio,
+    number,
+  ][];
 
-  return candidates.reduce(
-    (closest, candidate) =>
-      Math.abs(Math.log(sourceRatio / candidate[1])) <
-      Math.abs(Math.log(sourceRatio / closest[1]))
-        ? candidate
-        : closest,
+  return candidates.reduce((closest, candidate) =>
+    Math.abs(Math.log(sourceRatio / candidate[1])) <
+    Math.abs(Math.log(sourceRatio / closest[1]))
+      ? candidate
+      : closest,
   )[0];
 }

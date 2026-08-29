@@ -26,11 +26,7 @@ export type DetectedPoseFrame = {
   };
 };
 
-export type PoseDetectionStatus =
-  | "idle"
-  | "initializing"
-  | "running"
-  | "error";
+export type PoseDetectionStatus = "idle" | "initializing" | "running" | "error";
 
 export type PoseDetectionError = {
   code: string;

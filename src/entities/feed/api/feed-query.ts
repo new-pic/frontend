@@ -45,37 +45,17 @@ export const feedQueryKeys = {
   myFeeds: [...USER_FEED_COLLECTION_QUERY_KEY, "me", "feeds"] as const,
   myFeedList: (params: UserFeedListParams) =>
     [...USER_FEED_COLLECTION_QUERY_KEY, "me", "feeds", params] as const,
-  likedFeeds: [
-    ...USER_FEED_COLLECTION_QUERY_KEY,
-    "me",
-    "liked-feeds",
-  ] as const,
+  likedFeeds: [...USER_FEED_COLLECTION_QUERY_KEY, "me", "liked-feeds"] as const,
   likedFeedList: (params: UserFeedListParams) =>
-    [
-      ...USER_FEED_COLLECTION_QUERY_KEY,
-      "me",
-      "liked-feeds",
-      params,
-    ] as const,
-  savedFeeds: [
-    ...USER_FEED_COLLECTION_QUERY_KEY,
-    "me",
-    "saved-feeds",
-  ] as const,
+    [...USER_FEED_COLLECTION_QUERY_KEY, "me", "liked-feeds", params] as const,
+  savedFeeds: [...USER_FEED_COLLECTION_QUERY_KEY, "me", "saved-feeds"] as const,
   savedFeedList: (params: UserFeedListParams) =>
-    [
-      ...USER_FEED_COLLECTION_QUERY_KEY,
-      "me",
-      "saved-feeds",
-      params,
-    ] as const,
+    [...USER_FEED_COLLECTION_QUERY_KEY, "me", "saved-feeds", params] as const,
   comments: [...QUERY_KEY, "comments"] as const,
   commentsByFeed: (feedId: string) =>
     [...QUERY_KEY, "comments", feedId] as const,
-  commentList: (
-    feedId: string,
-    params: Omit<CommentListParams, "feedId">,
-  ) => [...QUERY_KEY, "comments", feedId, params] as const,
+  commentList: (feedId: string, params: Omit<CommentListParams, "feedId">) =>
+    [...QUERY_KEY, "comments", feedId, params] as const,
 } as const;
 
 // useInfiniteQuery의 반환 data 타입

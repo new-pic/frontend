@@ -15,9 +15,7 @@ require.extensions[".ts"] = (module, filename) => {
   module._compile(output.outputText, filename);
 };
 
-const {
-  updateFeedInCacheData,
-} = require("../api/feed-cache.ts");
+const { updateFeedInCacheData } = require("../api/feed-cache.ts");
 
 function createFeed(overrides = {}) {
   return {
@@ -56,11 +54,7 @@ const pickFeed = (feed) => ({
 });
 
 test("단일 피드 상세 cache의 좋아요 상태를 변경한다", () => {
-  const updated = updateFeedInCacheData(
-    createFeed(),
-    "feed-1",
-    likeFeed,
-  );
+  const updated = updateFeedInCacheData(createFeed(), "feed-1", likeFeed);
 
   assert.equal(updated.isLiked, true);
   assert.equal(updated.likeCount, 3);
@@ -109,10 +103,7 @@ test("피드 데이터가 아니거나 대상이 없으면 원래 참조를 유�
     pages: [{ items: [createFeed({ id: "feed-2" })] }],
   };
 
-  assert.equal(
-    updateFeedInCacheData(comments, "feed-1", likeFeed),
-    comments,
-  );
+  assert.equal(updateFeedInCacheData(comments, "feed-1", likeFeed), comments);
   assert.equal(
     updateFeedInCacheData(otherFeedCache, "feed-1", likeFeed),
     otherFeedCache,

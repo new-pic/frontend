@@ -9,16 +9,9 @@ import { useEffect, useState } from "react";
 import { getRtcRoomReconnectDelay } from "./rtc-host-control";
 
 export type RtcRoomStreamState =
-  | "IDLE"
-  | "CONNECTING"
-  | "OPEN"
-  | "RECONNECTING"
-  | "ENDED";
+  "IDLE" | "CONNECTING" | "OPEN" | "RECONNECTING" | "ENDED";
 
-function waitForReconnect(
-  delayMs: number,
-  signal: AbortSignal,
-): Promise<void> {
+function waitForReconnect(delayMs: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve) => {
     const timeoutId = setTimeout(resolve, delayMs);
     signal.addEventListener(
@@ -40,8 +33,7 @@ export function useRtcRoomEvents({
   roomId: string;
 }) {
   const queryClient = useQueryClient();
-  const [streamState, setStreamState] =
-    useState<RtcRoomStreamState>("IDLE");
+  const [streamState, setStreamState] = useState<RtcRoomStreamState>("IDLE");
 
   useEffect(() => {
     const normalizedRoomId = roomId.trim();
@@ -57,22 +49,15 @@ export function useRtcRoomEvents({
     const run = async () => {
       let retryAttempt = 0;
 
-      while (
-        !lifecycleController.signal.aborted &&
-        !isTerminal
-      ) {
+      while (!lifecycleController.signal.aborted && !isTerminal) {
         const streamController = new AbortController();
         const abortStream = () => streamController.abort();
-        lifecycleController.signal.addEventListener(
-          "abort",
-          abortStream,
-          { once: true },
-        );
+        lifecycleController.signal.addEventListener("abort", abortStream, {
+          once: true,
+        });
 
         if (isMounted) {
-          setStreamState(
-            retryAttempt === 0 ? "CONNECTING" : "RECONNECTING",
-          );
+          setStreamState(retryAttempt === 0 ? "CONNECTING" : "RECONNECTING");
         }
 
         try {
@@ -88,9 +73,7 @@ export function useRtcRoomEvents({
               }
 
               queryClient.setQueryData<RtcRoomResponse>(
-                rtcHostQuery.rtcHostRoomQueryKey(
-                  normalizedRoomId,
-                ),
+                rtcHostQuery.rtcHostRoomQueryKey(normalizedRoomId),
                 (room) => mergeRtcRoomEvent(room, event),
               );
             },
@@ -98,23 +81,14 @@ export function useRtcRoomEvents({
         } catch {
           if (!lifecycleController.signal.aborted) {
             void queryClient.invalidateQueries({
-              queryKey:
-                rtcHostQuery.rtcHostRoomQueryKey(
-                  normalizedRoomId,
-                ),
+              queryKey: rtcHostQuery.rtcHostRoomQueryKey(normalizedRoomId),
             });
           }
         } finally {
-          lifecycleController.signal.removeEventListener(
-            "abort",
-            abortStream,
-          );
+          lifecycleController.signal.removeEventListener("abort", abortStream);
         }
 
-        if (
-          lifecycleController.signal.aborted ||
-          isTerminal
-        ) {
+        if (lifecycleController.signal.aborted || isTerminal) {
           break;
         }
 

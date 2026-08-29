@@ -20,9 +20,7 @@ require.extensions[".ts"] = (module, filename) => {
 const {
   isFeedPublishingPipelineActive,
 } = require("../model/feed-publishing-state.ts");
-const {
-  useFeedPublishingStore,
-} = require("../model/feed-publishing-store.ts");
+const { useFeedPublishingStore } = require("../model/feed-publishing-store.ts");
 const {
   FEED_PROCESSING_CONFIG,
 } = require("../config/feed-processing-config.ts");
@@ -130,7 +128,10 @@ test("완료 햅틱은 작업마다 한 번만 소비하고 background에서는 
 test("활성 게시 작업이 있으면 두 번째 게시 명령을 거절한다", () => {
   const store = useFeedPublishingStore.getState();
   assert.equal(store.enqueue(createCommand), true);
-  assert.equal(store.enqueue({ ...createCommand, description: "두 번째" }), false);
+  assert.equal(
+    store.enqueue({ ...createCommand, description: "두 번째" }),
+    false,
+  );
 
   const task = useFeedPublishingStore.getState().task;
   assert.equal(task.command.description, "설명");
@@ -183,10 +184,7 @@ test("완료 배지가 남아 있어도 게시 슬롯을 해제하고 새 작업
     false,
   );
   assert.equal(store.enqueue(createCommand), true);
-  assert.equal(
-    useFeedPublishingStore.getState().task.command.kind,
-    "CREATE",
-  );
+  assert.equal(useFeedPublishingStore.getState().task.command.kind, "CREATE");
 
   store.dismiss(useFeedPublishingStore.getState().task.id);
 });

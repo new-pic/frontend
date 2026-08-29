@@ -1,10 +1,7 @@
 import type { FeedPoseResponse } from "@entities/feed";
 import { resolveFeedCameraAspectRatio } from "../feed-camera-aspect-ratio";
 import { adaptDWPoseResult } from "./dwpose-pose-adapter";
-import type {
-  CoordinateSize,
-  DWPoseSourcePose,
-} from "./types";
+import type { CoordinateSize, DWPoseSourcePose } from "./types";
 
 export interface FeedPoseTargetSelection {
   feedId: string;
@@ -38,9 +35,7 @@ export type FeedPoseTargetPreparation<TImage> =
 
 export interface FeedPoseTargetPreparerDependencies<TImage> {
   loadPose: (feedId: string) => Promise<FeedPoseResponse>;
-  loadImage: (
-    imageUrl: string,
-  ) => Promise<LoadedFeedReferenceImage<TImage>>;
+  loadImage: (imageUrl: string) => Promise<LoadedFeedReferenceImage<TImage>>;
 }
 
 /**
@@ -93,9 +88,7 @@ export function createFeedPoseTargetPreparer<TImage>({
         imageUrl: poseResponse.imageUrl,
         image: referenceImage.image,
         sourceSize: referenceImage.size,
-        cameraAspectRatio: resolveFeedCameraAspectRatio(
-          referenceImage.size,
-        ),
+        cameraAspectRatio: resolveFeedCameraAspectRatio(referenceImage.size),
         sourcePoses,
         poseUpdatedAt: poseResponse.poseUpdatedAt,
       };

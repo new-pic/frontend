@@ -19,13 +19,13 @@ Steiger가 보고한 FSD 진단을 숫자만 제거하지 않고, 실제 책임�
 
 현재 제품 코드 기준으로 오류 없이 49개의 경고가 보고된다.
 
-| 규칙 | 개수 | 성격 |
-| --- | ---: | --- |
-| `fsd/forbidden-imports` | 17 | 같은 레이어 slice 간 의존 |
-| `fsd/no-public-api-sidestep` | 9 | 외부에서 slice 내부 경로 직접 참조 |
-| `fsd/insignificant-slice` | 20 | 소비자가 없거나 하나인 slice 휴리스틱 |
-| `fsd/inconsistent-naming` | 1 | Entity slice 단·복수형 불일치 |
-| `fsd/segments-by-purpose` | 2 | 목적이 아닌 코드 형태 기반 Shared segment |
+| 규칙                         | 개수 | 성격                                      |
+| ---------------------------- | ---: | ----------------------------------------- |
+| `fsd/forbidden-imports`      |   17 | 같은 레이어 slice 간 의존                 |
+| `fsd/no-public-api-sidestep` |    9 | 외부에서 slice 내부 경로 직접 참조        |
+| `fsd/insignificant-slice`    |   20 | 소비자가 없거나 하나인 slice 휴리스틱     |
+| `fsd/inconsistent-naming`    |    1 | Entity slice 단·복수형 불일치             |
+| `fsd/segments-by-purpose`    |    2 | 목적이 아닌 코드 형태 기반 Shared segment |
 
 `__tests__`의 내부 모듈 직접 import는 현재 Steiger 정책에서 제외되어 있다.
 초기 recommended 실행에서 확인된 테스트 관련 진단 19건은 제품 의존
@@ -198,21 +198,21 @@ Widget으로 유지할 가치가 있다. 이 규칙은 구조 검토 신호로 �
 
 ### 파일 목록
 
-| 소비자 | 참조 대상 | 개수 |
-| --- | --- | ---: |
-| `entities/user/api/user-query.ts` | `entities/feed` | 1 |
-| `features/camera/guide-feed/lib/guide-contour-projection.ts` | `camera/pose-matching` | 1 |
-| `features/camera/guide-feed/model/guide-state.ts` | `camera/capture-photo`, `camera/pose-matching` | 2 |
-| `features/camera/guide-feed/model/pose-guide-alignment-policy.ts` | `camera/pose-matching` | 1 |
-| `features/camera/guide-feed/model/types.ts` | `camera/capture-photo`, `camera/pose-matching` | 2 |
-| `features/camera/guide-feed/model/use-camera-guide-controller.ts` | `camera/capture-photo`, `camera/pose-detection`, `camera/pose-matching` | 3 |
-| `features/camera/guide-feed/model/use-pose-guide-alignment.ts` | `camera/pose-matching` | 1 |
-| `features/camera/guide-feed/ui/camera-guide-overlay.tsx` | `camera/pose-matching` | 1 |
-| `features/camera/guide-feed/ui/camera-guide-reference-overlay.tsx` | `camera/pose-matching` | 1 |
-| `features/camera/pose-matching/model/feed-pose-target-preparer.ts` | `camera/capture-photo` | 1 |
-| `features/feed/save-feed/model/use-save-feed-form.ts` | `feed/feed-processing` | 1 |
-| `features/feed/save-feed/ui/save-feed-button.tsx` | `feed/feed-processing` | 1 |
-| `features/rtc/finalize-session/lib/prepare-rtc-end-images.ts` | `camera/capture-photo` | 1 |
+| 소비자                                                             | 참조 대상                                                               | 개수 |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------- | ---: |
+| `entities/user/api/user-query.ts`                                  | `entities/feed`                                                         |    1 |
+| `features/camera/guide-feed/lib/guide-contour-projection.ts`       | `camera/pose-matching`                                                  |    1 |
+| `features/camera/guide-feed/model/guide-state.ts`                  | `camera/capture-photo`, `camera/pose-matching`                          |    2 |
+| `features/camera/guide-feed/model/pose-guide-alignment-policy.ts`  | `camera/pose-matching`                                                  |    1 |
+| `features/camera/guide-feed/model/types.ts`                        | `camera/capture-photo`, `camera/pose-matching`                          |    2 |
+| `features/camera/guide-feed/model/use-camera-guide-controller.ts`  | `camera/capture-photo`, `camera/pose-detection`, `camera/pose-matching` |    3 |
+| `features/camera/guide-feed/model/use-pose-guide-alignment.ts`     | `camera/pose-matching`                                                  |    1 |
+| `features/camera/guide-feed/ui/camera-guide-overlay.tsx`           | `camera/pose-matching`                                                  |    1 |
+| `features/camera/guide-feed/ui/camera-guide-reference-overlay.tsx` | `camera/pose-matching`                                                  |    1 |
+| `features/camera/pose-matching/model/feed-pose-target-preparer.ts` | `camera/capture-photo`                                                  |    1 |
+| `features/feed/save-feed/model/use-save-feed-form.ts`              | `feed/feed-processing`                                                  |    1 |
+| `features/feed/save-feed/ui/save-feed-button.tsx`                  | `feed/feed-processing`                                                  |    1 |
+| `features/rtc/finalize-session/lib/prepare-rtc-end-images.ts`      | `camera/capture-photo`                                                  |    1 |
 
 ### 1.1 User Entity가 Feed Entity를 참조
 
@@ -495,14 +495,14 @@ Capture의 `SessionPhoto`는 구조적으로 이 interface를 만족하고 Camer
 
 ### 기존 public API로 전환 가능한 항목
 
-| 파일 | 현재 경로 | 목표 public API |
-| --- | --- | --- |
-| `app/_layout.tsx` | `@features/camera/guide-feed/model/camera-guide-navigation` | `@features/camera/guide-feed` |
-| `entities/rtc/api/rtc-room-event.ts` | `../../../shared/api/sse-parser` | `@shared/api` |
-| `feed-processing/lib/refresh-published-feed-lists.ts` | `@entities/feed/api/feed-query` | `@entities/feed`의 `feedQuery` |
-| 동일 파일 | `@entities/user/api/user-query` | `@entities/user`의 `usersQuery` |
-| `update-feed-pick/lib/refresh-saved-feed-guide-cache.ts` | `@entities/user/api/user-query` | `@entities/user`의 `usersQuery` |
-| `pages/profile/ui/profile-page.tsx` | `@shared/model/auth-store` | `@shared/model` |
+| 파일                                                     | 현재 경로                                                   | 목표 public API                 |
+| -------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------- |
+| `app/_layout.tsx`                                        | `@features/camera/guide-feed/model/camera-guide-navigation` | `@features/camera/guide-feed`   |
+| `entities/rtc/api/rtc-room-event.ts`                     | `../../../shared/api/sse-parser`                            | `@shared/api`                   |
+| `feed-processing/lib/refresh-published-feed-lists.ts`    | `@entities/feed/api/feed-query`                             | `@entities/feed`의 `feedQuery`  |
+| 동일 파일                                                | `@entities/user/api/user-query`                             | `@entities/user`의 `usersQuery` |
+| `update-feed-pick/lib/refresh-saved-feed-guide-cache.ts` | `@entities/user/api/user-query`                             | `@entities/user`의 `usersQuery` |
+| `pages/profile/ui/profile-page.tsx`                      | `@shared/model/auth-store`                                  | `@shared/model`                 |
 
 이 6건은 이미 필요한 export가 존재한다. import 계약만 바꾸면 되고 상태,
 네트워크 및 UI lifecycle은 바뀌지 않는다.
@@ -567,12 +567,12 @@ user
 
 현재 서로 다른 목적이 한 segment에 섞여 있다.
 
-| 파일 | 실제 목적 | 후보 위치 |
-| --- | --- | --- |
-| `colors.ts` | UI theme token | `shared/ui/theme` |
-| `gradient.ts` | UI theme token | `shared/ui/theme` |
-| `ui-metrics.ts` | UI layout/touch token | `shared/ui/theme` |
-| `external-links.ts` | App 외부 URL 설정 | `shared/config` |
+| 파일                | 실제 목적             | 후보 위치         |
+| ------------------- | --------------------- | ----------------- |
+| `colors.ts`         | UI theme token        | `shared/ui/theme` |
+| `gradient.ts`       | UI theme token        | `shared/ui/theme` |
+| `ui-metrics.ts`     | UI layout/touch token | `shared/ui/theme` |
+| `external-links.ts` | App 외부 URL 설정     | `shared/config`   |
 
 `constants`는 값의 코드 형태를 설명할 뿐 책임을 설명하지 못한다. UI token과
 App config로 나누는 안을 추천한다. 디자인 token의 단일 소유자는
@@ -645,28 +645,28 @@ Feed action Feature는 `ensureMember` callback 또는 실행 허용 상태를 �
 이 규칙은 구조 검토용 경고로 유지한다. 아래 판정은 삭제 지시가 아니라
 후속 검토 우선순위다.
 
-| Slice | 규모 | 현재 판정 | 잠정 방향 |
-| --- | ---: | --- | --- |
-| `entities/tags` | 2 files / 21 lines | 작은 domain 표현 | `tag`로 이름 변경 후 유지 또는 Tag UI 소비 증가 시 재평가 |
-| `camera/pose-detection` | 8 / 378 | 실제 사용 중인 Guide 내부 엔진 | Camera 경계 설계에 따라 Guide 내부로 통합 |
-| `camera/pose-matching` | 15 / 2,581 | 실제 사용 중인 Guide 내부 엔진 | Camera 경계 설계에 따라 Guide 내부로 통합 |
-| `feed/create-feed-comment` | 4 / 124 | 명확한 사용자 행동 | 유지 후보 |
-| `feed/delete-feed` | 2 / 32 | mutation, 확인, navigation 소유 | 유지 후보 |
-| `feed/edit-feed` | 2 / 12 | navigation wrapper만 존재 | Feed Detail Widget으로 병합 후보 |
-| `feed/report-content` | 5 / 448 | form, mutation lock, modal 소유 | 유지 후보 |
-| `feed/update-feed-like` | 6 / 326 | throttle, cache, gesture 소유 | 유지 후보 |
-| `feed/update-feed-pick` | 6 / 213 | cache sync와 member gate 소비 | 유지하되 member/public API 경계 수정 |
-| `profile/save-user-setup` | 8 / 360 | form, validation, image adapter 소유 | 유지 후보 |
-| `rtc-photo/save-stored-photo` | 2 / 63 | 다운로드/저장 사용자 행동 | 유지 후보 |
-| `rtc/finalize-session` | 4 / 48 | Camera Page 전용 준비/초기화 | `pages/camera` 내부 병합도 검토 |
-| `rtc/host-controls` | 6 / 770 | RTC stream/finalization lifecycle 소유 | 유지 |
-| `rtc/reactions` | 12 / 1,422 | Socket transport와 UI lifecycle 소유 | 유지 |
-| `user/save-social-login` | 3 / 518 | Provider 인증과 session 후처리 소유 | 유지 |
-| `widgets/camera-header` | 2 / 72 | Camera Page 전용 UI | Page UI로 병합 후보 |
-| `widgets/feed/detail` | 16 / 1,203 | 큰 독립 UI block | 단일 Page 소비여도 유지 |
-| `widgets/feed/edit` | 9 / 458 | 큰 편집 UI block | 단일 Page 소비여도 유지 |
-| `widgets/profile/rtc-photo-preview` | 3 / 131 | Profile Page 전용 block | Page UI 병합 후보 |
-| `widgets/rtc-join-sheet` | 2 / 48 | Camera Page 전용이며 join use-case UI | `features/rtc/join-room` UI로 이동 후보 |
+| Slice                               |               규모 | 현재 판정                              | 잠정 방향                                                 |
+| ----------------------------------- | -----------------: | -------------------------------------- | --------------------------------------------------------- |
+| `entities/tags`                     | 2 files / 21 lines | 작은 domain 표현                       | `tag`로 이름 변경 후 유지 또는 Tag UI 소비 증가 시 재평가 |
+| `camera/pose-detection`             |            8 / 378 | 실제 사용 중인 Guide 내부 엔진         | Camera 경계 설계에 따라 Guide 내부로 통합                 |
+| `camera/pose-matching`              |         15 / 2,581 | 실제 사용 중인 Guide 내부 엔진         | Camera 경계 설계에 따라 Guide 내부로 통합                 |
+| `feed/create-feed-comment`          |            4 / 124 | 명확한 사용자 행동                     | 유지 후보                                                 |
+| `feed/delete-feed`                  |             2 / 32 | mutation, 확인, navigation 소유        | 유지 후보                                                 |
+| `feed/edit-feed`                    |             2 / 12 | navigation wrapper만 존재              | Feed Detail Widget으로 병합 후보                          |
+| `feed/report-content`               |            5 / 448 | form, mutation lock, modal 소유        | 유지 후보                                                 |
+| `feed/update-feed-like`             |            6 / 326 | throttle, cache, gesture 소유          | 유지 후보                                                 |
+| `feed/update-feed-pick`             |            6 / 213 | cache sync와 member gate 소비          | 유지하되 member/public API 경계 수정                      |
+| `profile/save-user-setup`           |            8 / 360 | form, validation, image adapter 소유   | 유지 후보                                                 |
+| `rtc-photo/save-stored-photo`       |             2 / 63 | 다운로드/저장 사용자 행동              | 유지 후보                                                 |
+| `rtc/finalize-session`              |             4 / 48 | Camera Page 전용 준비/초기화           | `pages/camera` 내부 병합도 검토                           |
+| `rtc/host-controls`                 |            6 / 770 | RTC stream/finalization lifecycle 소유 | 유지                                                      |
+| `rtc/reactions`                     |         12 / 1,422 | Socket transport와 UI lifecycle 소유   | 유지                                                      |
+| `user/save-social-login`            |            3 / 518 | Provider 인증과 session 후처리 소유    | 유지                                                      |
+| `widgets/camera-header`             |             2 / 72 | Camera Page 전용 UI                    | Page UI로 병합 후보                                       |
+| `widgets/feed/detail`               |         16 / 1,203 | 큰 독립 UI block                       | 단일 Page 소비여도 유지                                   |
+| `widgets/feed/edit`                 |            9 / 458 | 큰 편집 UI block                       | 단일 Page 소비여도 유지                                   |
+| `widgets/profile/rtc-photo-preview` |            3 / 131 | Profile Page 전용 block                | Page UI 병합 후보                                         |
+| `widgets/rtc-join-sheet`            |             2 / 48 | Camera Page 전용이며 join use-case UI  | `features/rtc/join-room` UI로 이동 후보                   |
 
 `host-controls`, `reactions`, `save-social-login`, 큰 Feed Widget처럼 lifecycle과
 실패 경계를 소유하는 slice는 소비자 수가 하나여도 유지한다. 따라서

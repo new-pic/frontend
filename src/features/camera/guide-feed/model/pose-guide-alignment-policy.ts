@@ -8,15 +8,9 @@ import {
   type PoseGuideFeedbackConfig,
 } from "./pose-guide-feedback-config";
 
-export type CameraGuideAlignmentState =
-  | "SEARCHING"
-  | "MISALIGNED"
-  | "ALIGNED";
+export type CameraGuideAlignmentState = "SEARCHING" | "MISALIGNED" | "ALIGNED";
 
-export type FeedbackPersonPosition =
-  | "LEFT"
-  | "CENTER"
-  | "RIGHT";
+export type FeedbackPersonPosition = "LEFT" | "CENTER" | "RIGHT";
 
 export interface PoseGuideFeedbackDescriptor {
   reason: PoseFeedback;
@@ -33,8 +27,7 @@ export interface PoseGuideAlignmentSnapshot {
   feedback: PoseGuideFeedbackDescriptor | null;
 }
 
-export interface PoseGuideAlignmentPolicyState
-  extends PoseGuideAlignmentSnapshot {
+export interface PoseGuideAlignmentPolicyState extends PoseGuideAlignmentSnapshot {
   targetReady: boolean;
   stableSampleCount: number;
   noPoseSinceMs: number | null;
@@ -70,8 +63,7 @@ function findWorstAssignment(
 
   return result.assignments.find(
     ({ targetIndex, liveIndex }) =>
-      targetIndex === worst.targetIndex &&
-      liveIndex === worst.liveIndex,
+      targetIndex === worst.targetIndex && liveIndex === worst.liveIndex,
   );
 }
 
@@ -105,11 +97,7 @@ function createFeedbackDescriptor(
 
   return {
     reason: result.feedback,
-    personPosition: resolvePersonPosition(
-      result,
-      livePersonCount,
-      config,
-    ),
+    personPosition: resolvePersonPosition(result, livePersonCount, config),
     targetPersonCount,
     livePersonCount,
   };
@@ -122,10 +110,7 @@ function withFeedbackCandidate(
   config: PoseGuideFeedbackConfig,
 ): PoseGuideAlignmentPolicyState {
   if (candidate === null) {
-    if (
-      state.feedback === null &&
-      state.pendingFeedback === null
-    ) {
+    if (state.feedback === null && state.pendingFeedback === null) {
       return state;
     }
 
@@ -135,9 +120,7 @@ function withFeedbackCandidate(
       pendingFeedback: null,
       pendingFeedbackSinceMs: null,
       lastFeedbackChangeMs:
-        state.feedback === null
-          ? state.lastFeedbackChangeMs
-          : nowMs,
+        state.feedback === null ? state.lastFeedbackChangeMs : nowMs,
     };
   }
 
@@ -158,8 +141,7 @@ function withFeedbackCandidate(
     };
   }
 
-  const pendingForMs =
-    nowMs - (state.pendingFeedbackSinceMs ?? nowMs);
+  const pendingForMs = nowMs - (state.pendingFeedbackSinceMs ?? nowMs);
   const sinceLastChangeMs =
     state.lastFeedbackChangeMs === null
       ? Number.POSITIVE_INFINITY
@@ -204,17 +186,11 @@ export function resetPoseGuideAlignmentPolicy(
   guideId: string | null,
   targetReady: boolean,
 ): PoseGuideAlignmentPolicyState {
-  if (
-    state.guideId === guideId &&
-    state.targetReady === targetReady
-  ) {
+  if (state.guideId === guideId && state.targetReady === targetReady) {
     return state;
   }
 
-  return createPoseGuideAlignmentPolicyState(
-    guideId,
-    targetReady,
-  );
+  return createPoseGuideAlignmentPolicyState(guideId, targetReady);
 }
 
 export function advancePoseGuideAlignmentPolicy(
@@ -224,11 +200,9 @@ export function advancePoseGuideAlignmentPolicy(
 ): PoseGuideAlignmentPolicyState {
   if (!state.active || !state.targetReady) return state;
 
-  const { result, targetPersonCount, livePersonCount, nowMs } =
-    observation;
+  const { result, targetPersonCount, livePersonCount, nowMs } = observation;
   const isIncompletePose =
-    result.feedback === "NO_PERSON" ||
-    result.feedback === "LOW_CONFIDENCE";
+    result.feedback === "NO_PERSON" || result.feedback === "LOW_CONFIDENCE";
 
   if (isIncompletePose) {
     const noPoseSinceMs = state.noPoseSinceMs ?? nowMs;
@@ -263,8 +237,7 @@ export function advancePoseGuideAlignmentPolicy(
     state.smoothedOverallScore === null
       ? result.sceneScore
       : config.scoreEmaAlpha * result.sceneScore +
-        (1 - config.scoreEmaAlpha) *
-          state.smoothedOverallScore;
+        (1 - config.scoreEmaAlpha) * state.smoothedOverallScore;
   const stableSampleCount = state.stableSampleCount + 1;
   let alignmentState = state.alignmentState ?? "SEARCHING";
 

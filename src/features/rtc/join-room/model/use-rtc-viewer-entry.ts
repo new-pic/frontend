@@ -19,11 +19,7 @@ export type RtcViewerEntryPhase =
   | "ROOM_ENDED";
 
 export type RtcViewerEntryStreamState =
-  | "IDLE"
-  | "CONNECTING"
-  | "OPEN"
-  | "RECONNECTING"
-  | "ENDED";
+  "IDLE" | "CONNECTING" | "OPEN" | "RECONNECTING" | "ENDED";
 
 interface UseRtcViewerEntryOptions {
   enabled: boolean;

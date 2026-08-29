@@ -124,10 +124,7 @@ test("신고 제출 잠금은 연속 요청과 진행 중 mutation reset을 차�
   assert.match(source, /const isSubmittingRef = useRef\(false\)/);
   assert.match(source, /if \(isSubmittingRef\.current\) return/);
   assert.match(source, /isSubmittingRef\.current = true/);
-  assert.match(
-    source,
-    /onSettled:[\s\S]*isSubmittingRef\.current = false/,
-  );
+  assert.match(source, /onSettled:[\s\S]*isSubmittingRef\.current = false/);
   assert.match(
     source,
     /const resetMutationIfIdle = \(\) => \{[\s\S]*if \(isSubmittingRef\.current\) return;[\s\S]*reportMutation\.reset\(\)/,

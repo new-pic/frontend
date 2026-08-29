@@ -44,8 +44,9 @@ export function FeedDetailPager({
   const [commentSort, setCommentSort] = useState<CommentSort>("latest");
   const [activePageIndex, setActivePageIndex] =
     useState<number>(initialPageIndex);
-  const [reportTarget, setReportTarget] =
-    useState<ContentReportTarget | null>(null);
+  const [reportTarget, setReportTarget] = useState<ContentReportTarget | null>(
+    null,
+  );
   const requireMember = useRequireMember();
   const { blockUser, isBlocking } = useBlockUser({ requireMember });
   const insets = useSafeAreaInsets();
@@ -141,11 +142,7 @@ export function FeedDetailPager({
           feed={activeFeed}
           bottomOffset={fabBottomOffset}
           size={FEED_DETAIL_GUIDE_FAB_SIZE}
-          onPress={
-            onGuidePress
-              ? () => onGuidePress(activeFeed)
-              : undefined
-          }
+          onPress={onGuidePress ? () => onGuidePress(activeFeed) : undefined}
         />
       ) : null}
       {reportTarget ? (

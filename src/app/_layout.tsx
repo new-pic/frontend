@@ -15,10 +15,7 @@ import {
   RTC_NAVIGATION,
   RtcNavigationSearchParams,
 } from "@shared/config";
-import {
-  getFirstSearchParam,
-  normalizeAuthReturnTo,
-} from "@shared/lib";
+import { getFirstSearchParam, normalizeAuthReturnTo } from "@shared/lib";
 import { GluestackUIProvider } from "@shared/ui/gluestack-ui-provider";
 import { useFonts } from "expo-font";
 import {
@@ -32,10 +29,7 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./global.css";
 
-import {
-  shouldLeaveAuthEntry,
-  useAuthStore,
-} from "@shared/model";
+import { shouldLeaveAuthEntry, useAuthStore } from "@shared/model";
 import { useEffect } from "react";
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -51,26 +45,19 @@ export default function RootLayout() {
   const searchParams = useGlobalSearchParams<
     RtcNavigationSearchParams &
       CameraGuideNavigationSearchParams & {
-      returnTo?: string | string[];
-    }
+        returnTo?: string | string[];
+      }
   >();
-  const codeParam =
-    searchParams[RTC_NAVIGATION.params.code];
-  const joinSheetParam =
-    searchParams[RTC_NAVIGATION.params.joinSheet];
+  const codeParam = searchParams[RTC_NAVIGATION.params.code];
+  const joinSheetParam = searchParams[RTC_NAVIGATION.params.joinSheet];
   const returnToParam = searchParams.returnTo;
-  const guideFeedIdParam =
-    searchParams[CAMERA_GUIDE_NAVIGATION.params.feedId];
+  const guideFeedIdParam = searchParams[CAMERA_GUIDE_NAVIGATION.params.feedId];
 
   const initializeAuthState = useAuthStore(
     (state) => state.initializeAuthState,
   );
-  const accessToken = useAuthStore(
-    (state) => state.accessToken,
-  );
-  const authEntryIntent = useAuthStore(
-    (state) => state.authEntryIntent,
-  );
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const authEntryIntent = useAuthStore((state) => state.authEntryIntent);
   const isInitialized = useAuthStore((state) => state.isInitialized);
 
   const [loaded] = useFonts({
@@ -107,10 +94,7 @@ export default function RootLayout() {
       joinSheet === RTC_NAVIGATION.values.joinSheetOpen
     ) {
       currentReturnTo = createCameraJoinPath(code);
-    } else if (
-      pathname === RTC_NAVIGATION.paths.camera &&
-      guideFeedId
-    ) {
+    } else if (pathname === RTC_NAVIGATION.paths.camera && guideFeedId) {
       currentReturnTo = createCameraGuidePath(guideFeedId);
     }
 
@@ -129,9 +113,7 @@ export default function RootLayout() {
       pathname === "/" &&
       shouldLeaveAuthEntry(accessToken, authEntryIntent)
     ) {
-      router.replace(
-        normalizeAuthReturnTo(returnToParam) as Href,
-      );
+      router.replace(normalizeAuthReturnTo(returnToParam) as Href);
     }
   }, [
     accessToken,

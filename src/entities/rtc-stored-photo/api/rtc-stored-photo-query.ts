@@ -19,10 +19,8 @@ export const rtcStoredPhotoQueryKeys = {
     [...QUERY_KEY, "me", "list", params] as const,
   roomLists: (roomId: string) =>
     [...QUERY_KEY, "room", roomId, "list"] as const,
-  roomList: (
-    roomId: string,
-    params: RtcStoredPhotoListParams,
-  ) => [...QUERY_KEY, "room", roomId, "list", params] as const,
+  roomList: (roomId: string, params: RtcStoredPhotoListParams) =>
+    [...QUERY_KEY, "room", roomId, "list", params] as const,
 } as const;
 
 export interface RtcStoredPhotoListQueryOptions {
@@ -59,19 +57,14 @@ export function useReadMyRtcStoredPhotos(
       return RtcStoredPhotoListResponseSchema.parse(response.data);
     },
     initialPageParam: normalizedParams.cursor,
-    getNextPageParam: (lastPage) =>
-      lastPage.nextCursor ?? undefined,
-    enabled:
-      Boolean(appAccessToken) && (options.enabled ?? true),
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: Boolean(appAccessToken) && (options.enabled ?? true),
     staleTime: 60_000,
   });
 }
 
 export function useReadRoomRtcStoredPhotos(
-  {
-    roomId,
-    ...params
-  }: RtcRoomStoredPhotoListParams,
+  { roomId, ...params }: RtcRoomStoredPhotoListParams,
   options: RtcStoredPhotoListQueryOptions = {},
 ) {
   const normalizedRoomId = roomId.trim();
@@ -100,11 +93,9 @@ export function useReadRoomRtcStoredPhotos(
       return RtcStoredPhotoListResponseSchema.parse(response.data);
     },
     initialPageParam: normalizedParams.cursor,
-    getNextPageParam: (lastPage) =>
-      lastPage.nextCursor ?? undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     enabled:
-      Boolean(normalizedRoomId && appAccessToken) &&
-      (options.enabled ?? true),
+      Boolean(normalizedRoomId && appAccessToken) && (options.enabled ?? true),
     staleTime: 60_000,
   });
 }

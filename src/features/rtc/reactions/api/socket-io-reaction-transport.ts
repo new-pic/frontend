@@ -52,10 +52,7 @@ interface CreateRtcReactionTransportOptions {
   roomId: string;
   participantId?: string;
   onReaction: (reaction: RtcReceivedReaction) => void;
-  onStatusChange: (
-    status: RtcReactionConnectionStatus,
-    error?: string,
-  ) => void;
+  onStatusChange: (status: RtcReactionConnectionStatus, error?: string) => void;
 }
 
 export const createSocketIoReactionTransport = ({
@@ -126,9 +123,7 @@ export const createSocketIoReactionTransport = ({
     error: Error | null,
     response: RtcReactionJoinResponse | undefined,
   ) =>
-    error?.message ||
-    response?.message ||
-    "반응 채널에 참여하지 못했습니다.";
+    error?.message || response?.message || "반응 채널에 참여하지 못했습니다.";
 
   function scheduleJoinRetry(
     epoch: number,
@@ -139,8 +134,7 @@ export const createSocketIoReactionTransport = ({
 
     joined = false;
     clearJoinRetry();
-    const retryDelayMs =
-      getRtcReactionJoinRetryDelay(joinRetryAttempt);
+    const retryDelayMs = getRtcReactionJoinRetryDelay(joinRetryAttempt);
     joinRetryAttempt += 1;
     onStatusChange("ERROR", getJoinErrorMessage(error, response));
     logJoinFailure(error, response, retryDelayMs);
@@ -186,11 +180,7 @@ export const createSocketIoReactionTransport = ({
   }
 
   function joinRoom(epoch: number) {
-    if (
-      disposed ||
-      epoch !== connectionEpoch ||
-      !socket.connected
-    ) {
+    if (disposed || epoch !== connectionEpoch || !socket.connected) {
       return;
     }
 
@@ -225,8 +215,7 @@ export const createSocketIoReactionTransport = ({
           normalizedRoomId,
           normalizedParticipantId,
         ),
-        (error, response) =>
-          handleJoinAcknowledgement(epoch, error, response),
+        (error, response) => handleJoinAcknowledgement(epoch, error, response),
       );
   }
 
@@ -292,10 +281,7 @@ export const createSocketIoReactionTransport = ({
     }
   };
 
-  socket.on(
-    RTC_REACTION_SOCKET_CONFIG.receivedEvent,
-    handleReceived,
-  );
+  socket.on(RTC_REACTION_SOCKET_CONFIG.receivedEvent, handleReceived);
   socket.on("connect", handleConnect);
   socket.on("disconnect", handleDisconnect);
   socket.on("connect_error", handleConnectError);
@@ -311,10 +297,7 @@ export const createSocketIoReactionTransport = ({
       connectionEpoch += 1;
       joined = false;
       clearJoinRetry();
-      socket.off(
-        RTC_REACTION_SOCKET_CONFIG.receivedEvent,
-        handleReceived,
-      );
+      socket.off(RTC_REACTION_SOCKET_CONFIG.receivedEvent, handleReceived);
       socket.off("connect", handleConnect);
       socket.off("disconnect", handleDisconnect);
       socket.off("connect_error", handleConnectError);

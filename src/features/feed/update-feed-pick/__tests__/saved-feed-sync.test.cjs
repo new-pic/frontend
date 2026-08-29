@@ -38,8 +38,7 @@ Module._load = function load(request, parent, isMain) {
             };
           },
           initialPageParam: undefined,
-          getNextPageParam: (lastPage) =>
-            lastPage.nextCursor ?? undefined,
+          getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
         }),
       },
     };
@@ -78,9 +77,7 @@ test("저장 성공 후 기존 Infinite cache를 버리고 첫 페이지를 다�
   const refreshed = queryClient.getQueryData(canonicalKey);
   assert.equal(fetchCount, 1);
   assert.deepEqual(
-    refreshed.pages.flatMap((page) =>
-      page.items.map(({ id }) => id),
-    ),
+    refreshed.pages.flatMap((page) => page.items.map(({ id }) => id)),
     ["newly-saved-feed"],
   );
   assert.deepEqual(refreshed.pageParams, [undefined]);

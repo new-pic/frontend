@@ -1,11 +1,7 @@
 export type RtcCameraMenuMode = "IDLE" | "BUSY" | "LIVE";
 
 export type RtcHostFinalizationState =
-  | "IDLE"
-  | "PREPARING_PHOTOS"
-  | "ENDING_ROOM"
-  | "DELIVERING_RESULT"
-  | "FAILED";
+  "IDLE" | "PREPARING_PHOTOS" | "ENDING_ROOM" | "DELIVERING_RESULT" | "FAILED";
 
 export type RtcFinalizationBlockingState = Extract<
   RtcHostFinalizationState,
@@ -40,9 +36,7 @@ export function isRtcFinalizationBlocking(
   return state === "ENDING_ROOM" || state === "DELIVERING_RESULT";
 }
 
-export function getRtcRoomReconnectDelay(
-  retryAttempt: number,
-): number {
+export function getRtcRoomReconnectDelay(retryAttempt: number): number {
   const safeAttempt = Math.max(0, Math.floor(retryAttempt));
   return Math.min(1_000 * 2 ** safeAttempt, 15_000);
 }
