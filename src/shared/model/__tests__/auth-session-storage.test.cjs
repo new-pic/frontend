@@ -17,12 +17,20 @@ require.extensions[".ts"] = (module, filename) => {
 };
 
 const requestedKeys = [];
-let rejectedKey = null;
+const storedEntries = [];
+let rejectedDeleteKey = null;
+let rejectedSetKey = null;
 const secureStoreMock = {
   deleteItemAsync: async (key) => {
     requestedKeys.push(key);
-    if (key === rejectedKey) {
+    if (key === rejectedDeleteKey) {
       throw new Error(`${key} deletion failed`);
+    }
+  },
+  setItemAsync: async (key, value) => {
+    storedEntries.push([key, value]);
+    if (key === rejectedSetKey) {
+      throw new Error(`${key} persistence failed`);
     }
   },
 };
@@ -33,8 +41,8 @@ Module._load = function loadWithAuthDependencies(request, parent, isMain) {
   if (request === "@shared/lib/jwt") {
     return {
       decodeAccessToken: {
-        userId: () => null,
-        userType: () => null,
+        userId: () => "new-member-id",
+        userType: () => "MEMBER",
       },
     };
   }
@@ -47,6 +55,9 @@ Module._load = originalLoad;
 
 const seedAuthenticatedState = () => {
   requestedKeys.length = 0;
+  storedEntries.length = 0;
+  rejectedDeleteKey = null;
+  rejectedSetKey = null;
   useAuthStore.setState({
     accessToken: "persisted-access-token",
     userId: "member-id",
@@ -67,7 +78,7 @@ const assertLoggedOutState = () => {
 
 test("access token 삭제가 실패해도 refresh token과 인증 상태를 정리한다", async () => {
   seedAuthenticatedState();
-  rejectedKey = AUTH_SESSION_STORAGE_KEYS.ACCESS_TOKEN;
+  rejectedDeleteKey = AUTH_SESSION_STORAGE_KEYS.ACCESS_TOKEN;
   const originalWarn = console.warn;
   console.warn = () => {};
 
@@ -86,7 +97,7 @@ test("access token 삭제가 실패해도 refresh token과 인증 상태를 정�
 
 test("refresh token 삭제가 실패해도 access token과 인증 상태를 정리한다", async () => {
   seedAuthenticatedState();
-  rejectedKey = AUTH_SESSION_STORAGE_KEYS.REFRESH_TOKEN;
+  rejectedDeleteKey = AUTH_SESSION_STORAGE_KEYS.REFRESH_TOKEN;
   const originalWarn = console.warn;
   console.warn = () => {};
 
@@ -101,4 +112,71 @@ test("refresh token 삭제가 실패해도 access token과 인증 상태를 정�
     AUTH_SESSION_STORAGE_KEYS.REFRESH_TOKEN,
   ]);
   assertLoggedOutState();
+});
+
+test("두 token 저장이 모두 성공한 뒤 runtime session을 활성화한다", async () => {
+  seedAuthenticatedState();
+
+  await useAuthStore.getState().setSession({
+    accessToken: "new-access-token",
+    refreshToken: "new-refresh-token",
+    termsAgreed: true,
+  });
+
+  assert.deepEqual(storedEntries, [
+    [AUTH_SESSION_STORAGE_KEYS.ACCESS_TOKEN, "new-access-token"],
+    [AUTH_SESSION_STORAGE_KEYS.REFRESH_TOKEN, "new-refresh-token"],
+  ]);
+  assert.deepEqual(requestedKeys, []);
+  assert.equal(useAuthStore.getState().accessToken, "new-access-token");
+  assert.equal(useAuthStore.getState().userId, "new-member-id");
+});
+
+test("access token 저장 실패 시 영속 session을 rollback하고 runtime session을 유지한다", async () => {
+  seedAuthenticatedState();
+  rejectedSetKey = AUTH_SESSION_STORAGE_KEYS.ACCESS_TOKEN;
+
+  await assert.rejects(
+    useAuthStore.getState().setSession({
+      accessToken: "new-access-token",
+      refreshToken: "new-refresh-token",
+      termsAgreed: true,
+    }),
+    /accessToken persistence failed/,
+  );
+
+  assert.deepEqual(storedEntries, [
+    [AUTH_SESSION_STORAGE_KEYS.ACCESS_TOKEN, "new-access-token"],
+  ]);
+  assert.deepEqual(requestedKeys, [
+    AUTH_SESSION_STORAGE_KEYS.ACCESS_TOKEN,
+    AUTH_SESSION_STORAGE_KEYS.REFRESH_TOKEN,
+  ]);
+  assert.equal(useAuthStore.getState().accessToken, "persisted-access-token");
+  assert.equal(useAuthStore.getState().userId, "member-id");
+});
+
+test("refresh token 저장 실패 시 일부 저장된 token을 rollback하고 runtime session을 유지한다", async () => {
+  seedAuthenticatedState();
+  rejectedSetKey = AUTH_SESSION_STORAGE_KEYS.REFRESH_TOKEN;
+
+  await assert.rejects(
+    useAuthStore.getState().setSession({
+      accessToken: "new-access-token",
+      refreshToken: "new-refresh-token",
+      termsAgreed: true,
+    }),
+    /refreshToken persistence failed/,
+  );
+
+  assert.deepEqual(storedEntries, [
+    [AUTH_SESSION_STORAGE_KEYS.ACCESS_TOKEN, "new-access-token"],
+    [AUTH_SESSION_STORAGE_KEYS.REFRESH_TOKEN, "new-refresh-token"],
+  ]);
+  assert.deepEqual(requestedKeys, [
+    AUTH_SESSION_STORAGE_KEYS.ACCESS_TOKEN,
+    AUTH_SESSION_STORAGE_KEYS.REFRESH_TOKEN,
+  ]);
+  assert.equal(useAuthStore.getState().accessToken, "persisted-access-token");
+  assert.equal(useAuthStore.getState().userId, "member-id");
 });

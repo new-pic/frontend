@@ -58,9 +58,24 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       throw new Error("Terms agreement is required to persist a session.");
     }
 
-    await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
-    await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
     const { userId, isGuest } = parseTokenState(accessToken);
+
+    try {
+      await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
+      await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+    } catch (error) {
+      const { failedKeys } = await clearPersistedAuthSession(
+        SecureStore.deleteItemAsync,
+      );
+
+      if (failedKeys.length > 0) {
+        console.warn("[AuthStore] session persistence rollback incomplete", {
+          failedKeys,
+        });
+      }
+
+      throw error;
+    }
 
     set(() => ({
       accessToken,
