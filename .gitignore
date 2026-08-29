@@ -44,3 +44,5 @@ example
 
 
 .env
+
+.pnpm-store/
