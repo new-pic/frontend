@@ -26,9 +26,13 @@ function formatCommentDate(createdAt: string) {
 export function FeedCommentItem({
   comment,
   onReport,
+  onBlockAuthor,
+  isBlockingAuthor = false,
 }: {
   comment: FeedCommentResponse;
   onReport: () => void;
+  onBlockAuthor: () => void;
+  isBlockingAuthor?: boolean;
 }) {
   const userId = useAuthStore((state) => state.userId);
   const canReport = canReportContent({
@@ -54,7 +58,7 @@ export function FeedCommentItem({
             {canReport ? (
               <ContentActionsMenu
                 accessibilityLabel={`${comment.user.nickname}님의 댓글 더보기`}
-                accessibilityHint="댓글 신고 메뉴를 엽니다"
+                accessibilityHint="댓글 신고 및 작성자 차단 메뉴를 엽니다"
                 iconClassName="h-5 w-5"
                 items={[
                   {
@@ -62,6 +66,13 @@ export function FeedCommentItem({
                     label: "신고하기",
                     destructive: true,
                     onPress: onReport,
+                  },
+                  {
+                    key: "block-author",
+                    label: "작성자 차단하기",
+                    destructive: true,
+                    disabled: isBlockingAuthor,
+                    onPress: onBlockAuthor,
                   },
                 ]}
               />

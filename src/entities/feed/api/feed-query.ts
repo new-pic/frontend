@@ -69,6 +69,13 @@ export const feedQueryKeys = {
       "saved-feeds",
       params,
     ] as const,
+  comments: [...QUERY_KEY, "comments"] as const,
+  commentsByFeed: (feedId: string) =>
+    [...QUERY_KEY, "comments", feedId] as const,
+  commentList: (
+    feedId: string,
+    params: Omit<CommentListParams, "feedId">,
+  ) => [...QUERY_KEY, "comments", feedId, params] as const,
 } as const;
 
 // useInfiniteQuery의 반환 data 타입
@@ -308,9 +315,9 @@ export function useReadFeedComments(
   const { feedId, ...queryParams } = params;
 
   return useInfiniteQuery({
-    queryKey: [...QUERY_KEY, "comments", feedId, queryParams],
+    queryKey: feedQueryKeys.commentList(feedId, queryParams),
     queryFn: async ({ pageParam }): Promise<CommentListResponse> => {
-      const response = await apiClient.get(`/feed/${feedId}/comments`, {
+      const response = await privateApiClient.get(`/feed/${feedId}/comments`, {
         params: {
           ...queryParams,
           cursor: pageParam,
@@ -347,7 +354,7 @@ export function useCreateFeedComment({ feedId }: { feedId: string }) {
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: [...QUERY_KEY, "comments", feedId],
+          queryKey: feedQueryKeys.commentsByFeed(feedId),
         }),
       ]);
     },
@@ -450,7 +457,7 @@ export function useDeleteFeed() {
         queryKey: [...QUERY_KEY, "item", feedId],
       });
       queryClient.removeQueries({
-        queryKey: [...QUERY_KEY, "comments", feedId],
+        queryKey: feedQueryKeys.commentsByFeed(feedId),
       });
     },
   });

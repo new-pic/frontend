@@ -1,4 +1,5 @@
 import { usersQuery } from "@entities/user";
+import { useDeleteAccount } from "@features/user/delete-account";
 import { EXTERNAL_LINKS } from "@shared/config";
 import { gradients } from "@shared/ui/theme";
 import { useConfirm } from "@shared/lib";
@@ -95,12 +96,14 @@ function ProfileButtonMenu() {
 
 export function ProfilePage() {
   const openConfirm = useConfirm();
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const isGuest = useAuthStore((state) => state.isGuest);
   const prepareAccountLink = useAuthStore(
     (state) => state.prepareAccountLink,
   );
   const logout = useAuthStore((state) => state.logout);
   const { data } = usersQuery.useReadMe();
+  const { deleteAccount, isDeleting } = useDeleteAccount();
 
   const handleLogout = async () => {
     const response = await openConfirm({
@@ -125,6 +128,10 @@ export function ProfilePage() {
 
   const handleGoEdit = () => {
     router.push("/profile/edit");
+  };
+
+  const handleGoBlockedUsers = () => {
+    router.push("/profile/blocked-users");
   };
 
   const handlePressProfile = () => {
@@ -216,12 +223,34 @@ export function ProfilePage() {
             >
               <Text size="md">서비스 약관</Text>
             </Pressable>
+            {isLoggedIn && !isGuest ? (
+              <>
+                <Divider className="bg-outline" />
+                <Pressable className="p-6" onPress={handleGoBlockedUsers}>
+                  <Text size="md">차단한 사용자</Text>
+                </Pressable>
+              </>
+            ) : null}
             <Divider className="bg-outline" />
             <Pressable className="p-6" onPress={handleLogout}>
               <Text size="md" className="text-red-500 font-semibold">
                 로그아웃
               </Text>
             </Pressable>
+            {isLoggedIn && !isGuest ? (
+              <>
+                <Divider className="bg-outline" />
+                <Pressable
+                  className="p-6"
+                  disabled={isDeleting}
+                  onPress={deleteAccount}
+                >
+                  <Text size="md" className="text-red-500 font-semibold">
+                    회원 탈퇴
+                  </Text>
+                </Pressable>
+              </>
+            ) : null}
           </VStack>
         </VStack>
       </ScrollView>

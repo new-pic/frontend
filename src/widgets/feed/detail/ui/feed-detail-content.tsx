@@ -33,6 +33,11 @@ interface FeedDetailContentProps {
   setCommentSort: (sort: CommentSort) => void;
   onReportComment: (commentId: string) => void;
   requireMember: () => Promise<boolean>;
+  onBlockCommentAuthor: (author: {
+    id: string;
+    nickname: string;
+  }) => void;
+  isBlockingAuthor?: boolean;
 }
 
 export function FeedDetailContent({
@@ -43,6 +48,8 @@ export function FeedDetailContent({
   setCommentSort,
   onReportComment,
   requireMember,
+  onBlockCommentAuthor,
+  isBlockingAuthor = false,
 }: FeedDetailContentProps) {
   const feedLike = useFeedLikeController({
     feedId: feed.id,
@@ -287,6 +294,8 @@ export function FeedDetailContent({
           <FeedCommentItem
             comment={item}
             onReport={() => onReportComment(item.id)}
+            onBlockAuthor={() => onBlockCommentAuthor(item.user)}
+            isBlockingAuthor={isBlockingAuthor}
           />
         )}
       />

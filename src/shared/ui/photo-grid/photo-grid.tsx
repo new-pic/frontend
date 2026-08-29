@@ -45,9 +45,9 @@ const PhotoGridImageTile = memo(function PhotoGridImageTile({
   onPress,
   onSelectionPress,
 }: PhotoGridImageTileProps) {
-  const [loadState, setLoadState] = useState<
-    "loading" | "loaded" | "failed"
-  >("loading");
+  const [loadState, setLoadState] = useState<"loading" | "loaded" | "failed">(
+    "loading",
+  );
 
   return (
     <View
@@ -64,11 +64,10 @@ const PhotoGridImageTile = memo(function PhotoGridImageTile({
             overflow: "hidden",
           }}
         >
-          {loadState === "loading" ? (
-            <Skeleton variant="sharp" />
-          ) : null}
+          {loadState === "loading" ? <Skeleton variant="sharp" /> : null}
           <Image
             source={image.imageUrl}
+            recyclingKey={image.id}
             contentFit="cover"
             cachePolicy="memory-disk"
             transition={150}
@@ -94,9 +93,7 @@ const PhotoGridImageTile = memo(function PhotoGridImageTile({
       {onSelectionPress ? (
         <Pressable
           accessibilityRole="checkbox"
-          accessibilityLabel={
-            selected ? "사진 선택 해제" : "사진 선택"
-          }
+          accessibilityLabel={selected ? "사진 선택 해제" : "사진 선택"}
           accessibilityState={{ checked: selected }}
           onPress={onSelectionPress}
           style={{
@@ -219,9 +216,7 @@ export function PhotoGrid<T extends PhotoGridImage>({
       refreshing={refreshing}
       ListEmptyComponent={
         <Center className="flex-1 w-full px-6">
-          <Text className="text-label-muted">
-            {emptyMessage}
-          </Text>
+          <Text className="text-label-muted">{emptyMessage}</Text>
         </Center>
       }
       ListFooterComponent={
@@ -236,15 +231,11 @@ export function PhotoGrid<T extends PhotoGridImage>({
           image={item}
           imageSize={imageSize}
           selected={
-            selectedImages?.some(
-              (selected) => selected.id === item.id,
-            ) ?? false
+            selectedImages?.some((selected) => selected.id === item.id) ?? false
           }
           onPress={() => onPress?.(item, index)}
           onSelectionPress={
-            onSelectionPress
-              ? () => onSelectionPress(item, index)
-              : undefined
+            onSelectionPress ? () => onSelectionPress(item, index) : undefined
           }
         />
       )}
