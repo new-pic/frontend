@@ -25,7 +25,6 @@ const parseTokenState = (token: string | null) => {
 interface AuthStore {
   accessToken: string | null;
   userId: string | null;
-  isLoggedIn: boolean;
   isGuest: boolean;
   isInitialized: boolean;
   termsAgreed: boolean;
@@ -40,7 +39,6 @@ interface AuthStore {
     refreshToken: string;
     termsAgreed: boolean;
   }) => Promise<void>;
-  setUserId: (userId: string) => void;
   setTermsAgreed: (termsAgreed: boolean) => void;
   logout: () => Promise<void>;
   prepareAccountLink: () => void;
@@ -50,7 +48,6 @@ interface AuthStore {
 export const useAuthStore = create<AuthStore>()((set) => ({
   accessToken: null,
   userId: null,
-  isLoggedIn: false,
   isGuest: false,
   isInitialized: false,
   termsAgreed: false,
@@ -69,13 +66,11 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       accessToken,
       userId,
       isGuest,
-      isLoggedIn: true,
       isInitialized: true,
       termsAgreed: true,
       authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
     }));
   },
-  setUserId: (userId) => set(() => ({ userId })),
   setTermsAgreed: (termsAgreed) =>
     set((state) => ({
       termsAgreed: state.accessToken ? true : termsAgreed,
@@ -91,7 +86,6 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       set(() => ({
         accessToken: null,
         userId: null,
-        isLoggedIn: false,
         isGuest: false,
         isInitialized: true,
         termsAgreed: false,
@@ -116,7 +110,6 @@ export const useAuthStore = create<AuthStore>()((set) => ({
 
       if (token) {
         set({
-          isLoggedIn: true,
           accessToken: token,
           userId,
           isGuest,
@@ -127,7 +120,6 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       } else {
         // 토큰이 없다면 게스트 상태이거나 첫 진입
         set({
-          isLoggedIn: false,
           accessToken: null,
           userId: null,
           isGuest,
@@ -138,7 +130,6 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       }
     } catch {
       set({
-        isLoggedIn: false,
         accessToken: null,
         userId: null,
         isGuest: false,
