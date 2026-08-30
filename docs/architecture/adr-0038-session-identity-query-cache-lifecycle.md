@@ -10,6 +10,25 @@ HTTP request에 `userId`가 없더라도 현재 사용자에 귀속되는 응답
 React Query leaf key에는 `userId`를 포함한다. Query key는 request parameter의
 복사본이 아니라 응답을 유일하게 결정하는 identity를 표현한다.
 
+Session이 아직 없을 때 Query key는 임의의 문자열 identity를 만들지 않고
+`null`을 그대로 포함한다. Query key는 비세션 상태를 표현할 뿐 요청 권한을
+제어하지 않는다. 선언형 Query는 `enabled`로 자동 실행을 막고, 사용자 귀속
+`queryFn`은 `userId`를 다시 확인하고 회원 전용 Query는 Guest 여부도 확인해
+수동 `refetch()`나 잘못된 명령형 호출도 HTTP 요청 전에 실패시킨다.
+
+각 Entity의 `model/query-keys.ts`가 Query key factory를 소유한다. 여러 실제
+Query를 선택하기 위한 prefix key는 복수형 함수로, 단일 cache entry를
+식별하는 leaf key는 단수형 함수로 정의한다. Leaf factory는 문자열을
+중복하지 않고 반드시 자신의 prefix factory에서 파생한다.
+
+```text
+feedQueryKeys.savedFeedLists()
+  = ["feed", "me", "saved-feeds"]
+
+feedQueryKeys.savedFeedList(userId, params)
+  = [...savedFeedLists(), userId, params]
+```
+
 현재 코드에서 `userId`가 포함된 사용자 귀속 Query는 다음과 같다.
 
 | 사용자 데이터      | 실제 endpoint               | Query key identity    |
@@ -151,9 +170,11 @@ QueryClient.clear
 - Session 변경 위치와 무관한 일관된 cache cleanup
 - token refresh 시 동일 사용자 cache 재사용
 - Auth Store와 React Query의 직접 결합 제거
+- 비세션 상태를 `null`로 명시하고 실행 권한과 cache identity를 분리
+- prefix/leaf factory 계층으로 cache 선택 범위와 실제 entry 구분
 - `isLoggedIn` 제거로 파생 상태 불일치 가능성 축소
 - `setUserId` 제거로 token과 사용자 identity의 불일치 방지
-- 기존 collection prefix 기반 invalidation 유지
+- collection prefix 기반 invalidation 유지
 
 제한:
 
@@ -183,6 +204,13 @@ QueryClient.clear
   `authEntryIntent`로 유지했다.
 - `userId`는 Session 설정과 복원 시 Access Token에서만 계산된다.
 - HTTP endpoint, request body와 query parameter에는 `userId`를 추가하지 않았다.
+- `anonymous` placeholder를 제거하고 비세션 Query identity는 `null`로
+  표현한다.
+- 사용자 귀속 Query는 `enabled`와 `queryFn` guard를 함께 적용한다.
+- Query key factory는 Entity `model`에서 소유하고 prefix는 복수형 함수,
+  leaf는 단수형 함수로 구성한다.
+- 과거 `[["user"], "user", ...]` 형태의 중첩 root를 Entity 단일 root로
+  정규화했다.
 - 피드 상세의 `mine`, `saved`, `liked` collection Query는 `userId`가 있고
   Guest가 아닌 Session에서만 활성화하며, `public` source는 인증 상태와
   무관하게 유지했다.
