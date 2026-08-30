@@ -1,4 +1,4 @@
-import { feedQuery, FeedResponse } from "@entities/feed";
+import { FeedResponse } from "@entities/feed";
 import { FeedCommentForm } from "@features/feed/create-feed-comment";
 import {
   FeedImageLikeInteraction,
@@ -19,6 +19,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { ActivityIndicator, FlatList, Image, View } from "react-native";
 import { CommentSort, formatFeedDetailTime } from "../model";
 import { FeedCommentItem, FeedCommentsHeader } from "./feed-comments";
+import { feedCommentQuery } from "../api";
 
 interface FeedDetailContentProps {
   feed: FeedResponse;
@@ -60,7 +61,7 @@ export function FeedDetailContent({
     isError: isCommentError,
     isFetchingNextPage: isFetchingNextCommentPage,
     isPending: isCommentPending,
-  } = feedQuery.useReadFeedComments(
+  } = feedCommentQuery.useReadFeedComments(
     {
       feedId: feed.id,
       take: 20,

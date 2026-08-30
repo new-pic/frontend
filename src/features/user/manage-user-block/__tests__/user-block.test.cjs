@@ -199,18 +199,19 @@ test("차단 해제 성공 후 차단 목록 cache에서 사용자 행을 제거
 });
 
 test("차단 API와 인증된 댓글 조회 endpoint를 사용한다", () => {
-  const blockQuerySource = readSource(
-    "../../../../entities/user/api/user-block-query.ts",
+  const blockListQuerySource = readSource(
+    "../../../../pages/profile/api/blocked-user-query.ts",
   );
-  const feedQuerySource = readSource(
-    "../../../../entities/feed/api/feed-query.ts",
+  const blockMutationSource = readSource("../api/user-block-mutation.ts");
+  const commentQuerySource = readSource(
+    "../../../../widgets/feed/detail/api/feed-comment-query.ts",
   );
 
-  assert.match(blockQuerySource, /get\("\/users\/me\/blocks"/);
-  assert.match(blockQuerySource, /post\(`\/users\/\$\{userId\}\/block`\)/);
-  assert.match(blockQuerySource, /delete\(`\/users\/\$\{userId\}\/block`\)/);
+  assert.match(blockListQuerySource, /get\("\/users\/me\/blocks"/);
+  assert.match(blockMutationSource, /post\(`\/users\/\$\{userId\}\/block`\)/);
+  assert.match(blockMutationSource, /delete\(`\/users\/\$\{userId\}\/block`\)/);
   assert.match(
-    feedQuerySource,
+    commentQuerySource,
     /privateApiClient\.get\(`\/feed\/\$\{feedId\}\/comments`/,
   );
 });

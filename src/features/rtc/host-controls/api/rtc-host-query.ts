@@ -1,40 +1,31 @@
+import {
+  assertRtcAppAccessToken,
+  createRtcHostHeaders,
+  type RtcCreateRoomRequest,
+  RtcCreateRoomRequestSchema,
+  type RtcCreateRoomResponse,
+  type RtcEndRoomMutationRequest,
+  RtcEndRoomRequestSchema,
+  RtcEndRoomResponseSchema,
+  type RtcHostLiveKitTokenRequest,
+  type RtcHostLiveKitTokenResponse,
+  rtcQueryKeys,
+  type RtcRoomResponse,
+  RtcRoomResponseSchema,
+  useRtcStore,
+  verifyRtcId,
+} from "@entities/rtc";
 import { privateApiClient, uploadFetchClient } from "@shared/api";
 import { ObjectToFormData } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import {
-  assertRtcAppAccessToken,
-  createRtcHostHeaders,
-  verifyRtcId,
-} from "../lib";
-import {
-  RtcCreateRoomRequest,
-  RtcCreateRoomRequestSchema,
-  RtcCreateRoomResponse,
-  RtcEndRoomMutationRequest,
-  RtcEndRoomRequestSchema,
-  RtcEndRoomResponseSchema,
-  RtcHostLiveKitTokenRequest,
-  RtcHostLiveKitTokenResponse,
-  RtcRoomResponse,
-  RtcRoomResponseSchema,
-  rtcQueryKeys,
-  useRtcStore,
-} from "../model";
 
 export interface RtcRoomQueryOptions {
   enabled?: boolean;
   refetchInterval?: number | false;
 }
 
-/**
- * RTC 방 생성
- *
- * 방 생성 전에는 host access token이 아직 없으므로 앱 access token만
- * 사용합니다. 생성 이후의 모든 HOST 요청은 createRtcHostHeaders()를 통해
- * 두 인증 정보를 함께 전송합니다.
- */
-export const useCreateRtcRoom = () => {
+export function useCreateRtcRoom() {
   return useMutation({
     mutationFn: async (request: RtcCreateRoomRequest = {}) => {
       assertRtcAppAccessToken();
@@ -54,18 +45,12 @@ export const useCreateRtcRoom = () => {
       });
     },
   });
-};
+}
 
-/**
- * RTC 방 상세 조회 (촬영자만 가능)
- *
- * 참여자 수가 공유 대기 화면에 즉시 반영되도록 기본 2초 polling을
- * 사용합니다. 필요하면 options.refetchInterval로 덮어쓸 수 있습니다.
- */
-export const useReadRtcRoom = (
+export function useReadRtcRoom(
   roomId: string,
   options: RtcRoomQueryOptions = {},
-) => {
+) {
   const normalizedRoomId = roomId.trim();
   const appAccessToken = useAuthStore((state) => state.accessToken);
   const hostAccessToken = useRtcStore((state) =>
@@ -80,9 +65,7 @@ export const useReadRtcRoom = (
       const id = verifyRtcId(normalizedRoomId, "RTC 방 ID");
       const response = await privateApiClient.get<RtcRoomResponse>(
         `/rtc/rooms/${id}`,
-        {
-          headers: createRtcHostHeaders(id),
-        },
+        { headers: createRtcHostHeaders(id) },
       );
       return RtcRoomResponseSchema.parse(response.data);
     },
@@ -91,29 +74,21 @@ export const useReadRtcRoom = (
       (options.enabled ?? true),
     refetchInterval: options.refetchInterval ?? 2_000,
   });
-};
+}
 
-/**
- * 촬영자용 LiveKit 연결 정보 발급
- */
-export const useCreateHostLiveKitToken = () => {
+export function useCreateHostLiveKitToken() {
   return useMutation({
     mutationFn: async ({ roomId }: RtcHostLiveKitTokenRequest) => {
       const id = verifyRtcId(roomId, "RTC 방 ID");
       const response = await privateApiClient.post<RtcHostLiveKitTokenResponse>(
         `/rtc/rooms/${id}/livekit-token`,
         undefined,
-        {
-          headers: createRtcHostHeaders(id),
-        },
+        { headers: createRtcHostHeaders(id) },
       );
       return response.data;
     },
     onSuccess: (response, { roomId }) => {
-      if (useRtcStore.getState().hostSession?.roomId !== roomId.trim()) {
-        return;
-      }
-
+      if (useRtcStore.getState().hostSession?.roomId !== roomId.trim()) return;
       useRtcStore.getState().setLiveKitConnection({
         role: "HOST",
         url: response.url,
@@ -122,29 +97,23 @@ export const useCreateHostLiveKitToken = () => {
       });
     },
   });
-};
+}
 
-/**
- * RTC 방 종료 (촬영자만 가능)
- */
-export const useEndRtcRoom = () => {
+export function useEndRtcRoom() {
   return useMutation({
     mutationFn: async ({ roomId, request = {} }: RtcEndRoomMutationRequest) => {
       const id = verifyRtcId(roomId, "RTC 방 ID");
       const headers = createRtcHostHeaders(id);
       const parsedRequest = RtcEndRoomRequestSchema.parse(request);
       const url = `/rtc/rooms/${id}/end`;
-
       const response = parsedRequest.images?.length
         ? await uploadFetchClient.patch({
             url,
             formData: ObjectToFormData(parsedRequest),
             headers,
           })
-        : await privateApiClient.patch(url, undefined, {
-            headers,
-          });
+        : await privateApiClient.patch(url, undefined, { headers });
       return RtcEndRoomResponseSchema.parse(response.data);
     },
   });
-};
+}

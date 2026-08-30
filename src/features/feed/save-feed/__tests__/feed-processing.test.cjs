@@ -19,9 +19,7 @@ require.extensions[".ts"] = (module, filename) => {
 const {
   createSseParser,
 } = require("../../../../entities/feed/api/sse-parser.ts");
-const {
-  parseFeedAiJobEvent,
-} = require("../../../../entities/feed/api/feed-ai-job-event.ts");
+const { parseFeedAiJobEvent } = require("../api/feed-ai-job-event.ts");
 const {
   adaptCreatedFeedAiJob,
   adaptFeedAiJobStatus,

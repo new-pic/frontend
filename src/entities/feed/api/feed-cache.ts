@@ -1,4 +1,22 @@
-import type { FeedCommentResponse, FeedResponse } from "../model";
+import type {
+  FeedCommentResponse,
+  FeedListParams,
+  FeedListResponse,
+  FeedResponse,
+} from "../model";
+import type {
+  InfiniteData,
+  QueryClient,
+  QueryKey,
+} from "@tanstack/react-query";
+
+type FeedListInfiniteData = InfiniteData<
+  FeedListResponse,
+  FeedListParams["cursor"]
+>;
+
+type FeedListCacheSnapshot = [QueryKey, FeedListInfiniteData | undefined][];
+type FeedCacheSnapshot = [QueryKey, unknown][];
 
 interface FeedListPage {
   items: FeedResponse[];
@@ -142,4 +160,83 @@ export function removeCommentsByAuthorFromCacheData(
   });
 
   return didRemove ? { ...data, pages } : data;
+}
+
+export async function optimisticallyUpdateFeedLists(
+  queryClient: QueryClient,
+  queryKey: QueryKey,
+  updateItems: (items: FeedResponse[]) => FeedResponse[],
+) {
+  await queryClient.cancelQueries({ queryKey });
+  const previousFeedLists = queryClient.getQueriesData<FeedListInfiniteData>({
+    queryKey,
+  });
+
+  queryClient.setQueriesData<FeedListInfiniteData>({ queryKey }, (old) => {
+    if (!old) return old;
+
+    return {
+      ...old,
+      pages: old.pages.map((page) => ({
+        ...page,
+        items: updateItems(page.items),
+      })),
+    };
+  });
+
+  return previousFeedLists;
+}
+
+export function rollbackFeedLists(
+  queryClient: QueryClient,
+  snapshot?: FeedListCacheSnapshot,
+) {
+  snapshot?.forEach(([queryKey, data]) => {
+    queryClient.setQueryData(queryKey, data);
+  });
+}
+
+export async function optimisticallyUpdateFeedAcrossCollections(
+  queryClient: QueryClient,
+  feedId: string,
+  update: (feed: FeedResponse) => FeedResponse,
+) {
+  const matchingQueries = queryClient
+    .getQueryCache()
+    .findAll()
+    .filter((query) => {
+      const data = query.state.data;
+      return updateFeedInCacheData(data, feedId, update) !== data;
+    });
+
+  await Promise.all(
+    matchingQueries.map((query) =>
+      queryClient.cancelQueries({
+        queryKey: query.queryKey,
+        exact: true,
+      }),
+    ),
+  );
+
+  const previousFeedCaches: FeedCacheSnapshot = matchingQueries.map((query) => [
+    query.queryKey,
+    queryClient.getQueryData(query.queryKey),
+  ]);
+
+  matchingQueries.forEach((query) => {
+    queryClient.setQueryData(query.queryKey, (data: unknown) =>
+      updateFeedInCacheData(data, feedId, update),
+    );
+  });
+
+  return previousFeedCaches;
+}
+
+export function rollbackFeedCaches(
+  queryClient: QueryClient,
+  snapshot?: FeedCacheSnapshot,
+) {
+  snapshot?.forEach(([queryKey, data]) => {
+    queryClient.setQueryData(queryKey, data);
+  });
 }

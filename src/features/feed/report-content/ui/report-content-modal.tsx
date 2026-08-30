@@ -1,7 +1,6 @@
 import {
   CONTENT_REPORT_DESCRIPTION_MAX_LENGTH,
   ContentReportTarget,
-  feedReportQuery,
 } from "@entities/feed";
 import { getApiErrorMessage } from "@shared/api";
 import {
@@ -29,6 +28,7 @@ import {
   getContentReportTargetLabel,
 } from "../model/report-content";
 import { useContentReportForm } from "../model/use-content-report-form";
+import { feedReportQuery } from "../api";
 
 interface ReportContentModalProps {
   target: ContentReportTarget;

@@ -1,10 +1,10 @@
-import { feedQuery } from "@entities/feed";
 import { useCallback, useRef } from "react";
 import {
   canToggleFeedLike,
   getFeedLikeToggleResult,
   type FeedLikeToggleResult,
 } from "./feed-like-interaction";
+import { feedLikeQuery } from "../api";
 
 interface UseFeedLikeControllerParams {
   feedId?: string;
@@ -18,8 +18,8 @@ export function useFeedLikeController({
   requireMember,
 }: UseFeedLikeControllerParams) {
   const lastPressedAtRef = useRef(0);
-  const mutationToLike = feedQuery.useLikeFeed();
-  const mutationToUnlike = feedQuery.useUnlikeFeed();
+  const mutationToLike = feedLikeQuery.useLikeFeed();
+  const mutationToUnlike = feedLikeQuery.useUnlikeFeed();
   const isPending = mutationToLike.isPending || mutationToUnlike.isPending;
 
   const toggle = useCallback(async (): Promise<FeedLikeToggleResult | null> => {

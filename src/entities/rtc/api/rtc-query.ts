@@ -1,29 +1,10 @@
-import { apiClient, createSseParser } from "@shared/api";
+import { createSseParser } from "@shared/api";
 import { env } from "@shared/config";
 import { useAuthStore } from "@shared/model";
-import { useQuery } from "@tanstack/react-query";
 import { fetch } from "expo/fetch";
 import { verifyRtcId } from "../lib";
-import {
-  RtcFeedbackEmojiListResponse,
-  rtcQueryKeys,
-  type RtcRoomEvent,
-} from "../model";
+import { type RtcRoomEvent } from "../model";
 import { parseRtcRoomEvent } from "./rtc-room-event";
-
-/**
- * RTC 피드백 이모지 목록 조회
- */
-export const useReadFeedbackEmojis = () => {
-  return useQuery({
-    queryKey: rtcQueryKeys.feedbackEmojis(),
-    queryFn: async () => {
-      const response =
-        await apiClient.get<RtcFeedbackEmojiListResponse>("/rtc/emojis");
-      return response.data;
-    },
-  });
-};
 
 interface SubscribeRtcRoomEventsOptions {
   roomId: string;

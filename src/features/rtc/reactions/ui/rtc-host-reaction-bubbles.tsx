@@ -1,4 +1,3 @@
-import { rtcQuery } from "@entities/rtc";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, {
@@ -17,6 +16,7 @@ import {
 } from "../lib/rtc-reaction-domain";
 import type { RtcReactionBubble } from "../model/types";
 import { useRtcReactionChannel } from "../model/use-rtc-reaction-channel";
+import { rtcReactionQuery } from "../api";
 
 const BUBBLE_SIZE = 52;
 const BUBBLE_LANE_GAP = 5;
@@ -99,7 +99,7 @@ export function RtcHostReactionBubbles({
   active,
   roomId,
 }: RtcHostReactionBubblesProps) {
-  const emojiQuery = rtcQuery.useReadFeedbackEmojis();
+  const emojiQuery = rtcReactionQuery.useReadFeedbackEmojis();
   const emojis = useMemo(
     () => adaptRtcReactionEmojis(emojiQuery.data),
     [emojiQuery.data],

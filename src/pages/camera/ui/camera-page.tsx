@@ -2,7 +2,6 @@ import { feedQuery } from "@entities/feed";
 import {
   RTC_MAX_CAPTURED_PHOTOS,
   RtcEndRoomResponse,
-  rtcHostQuery,
   RtcLiveKitConnection,
   useRtcStore,
 } from "@entities/rtc";
@@ -31,6 +30,7 @@ import {
   isRtcFinalizationPending,
   RtcCameraRoomMenu,
   RtcFinalizationOverlay,
+  rtcHostQuery,
   type RtcHostFinalizationState,
   useRtcRoomEvents,
 } from "@features/rtc/host-controls";

@@ -1,15 +1,11 @@
 import {
   RTC_MAX_SELECTED_PHOTOS,
   RtcEndRoomResponse,
-  rtcViewerQuery,
   useRtcStore,
 } from "@entities/rtc";
-import {
-  RTC_STORED_PHOTO_MAX_TAKE,
-  rtcStoredPhotoQuery,
-} from "@entities/rtc-stored-photo";
+import { RTC_STORED_PHOTO_MAX_TAKE } from "@entities/rtc-stored-photo";
 import { useResetMyRtcStoredPhotos } from "@features/rtc/finalize-session";
-import { useRtcViewerEntry } from "@features/rtc/join-room";
+import { rtcViewerQuery, useRtcViewerEntry } from "@features/rtc/join-room";
 import { RtcViewerReactionPicker } from "@features/rtc/reactions";
 import { getApiErrorMessage } from "@shared/api";
 import { RTC_NAVIGATION } from "@shared/config";
@@ -21,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { RtcViewerLiveKitPage } from "./rtc-livekit-page";
 import { SharingResultPage } from "./sharing-result-page";
 import { SharingWaitingPage } from "./sharing-waiting-page";
+import { rtcStoredPhotoQuery } from "../api";
 
 interface ViewerResultImage {
   id: string;

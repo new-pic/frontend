@@ -1,4 +1,4 @@
-import type { ContentReportTarget } from "../model";
+import type { ContentReportTarget } from "@entities/feed";
 
 export function getContentReportPath(target: ContentReportTarget) {
   const targetId = encodeURIComponent(target.id);

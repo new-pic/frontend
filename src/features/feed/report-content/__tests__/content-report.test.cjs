@@ -20,9 +20,7 @@ const {
   CONTENT_REPORT_REASONS,
   CreateContentReportRequestSchema,
 } = require("../../../../entities/feed/model/report.ts");
-const {
-  getContentReportPath,
-} = require("../../../../entities/feed/api/feed-report-adapter.ts");
+const { getContentReportPath } = require("../api/content-report-adapter.ts");
 const {
   canReportContent,
   getContentReportTargetLabel,

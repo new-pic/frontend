@@ -1,4 +1,3 @@
-import { feedPoseQuery } from "@entities/feed";
 import {
   useCallback,
   useEffect,
@@ -28,6 +27,7 @@ import type {
   CameraGuideMatching,
   GuideFeedSelection,
 } from "./types";
+import { feedGuideQuery } from "../api";
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error
@@ -83,10 +83,10 @@ export function useCameraGuideController({
   const requestIdRef = useRef(0);
 
   const selectedFeedId = state.selected?.feedId;
-  const poseQuery = feedPoseQuery.useReadFeedPose({
+  const poseQuery = feedGuideQuery.useReadFeedPose({
     feedId: selectedFeedId,
   });
-  const outlineQuery = feedPoseQuery.useReadFeedBackgroundRemoval({
+  const outlineQuery = feedGuideQuery.useReadFeedBackgroundRemoval({
     feedId: selectedFeedId,
   });
 

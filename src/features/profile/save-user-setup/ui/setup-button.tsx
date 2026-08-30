@@ -1,4 +1,3 @@
-import { usersQuery } from "@entities/user";
 import { getApiErrorMessage } from "@shared/api";
 import { normalizeAuthReturnTo } from "@shared/lib";
 import { Button, ButtonText } from "@shared/ui";
@@ -7,12 +6,13 @@ import { Alert } from "react-native";
 import { prepareProfileUpdateRequest } from "../lib/prepare-profile-update-request";
 import type { ProfileEditFormValues } from "../model/profile-edit-form-schema";
 import type { UseSetupFormReturn } from "../model/use-setup-form";
+import { userProfileQuery } from "../api";
 
 export function SetupButton({ form }: { form: UseSetupFormReturn }) {
   const { returnTo: returnToParam } = useLocalSearchParams<{
     returnTo?: string | string[];
   }>();
-  const mutationToUpdateProfile = usersQuery.useUpdateProfile();
+  const mutationToUpdateProfile = userProfileQuery.useUpdateProfile();
 
   const onSubmit = async (data: ProfileEditFormValues) => {
     try {

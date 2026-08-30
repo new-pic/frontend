@@ -1,4 +1,3 @@
-import { userBlockQuery } from "@entities/user";
 import { useUnblockUser } from "@features/user/manage-user-block";
 import {
   Avatar,
@@ -19,6 +18,7 @@ import { IconChevronLeft } from "@tabler/icons-react-native";
 import { router } from "expo-router";
 import { FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { userBlockQuery } from "../api";
 
 const BLOCKED_USERS_PAGE_SIZE = 20;
 

@@ -1,14 +1,14 @@
-import {
-  getFeedAiJobStatus,
-  subscribeFeedAiJobEvents,
-  type FeedAiJobEvent,
-} from "@entities/feed";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 import { FEED_PROCESSING_CONFIG } from "../config/feed-processing-config";
 import { refreshPublishedFeedLists } from "../lib/refresh-published-feed-lists";
 import { useFeedProcessingStore } from "./feed-processing-store";
+import {
+  getFeedAiJobStatus,
+  subscribeFeedAiJobEvents,
+} from "../api/feed-ai-job-query";
+import type { FeedAiJobEvent } from "../api/feed-ai-job-event";
 
 function abortableDelay(ms: number, signal: AbortSignal) {
   return new Promise<void>((resolve, reject) => {

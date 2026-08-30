@@ -140,7 +140,9 @@ test("회원 탈퇴 메뉴는 로그인한 비게스트 회원에게만 로그�
 });
 
 test("회원 탈퇴는 유예 API 성공 후 세션을 종료하고 App이 Query cache를 정리한다", () => {
-  const querySource = readSource("../../../entities/user/api/user-query.ts");
+  const querySource = readSource(
+    "../../../features/user/delete-account/api/delete-account-mutation.ts",
+  );
   const featureSource = readSource(
     "../../../features/user/delete-account/model/use-delete-account.ts",
   );
@@ -160,7 +162,9 @@ test("회원 탈퇴는 유예 API 성공 후 세션을 종료하고 App이 Query
 });
 
 test("이미 탈퇴 유예 중인 응답은 완료 상태로 정규화한다", () => {
-  const querySource = readSource("../../../entities/user/api/user-query.ts");
+  const querySource = readSource(
+    "../../../features/user/delete-account/api/delete-account-mutation.ts",
+  );
 
   assert.match(
     querySource,
