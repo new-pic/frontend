@@ -1,21 +1,23 @@
 import { apiClient, privateApiClient } from "@shared/api";
 import { useMutation } from "@tanstack/react-query";
 
+import { getAndCreateDeviceUUID } from "@shared/lib";
 import {
   AppleLoginRequest,
   AppleLoginRequestSchema,
-  getSocialLoginRequestMode,
   GoogleLoginRequest,
   GoogleLoginRequestSchema,
   GuestLoginRequest,
   GuestLoginRequestSchema,
-  SOCIAL_LOGIN_REQUEST_MODE,
   SocialLoginResponse,
   SocialLoginResponseSchema,
   TokenResponse,
   TokenResponseSchema,
 } from "../model";
-import { getAndCreateDeviceUUID } from "../../../shared/lib/device-uuid";
+
+function getSocialLoginApiClient(isGuest: boolean) {
+  return isGuest ? privateApiClient : apiClient;
+}
 
 export function useAppleLogin() {
   return useMutation({
@@ -25,13 +27,9 @@ export function useAppleLogin() {
     }: AppleLoginRequest & {
       isGuest: boolean;
     }): Promise<SocialLoginResponse> => {
-      const requestMode = getSocialLoginRequestMode(isGuest);
-      const apiClientToUse =
-        requestMode === SOCIAL_LOGIN_REQUEST_MODE.AUTHENTICATED_ACCOUNT_LINK
-          ? privateApiClient
-          : apiClient;
+      const client = getSocialLoginApiClient(isGuest);
       const request = AppleLoginRequestSchema.parse(appleCredential);
-      const response = await apiClientToUse.post("/auth/apple", request);
+      const response = await client.post("/auth/apple", request);
       return SocialLoginResponseSchema.parse(response.data);
     },
   });
@@ -46,16 +44,12 @@ export function useGoogleLogin() {
     }: GoogleLoginRequest & {
       isGuest: boolean;
     }): Promise<SocialLoginResponse> => {
-      const requestMode = getSocialLoginRequestMode(isGuest);
-      const apiClientToUse =
-        requestMode === SOCIAL_LOGIN_REQUEST_MODE.AUTHENTICATED_ACCOUNT_LINK
-          ? privateApiClient
-          : apiClient;
+      const client = getSocialLoginApiClient(isGuest);
       const request = GoogleLoginRequestSchema.parse({
         idToken,
         termsAgreed,
       });
-      const response = await apiClientToUse.post("/auth/google", request);
+      const response = await client.post("/auth/google", request);
       return SocialLoginResponseSchema.parse(response.data);
     },
   });

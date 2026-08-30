@@ -48,13 +48,11 @@ const originalLoad = Module._load;
 Module._load = function loadWithEntityMocks(request, parent, isMain) {
   if (request === "@entities/feed") {
     return {
-      feedQuery: {
-        feedQueryKeys: {
-          all: ["feed"],
-          myFeeds: ["user", "my-feeds"],
-          likedFeeds: ["user", "liked-feeds"],
-          savedFeeds: ["user", "saved-feeds"],
-        },
+      feedQueryKeys: {
+        all: ["feed"],
+        myFeedLists: () => ["feed", "my-feeds"],
+        likedFeedLists: () => ["feed", "liked-feeds"],
+        savedFeedLists: () => ["feed", "saved-feeds"],
       },
       isFeedAuthoredBy,
       removeCommentsByAuthorFromCacheData,
@@ -63,9 +61,7 @@ Module._load = function loadWithEntityMocks(request, parent, isMain) {
   }
   if (request === "@entities/user") {
     return {
-      userBlockQuery: {
-        userBlockQueryKeys: { all: ["user", "blocks"] },
-      },
+      userQueryKeys: { blockLists: () => ["user", "blocks", "list"] },
     };
   }
   return originalLoad.call(this, request, parent, isMain);
@@ -167,7 +163,13 @@ test("차단 성공 후 collection을 정리하고 작성자 feed item cache를 
 
 test("차단 해제 성공 후 차단 목록 cache에서 사용자 행을 제거한다", () => {
   const queryClient = new QueryClient();
-  const blockedUsersKey = ["user", "blocks", { take: 20 }];
+  const blockedUsersKey = [
+    "user",
+    "blocks",
+    "list",
+    "member-user",
+    { take: 20 },
+  ];
   queryClient.setQueryData(blockedUsersKey, {
     pages: [
       {

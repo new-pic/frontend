@@ -799,8 +799,9 @@ recommended의 `error`로 복구한다.
   `save-feed`로 결정했다.
 - `feed-processing`의 publishing queue와 processing store는 서로 합치지 않고
   `save-feed` 내부의 독립 model로 이동했다.
-- 사용자별 Feed collection query는 `entities/feed`로 이동했으며 기존
-  `[["user"], "user", ...]` query key 값을 보존했다.
+- 사용자별 Feed collection query는 `entities/feed`로 이동했다. 이후 Query
+  key factory의 단일 소유권을 `entities/feed/model/query-keys.ts`에 두고,
+  중첩 root를 `feed` 단일 root와 prefix/leaf 계층으로 정규화했다.
 - Pose detection/matching은 `guide-feed/lib` 내부 목적별 library로 이동했다.
   중첩된 `lib/model` 예약 이름은 제거하고 각 library 바로 아래에 adapter,
   config, type과 algorithm 파일을 유지했다.
@@ -823,7 +824,7 @@ Profile / Guide / Feed Browse
   ↓
 entities/feed collection query
   ↓
-React Query cache (기존 key 유지)
+React Query cache (단일 root + prefix/leaf key)
 
 Feed Detail Widget
   ├─ guard-member: 회원 접근 정책

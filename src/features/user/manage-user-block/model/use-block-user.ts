@@ -1,4 +1,4 @@
-import { userBlockQuery } from "@entities/user";
+import { userBlockQuery, userQueryKeys } from "@entities/user";
 import { getApiErrorMessage } from "@shared/api";
 import { useConfirm } from "@shared/lib";
 import { useQueryClient } from "@tanstack/react-query";
@@ -48,7 +48,7 @@ export function useBlockUser({ requireMember }: UseBlockUserParams) {
         await hideBlockedUserContent(queryClient, userId);
 
         await queryClient.invalidateQueries({
-          queryKey: userBlockQuery.userBlockQueryKeys.all,
+          queryKey: userQueryKeys.blockLists(),
         });
 
         onBlocked?.();

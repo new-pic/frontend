@@ -20,17 +20,8 @@ const readSource = (relativePath) =>
   fs.readFileSync(path.resolve(__dirname, relativePath), "utf8");
 
 const {
-  getUserQueryIdentity,
-} = require("../../../entities/user/model/user-query-identity.ts");
-const {
   shouldShowProfileRtcPhotoPreview,
 } = require("../model/profile-rtc-photo-preview-visibility.ts");
-
-test("프로필 Query identity는 사용자별로 분리된다", () => {
-  assert.equal(getUserQueryIdentity("guest-user"), "guest-user");
-  assert.equal(getUserQueryIdentity("member-user"), "member-user");
-  assert.equal(getUserQueryIdentity(null), "anonymous");
-});
 
 test("사진 미리보기는 조회 성공 후 표시 가능한 사진이 있을 때만 보인다", () => {
   assert.equal(
