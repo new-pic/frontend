@@ -1,13 +1,14 @@
-import { type RtcStoredPhoto } from "@entities/rtc-stored-photo";
+import {
+  rtcStoredPhotoQuery,
+  type RtcStoredPhoto,
+} from "@entities/rtc-stored-photo";
 import {
   mergeUniqueRtcStoredPhotos,
   RTC_STORED_PHOTO_GALLERY_CONFIG,
   useActiveRtcStoredPhotos,
 } from "@features/rtc-photo/browse-stored-photos";
 import { Box, Image, Pressable, Text, VStack } from "@shared/ui";
-import { router } from "expo-router";
 import { memo, useEffect, useMemo, useState } from "react";
-import { rtcStoredPhotoQuery } from "../api";
 
 function getDisplayablePhotos(
   photos: RtcStoredPhoto[],
@@ -16,13 +17,20 @@ function getDisplayablePhotos(
   return photos.filter(({ id }) => !failedPhotoIds.has(id));
 }
 
-export const ProfileRtcPhotoPreview = memo(function ProfileRtcPhotoPreview() {
-  const photosQuery = rtcStoredPhotoQuery.useReadMyRtcStoredPhotos({
-    take: RTC_STORED_PHOTO_GALLERY_CONFIG.pageSize,
-  });
+interface ProfileRtcPhotoPreviewProps {
+  onPress: () => void;
+}
+
+export const ProfileRtcPhotoPreview = memo(function ProfileRtcPhotoPreview({
+  onPress,
+}: ProfileRtcPhotoPreviewProps) {
+  const { data: storedPhotoData, isSuccess: isStoredPhotoSuccess } =
+    rtcStoredPhotoQuery.useReadMyRtcStoredPhotos({
+      take: RTC_STORED_PHOTO_GALLERY_CONFIG.pageSize,
+    });
   const photos = useMemo(
-    () => mergeUniqueRtcStoredPhotos(photosQuery.data?.pages),
-    [photosQuery.data?.pages],
+    () => mergeUniqueRtcStoredPhotos(storedPhotoData?.pages),
+    [storedPhotoData?.pages],
   );
   const activePhotos = useActiveRtcStoredPhotos(photos);
   const [failedPhotoIds, setFailedPhotoIds] = useState(() => new Set<string>());
@@ -46,7 +54,7 @@ export const ProfileRtcPhotoPreview = memo(function ProfileRtcPhotoPreview() {
     return () => clearTimeout(timeout);
   }, [currentIndex, displayablePhotos.length]);
 
-  if (!photosQuery.isSuccess || !currentPhoto) {
+  if (!isStoredPhotoSuccess || !currentPhoto) {
     return null;
   }
 
@@ -54,7 +62,7 @@ export const ProfileRtcPhotoPreview = memo(function ProfileRtcPhotoPreview() {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel="최근 RTC 촬영 사진 전체 보기"
-      onPress={() => router.push("/profile/rtc-photos")}
+      onPress={onPress}
     >
       <Box className="h-47.5 w-full overflow-hidden rounded-3xl bg-background-muted">
         <Image

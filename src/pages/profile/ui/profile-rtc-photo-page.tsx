@@ -1,3 +1,4 @@
+import { rtcStoredPhotoQuery } from "@entities/rtc-stored-photo";
 import {
   mergeUniqueRtcStoredPhotos,
   RTC_STORED_PHOTO_GALLERY_CONFIG,
@@ -23,16 +24,25 @@ import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { rtcStoredPhotoQuery } from "../api";
 
 export function ProfileRtcPhotoPage() {
   const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
-  const photosQuery = rtcStoredPhotoQuery.useReadMyRtcStoredPhotos({
+  const {
+    data: storedPhotoData,
+    fetchNextPage,
+    hasNextPage,
+    isError,
+    isFetching,
+    isFetchingNextPage,
+    isPending,
+    isRefetching,
+    refetch,
+  } = rtcStoredPhotoQuery.useReadMyRtcStoredPhotos({
     take: RTC_STORED_PHOTO_GALLERY_CONFIG.pageSize,
   });
   const photos = useMemo(
-    () => mergeUniqueRtcStoredPhotos(photosQuery.data?.pages),
-    [photosQuery.data?.pages],
+    () => mergeUniqueRtcStoredPhotos(storedPhotoData?.pages),
+    [storedPhotoData?.pages],
   );
   const activePhotos = useActiveRtcStoredPhotos(photos);
   const { isSaving, savePhoto } = useSaveRtcStoredPhoto();
@@ -64,14 +74,10 @@ export function ProfileRtcPhotoPage() {
   };
 
   const handleEndReached = () => {
-    if (
-      !photosQuery.hasNextPage ||
-      photosQuery.isFetching ||
-      photosQuery.isFetchingNextPage
-    ) {
+    if (!hasNextPage || isFetching || isFetchingNextPage) {
       return;
     }
-    void photosQuery.fetchNextPage();
+    void fetchNextPage();
   };
 
   return (
@@ -92,16 +98,13 @@ export function ProfileRtcPhotoPage() {
           <Box className="w-12" />
         </HStack>
 
-        {photosQuery.isError ? (
+        {isError ? (
           <Center className="flex-1 px-6">
             <VStack className="w-full items-center gap-4">
               <Text className="text-label-muted">
                 촬영 사진을 불러오지 못했습니다.
               </Text>
-              <Button
-                variant="outline"
-                onPress={() => void photosQuery.refetch()}
-              >
+              <Button variant="outline" onPress={() => void refetch()}>
                 <ButtonText>다시 시도</ButtonText>
               </Button>
             </VStack>
@@ -111,13 +114,11 @@ export function ProfileRtcPhotoPage() {
             images={activePhotos}
             onPress={(_, index) => setGalleryIndex(index)}
             onEndReached={handleEndReached}
-            onRefresh={() => void photosQuery.refetch()}
-            refreshing={
-              photosQuery.isRefetching && !photosQuery.isFetchingNextPage
-            }
+            onRefresh={() => void refetch()}
+            refreshing={isRefetching && !isFetchingNextPage}
             emptyMessage="보관 중인 촬영 사진이 없습니다."
-            isPending={photosQuery.isPending}
-            isFetchingNextPage={photosQuery.isFetchingNextPage}
+            isPending={isPending}
+            isFetchingNextPage={isFetchingNextPage}
           />
         )}
       </VStack>

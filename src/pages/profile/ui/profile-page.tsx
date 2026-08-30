@@ -16,6 +16,7 @@ import {
   VStack,
 } from "@shared/ui";
 import { gradients } from "@shared/ui/theme";
+import { ProfileRtcPhotoPreview } from "@widgets/profile/rtc-photo-preview";
 import {
   IconBookmarkFilled,
   IconHeartFilled,
@@ -27,7 +28,6 @@ import * as Linking from "expo-linking";
 import { router } from "expo-router";
 import { Alert, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ProfileRtcPhotoPreview } from "./profile-rtc-photo-preview";
 
 function ProfileButtonMenu() {
   const handleGoMyFeed = () => {
@@ -133,6 +133,10 @@ export function ProfilePage() {
     router.push("/profile/blocked-users");
   };
 
+  const handleGoRtcPhotos = () => {
+    router.push("/profile/rtc-photos");
+  };
+
   const handlePressProfile = () => {
     if (isGuest) {
       handleGoLogin();
@@ -200,7 +204,7 @@ export function ProfilePage() {
           </HStack>
 
           {!isGuest ? <ProfileButtonMenu /> : null}
-          <ProfileRtcPhotoPreview />
+          <ProfileRtcPhotoPreview onPress={handleGoRtcPhotos} />
 
           <VStack className="rounded-3xl border border-outline">
             {/* <Pressable className="p-6">
