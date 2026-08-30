@@ -1,9 +1,9 @@
 import {
   mergeRtcRoomEvent,
-  rtcQuery,
-  rtcQueryKeys,
+  rtcRoomQuery,
+  rtcRoomQueryKeys,
   type RtcRoomResponse,
-} from "@entities/rtc";
+} from "@entities/rtc-room";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { getRtcRoomReconnectDelay } from "./rtc-host-control";
@@ -61,7 +61,7 @@ export function useRtcRoomEvents({
         }
 
         try {
-          await rtcQuery.subscribeRtcRoomEvents({
+          await rtcRoomQuery.subscribeRtcRoomEvents({
             roomId: normalizedRoomId,
             signal: streamController.signal,
             onOpen: () => {
@@ -73,7 +73,7 @@ export function useRtcRoomEvents({
               }
 
               queryClient.setQueryData<RtcRoomResponse>(
-                rtcQueryKeys.hostRoom(normalizedRoomId),
+                rtcRoomQueryKeys.hostRoom(normalizedRoomId),
                 (room) => mergeRtcRoomEvent(room, event),
               );
             },
@@ -81,7 +81,7 @@ export function useRtcRoomEvents({
         } catch {
           if (!lifecycleController.signal.aborted) {
             void queryClient.invalidateQueries({
-              queryKey: rtcQueryKeys.hostRoom(normalizedRoomId),
+              queryKey: rtcRoomQueryKeys.hostRoom(normalizedRoomId),
             });
           }
         } finally {

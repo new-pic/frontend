@@ -15,7 +15,9 @@ native track 구현을 직접 알지 않는다.
 RTC session identity는 메모리 Zustand store가 소유한다. `hostSession`과
 `viewerSession`은 상호배타적이며 LiveKit connection도 현재 role과 함께
 보관한다. 방 access token과 LiveKit token은 앱 재시작 이후 복구하지 않고
-현재 프로세스에만 유지한다.
+현재 프로세스에만 유지한다. 이 런타임 책임은 서버의 방 상태와 구분하기 위해
+`entities/rtc-session` Slice가 소유한다. 방 응답, 참가자와 이벤트는
+`entities/rtc-room`이 소유한다.
 
 ```text
 HOST

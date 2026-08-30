@@ -1,16 +1,16 @@
-import type {
-  RtcStoredPhotoListParams,
-  RtcStoredPhotoListResponse,
-} from "@entities/rtc-stored-photo";
+import { privateApiClient } from "@shared/api";
+import { useAuthStore } from "@shared/model";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import {
   RTC_STORED_PHOTO_MAX_TAKE,
   RtcStoredPhotoListParamsSchema,
   RtcStoredPhotoListResponseSchema,
-} from "@entities/rtc-stored-photo";
-import { privateApiClient } from "@shared/api";
-import { useAuthStore } from "@shared/model";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { profilePageQueryKeys } from "../model/query-keys";
+} from "../model/schema";
+import type {
+  RtcStoredPhotoListParams,
+  RtcStoredPhotoListResponse,
+} from "../model/models";
+import { rtcStoredPhotoQueryKeys } from "../model/query-keys";
 
 export function useReadMyRtcStoredPhotos(
   params: RtcStoredPhotoListParams = {},
@@ -23,7 +23,7 @@ export function useReadMyRtcStoredPhotos(
   });
 
   return useInfiniteQuery({
-    queryKey: profilePageQueryKeys.rtcStoredPhotoList(userId, normalizedParams),
+    queryKey: rtcStoredPhotoQueryKeys.myList(userId, normalizedParams),
     queryFn: async ({
       pageParam,
       signal,
@@ -40,6 +40,6 @@ export function useReadMyRtcStoredPhotos(
     initialPageParam: normalizedParams.cursor,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     enabled: Boolean(userId && accessToken),
-    staleTime: 1000 * 60,
+    staleTime: 60_000,
   });
 }

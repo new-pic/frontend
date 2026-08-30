@@ -23,21 +23,26 @@ import { userBlockQuery } from "../api";
 const BLOCKED_USERS_PAGE_SIZE = 20;
 
 export function ProfileBlockedUsersPage() {
-  const blockedUsersQuery = userBlockQuery.useReadBlockedUsers({
+  const {
+    data: blockedUserData,
+    fetchNextPage,
+    hasNextPage,
+    isError,
+    isFetchingNextPage,
+    isPending,
+    refetch,
+  } = userBlockQuery.useReadBlockedUsers({
     take: BLOCKED_USERS_PAGE_SIZE,
   });
   const { unblockUser, isUnblocking, unblockingUserId } = useUnblockUser();
   const blockedUsers =
-    blockedUsersQuery.data?.pages.flatMap((page) => page.items) ?? [];
+    blockedUserData?.pages.flatMap((page) => page.items) ?? [];
 
   const handleEndReached = () => {
-    if (
-      !blockedUsersQuery.hasNextPage ||
-      blockedUsersQuery.isFetchingNextPage
-    ) {
+    if (!hasNextPage || isFetchingNextPage) {
       return;
     }
-    void blockedUsersQuery.fetchNextPage();
+    void fetchNextPage();
   };
 
   return (
@@ -58,20 +63,17 @@ export function ProfileBlockedUsersPage() {
           <Box className="w-12" />
         </HStack>
 
-        {blockedUsersQuery.isPending ? (
+        {isPending ? (
           <Center className="flex-1">
             <Spinner accessibilityLabel="차단한 사용자 불러오는 중" />
           </Center>
-        ) : blockedUsersQuery.isError ? (
+        ) : isError ? (
           <Center className="flex-1 px-6">
             <VStack className="w-full items-center" space="md">
               <Text className="text-center text-label-muted">
                 차단한 사용자를 불러오지 못했습니다.
               </Text>
-              <Button
-                variant="outline"
-                onPress={() => void blockedUsersQuery.refetch()}
-              >
+              <Button variant="outline" onPress={() => void refetch()}>
                 <ButtonText>다시 시도</ButtonText>
               </Button>
             </VStack>
@@ -96,9 +98,7 @@ export function ProfileBlockedUsersPage() {
               </Center>
             }
             ListFooterComponent={
-              blockedUsersQuery.isFetchingNextPage ? (
-                <Spinner className="my-6" />
-              ) : null
+              isFetchingNextPage ? <Spinner className="my-6" /> : null
             }
             onEndReached={handleEndReached}
             onEndReachedThreshold={0.2}

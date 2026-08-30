@@ -1,5 +1,4 @@
-import { rtcQueryKeys } from "@entities/rtc";
-
 export const rtcReactionQueryKeys = {
-  feedbackEmojis: () => [...rtcQueryKeys.all, "global", "emojis"] as const,
+  all: ["rtc-reactions"] as const,
+  feedbackEmojis: () => [...rtcReactionQueryKeys.all, "emojis"] as const,
 } as const;

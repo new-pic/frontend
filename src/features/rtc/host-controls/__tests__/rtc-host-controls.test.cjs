@@ -14,13 +14,13 @@ const {
 } = require("../model/rtc-host-control.ts");
 const {
   mergeRtcRoomEvent,
-} = require("../../../../entities/rtc/api/rtc-room-event-state.ts");
+} = require("../../../../entities/rtc-room/api/rtc-room-event-state.ts");
 const {
   parseRtcRoomEvent,
-} = require("../../../../entities/rtc/api/rtc-room-event.ts");
+} = require("../../../../entities/rtc-room/api/rtc-room-event.ts");
 const {
   RtcRoomEventPayloadSchema,
-} = require("../../../../entities/rtc/model/rtc-room-schema.ts");
+} = require("../../../../entities/rtc-room/model/room-state-schema.ts");
 const { createSseParser } = require("../../../../shared/api/sse-parser.ts");
 
 test("RTC 카메라 메뉴는 busy 상태를 live보다 우선한다", () => {

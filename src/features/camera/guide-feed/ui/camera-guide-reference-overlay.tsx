@@ -1,4 +1,4 @@
-import { Image } from "expo-image";
+import { Image } from "@shared/ui";
 import { memo, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import type { CoordinateSize } from "../lib/pose-matching";

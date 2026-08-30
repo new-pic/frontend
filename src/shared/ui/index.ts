@@ -17,6 +17,7 @@ export * from "./grid";
 export * from "./heading";
 export * from "./hstack";
 export * from "./icon";
+export * from "./image";
 export * from "./image-viewer";
 export * from "./input";
 export * from "./photo-grid";

@@ -1,6 +1,6 @@
-import type { RtcFeedbackEmojiListResponse } from "@entities/rtc";
 import { RTC_REACTION_BUBBLE_CONFIG } from "../config/rtc-reaction-config";
 import type {
+  RtcFeedbackEmojiListResponse,
   RtcReactionBubble,
   RtcReactionEmoji,
   RtcReceivedReaction,

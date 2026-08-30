@@ -1,11 +1,11 @@
 import {
   mergeRtcRoomEvent,
-  rtcQuery,
+  rtcRoomQuery,
   RtcRoomResponse,
   RtcRoomResponseSchema,
   type RtcRoomEvent,
-  type RtcViewerSession,
-} from "@entities/rtc";
+} from "@entities/rtc-room";
+import type { RtcViewerSession } from "@entities/rtc-session";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { resolveRtcViewerRoomSignal } from "./rtc-viewer-entry";
 import { rtcViewerQuery } from "../api";
@@ -217,7 +217,7 @@ export function useRtcViewerEntry({
         }
 
         try {
-          await rtcQuery.subscribeRtcRoomEvents({
+          await rtcRoomQuery.subscribeRtcRoomEvents({
             roomId,
             signal: streamController.signal,
             onOpen: () => {

@@ -35,6 +35,10 @@ export class VisionCameraVideoPublisher implements RtcVideoPublisher {
     return this.enqueue(async () => {
       if (this.isStarted) return;
 
+      // 이전 전환에서 unpublish가 실패했다면 새 publication이 기존
+      // track 참조를 덮어쓰기 전에 정리를 다시 시도합니다.
+      await this.unpublishLocalTrack();
+
       const rawTrack = await createVisionCameraRtcTrack({
         width: 1280,
         height: 720,
@@ -67,22 +71,16 @@ export class VisionCameraVideoPublisher implements RtcVideoPublisher {
         this.isStarted = true;
       } catch (error) {
         this.stopAcceptingFrames();
-        if (this.localTrack) {
-          try {
-            await this.room.localParticipant.unpublishTrack(
-              this.localTrack,
-              false,
-            );
-          } catch {
-            // start 오류를 우선하되 signaling 정리는 가능한 만큼 수행합니다.
-          }
+        try {
+          await this.unpublishLocalTrack();
+        } catch {
+          // start 오류를 우선하되 실패한 track 참조는 다음 정리를 위해 유지합니다.
         }
         try {
           this.stopAndReleaseRawTrack();
         } catch {
           // start 오류를 우선합니다.
         }
-        this.localTrack = null;
         this.rawTrack = null;
         throw error;
       }
@@ -99,13 +97,10 @@ export class VisionCameraVideoPublisher implements RtcVideoPublisher {
         firstError = error;
       }
 
-      const localTrack = this.localTrack;
-      if (localTrack) {
-        try {
-          await this.room.localParticipant.unpublishTrack(localTrack, false);
-        } catch (error) {
-          firstError ??= error;
-        }
+      try {
+        await this.unpublishLocalTrack();
+      } catch (error) {
+        firstError ??= error;
       }
 
       try {
@@ -113,13 +108,20 @@ export class VisionCameraVideoPublisher implements RtcVideoPublisher {
       } catch (error) {
         firstError ??= error;
       } finally {
-        this.localTrack = null;
         this.rawTrack = null;
         this.isStarted = false;
       }
 
       if (firstError) throw firstError;
     });
+  }
+
+  private async unpublishLocalTrack() {
+    const localTrack = this.localTrack;
+    if (!localTrack) return;
+
+    await this.room.localParticipant.unpublishTrack(localTrack, false);
+    this.localTrack = null;
   }
 
   private stopAcceptingFrames() {

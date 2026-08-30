@@ -28,7 +28,8 @@ cache identity의 공유 범위를 서로 독립적으로 판단한다.
 ## Context
 
 기존 구조에서는 주요 요청 hook이 `entities/feed`, `entities/user`,
-`entities/rtc`, `entities/rtc-stored-photo`의 `api`에 집중되어 있었다.
+`entities/rtc-room`, `entities/rtc-session`, `entities/rtc-stored-photo`의 경계가
+분리되기 전에는 RTC 관련 API와 런타임 책임이 하나의 Slice에 집중되어 있었다.
 이 때문에 다음과 같은 사용자 행동도 Entity가 직접 소유했다.
 
 - 소셜 로그인과 회원 탈퇴
@@ -132,13 +133,15 @@ public API를 소비한다. 이를 Profile Page `api`에 두면 Feed Detail Feat
 
 다음 조회는 실제 Page 전용이므로 Page `api`로 이동한다.
 
-- Profile Page: 차단 사용자 목록, 내 RTC 저장 사진
+- Profile Page: 차단 사용자 목록
 - Camera Page: RTC 방 저장 사진
 
 다음 상태는 여러 slice가 공유하므로 Entity에 유지한다.
 
 - Feed 상세와 저장 피드 목록
 - 현재 회원 프로필(`/users/me`)
+- Profile Preview Widget과 전체 사진 Page가 공유하는 내 RTC 저장 사진
+  (`/users/me/photos`)
 - RTC room SSE event parser/구독
 - Feed/User/RTC/RTC Stored Photo의 DTO, schema와 공유 key prefix
 
@@ -174,7 +177,11 @@ public API를 소비한다. 이를 Profile Page `api`에 두면 Feed Detail Feat
 - Camera Guide 전용 Feed pose/background-removal 조회를 `guide-feed/api`로
   이동했다.
 - Feed Detail 댓글 조회를 Widget `api`로 이동했다.
-- 차단 목록과 RTC 저장 사진 조회를 Profile/Camera Page `api`로 이동했다.
+- 차단 목록은 Profile Page `api`, RTC 방 저장 사진은 Camera Page `api`로
+  이동했다.
+- 내 RTC 저장 사진 조회는 Profile Preview Widget과 전체 사진 Page가 같은
+  cache를 공유하므로 `RtcStoredPhoto` Entity가 hook과 list leaf key를
+  소유하도록 유지했다.
 - 공개/내 피드/좋아요 목록은 Feed Detail과 infinite cache를 공유하므로
   `browse-feed-detail` Feature가 소유하도록 이동했다.
 - Entity에는 공유 DTO/schema, Query Key prefix, Feed 상세·저장 목록,

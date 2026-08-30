@@ -1,12 +1,11 @@
-import type { RtcRoomParticipant } from "@entities/rtc";
+import type { RtcRoomParticipant } from "@entities/rtc-room";
 import { colors } from "@shared/ui/theme";
-import { Button, ButtonIcon, Pressable, Text } from "@shared/ui";
+import { Button, ButtonIcon, Image, Pressable, Text } from "@shared/ui";
 import {
   IconBroadcast,
   IconUserFilled,
   IconUsersPlus,
 } from "@tabler/icons-react-native";
-import { Image } from "expo-image";
 import { useRef, useState } from "react";
 import {
   ActivityIndicator,

@@ -1,7 +1,6 @@
 import { colors } from "@shared/ui/theme";
-import { Text } from "@shared/ui";
+import { Image, Text } from "@shared/ui";
 import { IconEye, IconEyeOff } from "@tabler/icons-react-native";
-import { Image } from "expo-image";
 import { ActivityIndicator, Pressable, View } from "react-native";
 import type { GuideFeedSelection } from "../model";
 

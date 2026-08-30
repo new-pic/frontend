@@ -4,6 +4,10 @@ export interface RtcReactionEmoji {
   symbol: string;
 }
 
+export interface RtcFeedbackEmojiListResponse {
+  items: RtcReactionEmoji[];
+}
+
 export interface RtcReceivedReaction {
   emojiId: string;
 }

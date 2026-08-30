@@ -498,7 +498,7 @@ Capture의 `SessionPhoto`는 구조적으로 이 interface를 만족하고 Camer
 | 파일                                                     | 현재 경로                                                   | 목표 public API                 |
 | -------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------- |
 | `app/_layout.tsx`                                        | `@features/camera/guide-feed/model/camera-guide-navigation` | `@features/camera/guide-feed`   |
-| `entities/rtc/api/rtc-room-event.ts`                     | `../../../shared/api/sse-parser`                            | `@shared/api`                   |
+| `entities/rtc-room/api/rtc-room-event.ts`                | `../../../shared/api/sse-parser`                            | `@shared/api`                   |
 | `feed-processing/lib/refresh-published-feed-lists.ts`    | `@entities/feed/api/feed-query`                             | `@entities/feed`의 `feedQuery`  |
 | 동일 파일                                                | `@entities/user/api/user-query`                             | `@entities/user`의 `usersQuery` |
 | `update-feed-pick/lib/refresh-saved-feed-guide-cache.ts` | `@entities/user/api/user-query`                             | `@entities/user`의 `usersQuery` |
@@ -665,7 +665,7 @@ Feed action Feature는 `ensureMember` callback 또는 실행 허용 상태를 �
 | `widgets/camera-header`             |             2 / 72 | Camera Page 전용 UI                    | Page UI로 병합 후보                                       |
 | `widgets/feed/detail`               |         16 / 1,203 | 큰 독립 UI block                       | 단일 Page 소비여도 유지                                   |
 | `widgets/feed/edit`                 |            9 / 458 | 큰 편집 UI block                       | 단일 Page 소비여도 유지                                   |
-| `widgets/profile/rtc-photo-preview` |            3 / 131 | Profile Page 전용 block                | Page UI 병합 후보                                         |
+| `widgets/profile/rtc-photo-preview` | 독립 Preview block | 자동 전환·이미지 실패 lifecycle 소유   | 단일 Page 소비여도 Widget 유지                            |
 | `widgets/rtc-join-sheet`            |             2 / 48 | Camera Page 전용이며 join use-case UI  | `features/rtc/join-room` UI로 이동 후보                   |
 
 `host-controls`, `reactions`, `save-social-login`, 큰 Feed Widget처럼 lifecycle과
@@ -810,9 +810,12 @@ recommended의 `error`로 복구한다.
   access callback에만 의존한다.
 - `shared/constants`는 UI token인 `shared/ui/theme`과 앱 설정인
   `shared/config`로 분리했다.
-- 얇은 `edit-feed`, `camera-header`, `profile/rtc-photo-preview`,
-  `rtc-join-sheet` slice는 실제 조합 책임을 가진 Widget, Page 또는 Feature로
-  병합했다.
+- 얇은 `edit-feed`, `camera-header`, `rtc-join-sheet` slice는 실제 조합 책임을
+  가진 Widget, Page 또는 Feature로 병합했다.
+- `profile/rtc-photo-preview`는 단일 Page에서 소비하지만 자동 전환 timer와
+  이미지 실패 상태를 독립적으로 소유하고 ADR-0010에서 별도 Widget으로
+  결정했으므로, 소비자 수만으로 병합했던 판단을 철회하고 Widget으로
+  복원했다.
 - 독립 상태, lifecycle 또는 실패 경계를 가진 단일 소비 slice는 유지하고
   `steiger.config.ts`에 경로별 `insignificant-slice` 예외를 기록했다. 전역
   규칙은 `warn`이므로 새로운 단일 소비 slice는 계속 탐지된다.

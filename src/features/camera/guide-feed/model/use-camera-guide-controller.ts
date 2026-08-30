@@ -83,10 +83,20 @@ export function useCameraGuideController({
   const requestIdRef = useRef(0);
 
   const selectedFeedId = state.selected?.feedId;
-  const poseQuery = feedGuideQuery.useReadFeedPose({
+  const {
+    data: poseData,
+    error: poseError,
+    isPending: isPosePending,
+    refetch: refetchPose,
+  } = feedGuideQuery.useReadFeedPose({
     feedId: selectedFeedId,
   });
-  const outlineQuery = feedGuideQuery.useReadFeedBackgroundRemoval({
+  const {
+    data: outlineData,
+    error: outlineError,
+    isPending: isOutlinePending,
+    refetch: refetchOutline,
+  } = feedGuideQuery.useReadFeedBackgroundRemoval({
     feedId: selectedFeedId,
   });
 
@@ -111,9 +121,9 @@ export function useCameraGuideController({
     setOutlinePreparationError(null);
     setTargetPreparationError(null);
     setRetryVersion((current) => current + 1);
-    void poseQuery.refetch();
-    void outlineQuery.refetch();
-  }, [outlineQuery, poseQuery]);
+    void refetchPose();
+    void refetchOutline();
+  }, [refetchOutline, refetchPose]);
 
   useEffect(() => {
     const selection = state.selected;
@@ -159,7 +169,7 @@ export function useCameraGuideController({
 
   useEffect(() => {
     const selection = state.selected;
-    const queryResult = outlineQuery.data;
+    const queryResult = outlineData;
     if (!selection || !queryResult || queryResult.feedId !== selection.feedId) {
       return;
     }
@@ -194,11 +204,11 @@ export function useCameraGuideController({
       );
       setOutlinePreparationError(getErrorMessage(error));
     }
-  }, [outlineQuery.data, retryVersion, state.requestId, state.selected]);
+  }, [outlineData, retryVersion, state.requestId, state.selected]);
 
   useEffect(() => {
     const selection = state.selected;
-    const response = poseQuery.data;
+    const response = poseData;
     if (!selection || !response) return;
 
     const requestId = state.requestId;
@@ -280,41 +290,39 @@ export function useCameraGuideController({
     return () => {
       cancelled = true;
     };
-  }, [poseQuery.data, retryVersion, state.requestId, state.selected]);
+  }, [poseData, retryVersion, state.requestId, state.selected]);
 
   useEffect(() => {
-    if (!outlineQuery.error || !state.selected) return;
+    if (!outlineError || !state.selected) return;
 
     logCameraGuideStage(
       "OUTLINE_QUERY_FAILED",
       {
         feedId: state.selected.feedId,
         errorName:
-          outlineQuery.error instanceof Error
-            ? outlineQuery.error.name
-            : typeof outlineQuery.error,
-        message: getErrorMessage(outlineQuery.error),
+          outlineError instanceof Error
+            ? outlineError.name
+            : typeof outlineError,
+        message: getErrorMessage(outlineError),
       },
       "warn",
     );
-  }, [outlineQuery.error, state.selected]);
+  }, [outlineError, state.selected]);
 
   useEffect(() => {
-    if (!poseQuery.error || !state.selected) return;
+    if (!poseError || !state.selected) return;
 
     logCameraGuideStage(
       "TARGET_POSE_QUERY_FAILED",
       {
         feedId: state.selected.feedId,
         errorName:
-          poseQuery.error instanceof Error
-            ? poseQuery.error.name
-            : typeof poseQuery.error,
-        message: getErrorMessage(poseQuery.error),
+          poseError instanceof Error ? poseError.name : typeof poseError,
+        message: getErrorMessage(poseError),
       },
       "warn",
     );
-  }, [poseQuery.error, state.selected]);
+  }, [poseError, state.selected]);
 
   const canProjectToCurrentCapture =
     geometry !== null &&
@@ -407,10 +415,9 @@ export function useCameraGuideController({
     reference: referenceError,
     outline:
       outlinePreparationError ??
-      (outlineQuery.error ? getErrorMessage(outlineQuery.error) : null),
+      (outlineError ? getErrorMessage(outlineError) : null),
     target:
-      targetPreparationError ??
-      (poseQuery.error ? getErrorMessage(poseQuery.error) : null),
+      targetPreparationError ?? (poseError ? getErrorMessage(poseError) : null),
   };
   const latestMatching = latestMatchingRef.current;
   const matching: CameraGuideMatching =
@@ -429,8 +436,8 @@ export function useCameraGuideController({
     isPreparing:
       state.selected !== null &&
       state.active?.selection.feedId !== state.selected.feedId,
-    isOutlineLoading: Boolean(state.selected) && outlineQuery.isPending,
-    isTargetLoading: Boolean(state.selected) && poseQuery.isPending,
+    isOutlineLoading: Boolean(state.selected) && isOutlinePending,
+    isTargetLoading: Boolean(state.selected) && isPosePending,
     errors,
     matching,
     alignment,

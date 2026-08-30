@@ -3,7 +3,7 @@ import type { RtcRoomEvent, RtcRoomEventType } from "../model/models";
 import {
   RtcRoomEventPayloadSchema,
   RtcRoomResponseSchema,
-} from "../model/rtc-room-schema";
+} from "../model/room-state-schema";
 
 const RTC_ROOM_EVENT_TYPES = new Set<RtcRoomEventType>([
   "snapshot",

@@ -1,20 +1,22 @@
 import {
-  assertRtcAppAccessToken,
-  createRtcHostHeaders,
   type RtcCreateRoomRequest,
   RtcCreateRoomRequestSchema,
   type RtcCreateRoomResponse,
   type RtcEndRoomMutationRequest,
   RtcEndRoomRequestSchema,
   RtcEndRoomResponseSchema,
-  type RtcHostLiveKitTokenRequest,
-  type RtcHostLiveKitTokenResponse,
-  rtcQueryKeys,
+  rtcRoomQueryKeys,
   type RtcRoomResponse,
   RtcRoomResponseSchema,
-  useRtcStore,
   verifyRtcId,
-} from "@entities/rtc";
+} from "@entities/rtc-room";
+import {
+  assertRtcAppAccessToken,
+  createRtcHostHeaders,
+  type RtcHostLiveKitTokenRequest,
+  type RtcHostLiveKitTokenResponse,
+  useRtcStore,
+} from "@entities/rtc-session";
 import { privateApiClient, uploadFetchClient } from "@shared/api";
 import { ObjectToFormData } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
@@ -60,7 +62,7 @@ export function useReadRtcRoom(
   );
 
   return useQuery({
-    queryKey: rtcQueryKeys.hostRoom(normalizedRoomId),
+    queryKey: rtcRoomQueryKeys.hostRoom(normalizedRoomId),
     queryFn: async () => {
       const id = verifyRtcId(normalizedRoomId, "RTC 방 ID");
       const response = await privateApiClient.get<RtcRoomResponse>(

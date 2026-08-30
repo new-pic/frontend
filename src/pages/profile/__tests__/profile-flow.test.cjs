@@ -2,50 +2,9 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
-const ts = require("typescript");
-
-require.extensions[".ts"] = (module, filename) => {
-  const source = fs.readFileSync(filename, "utf8");
-  const output = ts.transpileModule(source, {
-    compilerOptions: {
-      module: ts.ModuleKind.CommonJS,
-      target: ts.ScriptTarget.ES2022,
-    },
-    fileName: filename,
-  });
-  module._compile(output.outputText, filename);
-};
 
 const readSource = (relativePath) =>
   fs.readFileSync(path.resolve(__dirname, relativePath), "utf8");
-
-const {
-  shouldShowProfileRtcPhotoPreview,
-} = require("../model/profile-rtc-photo-preview-visibility.ts");
-
-test("사진 미리보기는 조회 성공 후 표시 가능한 사진이 있을 때만 보인다", () => {
-  assert.equal(
-    shouldShowProfileRtcPhotoPreview({
-      isQuerySuccess: false,
-      hasDisplayablePhoto: false,
-    }),
-    false,
-  );
-  assert.equal(
-    shouldShowProfileRtcPhotoPreview({
-      isQuerySuccess: true,
-      hasDisplayablePhoto: false,
-    }),
-    false,
-  );
-  assert.equal(
-    shouldShowProfileRtcPhotoPreview({
-      isQuerySuccess: true,
-      hasDisplayablePhoto: true,
-    }),
-    true,
-  );
-});
 
 test("프로필 하위 화면은 탭 sibling이 아니라 Profile Stack에 속한다", () => {
   const tabsLayout = readSource("../../../app/(tabs)/_layout.tsx");

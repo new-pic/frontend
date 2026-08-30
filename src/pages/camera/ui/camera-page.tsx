@@ -2,9 +2,8 @@ import { feedQuery } from "@entities/feed";
 import {
   RTC_MAX_CAPTURED_PHOTOS,
   RtcEndRoomResponse,
-  RtcLiveKitConnection,
-  useRtcStore,
-} from "@entities/rtc";
+} from "@entities/rtc-room";
+import { RtcLiveKitConnection, useRtcStore } from "@entities/rtc-session";
 import {
   Camera,
   CameraRuntimeGeometry,
@@ -79,15 +78,18 @@ export function CameraPage() {
   const initialGuideFeedId = getFirstSearchParam(
     searchParams[CAMERA_GUIDE_NAVIGATION.params.feedId],
   )?.trim();
-  const initialGuideQuery = feedQuery.useReadFeed({
+  const {
+    data: initialGuideData,
+    isError: isInitialGuideError,
+    isPending: isInitialGuidePending,
+    refetch: refetchInitialGuide,
+  } = feedQuery.useReadFeed({
     feedId: initialGuideFeedId,
   });
   const initialGuideSelection = useMemo(
     () =>
-      initialGuideQuery.data
-        ? adaptFeedToGuideSelection(initialGuideQuery.data)
-        : null,
-    [initialGuideQuery.data],
+      initialGuideData ? adaptFeedToGuideSelection(initialGuideData) : null,
+    [initialGuideData],
   );
   const returnJoinCode = Array.isArray(joinCodeParam)
     ? joinCodeParam[0]
@@ -145,8 +147,7 @@ export function CameraPage() {
   const initialGuideNotApplied =
     Boolean(initialGuideFeedId) &&
     appliedInitialGuideFeedIdRef.current !== initialGuideFeedId;
-  const hasInitialGuideError =
-    initialGuideNotApplied && initialGuideQuery.isError;
+  const hasInitialGuideError = initialGuideNotApplied && isInitialGuideError;
   const isGuideReferenceAvailable = Boolean(
     cameraGeometry &&
     cameraGuide.presentedGuide?.outline &&
@@ -217,7 +218,7 @@ export function CameraPage() {
   );
 
   const roomId = hostSession?.roomId ?? "";
-  const roomQuery = rtcHostQuery.useReadRtcRoom(roomId, {
+  const { data: roomData } = rtcHostQuery.useReadRtcRoom(roomId, {
     enabled: Boolean(hostSession) && isCameraPageFocused,
     refetchInterval: false,
   });
@@ -225,7 +226,7 @@ export function CameraPage() {
     roomId,
     enabled: Boolean(hostSession) && isCameraPageFocused,
   });
-  const participants = roomQuery.data?.participants ?? [];
+  const participants = roomData?.participants ?? [];
   const qrValue = useMemo(
     () =>
       hostSession
@@ -527,14 +528,14 @@ export function CameraPage() {
 
   const handleRetryGuide = useCallback(() => {
     if (hasInitialGuideError) {
-      void initialGuideQuery.refetch();
+      void refetchInitialGuide();
       return;
     }
     cameraGuide.retrySelectedGuide();
   }, [
     cameraGuide.retrySelectedGuide,
     hasInitialGuideError,
-    initialGuideQuery.refetch,
+    refetchInitialGuide,
   ]);
 
   if (cameraMode === "RESULT" && resultImages) {
@@ -639,7 +640,7 @@ export function CameraPage() {
               <GuideSelectionControl
                 selectedGuide={cameraGuide.selectedGuide}
                 isPreparing={
-                  (initialGuideNotApplied && initialGuideQuery.isPending) ||
+                  (initialGuideNotApplied && isInitialGuidePending) ||
                   cameraGuide.isPreparing ||
                   cameraGuide.isTargetLoading ||
                   cameraGuide.isOutlineLoading

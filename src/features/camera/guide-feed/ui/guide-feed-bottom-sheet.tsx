@@ -30,11 +30,16 @@ export function GuideFeedBottomSheet({
   onClear,
   onClose,
 }: GuideFeedBottomSheetProps) {
-  const savedFeedsQuery = feedQuery.useReadSavedFeeds(
-    { take: 24 },
-    { enabled: open },
-  );
-  const feeds = savedFeedsQuery.data?.pages.flatMap((page) => page.items) ?? [];
+  const {
+    data: savedFeedData,
+    fetchNextPage,
+    hasNextPage,
+    isError,
+    isFetchingNextPage,
+    isPending,
+    refetch,
+  } = feedQuery.useReadSavedFeeds({ take: 24 }, { enabled: open });
+  const feeds = savedFeedData?.pages.flatMap((page) => page.items) ?? [];
   const gridItems = feeds.map((feed) => ({
     id: feed.id,
     imageUrl: feed.thumbnailUrl,
@@ -43,10 +48,10 @@ export function GuideFeedBottomSheet({
   }));
 
   const handleEndReached = () => {
-    if (!savedFeedsQuery.hasNextPage || savedFeedsQuery.isFetchingNextPage) {
+    if (!hasNextPage || isFetchingNextPage) {
       return;
     }
-    void savedFeedsQuery.fetchNextPage();
+    void fetchNextPage();
   };
 
   return (
@@ -76,15 +81,12 @@ export function GuideFeedBottomSheet({
         </HStack>
 
         <VStack className="flex-1">
-          {savedFeedsQuery.isError ? (
+          {isError ? (
             <Center className="flex-1 gap-3 px-6">
               <Text className="text-center text-label-muted">
                 저장한 피드를 불러오지 못했습니다.
               </Text>
-              <Button
-                variant="outline"
-                onPress={() => void savedFeedsQuery.refetch()}
-              >
+              <Button variant="outline" onPress={() => void refetch()}>
                 <ButtonText>다시 시도</ButtonText>
               </Button>
             </Center>
@@ -94,8 +96,8 @@ export function GuideFeedBottomSheet({
               selectedImages={
                 selectedFeedId ? [{ id: selectedFeedId }] : undefined
               }
-              isPending={savedFeedsQuery.isPending}
-              isFetchingNextPage={savedFeedsQuery.isFetchingNextPage}
+              isPending={isPending}
+              isFetchingNextPage={isFetchingNextPage}
               onEndReached={handleEndReached}
               onPress={(feed) => {
                 onSelect(adaptFeedToGuideSelection(feed));

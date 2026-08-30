@@ -1,4 +1,4 @@
-import { RTC_MAX_SELECTED_PHOTOS } from "@entities/rtc";
+import { RTC_MAX_SELECTED_PHOTOS } from "@entities/rtc-room";
 import { uriToFile } from "@shared/lib";
 import type { File } from "expo-file-system";
 

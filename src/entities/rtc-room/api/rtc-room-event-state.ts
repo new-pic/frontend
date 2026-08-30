@@ -1,5 +1,5 @@
 import type { RtcRoomEvent, RtcRoomResponse } from "../model/models";
-import { RtcRoomResponseSchema } from "../model/rtc-room-schema";
+import { RtcRoomResponseSchema } from "../model/room-state-schema";
 
 export function mergeRtcRoomEvent(
   room: RtcRoomResponse | undefined,

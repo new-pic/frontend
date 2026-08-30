@@ -1,4 +1,4 @@
-import type { RtcRoomEvent } from "@entities/rtc";
+import type { RtcRoomEvent } from "@entities/rtc-room";
 
 export type RtcViewerRoomSignal = "LIVE" | "ENDED" | null;
 

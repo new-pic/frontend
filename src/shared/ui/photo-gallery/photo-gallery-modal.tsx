@@ -4,10 +4,10 @@ import {
   IconCircleCheck,
   IconChevronLeft,
 } from "@tabler/icons-react-native";
-import { Image } from "expo-image";
 import { type ReactNode, useEffect, useState } from "react";
 import { Modal, StyleSheet, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { Image } from "../image";
 import { Box } from "../box";
 import { Button, ButtonIcon } from "../button";
 import { HStack } from "../hstack";
