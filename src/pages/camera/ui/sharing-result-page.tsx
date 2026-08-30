@@ -1,4 +1,4 @@
-import { RTC_MAX_SELECTED_PHOTOS } from "@entities/rtc";
+import { RTC_MAX_SELECTED_PHOTOS } from "@entities/rtc-room";
 import { saveImageToMediaLibrary } from "@shared/lib";
 import {
   Button,

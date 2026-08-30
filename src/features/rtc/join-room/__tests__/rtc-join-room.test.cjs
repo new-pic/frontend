@@ -3,7 +3,7 @@ const test = require("node:test");
 
 const {
   isCurrentRtcViewerSession,
-} = require("../../../../entities/rtc/model/rtc-viewer-session.ts");
+} = require("../../../../entities/rtc-session/model/rtc-viewer-session.ts");
 const { resolveRtcViewerRoomSignal } = require("../model/rtc-viewer-entry.ts");
 
 const currentSession = {
@@ -101,7 +101,7 @@ test("참여자 진입 hook은 공용 SSE와 수동 토큰 재시도를 소유�
     "utf8",
   );
 
-  assert.match(source, /rtcQuery\.subscribeRtcRoomEvents/);
+  assert.match(source, /rtcRoomQuery\.subscribeRtcRoomEvents/);
   assert.match(source, /signal === "LIVE"/);
   assert.match(source, /phase !== "TOKEN_ERROR"/);
   assert.match(source, /tokenAttemptedRef\.current = false/);

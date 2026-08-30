@@ -1,4 +1,4 @@
-import type { RtcRoomParticipant } from "@entities/rtc";
+import type { RtcRoomParticipant } from "@entities/rtc-room";
 import { colors } from "@shared/ui/theme";
 import { Button, ButtonIcon, Image, Pressable, Text } from "@shared/ui";
 import {

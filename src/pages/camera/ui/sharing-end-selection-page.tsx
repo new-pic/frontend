@@ -1,4 +1,4 @@
-import { RTC_MAX_SELECTED_PHOTOS } from "@entities/rtc";
+import { RTC_MAX_SELECTED_PHOTOS } from "@entities/rtc-room";
 import { SessionPhoto } from "@features/camera/capture-photo";
 import {
   Button,

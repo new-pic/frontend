@@ -20,7 +20,8 @@ LiveKit viewer connection
 Remote camera UI
 ```
 
-SSE 구독 adapter는 호스트 전용 query와 분리해 `entities/rtc/api/rtc-query.ts`에
+SSE 구독 adapter는 호스트 전용 query와 분리해
+`entities/rtc-room/api/rtc-room-query.ts`에
 둔다. 앱 access token을 사용하는 공용 전송 경계이며, host와 viewer feature가
 각자의 lifecycle에 맞게 재사용한다.
 

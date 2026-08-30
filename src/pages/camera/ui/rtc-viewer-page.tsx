@@ -1,8 +1,8 @@
 import {
   RTC_MAX_SELECTED_PHOTOS,
   RtcEndRoomResponse,
-  useRtcStore,
-} from "@entities/rtc";
+} from "@entities/rtc-room";
+import { useRtcStore } from "@entities/rtc-session";
 import { RTC_STORED_PHOTO_MAX_TAKE } from "@entities/rtc-stored-photo";
 import { useResetMyRtcStoredPhotos } from "@features/rtc/finalize-session";
 import { rtcViewerQuery, useRtcViewerEntry } from "@features/rtc/join-room";
@@ -40,7 +40,14 @@ function RtcViewerResultPage({
   initialImages,
   onDone,
 }: RtcViewerResultPageProps) {
-  const photosQuery = rtcStoredPhotoQuery.useReadRoomRtcStoredPhotos({
+  const {
+    data: storedPhotoData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isPending,
+    refetch,
+  } = rtcStoredPhotoQuery.useReadRoomRtcStoredPhotos({
     roomId,
     take: RTC_STORED_PHOTO_MAX_TAKE,
   });
@@ -55,7 +62,7 @@ function RtcViewerResultPage({
 
     // 방 사진 API 응답을 합친다.
     // 같은 ID가 있으면 API의 최신 URL을 사용한다.
-    for (const page of photosQuery.data?.pages ?? []) {
+    for (const page of storedPhotoData?.pages ?? []) {
       for (const photo of page.items) {
         uniqueImages.set(photo.id, {
           id: photo.id,
@@ -65,11 +72,11 @@ function RtcViewerResultPage({
     }
 
     return [...uniqueImages.values()];
-  }, [initialImages, photosQuery.data]);
+  }, [initialImages, storedPhotoData]);
 
   // RPC로 받은 사진도 없고 API까지 실패한 경우에만
   // 전체 오류 화면을 표시한다.
-  if (!photosQuery.isPending && images.length === 0) {
+  if (!isPending && images.length === 0) {
     return (
       <SafeAreaView
         style={{
@@ -90,7 +97,7 @@ function RtcViewerResultPage({
             <Button
               variant="outline"
               onPress={() => {
-                void photosQuery.refetch();
+                void refetch();
               }}
             >
               <ButtonText>다시 시도</ButtonText>
@@ -111,11 +118,11 @@ function RtcViewerResultPage({
       maxSelection={RTC_MAX_SELECTED_PHOTOS}
       // RPC 이미지가 이미 있다면 API 조회 중이어도
       // Skeleton 대신 해당 이미지를 바로 표시한다.
-      isPending={photosQuery.isPending && images.length === 0}
-      isFetchingNextPage={photosQuery.isFetchingNextPage}
+      isPending={isPending && images.length === 0}
+      isFetchingNextPage={isFetchingNextPage}
       onEndReached={() => {
-        if (photosQuery.hasNextPage && !photosQuery.isFetchingNextPage) {
-          void photosQuery.fetchNextPage();
+        if (hasNextPage && !isFetchingNextPage) {
+          void fetchNextPage();
         }
       }}
       onDone={onDone}

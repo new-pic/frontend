@@ -44,7 +44,7 @@ imperative ref로 호출한다. 변경량은 작지만 Camera owner 밖으로 �
 
 ### Option B: 기능 경계를 유지한 통합 구조
 
-Camera 설정은 `capture-photo`, SSE transport와 schema는 `entities/rtc`,
+Camera 설정은 `capture-photo`, SSE transport와 schema는 `entities/rtc-room`,
 구독 lifecycle과 RTC 메뉴는 `features/rtc`, 화면 조합은 CameraPage가
 담당한다. 종료는 controlled command로 기존 LiveKit 절차를 재사용하고
 사진 상세는 shared gallery로 분리한다.

@@ -1,15 +1,17 @@
 import {
-  createVisionCameraVideoPublisher,
   decodeRtcRoomEndedRpcPayload,
   encodeRtcRoomEndedRpcPayload,
   RTC_ROOM_ENDED_RPC_ACK,
   RTC_ROOM_ENDED_RPC_METHOD,
   RtcEndRoomResponse,
-  RtcLiveKitConnection,
   RtcRoomResponse,
+} from "@entities/rtc-room";
+import {
+  createVisionCameraVideoPublisher,
+  RtcLiveKitConnection,
   RtcVideoPublisher,
   RtcVideoPublisherFactory,
-} from "@entities/rtc";
+} from "@entities/rtc-session";
 import type { RtcHostFinalizationState } from "@features/rtc/host-controls";
 import {
   LiveKitRoom,

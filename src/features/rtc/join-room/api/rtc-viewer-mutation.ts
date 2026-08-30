@@ -1,16 +1,18 @@
 import {
-  assertRtcAppAccessToken,
-  isCurrentRtcViewerSession,
   type RtcJoinRoomRequest,
   RtcJoinRoomRequestSchema,
   type RtcJoinRoomResponse,
   type RtcLeaveRoomRequest,
   type RtcLeaveRoomResponse,
+  verifyRtcId,
+} from "@entities/rtc-room";
+import {
+  assertRtcAppAccessToken,
+  isCurrentRtcViewerSession,
   type RtcViewerLiveKitTokenRequest,
   type RtcViewerLiveKitTokenResponse,
   useRtcStore,
-  verifyRtcId,
-} from "@entities/rtc";
+} from "@entities/rtc-session";
 import { privateApiClient } from "@shared/api";
 import { useMutation } from "@tanstack/react-query";
 
