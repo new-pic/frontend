@@ -220,7 +220,7 @@ test("Welcome UI와 로그인 use-case가 동의 전 요청을 이중 차단한�
   assert.doesNotMatch(openTermsHandler[0], /setTermsAgreed/);
 });
 
-test("약관 안내 Card와 체크박스 label은 공용 테두리와 폰트를 사용한다", () => {
+test("약관 안내 Card는 공용 테두리를 사용하고 체크박스 label은 Medium 굵기를 유지한다", () => {
   const welcomeSource = readSource("src/pages/welcome/ui/welcome-page.tsx");
   const checkboxSource = readSource("src/shared/ui/checkbox/index.tsx");
 
@@ -228,10 +228,13 @@ test("약관 안내 Card와 체크박스 label은 공용 테두리와 폰트를 
     welcomeSource,
     /<Card size="sm" className="gap-3 border-outline shadow-none">/,
   );
-  assert.match(checkboxSource, /checkboxLabelStyle = tva\(\{[\s\S]*font-sans/);
+  assert.match(
+    checkboxSource,
+    /checkboxLabelStyle = tva\(\{[\s\S]*font-medium/,
+  );
   assert.doesNotMatch(
     checkboxSource,
-    /checkboxLabelStyle = tva\(\{[\s\S]*font-body/,
+    /checkboxLabelStyle = tva\(\{[\s\S]*font-sans/,
   );
 });
 
