@@ -2,7 +2,7 @@ import type { BlockedUserListResponse, PaginationParams } from "@entities/user";
 import { privateApiClient } from "@shared/api";
 import { useAuthStore } from "@shared/model";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { profilePageQueryKeys } from "../model/query-keys";
+import { blockedUsersPageQueryKeys } from "../model/query-keys";
 
 export function useReadBlockedUsers(params: PaginationParams) {
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -10,7 +10,7 @@ export function useReadBlockedUsers(params: PaginationParams) {
   const userId = useAuthStore((state) => state.userId);
 
   return useInfiniteQuery({
-    queryKey: profilePageQueryKeys.blockedUserList(userId, params),
+    queryKey: blockedUsersPageQueryKeys.blockedUserList(userId, params),
     queryFn: async ({
       pageParam,
       signal,

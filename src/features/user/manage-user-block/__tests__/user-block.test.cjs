@@ -200,7 +200,7 @@ test("차단 해제 성공 후 차단 목록 cache에서 사용자 행을 제거
 
 test("차단 API와 인증된 댓글 조회 endpoint를 사용한다", () => {
   const blockListQuerySource = readSource(
-    "../../../../pages/profile/api/blocked-user-query.ts",
+    "../../../../pages/profile/blocked-users/api/blocked-user-query.ts",
   );
   const blockMutationSource = readSource("../api/user-block-mutation.ts");
   const commentQuerySource = readSource(
@@ -232,10 +232,10 @@ test("피드와 댓글 메뉴에 신고와 작성자 차단 action을 함께 제
 
 test("프로필의 회원 전용 차단 목록에서 차단 해제를 제공한다", () => {
   const profileSource = readSource(
-    "../../../../pages/profile/ui/profile-page.tsx",
+    "../../../../pages/profile/overview/ui/profile-page.tsx",
   );
   const blockedUsersSource = readSource(
-    "../../../../pages/profile/ui/profile-blocked-users-page.tsx",
+    "../../../../pages/profile/blocked-users/ui/profile-blocked-users-page.tsx",
   );
 
   assert.match(profileSource, /!isGuest[\s\S]*차단한 사용자[\s\S]*로그아웃/);

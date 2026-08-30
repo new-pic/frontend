@@ -502,7 +502,7 @@ Capture의 `SessionPhoto`는 구조적으로 이 interface를 만족하고 Camer
 | `feed-processing/lib/refresh-published-feed-lists.ts`    | `@entities/feed/api/feed-query`                             | `@entities/feed`의 `feedQuery`  |
 | 동일 파일                                                | `@entities/user/api/user-query`                             | `@entities/user`의 `usersQuery` |
 | `update-feed-pick/lib/refresh-saved-feed-guide-cache.ts` | `@entities/user/api/user-query`                             | `@entities/user`의 `usersQuery` |
-| `pages/profile/ui/profile-page.tsx`                      | `@shared/model/auth-store`                                  | `@shared/model`                 |
+| `pages/profile/overview/ui/profile-page.tsx`             | `@shared/model/auth-store`                                  | `@shared/model`                 |
 
 이 6건은 이미 필요한 export가 존재한다. import 계약만 바꾸면 되고 상태,
 네트워크 및 UI lifecycle은 바뀌지 않는다.

@@ -133,7 +133,7 @@ public API를 소비한다. 이를 Profile Page `api`에 두면 Feed Detail Feat
 
 다음 조회는 실제 Page 전용이므로 Page `api`로 이동한다.
 
-- Profile Page: 차단 사용자 목록
+- Profile blocked-users Page: 차단 사용자 목록
 - Camera Page: RTC 방 저장 사진
 
 다음 상태는 여러 slice가 공유하므로 Entity에 유지한다.
@@ -177,8 +177,8 @@ public API를 소비한다. 이를 Profile Page `api`에 두면 Feed Detail Feat
 - Camera Guide 전용 Feed pose/background-removal 조회를 `guide-feed/api`로
   이동했다.
 - Feed Detail 댓글 조회를 Widget `api`로 이동했다.
-- 차단 목록은 Profile Page `api`, RTC 방 저장 사진은 Camera Page `api`로
-  이동했다.
+- 차단 목록은 Profile blocked-users Page `api`, RTC 방 저장 사진은 Camera
+  Page `api`로 이동했다.
 - 내 RTC 저장 사진 조회는 Profile Preview Widget과 전체 사진 Page가 같은
   cache를 공유하므로 `RtcStoredPhoto` Entity가 hook과 list leaf key를
   소유하도록 유지했다.

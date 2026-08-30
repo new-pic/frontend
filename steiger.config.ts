@@ -24,9 +24,12 @@ export default defineConfig([
       "./src/features/rtc/host-controls/**",
       "./src/features/rtc/reactions/**",
       "./src/features/tags/select-feed-tags/**",
+      "./src/features/user/delete-account/**",
+      "./src/features/user/manage-user-block/**",
       "./src/features/user/save-social-login/**",
       "./src/widgets/feed/detail/**",
       "./src/widgets/feed/edit/**",
+      "./src/widgets/profile/rtc-photo-preview/**",
     ],
     rules: {
       // 단일 소비여도 독립 상태, lifecycle 또는 실패 경계를 소유합니다.

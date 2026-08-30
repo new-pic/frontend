@@ -101,7 +101,8 @@ Blocked-list cache removal + feed/comment refresh
 - 피드·댓글 cache 구조 판별과 순수 변환: `entities/feed`
 - 확인창, mutation 순서, cache 동기화: `features/user/manage-user-block`
 - 더보기 메뉴 조합과 상세 navigation: `widgets/feed/detail`
-- 차단 목록 화면과 profile 진입점: `pages/profile`
+- 차단 목록 화면: `pages/profile/blocked-users`
+- profile 진입점: `pages/profile/overview`
 - 차단 목록과 요청 상태: React Query
 - 회원/게스트 판별과 로그인 유도: 기존 member guard와 auth store
 
