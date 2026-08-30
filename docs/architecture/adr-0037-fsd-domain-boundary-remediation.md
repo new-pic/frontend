@@ -1,5 +1,9 @@
 # ADR-0037: FSD 위반을 책임과 lifecycle 경계로 해소
 
+> Feed collection API와 Query Key 소유권에 관한 결정은 이후
+> ADR-0039에서 사용 사례 API와 공유 cache identity를 분리하는 방향으로
+> 대체되었다.
+
 ## Decision
 
 Steiger가 발견한 제품 코드의 구조 위반을 다음 원칙으로 해소한다.

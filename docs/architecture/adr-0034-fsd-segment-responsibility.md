@@ -1,5 +1,9 @@
 # ADR-0034: FSD 세그먼트의 책임 기반 hook 배치
 
+> 서버 요청 hook의 레이어 소유권은 이후 ADR-0039에서 구체화되었다.
+> React Query hook은 계속 `api` 세그먼트에 두되, 사용 사례 전용 요청은
+> Entity가 아니라 해당 Feature/Page/Widget이 소유한다.
+
 ## Decision
 
 파일이 hook인지 여부가 아니라 코드가 소유하는 책임을 기준으로 FSD
