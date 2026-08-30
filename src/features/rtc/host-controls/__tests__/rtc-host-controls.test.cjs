@@ -145,7 +145,7 @@ test("카메라 종료 오버레이는 lifecycle을 유지한 채 입력과 화�
 });
 
 test("사진이 포함된 RTC 종료 요청은 호스트 인증과 upload fetch를 사용한다", () => {
-  const source = readSource("../../../../entities/rtc/api/rtc-host-query.ts");
+  const source = readSource("../api/rtc-host-query.ts");
 
   assert.match(source, /const headers = createRtcHostHeaders\(id\)/);
   assert.match(source, /uploadFetchClient\.patch\(\{/);

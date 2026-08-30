@@ -1,8 +1,8 @@
+import type { FeedAiJobStatusResponseDto } from "@entities/feed";
 import { createSseParser, privateApiClient } from "@shared/api";
 import { env } from "@shared/config";
 import { useAuthStore } from "@shared/model";
 import { fetch } from "expo/fetch";
-import type { FeedAiJobStatusResponseDto } from "../model";
 import { parseFeedAiJobEvent, type FeedAiJobEvent } from "./feed-ai-job-event";
 
 interface SubscribeFeedAiJobEventsOptions {
@@ -29,9 +29,7 @@ export async function subscribeFeedAiJobEvents({
   onOpen,
   onEvent,
 }: SubscribeFeedAiJobEventsOptions): Promise<void> {
-  if (!env.API_URL) {
-    throw new Error("API_URL is not configured");
-  }
+  if (!env.API_URL) throw new Error("API_URL is not configured");
 
   const accessToken = useAuthStore.getState().accessToken;
   const response = await fetch(`${env.API_URL}/feed/jobs/${jobId}/events`, {
@@ -51,7 +49,6 @@ export async function subscribeFeedAiJobEvents({
   }
 
   onOpen?.();
-
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   const parser = createSseParser((message) => {

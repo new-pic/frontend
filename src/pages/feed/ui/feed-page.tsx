@@ -1,8 +1,8 @@
-import { feedQuery } from "@entities/feed";
 import {
   useFeedPublishingPipelineActive,
   useRefreshPublishedFeeds,
 } from "@features/feed/save-feed";
+import { feedCollectionQuery } from "@features/feed/browse-feed-detail";
 import { TagBottomSheet, TagList } from "@features/tags/select-feed-tags";
 import { gradients } from "@shared/ui/theme";
 import { useDebouncedValue } from "@shared/lib/debounce";
@@ -32,7 +32,7 @@ export function FeedPage() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = feedQuery.useReadFeeds({
+  } = feedCollectionQuery.useReadFeeds({
     take: 24,
     q: debouncedSearchQuery || undefined,
     tag: selectedTags.length > 0 ? selectedTags.join(",") : undefined,

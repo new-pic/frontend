@@ -11,6 +11,7 @@ import {
 } from "@tanstack/react-query";
 import { useAuthStore } from "@shared/model";
 import type { FeedDetailSource } from "./feed-detail-navigation";
+import { feedCollectionQuery } from "../api";
 
 interface UseFeedDetailCollectionParams {
   source: FeedDetailSource;
@@ -38,7 +39,7 @@ function getFeedDetailCollectionQueryOptions(
 
   switch (source) {
     case "mine":
-      return feedQuery.myFeedsInfiniteQueryOptions(
+      return feedCollectionQuery.myFeedsInfiniteQueryOptions(
         userId,
         paginationParams,
       ) as unknown as FeedDetailCollectionQueryOptions;
@@ -48,12 +49,12 @@ function getFeedDetailCollectionQueryOptions(
         paginationParams,
       ) as unknown as FeedDetailCollectionQueryOptions;
     case "liked":
-      return feedQuery.likedFeedsInfiniteQueryOptions(
+      return feedCollectionQuery.likedFeedsInfiniteQueryOptions(
         userId,
         paginationParams,
       ) as unknown as FeedDetailCollectionQueryOptions;
     case "public":
-      return feedQuery.feedsInfiniteQueryOptions(
+      return feedCollectionQuery.publicFeedsInfiniteQueryOptions(
         params,
       ) as unknown as FeedDetailCollectionQueryOptions;
   }

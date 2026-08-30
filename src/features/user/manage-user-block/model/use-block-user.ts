@@ -1,4 +1,4 @@
-import { userBlockQuery, userQueryKeys } from "@entities/user";
+import { userQueryKeys } from "@entities/user";
 import { getApiErrorMessage } from "@shared/api";
 import { useConfirm } from "@shared/lib";
 import { useQueryClient } from "@tanstack/react-query";
@@ -8,6 +8,7 @@ import {
   hideBlockedUserContent,
   refreshUserContentQueries,
 } from "./blocked-user-cache";
+import { userBlockQuery } from "../api";
 
 interface BlockUserOptions {
   userId: string;
@@ -22,7 +23,7 @@ interface UseBlockUserParams {
 export function useBlockUser({ requireMember }: UseBlockUserParams) {
   const openConfirm = useConfirm();
   const queryClient = useQueryClient();
-  const blockMutation = userBlockQuery.useBlockUser();
+  const blockMutation = userBlockQuery.useBlockUserMutation();
   const isBlockingRef = useRef(false);
 
   const blockUser = useCallback(

@@ -1,11 +1,11 @@
-import { feedQuery } from "@entities/feed";
 import { useConfirm } from "@shared/lib";
 import { router } from "expo-router";
 import { useCallback } from "react";
+import { deleteFeedQuery } from "../api";
 
 export function useDeleteFeed(feedId: string) {
   const openConfirm = useConfirm();
-  const { isPending, mutate } = feedQuery.useDeleteFeed();
+  const { isPending, mutate } = deleteFeedQuery.useDeleteFeedMutation();
 
   const deleteFeed = useCallback(async () => {
     if (isPending) return;

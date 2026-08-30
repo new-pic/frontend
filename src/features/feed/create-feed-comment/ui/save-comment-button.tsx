@@ -1,7 +1,8 @@
-import { feedQuery, type CreateFeedCommentRequest } from "@entities/feed";
+import type { CreateFeedCommentRequest } from "@entities/feed";
 import { Button, ButtonText, Text, VStack } from "@shared/ui";
 import { useWatch } from "react-hook-form";
 import type { UseCreateFeedCommentFormReturn } from "../model/use-create-feed-comment-form";
+import { feedCommentQuery } from "../api";
 
 interface SaveCommentButtonProps {
   feedId: string;
@@ -14,7 +15,9 @@ export function SaveCommentButton({
   form,
   requireMember,
 }: SaveCommentButtonProps) {
-  const mutationToCreateComment = feedQuery.useCreateFeedComment({ feedId });
+  const mutationToCreateComment = feedCommentQuery.useCreateFeedComment({
+    feedId,
+  });
   const content = useWatch({
     control: form.control,
     name: "content",

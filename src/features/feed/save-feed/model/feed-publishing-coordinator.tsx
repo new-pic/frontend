@@ -1,6 +1,5 @@
 import {
   CreateFeedRequestSchema,
-  feedQuery,
   UpdateFeedRequestSchema,
 } from "@entities/feed";
 import { getApiErrorMessage } from "@shared/api";
@@ -9,11 +8,12 @@ import { File } from "expo-file-system";
 import { useEffect } from "react";
 import { useFeedProcessingStore } from "./feed-processing-store";
 import { useFeedPublishingStore } from "./feed-publishing-store";
+import { feedPublishingQuery } from "../api";
 
 export function FeedPublishingCoordinator() {
   const task = useFeedPublishingStore((state) => state.task);
-  const createFeedMutation = feedQuery.useCreateFeed();
-  const updateFeedMutation = feedQuery.useUpdateFeed({
+  const createFeedMutation = feedPublishingQuery.useCreateFeed();
+  const updateFeedMutation = feedPublishingQuery.useUpdateFeed({
     feedId: task?.command.kind === "UPDATE" ? task.command.feedId : undefined,
   });
 

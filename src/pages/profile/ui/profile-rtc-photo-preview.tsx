@@ -1,7 +1,4 @@
-import {
-  rtcStoredPhotoQuery,
-  type RtcStoredPhoto,
-} from "@entities/rtc-stored-photo";
+import { type RtcStoredPhoto } from "@entities/rtc-stored-photo";
 import {
   mergeUniqueRtcStoredPhotos,
   RTC_STORED_PHOTO_GALLERY_CONFIG,
@@ -13,6 +10,7 @@ import { router } from "expo-router";
 import { memo, useEffect, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { shouldShowProfileRtcPhotoPreview } from "../model/profile-rtc-photo-preview-visibility";
+import { rtcStoredPhotoQuery } from "../api";
 
 function getDisplayablePhotos(
   photos: RtcStoredPhoto[],

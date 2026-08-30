@@ -1,4 +1,3 @@
-import { rtcViewerQuery } from "@entities/rtc";
 import { getApiErrorMessage } from "@shared/api";
 import {
   createCameraJoinPath,
@@ -19,6 +18,7 @@ import {
 import { Href, router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Alert } from "react-native";
+import { rtcViewerQuery } from "../api";
 
 const sanitizeCode = (value: string) => value.replace(/\D/g, "").slice(0, 6);
 

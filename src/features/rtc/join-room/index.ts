@@ -10,3 +10,4 @@ export {
   type RtcViewerEntryPhase,
   type RtcViewerEntryStreamState,
 } from "./model/use-rtc-viewer-entry";
+export { rtcViewerQuery } from "./api";

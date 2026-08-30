@@ -3,12 +3,12 @@ import {
   rtcQuery,
   RtcRoomResponse,
   RtcRoomResponseSchema,
-  rtcViewerQuery,
   type RtcRoomEvent,
   type RtcViewerSession,
 } from "@entities/rtc";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { resolveRtcViewerRoomSignal } from "./rtc-viewer-entry";
+import { rtcViewerQuery } from "../api";
 
 export type RtcViewerEntryPhase =
   | "IDLE"

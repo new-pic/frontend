@@ -1,15 +1,15 @@
-import { usersQuery } from "@entities/user";
 import { getApiErrorMessage } from "@shared/api";
 import { useConfirm } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import { router } from "expo-router";
 import { useCallback } from "react";
 import { Alert } from "react-native";
+import { accountQuery } from "../api";
 
 export function useDeleteAccount() {
   const openConfirm = useConfirm();
   const logout = useAuthStore((state) => state.logout);
-  const { isPending, mutateAsync } = usersQuery.useRequestAccountWithdrawal();
+  const { isPending, mutateAsync } = accountQuery.useRequestAccountWithdrawal();
 
   const deleteAccount = useCallback(async () => {
     if (isPending) return;

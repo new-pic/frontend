@@ -1,31 +1,27 @@
+import {
+  assertRtcAppAccessToken,
+  isCurrentRtcViewerSession,
+  type RtcJoinRoomRequest,
+  RtcJoinRoomRequestSchema,
+  type RtcJoinRoomResponse,
+  type RtcLeaveRoomRequest,
+  type RtcLeaveRoomResponse,
+  type RtcViewerLiveKitTokenRequest,
+  type RtcViewerLiveKitTokenResponse,
+  useRtcStore,
+  verifyRtcId,
+} from "@entities/rtc";
 import { privateApiClient } from "@shared/api";
 import { useMutation } from "@tanstack/react-query";
-import { assertRtcAppAccessToken, verifyRtcId } from "../lib";
-import {
-  RtcJoinRoomRequest,
-  RtcJoinRoomRequestSchema,
-  RtcJoinRoomResponse,
-  RtcLeaveRoomRequest,
-  RtcLeaveRoomResponse,
-  RtcViewerLiveKitTokenRequest,
-  RtcViewerLiveKitTokenResponse,
-  isCurrentRtcViewerSession,
-  useRtcStore,
-} from "../model";
 
-/**
- * QR 또는 6자리 코드로 RTC 방 참여
- */
-export const useJoinRtcRoom = () => {
+export function useJoinRtcRoom() {
   return useMutation({
     mutationFn: async (request: RtcJoinRoomRequest) => {
       assertRtcAppAccessToken();
       const parsedRequest = RtcJoinRoomRequestSchema.parse(request);
-
       const response = await privateApiClient.post<RtcJoinRoomResponse>(
         `/rtc/rooms/code/${parsedRequest.code}/join`,
       );
-
       return response.data;
     },
     onSuccess: (response) => {
@@ -35,17 +31,13 @@ export const useJoinRtcRoom = () => {
       });
     },
   });
-};
+}
 
-/**
- * 참여자용 LiveKit 연결 정보 발급
- */
-export const useCreateViewerLiveKitToken = () => {
+export function useCreateViewerLiveKitToken() {
   return useMutation({
     mutationFn: async ({ participantId }: RtcViewerLiveKitTokenRequest) => {
       assertRtcAppAccessToken();
       const id = verifyRtcId(participantId, "RTC 참여자 ID");
-
       const response =
         await privateApiClient.post<RtcViewerLiveKitTokenResponse>(
           `/rtc/participants/${id}/livekit-token`,
@@ -61,7 +53,6 @@ export const useCreateViewerLiveKitToken = () => {
       ) {
         return;
       }
-
       useRtcStore.getState().setLiveKitConnection({
         role: "VIEWER",
         url: response.url,
@@ -69,24 +60,18 @@ export const useCreateViewerLiveKitToken = () => {
       });
     },
   });
-};
+}
 
-/**
- * RTC 방에서 참여자 퇴장
- */
-export const useLeaveRtcRoom = () => {
+export function useLeaveRtcRoom() {
   return useMutation({
     mutationFn: async ({ participantId }: RtcLeaveRoomRequest) => {
       assertRtcAppAccessToken();
-
       const id = verifyRtcId(participantId, "RTC 참여자 ID");
-
       const response = await privateApiClient.patch<RtcLeaveRoomResponse>(
         `/rtc/participants/${id}/leave`,
         undefined,
       );
-
       return response.data;
     },
   });
-};
+}

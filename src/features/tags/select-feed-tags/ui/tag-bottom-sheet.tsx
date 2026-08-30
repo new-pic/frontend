@@ -1,4 +1,3 @@
-import { feedQuery } from "@entities/feed";
 import { colors } from "@shared/ui/theme";
 import { useDebouncedValue } from "@shared/lib/debounce";
 import {
@@ -19,6 +18,7 @@ import {
 import { IconCheck, IconX } from "@tabler/icons-react-native";
 import { useEffect, useState } from "react";
 import { FlatList, View } from "react-native";
+import { feedTagQuery } from "../api";
 
 const TAG_BOTTOM_SHEET_SNAP_POINTS: string[] = ["100%"];
 const DEFAULT_MAX_SELECT_COUNT = 3;
@@ -40,7 +40,9 @@ export function TagBottomSheet({
 }: TagBottomSheetProps) {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
-  const { data } = feedQuery.useReadTags({ keyword: debouncedSearchQuery });
+  const { data } = feedTagQuery.useReadTags({
+    keyword: debouncedSearchQuery,
+  });
   const [localSelectedTags, setLocalSelectedTags] = useState<string[]>(
     selectedTags || [],
   );

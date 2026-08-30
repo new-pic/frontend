@@ -1,4 +1,4 @@
-import { userBlockQuery, userQueryKeys } from "@entities/user";
+import { userQueryKeys } from "@entities/user";
 import { getApiErrorMessage } from "@shared/api";
 import { useConfirm } from "@shared/lib";
 import { useQueryClient } from "@tanstack/react-query";
@@ -8,6 +8,7 @@ import {
   refreshUserContentQueries,
   removeUnblockedUserFromListCache,
 } from "./blocked-user-cache";
+import { userBlockQuery } from "../api";
 
 interface UnblockUserOptions {
   userId: string;
@@ -17,7 +18,7 @@ interface UnblockUserOptions {
 export function useUnblockUser() {
   const openConfirm = useConfirm();
   const queryClient = useQueryClient();
-  const unblockMutation = userBlockQuery.useUnblockUser();
+  const unblockMutation = userBlockQuery.useUnblockUserMutation();
   const isUnblockingRef = useRef(false);
 
   const unblockUser = useCallback(

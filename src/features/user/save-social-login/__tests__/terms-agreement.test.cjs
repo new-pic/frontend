@@ -262,7 +262,9 @@ test("Apple 로그인은 iOS 지원 여부를 확인하고 시스템 인증 결�
   const loginSource = readSource(
     "src/features/user/save-social-login/model/use-social-login.ts",
   );
-  const authQuerySource = readSource("src/entities/user/api/auth-query.ts");
+  const authQuerySource = readSource(
+    "src/features/user/save-social-login/api/social-login-mutation.ts",
+  );
   const appConfig = JSON.parse(readSource("app.json"));
 
   assert.match(welcomeSource, /appleLogin\.isAvailable \? \(/);
@@ -283,7 +285,7 @@ test("Apple 로그인은 iOS 지원 여부를 확인하고 시스템 인증 결�
   assert.match(loginSource, /isLoading: activeLoginProvider === "google"/);
   assert.match(loginSource, /isLoading: activeLoginProvider === "guest"/);
   assert.match(welcomeSource, /<ButtonSpinner color="white" \/>/);
-  assert.match(authQuerySource, /post\("\/auth\/apple", request\)/);
+  assert.match(authQuerySource, /post\(\s*"\/auth\/apple",\s*request/);
   assert.equal(appConfig.expo.ios.usesAppleSignIn, true);
   assert.equal(
     appConfig.expo.plugins.includes("expo-apple-authentication"),
@@ -309,10 +311,7 @@ test("Apple과 Google 로그인은 세션 저장과 후속 이동을 공유한�
     (loginSource.match(/response\.status === "NEED_NICKNAME"/g) ?? []).length,
     1,
   );
-  assert.equal(
-    (loginSource.match(/await resetCurrentUser\(\)/g) ?? []).length,
-    1,
-  );
+  assert.doesNotMatch(loginSource, /resetCurrentUser/);
 });
 
 test("Welcome은 진입 시 약관 핵심 내용과 명시적 동의 UI를 표시한다", () => {

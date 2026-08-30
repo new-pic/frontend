@@ -13,3 +13,4 @@ export {
 } from "./model/use-rtc-room-events";
 export { RtcCameraRoomMenu } from "./ui/rtc-camera-room-menu";
 export { RtcFinalizationOverlay } from "./ui/rtc-finalization-overlay";
+export { rtcHostQuery } from "./api";

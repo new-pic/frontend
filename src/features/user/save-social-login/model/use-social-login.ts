@@ -1,4 +1,4 @@
-import { authQuery, type SocialLoginResponse } from "@entities/user";
+import type { SocialLoginResponse } from "@entities/user";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { getApiErrorMessage } from "@shared/api";
 import { env } from "@shared/config";
@@ -8,6 +8,7 @@ import * as AppleAuthentication from "expo-apple-authentication";
 import { Href, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
+import { authQuery } from "../api";
 
 function isAppleLoginCanceled(error: unknown) {
   return (

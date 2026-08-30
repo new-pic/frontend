@@ -1,9 +1,9 @@
-import { rtcQuery } from "@entities/rtc";
 import { useMemo } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { adaptRtcReactionEmojis } from "../lib/rtc-reaction-domain";
 import { useRtcReactionChannel } from "../model/use-rtc-reaction-channel";
 import { RtcViewerReactionButton } from "./rtc-viewer-reaction-button";
+import { rtcReactionQuery } from "../api";
 
 interface RtcViewerReactionPickerProps {
   active: boolean;
@@ -16,7 +16,7 @@ export function RtcViewerReactionPicker({
   roomId,
   participantId,
 }: RtcViewerReactionPickerProps) {
-  const emojiQuery = rtcQuery.useReadFeedbackEmojis();
+  const emojiQuery = rtcReactionQuery.useReadFeedbackEmojis();
   const emojis = useMemo(
     () => adaptRtcReactionEmojis(emojiQuery.data),
     [emojiQuery.data],

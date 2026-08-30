@@ -1,4 +1,3 @@
-import { rtcStoredPhotoQuery } from "@entities/rtc-stored-photo";
 import {
   mergeUniqueRtcStoredPhotos,
   RTC_STORED_PHOTO_GALLERY_CONFIG,
@@ -24,6 +23,7 @@ import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { rtcStoredPhotoQuery } from "../api";
 
 export function ProfileRtcPhotoPage() {
   const [galleryIndex, setGalleryIndex] = useState<number | null>(null);

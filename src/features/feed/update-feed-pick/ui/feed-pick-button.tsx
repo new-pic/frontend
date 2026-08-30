@@ -1,9 +1,9 @@
-import { feedQuery } from "@entities/feed";
 import { colors } from "@shared/ui/theme";
 import { Button, ButtonIcon } from "@shared/ui";
 import { IconBookmarkFilled } from "@tabler/icons-react-native";
 import { useRef } from "react";
 import { useRefreshSavedFeedGuideCache } from "../model/use-refresh-saved-feed-guide-cache";
+import { feedPickQuery } from "../api";
 
 interface FeedPickButtonProps {
   feedId?: string;
@@ -21,8 +21,8 @@ export function FeedPickButton({
   requireMember,
 }: FeedPickButtonProps) {
   const lastPressedAtRef = useRef(0);
-  const mutationToSave = feedQuery.useSaveFeed();
-  const mutationToUnsave = feedQuery.useUnsaveFeed();
+  const mutationToSave = feedPickQuery.useSaveFeed();
+  const mutationToUnsave = feedPickQuery.useUnsaveFeed();
   const refreshSavedFeedGuideCache = useRefreshSavedFeedGuideCache();
   const mutation = isPicked ? mutationToUnsave : mutationToSave;
   const isPending = mutationToSave.isPending || mutationToUnsave.isPending;

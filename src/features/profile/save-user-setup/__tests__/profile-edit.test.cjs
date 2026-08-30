@@ -124,7 +124,10 @@ test("미리보기는 새 선택 이미지를 기존 서버 이미지보다 우�
 test("프로필 수정 API는 expo/fetch multipart 클라이언트를 사용한다", () => {
   const projectRoot = path.resolve(__dirname, "../../../../../");
   const querySource = fs.readFileSync(
-    path.join(projectRoot, "src/entities/user/api/user-query.ts"),
+    path.join(
+      projectRoot,
+      "src/features/profile/save-user-setup/api/update-profile-mutation.ts",
+    ),
     "utf8",
   );
   const fieldSource = fs.readFileSync(
