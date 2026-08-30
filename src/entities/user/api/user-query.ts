@@ -7,14 +7,12 @@ import { ObjectToFormData } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  API_QUERY_KEY,
-  getUserQueryIdentity,
   ProfileRequest,
   UpdateProfileRequestSchema,
+  userQueryKeys,
   UserProfile,
 } from "../model";
 
-const QUERY_KEY = [API_QUERY_KEY, "user"] as const;
 const ACCOUNT_WITHDRAWAL_PENDING_MESSAGE = "탈퇴 유예 중";
 
 function isAccountWithdrawalPendingError(error: unknown) {
@@ -22,13 +20,6 @@ function isAccountWithdrawalPendingError(error: unknown) {
     ACCOUNT_WITHDRAWAL_PENDING_MESSAGE,
   );
 }
-
-export const userQueryKeys = {
-  all: QUERY_KEY,
-  meAll: [...QUERY_KEY, "me"] as const,
-  me: (userId: string | null) =>
-    [...QUERY_KEY, "me", getUserQueryIdentity(userId)] as const,
-} as const;
 
 /**
  * 내 정보 조회
@@ -41,6 +32,9 @@ export function useReadMe(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: userQueryKeys.me(userId),
     queryFn: async (): Promise<UserProfile> => {
+      if (!userId) {
+        throw new Error("Cannot fetch a profile without a user session");
+      }
       const response = await privateApiClient.get("/users/me");
       return response.data;
     },
@@ -118,14 +112,4 @@ export function useRequestAccountWithdrawal() {
       }
     },
   });
-}
-
-export function useResetCurrentUser() {
-  const queryClient = useQueryClient();
-
-  return async () => {
-    await queryClient.resetQueries({
-      queryKey: userQueryKeys.meAll,
-    });
-  };
 }

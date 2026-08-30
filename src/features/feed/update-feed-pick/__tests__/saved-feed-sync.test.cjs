@@ -18,18 +18,18 @@ require.extensions[".ts"] = (module, filename) => {
   module._compile(output.outputText, filename);
 };
 
-const savedFeedsKey = [["user"], "user", "me", "saved-feeds"];
+const savedFeedListsKey = ["feed", "me", "saved-feeds"];
 let fetchCount = 0;
 const originalLoad = Module._load;
 Module._load = function load(request, parent, isMain) {
   if (request === "@entities/feed") {
     return {
+      feedQueryKeys: {
+        savedFeedLists: () => savedFeedListsKey,
+      },
       feedQuery: {
-        feedQueryKeys: {
-          savedFeeds: savedFeedsKey,
-        },
         savedFeedsInfiniteQueryOptions: (userId, { take }) => ({
-          queryKey: [...savedFeedsKey, userId, { take }],
+          queryKey: [...savedFeedListsKey, userId, { take }],
           queryFn: async () => {
             fetchCount += 1;
             return {
@@ -62,7 +62,7 @@ test("저장 성공 후 기존 Infinite cache를 버리고 첫 페이지를 다�
     },
   });
   const userId = "member-user";
-  const canonicalKey = [...savedFeedsKey, userId, { take: 24 }];
+  const canonicalKey = [...savedFeedListsKey, userId, { take: 24 }];
   queryClient.setQueryData(canonicalKey, {
     pages: [
       {

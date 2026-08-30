@@ -21,11 +21,9 @@ const originalModuleLoad = Module._load;
 Module._load = function mockQueryKeys(request, parent, isMain) {
   if (request === "@entities/feed") {
     return {
-      feedQuery: {
-        feedQueryKeys: {
-          lists: ["feed", "list"],
-          myFeeds: ["user", "me", "feeds"],
-        },
+      feedQueryKeys: {
+        lists: () => ["feed", "list"],
+        myFeedLists: () => ["feed", "me", "feeds"],
       },
     };
   }
@@ -52,7 +50,7 @@ test("게시 목록 갱신은 진행 중 요청을 취소하고 첫 페이지를
       { cancelRefetch: true, throwOnError: true },
     ],
     [
-      { queryKey: ["user", "me", "feeds"] },
+      { queryKey: ["feed", "me", "feeds"] },
       { cancelRefetch: true, throwOnError: true },
     ],
   ]);

@@ -1,4 +1,4 @@
-import { userBlockQuery } from "@entities/user";
+import { userBlockQuery, userQueryKeys } from "@entities/user";
 import { getApiErrorMessage } from "@shared/api";
 import { useConfirm } from "@shared/lib";
 import { useQueryClient } from "@tanstack/react-query";
@@ -41,7 +41,7 @@ export function useUnblockUser() {
         removeUnblockedUserFromListCache(queryClient, userId);
 
         await queryClient.invalidateQueries({
-          queryKey: userBlockQuery.userBlockQueryKeys.all,
+          queryKey: userQueryKeys.blockLists(),
         });
 
         void refreshUserContentQueries(queryClient);

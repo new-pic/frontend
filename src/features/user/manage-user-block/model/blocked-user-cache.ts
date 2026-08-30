@@ -1,10 +1,10 @@
 import {
-  feedQuery,
+  feedQueryKeys,
   isFeedAuthoredBy,
   removeCommentsByAuthorFromCacheData,
   removeFeedsByAuthorFromCacheData,
 } from "@entities/feed";
-import { type BlockedUserListResponse, userBlockQuery } from "@entities/user";
+import { type BlockedUserListResponse, userQueryKeys } from "@entities/user";
 import type {
   InfiniteData,
   QueryClient,
@@ -64,7 +64,7 @@ export function removeUnblockedUserFromListCache(
 ) {
   queryClient.setQueriesData<
     InfiniteData<BlockedUserListResponse, string | undefined>
-  >({ queryKey: userBlockQuery.userBlockQueryKeys.all }, (data) => {
+  >({ queryKey: userQueryKeys.blockLists() }, (data) => {
     if (!data) return data;
 
     return {
@@ -80,18 +80,5 @@ export function removeUnblockedUserFromListCache(
 }
 
 export async function refreshUserContentQueries(queryClient: QueryClient) {
-  await Promise.allSettled([
-    queryClient.invalidateQueries({
-      queryKey: feedQuery.feedQueryKeys.all,
-    }),
-    queryClient.invalidateQueries({
-      queryKey: feedQuery.feedQueryKeys.myFeeds,
-    }),
-    queryClient.invalidateQueries({
-      queryKey: feedQuery.feedQueryKeys.likedFeeds,
-    }),
-    queryClient.invalidateQueries({
-      queryKey: feedQuery.feedQueryKeys.savedFeeds,
-    }),
-  ]);
+  await queryClient.invalidateQueries({ queryKey: feedQueryKeys.all });
 }

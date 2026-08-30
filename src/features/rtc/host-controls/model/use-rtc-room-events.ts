@@ -1,7 +1,7 @@
 import {
   mergeRtcRoomEvent,
-  rtcHostQuery,
   rtcQuery,
+  rtcQueryKeys,
   type RtcRoomResponse,
 } from "@entities/rtc";
 import { useQueryClient } from "@tanstack/react-query";
@@ -73,7 +73,7 @@ export function useRtcRoomEvents({
               }
 
               queryClient.setQueryData<RtcRoomResponse>(
-                rtcHostQuery.rtcHostRoomQueryKey(normalizedRoomId),
+                rtcQueryKeys.hostRoom(normalizedRoomId),
                 (room) => mergeRtcRoomEvent(room, event),
               );
             },
@@ -81,7 +81,7 @@ export function useRtcRoomEvents({
         } catch {
           if (!lifecycleController.signal.aborted) {
             void queryClient.invalidateQueries({
-              queryKey: rtcHostQuery.rtcHostRoomQueryKey(normalizedRoomId),
+              queryKey: rtcQueryKeys.hostRoom(normalizedRoomId),
             });
           }
         } finally {

@@ -11,26 +11,21 @@ import type {
   PaginationParams,
   UnblockUserResponse,
 } from "../model";
-import { API_QUERY_KEY } from "../model";
-
-const QUERY_KEY = [API_QUERY_KEY, "user", "blocks"] as const;
-
-export const userBlockQueryKeys = {
-  all: QUERY_KEY,
-  list: (userId: string | null, params: PaginationParams) =>
-    [...QUERY_KEY, userId, params] as const,
-} as const;
+import { userQueryKeys } from "../model";
 
 export function blockedUsersInfiniteQueryOptions(
   userId: string | null,
   params: PaginationParams,
 ) {
   return infiniteQueryOptions({
-    queryKey: userBlockQueryKeys.list(userId, params),
+    queryKey: userQueryKeys.blockList(userId, params),
     queryFn: async ({
       pageParam,
       signal,
     }): Promise<BlockedUserListResponse> => {
+      if (!userId || useAuthStore.getState().isGuest) {
+        throw new Error("Cannot fetch blocked users without a user session");
+      }
       const response = await privateApiClient.get("/users/me/blocks", {
         params: {
           ...params,

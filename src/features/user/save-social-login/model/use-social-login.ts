@@ -1,8 +1,4 @@
-import {
-  authQuery,
-  type SocialLoginResponse,
-  usersQuery,
-} from "@entities/user";
+import { authQuery, type SocialLoginResponse } from "@entities/user";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { getApiErrorMessage } from "@shared/api";
 import { env } from "@shared/config";
@@ -38,7 +34,6 @@ export function useSocialLogin() {
   const mutationToServiceAppleLogin = authQuery.useAppleLogin();
   const mutationToServiceGoogleLogin = authQuery.useGoogleLogin();
   const mutationToGuestLogin = authQuery.useGuestLogin();
-  const resetCurrentUser = usersQuery.useResetCurrentUser();
 
   const isGuest = useAuthStore((state) => state.isGuest);
   const setSession = useAuthStore((state) => state.setSession);
@@ -100,9 +95,6 @@ export function useSocialLogin() {
       refreshToken: response.refreshToken,
       termsAgreed: response.termsAgreed,
     });
-    if (isLinkingGuestAccount) {
-      await resetCurrentUser();
-    }
     if (response.status === "NEED_NICKNAME") {
       router.replace({
         pathname: "/profile/edit",

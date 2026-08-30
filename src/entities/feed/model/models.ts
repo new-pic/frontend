@@ -7,8 +7,6 @@ import {
   UpdateFeedRequestSchema,
 } from "./schema";
 
-export const API_QUERY_KEY = ["feed"];
-
 export type CreateFeedRequestInput = z.input<typeof CreateFeedRequestSchema>;
 export type UpdateFeedRequestInput = z.input<typeof UpdateFeedRequestSchema>;
 

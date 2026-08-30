@@ -1,16 +1,10 @@
 import { apiClient } from "@shared/api";
 import { useQuery } from "@tanstack/react-query";
 import {
-  API_QUERY_KEY,
   FeedBackgroundRemovalResponse,
   FeedPoseResponse,
+  feedQueryKeys,
 } from "../model";
-
-const QUERY_KEY = [API_QUERY_KEY, "pose"] as const;
-const BACKGROUND_REMOVAL_QUERY_KEY = [
-  ...QUERY_KEY,
-  "background-removal",
-] as const;
 
 export interface FeedBackgroundRemovalQueryResult {
   feedId: string;
@@ -22,7 +16,7 @@ export interface FeedBackgroundRemovalQueryResult {
  */
 export function useReadFeedPose({ feedId }: { feedId?: string }) {
   return useQuery({
-    queryKey: [...QUERY_KEY, feedId],
+    queryKey: feedQueryKeys.pose(feedId),
     queryFn: async ({ signal }): Promise<FeedPoseResponse> => {
       const response = await apiClient.get(`/feed/${feedId}/pose`, {
         signal,
@@ -39,7 +33,7 @@ export function useReadFeedPose({ feedId }: { feedId?: string }) {
  */
 export function useReadFeedBackgroundRemoval({ feedId }: { feedId?: string }) {
   return useQuery({
-    queryKey: [...BACKGROUND_REMOVAL_QUERY_KEY, feedId],
+    queryKey: feedQueryKeys.backgroundRemoval(feedId),
     queryFn: async ({ signal }): Promise<FeedBackgroundRemovalQueryResult> => {
       if (!feedId) {
         throw new Error("feedId is required");

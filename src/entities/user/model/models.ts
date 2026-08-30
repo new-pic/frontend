@@ -9,8 +9,6 @@ import {
   UpdateProfileRequestSchema,
 } from "./schema";
 
-export const API_QUERY_KEY = ["user"] as const;
-
 export type AppleLoginRequest = z.infer<typeof AppleLoginRequestSchema>;
 export type GoogleLoginRequest = z.infer<typeof GoogleLoginRequestSchema>;
 export type GuestLoginRequest = z.infer<typeof GuestLoginRequestSchema>;

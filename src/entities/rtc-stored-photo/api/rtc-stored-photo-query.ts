@@ -8,20 +8,8 @@ import {
   RtcStoredPhotoListParamsSchema,
   RtcStoredPhotoListResponse,
   RtcStoredPhotoListResponseSchema,
+  rtcStoredPhotoQueryKeys,
 } from "../model";
-
-const QUERY_KEY = [["rtc-stored-photo"], "rtc-stored-photo"] as const;
-
-export const rtcStoredPhotoQueryKeys = {
-  all: QUERY_KEY,
-  myLists: [...QUERY_KEY, "me", "list"] as const,
-  myList: (userId: string | null, params: RtcStoredPhotoListParams) =>
-    [...QUERY_KEY, "me", "list", userId, params] as const,
-  roomLists: (roomId: string) =>
-    [...QUERY_KEY, "room", roomId, "list"] as const,
-  roomList: (roomId: string, params: RtcStoredPhotoListParams) =>
-    [...QUERY_KEY, "room", roomId, "list", params] as const,
-} as const;
 
 export interface RtcStoredPhotoListQueryOptions {
   enabled?: boolean;
@@ -48,6 +36,9 @@ export function useReadMyRtcStoredPhotos(
       pageParam,
       signal,
     }): Promise<RtcStoredPhotoListResponse> => {
+      if (!userId) {
+        throw new Error("Cannot fetch stored photos without a user session");
+      }
       const response = await privateApiClient.get("/users/me/photos", {
         params: {
           ...normalizedParams,

@@ -12,7 +12,6 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import {
-  API_QUERY_KEY,
   CommentListParams,
   CommentListResponse,
   CreateFeedCommentRequest,
@@ -24,51 +23,11 @@ import {
   FeedListResponse,
   FeedResponse,
   FeedTagResponse,
+  feedQueryKeys,
   UserFeedListParams,
   UpdateFeedRequest,
 } from "../model";
 import { updateFeedInCacheData } from "./feed-cache";
-
-const QUERY_KEY = [API_QUERY_KEY, "feed"] as const;
-
-// 피드 목록 쿼리 키
-const FEED_LIST_QUERY_KEY = [...QUERY_KEY, "list"] as const;
-
-// 기존 사용자 피드 컬렉션 캐시와 호환되도록 query key 값은 유지합니다.
-const USER_FEED_COLLECTION_QUERY_KEY = [["user"], "user"] as const;
-
-export const feedQueryKeys = {
-  all: QUERY_KEY,
-  lists: FEED_LIST_QUERY_KEY,
-  list: (params: FeedListParams) => [...FEED_LIST_QUERY_KEY, params] as const,
-  item: (feedId?: string) => [...QUERY_KEY, "item", feedId] as const,
-  myFeeds: [...USER_FEED_COLLECTION_QUERY_KEY, "me", "feeds"] as const,
-  myFeedList: (userId: string | null, params: UserFeedListParams) =>
-    [...USER_FEED_COLLECTION_QUERY_KEY, "me", "feeds", userId, params] as const,
-  likedFeeds: [...USER_FEED_COLLECTION_QUERY_KEY, "me", "liked-feeds"] as const,
-  likedFeedList: (userId: string | null, params: UserFeedListParams) =>
-    [
-      ...USER_FEED_COLLECTION_QUERY_KEY,
-      "me",
-      "liked-feeds",
-      userId,
-      params,
-    ] as const,
-  savedFeeds: [...USER_FEED_COLLECTION_QUERY_KEY, "me", "saved-feeds"] as const,
-  savedFeedList: (userId: string | null, params: UserFeedListParams) =>
-    [
-      ...USER_FEED_COLLECTION_QUERY_KEY,
-      "me",
-      "saved-feeds",
-      userId,
-      params,
-    ] as const,
-  comments: [...QUERY_KEY, "comments"] as const,
-  commentsByFeed: (feedId: string) =>
-    [...QUERY_KEY, "comments", feedId] as const,
-  commentList: (feedId: string, params: Omit<CommentListParams, "feedId">) =>
-    [...QUERY_KEY, "comments", feedId, params] as const,
-} as const;
 
 // useInfiniteQuery의 반환 data 타입
 type FeedListInfiniteData = InfiniteData<
@@ -97,16 +56,16 @@ async function optimisticallyUpdateFeedLists(
   queryClient: QueryClient,
   updateItems: (items: FeedResponse[]) => FeedResponse[],
 ) {
-  await queryClient.cancelQueries({ queryKey: FEED_LIST_QUERY_KEY });
+  await queryClient.cancelQueries({ queryKey: feedQueryKeys.lists() });
 
   // 쿼리키에 매핑되는 모든 수정 전 캐시 데이터
   const previousFeedLists = queryClient.getQueriesData<FeedListInfiniteData>({
-    queryKey: FEED_LIST_QUERY_KEY,
+    queryKey: feedQueryKeys.lists(),
   });
 
   // 쿼리키에 매핑되는 모든 캐시 데이터를 각각 수정
   queryClient.setQueriesData<FeedListInfiniteData>(
-    { queryKey: FEED_LIST_QUERY_KEY },
+    { queryKey: feedQueryKeys.lists() },
     (old) => {
       if (!old) return old;
 
@@ -221,6 +180,9 @@ export function myFeedsInfiniteQueryOptions(
   return infiniteQueryOptions({
     queryKey: feedQueryKeys.myFeedList(userId, params),
     queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
+      if (!userId || useAuthStore.getState().isGuest) {
+        throw new Error("Cannot fetch member feeds without a user session");
+      }
       const response = await privateApiClient.get("/users/me/feeds", {
         params: { ...params, cursor: pageParam },
         signal,
@@ -251,6 +213,9 @@ export function likedFeedsInfiniteQueryOptions(
   return infiniteQueryOptions({
     queryKey: feedQueryKeys.likedFeedList(userId, params),
     queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
+      if (!userId || useAuthStore.getState().isGuest) {
+        throw new Error("Cannot fetch liked feeds without a user session");
+      }
       const response = await privateApiClient.get("/users/me/liked-feeds", {
         params: { ...params, cursor: pageParam },
         signal,
@@ -284,6 +249,9 @@ export function savedFeedsInfiniteQueryOptions(
   return infiniteQueryOptions({
     queryKey: feedQueryKeys.savedFeedList(userId, params),
     queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
+      if (!userId || useAuthStore.getState().isGuest) {
+        throw new Error("Cannot fetch saved feeds without a user session");
+      }
       const response = await privateApiClient.get("/users/me/references", {
         params: { ...params, cursor: pageParam },
         signal,
@@ -368,7 +336,7 @@ export function useCreateFeedComment({ feedId }: { feedId: string }) {
 // 해시태그 목록 조회
 export function useReadTags({ keyword }: { keyword?: string }) {
   return useQuery({
-    queryKey: [...QUERY_KEY, "tags", keyword],
+    queryKey: feedQueryKeys.tags(keyword),
     queryFn: async (): Promise<FeedTagResponse> => {
       const response = await apiClient.get("/feed/tags", {
         params: { keyword },
@@ -424,7 +392,7 @@ export function useUpdateFeed({ feedId }: { feedId?: string }) {
             : feed,
         ),
       );
-      queryClient.setQueryData([...QUERY_KEY, "item", feedId], data);
+      queryClient.setQueryData(feedQueryKeys.item(feedId), data);
     },
   });
 }
@@ -458,7 +426,7 @@ export function useDeleteFeed() {
     },
     onSuccess: (_, feedId) => {
       queryClient.removeQueries({
-        queryKey: [...QUERY_KEY, "item", feedId],
+        queryKey: feedQueryKeys.item(feedId),
       });
       queryClient.removeQueries({
         queryKey: feedQueryKeys.commentsByFeed(feedId),

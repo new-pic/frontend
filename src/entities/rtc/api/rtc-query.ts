@@ -5,20 +5,18 @@ import { useQuery } from "@tanstack/react-query";
 import { fetch } from "expo/fetch";
 import { verifyRtcId } from "../lib";
 import {
-  API_QUERY_KEY,
   RtcFeedbackEmojiListResponse,
+  rtcQueryKeys,
   type RtcRoomEvent,
 } from "../model";
 import { parseRtcRoomEvent } from "./rtc-room-event";
-
-const QUERY_KEY = [API_QUERY_KEY, "global"] as const;
 
 /**
  * RTC 피드백 이모지 목록 조회
  */
 export const useReadFeedbackEmojis = () => {
   return useQuery({
-    queryKey: [...QUERY_KEY, "emojis"],
+    queryKey: rtcQueryKeys.feedbackEmojis(),
     queryFn: async () => {
       const response =
         await apiClient.get<RtcFeedbackEmojiListResponse>("/rtc/emojis");

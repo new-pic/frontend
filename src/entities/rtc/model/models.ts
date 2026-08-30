@@ -13,8 +13,6 @@ import {
   RtcSavedImageSchema,
 } from "./schema";
 
-export const API_QUERY_KEY = ["rtc"];
-
 export type RtcCreateRoomRequest = z.input<typeof RtcCreateRoomRequestSchema>;
 
 export interface RtcCreateRoomResponse {

@@ -3,7 +3,7 @@ import type { QueryClient } from "@tanstack/react-query";
 
 export function resetMyRtcStoredPhotos(queryClient: QueryClient) {
   return queryClient.resetQueries(
-    { queryKey: rtcStoredPhotoQueryKeys.myLists },
+    { queryKey: rtcStoredPhotoQueryKeys.myLists() },
     { cancelRefetch: false, throwOnError: true },
   );
 }
