@@ -28,17 +28,19 @@ function isAccountWithdrawalPendingError(error: unknown) {
 export function useReadMe(options?: { enabled?: boolean }) {
   const userId = useAuthStore((state) => state.userId);
   const accessToken = useAuthStore((state) => state.accessToken);
+  const isGuest = useAuthStore((state) => state.isGuest);
 
   return useQuery({
     queryKey: userQueryKeys.me(userId),
     queryFn: async (): Promise<UserProfile> => {
-      if (!userId) {
-        throw new Error("Cannot fetch a profile without a user session");
+      if (!userId || useAuthStore.getState().isGuest) {
+        throw new Error("Cannot fetch a profile without a member session");
       }
       const response = await privateApiClient.get("/users/me");
       return response.data;
     },
-    enabled: Boolean(userId && accessToken) && (options?.enabled ?? true),
+    enabled:
+      Boolean(userId && accessToken) && !isGuest && (options?.enabled ?? true),
   });
 }
 
@@ -51,8 +53,8 @@ export function useFetchMe() {
   const userId = useAuthStore((state) => state.userId);
 
   const fetchMe = async () => {
-    if (!userId) {
-      throw new Error("Cannot fetch a profile without a user session");
+    if (!userId || useAuthStore.getState().isGuest) {
+      throw new Error("Cannot fetch a profile without a member session");
     }
 
     return await queryClient.fetchQuery({

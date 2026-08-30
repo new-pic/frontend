@@ -824,7 +824,7 @@ Profile / Guide / Feed Browse
   ↓
 entities/feed collection query
   ↓
-React Query cache (기존 key 유지)
+React Query cache (단일 root + prefix/leaf key)
 
 Feed Detail Widget
   ├─ guard-member: 회원 접근 정책
