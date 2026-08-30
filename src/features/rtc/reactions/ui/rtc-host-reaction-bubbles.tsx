@@ -99,11 +99,9 @@ export function RtcHostReactionBubbles({
   active,
   roomId,
 }: RtcHostReactionBubblesProps) {
-  const emojiQuery = rtcReactionQuery.useReadFeedbackEmojis();
-  const emojis = useMemo(
-    () => adaptRtcReactionEmojis(emojiQuery.data),
-    [emojiQuery.data],
-  );
+  const { data: emojiData, isError: isEmojiError } =
+    rtcReactionQuery.useReadFeedbackEmojis();
+  const emojis = useMemo(() => adaptRtcReactionEmojis(emojiData), [emojiData]);
   const emojiById = useMemo(
     () => new Map(emojis.map((emoji) => [emoji.id, emoji])),
     [emojis],
@@ -162,7 +160,7 @@ export function RtcHostReactionBubbles({
     );
   }, []);
 
-  if (!active || emojiQuery.isError) return null;
+  if (!active || isEmojiError) return null;
 
   return (
     <View pointerEvents="none" style={styles.root}>

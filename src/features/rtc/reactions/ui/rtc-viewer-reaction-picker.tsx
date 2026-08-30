@@ -16,11 +16,12 @@ export function RtcViewerReactionPicker({
   roomId,
   participantId,
 }: RtcViewerReactionPickerProps) {
-  const emojiQuery = rtcReactionQuery.useReadFeedbackEmojis();
-  const emojis = useMemo(
-    () => adaptRtcReactionEmojis(emojiQuery.data),
-    [emojiQuery.data],
-  );
+  const {
+    data: emojiData,
+    isError: isEmojiError,
+    refetch: refetchEmojis,
+  } = rtcReactionQuery.useReadFeedbackEmojis();
+  const emojis = useMemo(() => adaptRtcReactionEmojis(emojiData), [emojiData]);
   const channel = useRtcReactionChannel({
     active,
     roomId,
@@ -34,11 +35,11 @@ export function RtcViewerReactionPicker({
   return (
     <View pointerEvents="box-none" className="w-full items-center bg-white">
       <View className="min-h-16 w-full justify-center">
-        {emojiQuery.isError ? (
+        {isEmojiError ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="이모지 목록 다시 불러오기"
-            onPress={() => void emojiQuery.refetch()}
+            onPress={() => void refetchEmojis()}
             className="self-center px-5 py-3"
           >
             <Text className="text-sm text-label-muted">
@@ -71,7 +72,7 @@ export function RtcViewerReactionPicker({
                 onSend={channel.sendReaction}
               />
             ))}
-            {emojis.length === 0 && !emojiQuery.isError ? (
+            {emojis.length === 0 && !isEmojiError ? (
               <Text className="px-3 text-sm text-label-muted">
                 반응 불러오는 중...
               </Text>
