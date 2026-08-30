@@ -4,12 +4,9 @@ import {
   RTC_STORED_PHOTO_GALLERY_CONFIG,
   useActiveRtcStoredPhotos,
 } from "@features/rtc-photo/browse-stored-photos";
-import { Pressable, Text, VStack } from "@shared/ui";
-import { Image } from "expo-image";
+import { Box, Image, Pressable, Text, VStack } from "@shared/ui";
 import { router } from "expo-router";
 import { memo, useEffect, useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
-import { shouldShowProfileRtcPhotoPreview } from "../model/profile-rtc-photo-preview-visibility";
 import { rtcStoredPhotoQuery } from "../api";
 
 function getDisplayablePhotos(
@@ -49,13 +46,7 @@ export const ProfileRtcPhotoPreview = memo(function ProfileRtcPhotoPreview() {
     return () => clearTimeout(timeout);
   }, [currentIndex, displayablePhotos.length]);
 
-  if (
-    !shouldShowProfileRtcPhotoPreview({
-      isQuerySuccess: photosQuery.isSuccess,
-      hasDisplayablePhoto: Boolean(currentPhoto),
-    }) ||
-    !currentPhoto
-  ) {
+  if (!photosQuery.isSuccess || !currentPhoto) {
     return null;
   }
 
@@ -65,21 +56,21 @@ export const ProfileRtcPhotoPreview = memo(function ProfileRtcPhotoPreview() {
       accessibilityLabel="최근 RTC 촬영 사진 전체 보기"
       onPress={() => router.push("/profile/rtc-photos")}
     >
-      <View style={styles.card}>
+      <Box className="h-47.5 w-full overflow-hidden rounded-3xl bg-background-muted">
         <Image
+          className="absolute inset-0"
           source={currentPhoto.imageUrl}
           contentFit="cover"
           cachePolicy="memory-disk"
           transition={RTC_STORED_PHOTO_GALLERY_CONFIG.previewTransitionMs}
-          style={StyleSheet.absoluteFill}
           onError={() =>
             setFailedPhotoIds((current) =>
               new Set(current).add(currentPhoto.id),
             )
           }
         />
-        <View style={styles.scrim} />
-        <VStack style={styles.label}>
+        <Box className="absolute inset-0 bg-black/25" />
+        <VStack className="absolute right-5 bottom-4.5 left-5">
           <Text className="text-white font-semibold" size="lg">
             최근 촬영 사진
           </Text>
@@ -87,31 +78,7 @@ export const ProfileRtcPhotoPreview = memo(function ProfileRtcPhotoPreview() {
             {displayablePhotos.length}장 · 눌러서 전체 보기
           </Text>
         </VStack>
-      </View>
+      </Box>
     </Pressable>
   );
-});
-
-const styles = StyleSheet.create({
-  card: {
-    width: "100%",
-    height: 190,
-    borderRadius: 24,
-    overflow: "hidden",
-    backgroundColor: "#eeeeee",
-  },
-  scrim: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.24)",
-  },
-  label: {
-    position: "absolute",
-    left: 20,
-    right: 20,
-    bottom: 18,
-  },
 });

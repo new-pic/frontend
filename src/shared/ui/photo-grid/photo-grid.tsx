@@ -1,5 +1,4 @@
 import { colors } from "@shared/ui/theme";
-import { Image } from "expo-image";
 import {
   IconCircle,
   IconCircleCheck,
@@ -15,6 +14,7 @@ import {
 import { Box } from "../box";
 import { Center } from "../center";
 import { Icon } from "../icon";
+import { Image } from "../image";
 import { Pressable } from "../pressable";
 import { Skeleton } from "../skeleton";
 import { Text } from "../text";
