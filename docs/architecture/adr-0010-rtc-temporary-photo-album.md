@@ -121,7 +121,7 @@ Preview / Grid UI
   진입에서 첫 페이지부터 최신 데이터를 받는다.
 - Preview는 사진이 2장 이상일 때만 단일 timeout으로 전환하며 unmount 시
   정리된다.
-- `/users/me/photos` 조회는 Profile Preview Widget과 전체 사진 Page가 같은
+- `GET /api/users/me/photos` 조회는 Profile Preview Widget과 전체 사진 Page가 같은
   infinite cache를 소비하므로 `RtcStoredPhoto` Entity가 query hook과 완전한
   list key를 소유한다. Preview의 자동 전환과 이미지 실패 상태는 Widget에,
   화면 이동 결정은 이를 조합하는 Profile Page에 둔다.
