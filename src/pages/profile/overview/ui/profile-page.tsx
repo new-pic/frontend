@@ -226,7 +226,7 @@ export function ProfilePage() {
             >
               <Text size="md">서비스 약관</Text>
             </Pressable>
-            {isAuthenticated && !isGuest ? (
+            {isAuthenticated ? (
               <>
                 <Divider className="bg-outline" />
                 <Pressable className="p-6" onPress={handleGoBlockedUsers}>

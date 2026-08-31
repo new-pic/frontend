@@ -16,11 +16,7 @@ interface BlockUserOptions {
   onBlocked?: () => void;
 }
 
-interface UseBlockUserParams {
-  requireMember: () => Promise<boolean>;
-}
-
-export function useBlockUser({ requireMember }: UseBlockUserParams) {
+export function useBlockUser() {
   const openConfirm = useConfirm();
   const queryClient = useQueryClient();
   const blockMutation = userBlockQuery.useBlockUserMutation();
@@ -33,8 +29,6 @@ export function useBlockUser({ requireMember }: UseBlockUserParams) {
       isBlockingRef.current = true;
 
       try {
-        if (!(await requireMember())) return false;
-
         const shouldBlock = await openConfirm({
           title: "사용자 차단",
           message: `${nickname}님의 게시글과 댓글이 더 이상 표시되지 않습니다. 차단한 사용자는 프로필에서 해제할 수 있습니다.`,
@@ -71,7 +65,7 @@ export function useBlockUser({ requireMember }: UseBlockUserParams) {
         isBlockingRef.current = false;
       }
     },
-    [blockMutation, openConfirm, queryClient, requireMember],
+    [blockMutation, openConfirm, queryClient],
   );
 
   return {

@@ -210,6 +210,8 @@ test("차단 API와 인증된 댓글 조회 endpoint를 사용한다", () => {
   assert.match(blockListQuerySource, /get\("\/users\/me\/blocks"/);
   assert.match(blockMutationSource, /post\(`\/users\/\$\{userId\}\/block`\)/);
   assert.match(blockMutationSource, /delete\(`\/users\/\$\{userId\}\/block`\)/);
+  assert.doesNotMatch(blockListQuerySource, /isGuest/);
+  assert.doesNotMatch(blockMutationSource, /isGuest/);
   assert.match(
     commentQuerySource,
     /privateApiClient\.get\(`\/feed\/\$\{feedId\}\/comments`/,
@@ -230,7 +232,7 @@ test("피드와 댓글 메뉴에 신고와 작성자 차단 action을 함께 제
   }
 });
 
-test("프로필의 회원 전용 차단 목록에서 차단 해제를 제공한다", () => {
+test("프로필에서 Guest를 포함한 사용자 Session에 차단 목록과 해제를 제공한다", () => {
   const profileSource = readSource(
     "../../../../pages/profile/overview/ui/profile-page.tsx",
   );
@@ -238,7 +240,10 @@ test("프로필의 회원 전용 차단 목록에서 차단 해제를 제공한�
     "../../../../pages/profile/blocked-users/ui/profile-blocked-users-page.tsx",
   );
 
-  assert.match(profileSource, /!isGuest[\s\S]*차단한 사용자[\s\S]*로그아웃/);
+  assert.match(
+    profileSource,
+    /\{isAuthenticated \? \([\s\S]*차단한 사용자[\s\S]*로그아웃/,
+  );
   assert.match(blockedUsersSource, /useReadBlockedUsers/);
   assert.match(blockedUsersSource, /차단 해제/);
   assert.match(blockedUsersSource, /unblockUser/);
@@ -257,5 +262,5 @@ test("신고 성공은 콘텐츠 cache를 변경하지 않고 차단 성공만 �
   );
   assert.match(blockSource, /onBlocked\?\.\(\)/);
   assert.doesNotMatch(blockSource, /@shared\/hooks/);
-  assert.match(blockSource, /useBlockUser\(\{ requireMember \}/);
+  assert.doesNotMatch(blockSource, /requireMember/);
 });

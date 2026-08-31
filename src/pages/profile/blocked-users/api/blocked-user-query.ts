@@ -6,7 +6,6 @@ import { blockedUsersPageQueryKeys } from "../model/query-keys";
 
 export function useReadBlockedUsers(params: PaginationParams) {
   const accessToken = useAuthStore((state) => state.accessToken);
-  const isGuest = useAuthStore((state) => state.isGuest);
   const userId = useAuthStore((state) => state.userId);
 
   return useInfiniteQuery({
@@ -15,7 +14,7 @@ export function useReadBlockedUsers(params: PaginationParams) {
       pageParam,
       signal,
     }): Promise<BlockedUserListResponse> => {
-      if (!userId || useAuthStore.getState().isGuest) {
+      if (!userId) {
         throw new Error("Cannot fetch blocked users without a user session");
       }
       const response = await privateApiClient.get("/users/me/blocks", {
@@ -26,7 +25,7 @@ export function useReadBlockedUsers(params: PaginationParams) {
     },
     initialPageParam: params.cursor,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-    enabled: Boolean(userId && accessToken) && !isGuest,
+    enabled: Boolean(userId && accessToken),
     staleTime: 1000 * 60 * 5,
   });
 }

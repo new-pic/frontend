@@ -15,9 +15,9 @@
 피드 작성자를 차단하면 현재 상세 화면을 닫고 이전 피드 목록으로 돌아간다.
 댓글 작성자를 차단하면 현재 피드에 머물면서 해당 작성자의 댓글만 제거한다.
 
-프로필에는 일반 회원에게만 `차단한 사용자` 진입점을 제공한다. 별도 프로필
-Stack 화면에서 cursor pagination 목록을 조회하고 각 사용자 행에서 차단을
-해제할 수 있다.
+프로필에는 Access Token이 있는 사용자 Session에 `차단한 사용자` 진입점을
+제공한다. Guest도 별도 Profile Stack 화면에서 cursor pagination 목록을
+조회하고 각 사용자 행에서 차단을 해제할 수 있다.
 
 ## Context
 
@@ -69,7 +69,7 @@ Option A를 선택했다. 차단 관계와 장기적인 콘텐츠 가시성은 �
 ```text
 Feed / Comment action menu
   ↓
-Member Gate
+User Session
   ↓
 Block confirmation
   ↓
@@ -104,7 +104,7 @@ Blocked-list cache removal + feed/comment refresh
 - 차단 목록 화면: `pages/profile/blocked-users`
 - profile 진입점: `pages/profile/overview`
 - 차단 목록과 요청 상태: React Query
-- 회원/게스트 판별과 로그인 유도: 기존 member guard와 auth store
+- 사용자 Session 판별: auth store
 
 사용자 API Entity가 Feed Entity를 직접 import하지 않는다. 두 Entity에 걸친
 cache 동기화는 Feature에서 조정해 도메인 간 방향을 유지한다.
@@ -134,7 +134,8 @@ cache 동기화는 Feature에서 조정해 도메인 간 방향을 유지한다.
   action과 독립적으로 동작하도록 연결했다.
 - 차단 성공 후 모든 로드된 collection에서 작성자의 피드와 댓글을 제거하고
   작성자의 단일 feed item cache도 제거하도록 구현했다.
-- 프로필에 회원 전용 차단 사용자 목록과 차단 해제 기능을 추가했다.
+- 프로필에 Member와 Guest가 함께 사용하는 차단 사용자 목록과 차단 해제
+  기능을 추가했다.
 - 댓글 조회를 인증된 API client로 변경해 서버가 현재 사용자의 차단 관계를
   적용할 수 있도록 구성했다.
 - 사용자 차단 테스트 9개, 신고 테스트 7개, 피드 상세 테스트 9개, 프로필
