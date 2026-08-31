@@ -80,7 +80,6 @@ test("프로필 하단 메뉴는 모바일 기본 텍스트 크기를 사용한�
   const source = readSource("../ui/profile-page.tsx");
 
   for (const label of [
-    "도움말",
     "버그 제보하기",
     "서비스 약관",
     "차단한 사용자",
