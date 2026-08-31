@@ -1,3 +1,3 @@
-export * from "./models";
+export * from "./blocked-user";
 export * from "./query-keys";
-export * from "./schema";
+export * from "./user-profile";

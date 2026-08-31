@@ -1,10 +1,11 @@
-import type { BlockedUserListResponse, PaginationParams } from "@entities/user";
+import type { BlockedUserListResponse } from "@entities/user";
 import { privateApiClient } from "@shared/api";
 import { useAuthStore } from "@shared/model";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import type { BlockedUserListParams } from "../model/blocked-user-list";
 import { blockedUsersPageQueryKeys } from "../model/query-keys";
 
-export function useReadBlockedUsers(params: PaginationParams) {
+export function useReadBlockedUsers(params: BlockedUserListParams) {
   const accessToken = useAuthStore((state) => state.accessToken);
   const userId = useAuthStore((state) => state.userId);
 

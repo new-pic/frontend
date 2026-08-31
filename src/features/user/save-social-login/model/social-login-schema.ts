@@ -1,4 +1,3 @@
-import { File } from "expo-file-system";
 import { z } from "zod";
 
 export const GoogleLoginRequestSchema = z.object({
@@ -35,12 +34,8 @@ export const SocialLoginResponseSchema = TokenResponseSchema.extend({
   status: SocialLoginStatusSchema,
 });
 
-export const NicknameSchema = z
-  .string()
-  .min(1, "닉네임은 최소 1글자 이상이어야 합니다.")
-  .max(8, "닉네임은 최대 8글자까지 가능합니다.");
-
-export const UpdateProfileRequestSchema = z.object({
-  nickname: NicknameSchema,
-  profileImageFile: z.instanceof(File).optional(),
-});
+export type AppleLoginRequest = z.infer<typeof AppleLoginRequestSchema>;
+export type GoogleLoginRequest = z.infer<typeof GoogleLoginRequestSchema>;
+export type GuestLoginRequest = z.infer<typeof GuestLoginRequestSchema>;
+export type TokenResponse = z.infer<typeof TokenResponseSchema>;
+export type SocialLoginResponse = z.infer<typeof SocialLoginResponseSchema>;

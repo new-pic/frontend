@@ -31,12 +31,10 @@ Module._load = function mockProfileDependencies(request, parent, isMain) {
 };
 
 const {
-  NicknameSchema,
   UpdateProfileRequestSchema,
-} = require("../../../../entities/user/model/schema.ts");
+} = require("../model/profile-update-schema.ts");
 
 Module._load = function mockProfileFeatureAliases(request, parent, isMain) {
-  if (request === "@entities/user") return { NicknameSchema };
   if (request === "@shared/lib") {
     return {
       uriToFile: async ({ uri }) => new MockFile(uri),

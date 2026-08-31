@@ -1,6 +1,17 @@
-import type { BlockUserResponse, UnblockUserResponse } from "@entities/user";
 import { privateApiClient } from "@shared/api";
 import { useMutation } from "@tanstack/react-query";
+
+interface BlockUserResponse {
+  blocked: true;
+  id: string;
+  blockedUserId: string;
+  createdAt: string;
+}
+
+interface UnblockUserResponse {
+  blocked: false;
+  blockedUserId: string;
+}
 
 export function useBlockUserMutation() {
   return useMutation({

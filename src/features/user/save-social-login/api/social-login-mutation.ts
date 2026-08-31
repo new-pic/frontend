@@ -1,3 +1,6 @@
+import { apiClient, privateApiClient } from "@shared/api";
+import { getAndCreateDeviceUUID } from "@shared/lib";
+import { useMutation } from "@tanstack/react-query";
 import {
   AppleLoginRequestSchema,
   type AppleLoginRequest,
@@ -9,10 +12,7 @@ import {
   type SocialLoginResponse,
   TokenResponseSchema,
   type TokenResponse,
-} from "@entities/user";
-import { apiClient, privateApiClient } from "@shared/api";
-import { getAndCreateDeviceUUID } from "@shared/lib";
-import { useMutation } from "@tanstack/react-query";
+} from "../model/social-login-schema";
 
 function getSocialLoginApiClient(isGuest: boolean) {
   return isGuest ? privateApiClient : apiClient;
