@@ -22,18 +22,24 @@ Session이 아직 없을 때 Query key는 임의의 문자열 identity를 만들
 Member에게만 허용된 endpoint는 Guest guard를 유지한다. Guest 여부는 cache
 identity가 아니라 endpoint 접근 정책이다.
 
-각 Entity의 `model/query-keys.ts`가 Query key factory를 소유한다. 여러 실제
-Query를 선택하기 위한 prefix key는 복수형 함수로, 단일 cache entry를
-식별하는 leaf key는 단수형 함수로 정의한다. Leaf factory는 문자열을
-중복하지 않고 반드시 자신의 prefix factory에서 파생한다.
+각 Entity의 `model` segment가 Query key factory를 소유한다. 하나의 Entity
+안에서도 변경 이유가 다른 조회군은 factory module과 namespace를 나누되,
+동일 자원을 나타내는 root identity는 공유한다. 여러 실제 Query를 선택하기
+위한 prefix key는 복수형 함수로, 단일 cache entry를 식별하는 leaf key는
+단수형 함수로 정의한다. Leaf factory는 문자열을 중복하지 않고 반드시 자신의
+prefix factory에서 파생한다.
 
 ```text
-feedQueryKeys.savedFeedLists()
+userFeedQueryKeys.savedFeedLists()
   = ["feed", "me", "saved-feeds"]
 
-feedQueryKeys.savedFeedList(userId, params)
+userFeedQueryKeys.savedFeedList(userId, params)
   = [...savedFeedLists(), userId, params]
 ```
+
+`userFeedQueryKeys`는 현재 사용자 기준 Feed collection을 구분하는 namespace다.
+별도의 `user` cache root를 만들지 않고 `feedQueryKeys.all`에서 파생하므로 Feed
+전체 cache invalidation과 사용자별 collection identity를 함께 보존한다.
 
 현재 코드에서 `userId`가 포함된 사용자 귀속 Query는 다음과 같다.
 

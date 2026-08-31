@@ -23,7 +23,8 @@ cache identity의 공유 범위를 서로 독립적으로 판단한다.
 이 결정은 ADR-0034의 “서버 요청과 React Query lifecycle은 `api`에 둔다”는
 세그먼트 원칙을 유지하면서, 해당 `api`가 어느 레이어에 속하는지를
 구체화한다. ADR-0037의 “Feed collection query는 모두 Feed Entity가
-소유한다”는 결정은 이 문서의 사용 사례 소유권 규칙으로 대체한다.
+소유한다”는 결론 자체를 일괄 규칙으로 사용하지는 않는다. 각 collection의
+소비 범위와 cache 공유 관계를 이 문서의 소유권 규칙으로 다시 판단한다.
 
 ## Context
 
@@ -105,31 +106,39 @@ slice 내부 소비자는 `../api`, 다른 slice 소비자는 해당 slice publi
 
 SSE transport, parser, request adapter와 일반 use-case hook은 TanStack Query
 hook이 아니므로 이 namespace 규칙을 적용하지 않는다. Query cache identity를
-정의하는 `feedQueryKeys`, `userQueryKeys` 등의 key factory 역시 API 호출
-namespace와 별도 책임으로 유지한다.
+정의하는 `feedQueryKeys`, `userFeedQueryKeys`, `userQueryKeys` 등의 key factory
+역시 API 호출 namespace와 별도 책임으로 유지한다. 같은 Feed Entity 안에서도
+일반 Feed 조회와 현재 사용자 기준 Feed collection은 각각 `feedQuery`와
+`userFeedQuery`로 구분한다. 두 namespace의 key는 모두 `feedQueryKeys.all`에서
+파생해 하나의 Feed cache root를 공유한다.
 
 Query Key는 파일 위치가 아니라 응답을 유일하게 결정하는 identity다.
 따라서 Feature/Page 전용 leaf도 다음과 같이 공통 prefix를 사용한다.
 
 ```text
 ["feed"]
-  ├─ ["list", params]                         browse-feed-detail
-  ├─ ["me", "feeds", userId, params]        browse-feed-detail
+  ├─ ["list", params]                         Feed Entity
+  ├─ ["me", "feeds", userId, params]        Feed Entity
+  ├─ ["me", "liked-feeds", userId, params] Feed Entity
   ├─ ["comments", feedId, params]            feed-detail Widget
   └─ ["camera-guide", "pose", feedId]       guide-feed Feature
 ```
 
 `feedQueryKeys.lists()`, `userQueryKeys.blockLists()`와 같은 prefix는 여러
 Feature가 invalidation 대상으로 사용하므로 Entity public API에 유지한다.
-반면 `feedCollectionQueryKeys.publicList()`처럼 단일 사용 사례의 완전한 leaf는
-해당 Feature가 소유한다.
+반면 Camera Guide처럼 단일 사용 사례에만 필요한 완전한 leaf는 해당 Feature가
+소유한다. 공개/내 피드/좋아요 목록의 leaf는 여러 상위 slice가 동일 cache를
+공유하므로 Feed Entity가 소유한다.
 
 호출이 한 Page에만 있어 보여도 다른 Feature가 동일 query options를
-재사용하면 Page 전용으로 분류하지 않는다. 공개/내 피드/좋아요 목록은 피드
-상세 탐색이 동일 infinite cache를 이어서 사용하므로
-`browse-feed-detail` Feature가 소유한다. Profile과 Feed Page는 이 Feature의
-public API를 소비한다. 이를 Profile Page `api`에 두면 Feed Detail Feature가
-상위 Page를 import해야 하므로 FSD 의존 방향을 위반한다.
+재사용하면 Page 전용으로 분류하지 않는다. 공개/내 피드/좋아요 목록은 Feed와
+Profile Page가 직접 조회하고, Feed Detail 탐색 Feature도 동일한 infinite
+query options와 cache를 이어서 사용한다. 이를 Page에 두면 Feature가 상위
+Page를 import해야 하고, `browse-feed-detail` Feature에 두면 서로 독립적인
+Feed/Profile Page가 상세 탐색 Feature에 의존하게 된다. 따라서 이 목록들의
+hook, query options와 leaf key는 공통 Feed 서버 상태의 중립적인 경계인 Feed
+Entity가 소유한다. `browse-feed-detail`은 source 선택, 초기 index 계산과 상세
+탐색 navigation이라는 사용 사례만 소유한다.
 
 다음 조회는 실제 Page 전용이므로 Page `api`로 이동한다.
 
@@ -138,7 +147,7 @@ public API를 소비한다. 이를 Profile Page `api`에 두면 Feed Detail Feat
 
 다음 상태는 여러 slice가 공유하므로 Entity에 유지한다.
 
-- Feed 상세와 저장 피드 목록
+- 공개/내 피드/좋아요/저장 피드 목록과 Feed 상세
 - 현재 회원 프로필(`/users/me`)
 - Profile Preview Widget과 전체 사진 Page가 공유하는 내 RTC 저장 사진
   (`/users/me/photos`)
@@ -182,11 +191,15 @@ public API를 소비한다. 이를 Profile Page `api`에 두면 Feed Detail Feat
 - 내 RTC 저장 사진 조회는 Profile Preview Widget과 전체 사진 Page가 같은
   cache를 공유하므로 `RtcStoredPhoto` Entity가 hook과 list leaf key를
   소유하도록 유지했다.
-- 공개/내 피드/좋아요 목록은 Feed Detail과 infinite cache를 공유하므로
-  `browse-feed-detail` Feature가 소유하도록 이동했다.
-- Entity에는 공유 DTO/schema, Query Key prefix, Feed 상세·저장 목록,
-  `/users/me`, RTC SSE 구독을 유지했다.
-- 이동한 TanStack Query hook은 `feedCollectionQuery.useReadFeeds()`,
-  `userBlockQuery.useBlockUserMutation()`처럼 소유 slice의 namespace를 통해
+- 공개/내 피드/좋아요 목록은 여러 Page와 Feed Detail Feature가 동일 infinite
+  cache를 공유하므로 Feed Entity가 hook, query options와 leaf key를 소유한다.
+  일반 Feed 조회는 `feedQuery`와 `feedQueryKeys`, 현재 사용자 기준 내 피드·
+  좋아요·저장 피드는 `userFeedQuery`와 `userFeedQueryKeys`로 구분하되 모두
+  `["feed"]` root를 공유한다.
+- Entity에는 공유 DTO/schema, Query Key prefix, 공개·내·좋아요·저장 목록,
+  Feed 상세, `/users/me`, RTC SSE 구독을 유지했다.
+- 이동한 TanStack Query hook은 `feedQuery.useReadFeeds()`,
+  `userFeedQuery.useReadSavedFeeds()`, `userBlockQuery.useBlockUserMutation()`처럼
+  소유 slice의 namespace를 통해
   호출하고, `useFeedDetailCollection()`, `useBlockUser()` 같은 use-case hook은
   직접 호출하도록 구분했다.
