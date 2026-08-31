@@ -96,11 +96,13 @@ function ProfileButtonMenu() {
 
 export function ProfilePage() {
   const openConfirm = useConfirm();
+
   const accessToken = useAuthStore((state) => state.accessToken);
   const isAuthenticated = Boolean(accessToken);
   const isGuest = useAuthStore((state) => state.isGuest);
   const prepareAccountLink = useAuthStore((state) => state.prepareAccountLink);
   const logout = useAuthStore((state) => state.logout);
+
   const { data } = usersQuery.useReadMe();
   const { deleteAccount, isDeleting } = useDeleteAccount();
 
@@ -207,10 +209,6 @@ export function ProfilePage() {
           <ProfileRtcPhotoPreview onPress={handleGoRtcPhotos} />
 
           <VStack className="rounded-3xl border border-outline">
-            {/* <Pressable className="p-6">
-              <Text size="md">도움말</Text>
-            </Pressable>
-            <Divider className="bg-outline" /> */}
             <Pressable
               className="p-6"
               onPress={handleOpenBugReport}
