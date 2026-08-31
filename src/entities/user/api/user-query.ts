@@ -7,19 +7,17 @@ import { userQueryKeys, type UserProfile } from "../model";
 export function useReadMe(options?: { enabled?: boolean }) {
   const userId = useAuthStore((state) => state.userId);
   const accessToken = useAuthStore((state) => state.accessToken);
-  const isGuest = useAuthStore((state) => state.isGuest);
 
   return useQuery({
     queryKey: userQueryKeys.me(userId),
     queryFn: async (): Promise<UserProfile> => {
-      if (!userId || useAuthStore.getState().isGuest) {
-        throw new Error("Cannot fetch a profile without a member session");
+      if (!userId) {
+        throw new Error("Cannot fetch a profile without a user session");
       }
       const response = await privateApiClient.get("/users/me");
       return response.data;
     },
-    enabled:
-      Boolean(userId && accessToken) && !isGuest && (options?.enabled ?? true),
+    enabled: Boolean(userId && accessToken) && (options?.enabled ?? true),
   });
 }
 
@@ -28,8 +26,8 @@ export function useFetchMe() {
   const userId = useAuthStore((state) => state.userId);
 
   return async () => {
-    if (!userId || useAuthStore.getState().isGuest) {
-      throw new Error("Cannot fetch a profile without a member session");
+    if (!userId) {
+      throw new Error("Cannot fetch a profile without a user session");
     }
     return queryClient.fetchQuery({
       queryKey: userQueryKeys.me(userId),

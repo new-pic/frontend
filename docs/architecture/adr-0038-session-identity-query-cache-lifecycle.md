@@ -16,6 +16,11 @@ Session이 아직 없을 때 Query key는 임의의 문자열 identity를 만들
 `queryFn`은 `userId`를 다시 확인하고 회원 전용 Query는 Guest 여부도 확인해
 수동 `refetch()`나 잘못된 명령형 호출도 HTTP 요청 전에 실패시킨다.
 
+현재 사용자 프로필인 `GET /users/me`는 Guest에게도 서버가 생성한 닉네임을
+반환하는 사용자 Session Query이므로 Guest 여부로 차단하지 않는다. 반면 프로필
+수정과 회원 탈퇴처럼 Member에게만 허용된 endpoint는 Guest guard를 유지한다.
+Guest 여부는 cache identity가 아니라 endpoint 접근 정책이다.
+
 각 Entity의 `model/query-keys.ts`가 Query key factory를 소유한다. 여러 실제
 Query를 선택하기 위한 prefix key는 복수형 함수로, 단일 cache entry를
 식별하는 leaf key는 단수형 함수로 정의한다. Leaf factory는 문자열을
@@ -207,6 +212,8 @@ QueryClient.clear
 - `anonymous` placeholder를 제거하고 비세션 Query identity는 `null`로
   표현한다.
 - 사용자 귀속 Query는 `enabled`와 `queryFn` guard를 함께 적용한다.
+- 현재 사용자 프로필 Query는 Guest Session에서도 활성화해 서버가 생성한
+  닉네임을 표시한다.
 - Query key factory는 Entity `model`에서 소유하고 prefix는 복수형 함수,
   leaf는 단수형 함수로 구성한다.
 - 과거 `[["user"], "user", ...]` 형태의 중첩 root를 Entity 단일 root로
