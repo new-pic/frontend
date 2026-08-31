@@ -14,15 +14,15 @@ import {
   Pressable,
   Text,
   VStack,
+  gradients,
 } from "@shared/ui";
-import { gradients } from "@shared/ui/theme";
-import { ProfileRtcPhotoPreview } from "@widgets/profile/rtc-photo-preview";
 import {
   IconBookmarkFilled,
   IconHeartFilled,
   IconPencilFilled,
   IconUserFilled,
 } from "@tabler/icons-react-native";
+import { ProfileRtcPhotoPreview } from "@widgets/profile/rtc-photo-preview";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Linking from "expo-linking";
 import { router } from "expo-router";
