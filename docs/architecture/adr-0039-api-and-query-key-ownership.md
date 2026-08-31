@@ -11,6 +11,9 @@ cache identity의 공유 범위를 서로 독립적으로 판단한다.
 - Widget 내부에서만 사용하는 조회는 해당 Widget의 `api`가 소유한다.
 - 여러 상위 slice가 동일한 서버 자원을 공유하는 조회와 DTO/schema는
   Entity에 유지한다.
+- 한 사용 사례의 API에서만 사용하는 request/response DTO와 validation schema는
+  해당 Feature/Page/Widget의 `model`이 소유한다. API 함수 내부에서만 필요한
+  transport 응답 타입은 `api`에 비공개로 유지한다.
 - Query Key root와 여러 기능이 invalidate하는 prefix는 Entity가 제공한다.
 - Feature/Page/Widget 전용 조회의 leaf factory는 해당 소비 slice가
   소유하되 Entity prefix에서 파생한다.
@@ -67,9 +70,9 @@ lifecycle까지 소유한다. Feature 단위 변경·삭제가 어렵고 대형 
 
 ### Option C: 요청 hook은 사용 사례로 이동하고 Entity cache namespace 공유
 
-API lifecycle은 Feature/Page/Widget이 소유한다. DTO/schema, 공유 resource
-key와 invalidate prefix는 Entity에 남기고, 전용 조회 leaf만 소비 slice가
-정의한다.
+API lifecycle은 Feature/Page/Widget이 소유한다. 사용 사례 전용 DTO/schema도
+소비 slice가 소유한다. 여러 상위 slice가 공유하는 DTO/schema, resource key와
+invalidate prefix는 Entity에 남기고, 전용 조회 leaf만 소비 slice가 정의한다.
 
 ## Reason
 
@@ -83,7 +86,9 @@ Feature / Page / Widget UI
   ↓
 소비 slice의 api hook
   ↓
-Entity DTO·schema / Entity Query Key namespace
+소비 slice의 request·response contract
+  ↓
+공유 시 Entity DTO·schema / Entity Query Key namespace
   ↓
 Shared API client
   ↓
@@ -140,6 +145,18 @@ hook, query options와 leaf key는 공통 Feed 서버 상태의 중립적인 경
 Entity가 소유한다. `browse-feed-detail`은 source 선택, 초기 index 계산과 상세
 탐색 navigation이라는 사용 사례만 소유한다.
 
+DTO/schema 역시 endpoint 경로가 아니라 실제 소비 범위로 소유권을 판단한다.
+Apple·Google·Guest 로그인 request와 token/status response 계약은
+`save-social-login`만 사용하므로 해당 Feature의 `model`이 소유한다. 프로필
+수정 request와 nickname validation도 `save-user-setup`만 사용하므로 해당
+Feature가 소유한다. 차단·해제 mutation 응답은 해당 API 함수 밖으로 노출하지
+않으므로 `manage-user-block/api`의 비공개 타입으로 둔다.
+
+반면 차단 사용자 목록 DTO는 Profile Page의 조회와 `manage-user-block`의 cache
+갱신 로직이 함께 사용한다. Page로 올리면 Feature가 상위 Page에 의존하므로
+`BlockedUserListResponse`는 User Entity에 유지한다. Query pagination parameter는
+차단 사용자 Page 조회에만 필요하므로 Page `model`이 소유한다.
+
 다음 조회는 실제 Page 전용이므로 Page `api`로 이동한다.
 
 - Profile blocked-users Page: 차단 사용자 목록
@@ -181,6 +198,10 @@ Entity가 소유한다. `browse-feed-detail`은 source 선택, 초기 index 계�
   각각의 Feed Feature `api`로 이동했다.
 - 소셜 로그인, 회원 탈퇴, 프로필 수정과 사용자 차단 mutation을 각각의
   User/Profile Feature `api`로 이동했다.
+- 로그인 request/response schema와 프로필 수정 request schema는 각 Feature의
+  `model`로 이동하고, 차단 mutation 응답 타입은 Feature `api` 내부로 이동했다.
+  User Entity에는 여러 slice가 공유하는 User Profile과 차단 사용자 목록 DTO만
+  유지했다.
 - RTC host/viewer mutation과 feedback emoji 조회를 RTC Feature `api`로
   이동했다.
 - Camera Guide 전용 Feed pose/background-removal 조회를 `guide-feed/api`로
