@@ -24,7 +24,7 @@ const BLOCKED_USERS_PAGE_SIZE = 20;
 
 export function ProfileBlockedUsersPage() {
   const {
-    data: blockedUserData,
+    data,
     fetchNextPage,
     hasNextPage,
     isError,
@@ -35,8 +35,7 @@ export function ProfileBlockedUsersPage() {
     take: BLOCKED_USERS_PAGE_SIZE,
   });
   const { unblockUser, isUnblocking, unblockingUserId } = useUnblockUser();
-  const blockedUsers =
-    blockedUserData?.pages.flatMap((page) => page.items) ?? [];
+  const blockedUsers = data?.pages.flatMap((page) => page.items) ?? [];
 
   const handleEndReached = () => {
     if (!hasNextPage || isFetchingNextPage) {

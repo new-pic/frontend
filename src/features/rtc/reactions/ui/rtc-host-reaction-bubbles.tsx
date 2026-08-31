@@ -99,9 +99,9 @@ export function RtcHostReactionBubbles({
   active,
   roomId,
 }: RtcHostReactionBubblesProps) {
-  const { data: emojiData, isError: isEmojiError } =
+  const { data, isError: isEmojiError } =
     rtcReactionQuery.useReadFeedbackEmojis();
-  const emojis = useMemo(() => adaptRtcReactionEmojis(emojiData), [emojiData]);
+  const emojis = useMemo(() => adaptRtcReactionEmojis(data), [data]);
   const emojiById = useMemo(
     () => new Map(emojis.map((emoji) => [emoji.id, emoji])),
     [emojis],

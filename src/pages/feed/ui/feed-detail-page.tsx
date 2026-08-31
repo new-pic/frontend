@@ -37,7 +37,7 @@ export function FeedDetailPage() {
   };
 
   const {
-    data: feedsData,
+    data,
     fetchNextPage,
     hasNextPage,
     isError,
@@ -49,7 +49,7 @@ export function FeedDetailPage() {
     params: feedSearchParams,
     enabled: source !== null,
   });
-  const feeds = feedsData?.pages.flatMap((page) => page.items) ?? [];
+  const feeds = data?.pages.flatMap((page) => page.items) ?? [];
   const initialPageIndex = findFeedDetailInitialIndex(
     feeds,
     feedId,

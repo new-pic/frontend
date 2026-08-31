@@ -31,7 +31,7 @@ export function GuideFeedBottomSheet({
   onClose,
 }: GuideFeedBottomSheetProps) {
   const {
-    data: savedFeedData,
+    data,
     fetchNextPage,
     hasNextPage,
     isError,
@@ -39,7 +39,7 @@ export function GuideFeedBottomSheet({
     isPending,
     refetch,
   } = feedQuery.useReadSavedFeeds({ take: 24 }, { enabled: open });
-  const feeds = savedFeedData?.pages.flatMap((page) => page.items) ?? [];
+  const feeds = data?.pages.flatMap((page) => page.items) ?? [];
   const gridItems = feeds.map((feed) => ({
     id: feed.id,
     imageUrl: feed.thumbnailUrl,

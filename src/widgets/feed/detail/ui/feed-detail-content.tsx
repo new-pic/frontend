@@ -55,7 +55,7 @@ export function FeedDetailContent({
   });
 
   const {
-    data: commentData,
+    data,
     fetchNextPage: fetchNextCommentPage,
     hasNextPage: hasNextCommentPage,
     isError: isCommentError,
@@ -71,7 +71,7 @@ export function FeedDetailContent({
       enabled: isActivePage,
     },
   );
-  const comments = commentData?.pages.flatMap((page) => page.items) ?? [];
+  const comments = data?.pages.flatMap((page) => page.items) ?? [];
 
   const handleReachLastComment = () => {
     if (!hasNextCommentPage || isFetchingNextCommentPage) return;
