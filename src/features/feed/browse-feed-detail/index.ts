@@ -6,4 +6,3 @@ export {
   type FeedDetailSource,
 } from "./model/feed-detail-navigation";
 export { useFeedDetailCollection } from "./model/use-feed-detail-collection";
-export { feedCollectionQuery } from "./api";

@@ -1,5 +1,5 @@
-import { NicknameSchema } from "@entities/user";
 import { z } from "zod";
+import { NicknameSchema } from "./profile-update-schema";
 
 export const SelectedProfileImageSchema = z.object({
   uri: z.string().min(1),

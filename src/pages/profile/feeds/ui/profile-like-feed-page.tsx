@@ -1,7 +1,5 @@
-import {
-  createFeedDetailHref,
-  feedCollectionQuery,
-} from "@features/feed/browse-feed-detail";
+import { userFeedQuery } from "@entities/feed";
+import { createFeedDetailHref } from "@features/feed/browse-feed-detail";
 import {
   Box,
   Button,
@@ -15,9 +13,9 @@ import { IconChevronLeft } from "@tabler/icons-react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export function ProfileMyFeedPage() {
+export function ProfileLikeFeedPage() {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
-    feedCollectionQuery.useReadMyFeeds({ take: 24 });
+    userFeedQuery.useReadLikedFeeds({ take: 24 });
   const feeds = data?.pages.flatMap((page) => page.items) ?? [];
   const feedImages = feeds.map((feed) => ({
     id: feed.id,
@@ -46,7 +44,7 @@ export function ProfileMyFeedPage() {
             <ButtonIcon as={IconChevronLeft} />
           </Button>
           <Text className="font-semibold" size="lg">
-            내가 올린 피드
+            찜한 피드
           </Text>
           <Box className="w-12" />
         </HStack>
@@ -61,7 +59,7 @@ export function ProfileMyFeedPage() {
                 createFeedDetailHref({
                   feedId: feed.id,
                   index,
-                  source: "mine",
+                  source: "liked",
                   take: 24,
                 }),
               );

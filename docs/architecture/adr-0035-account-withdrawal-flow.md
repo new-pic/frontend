@@ -12,7 +12,7 @@ use-case로 분리한다.
   저장소 삭제 실패와 인메모리 인증 상태 초기화를 분리한다.
 - 서버 탈퇴 완료 후에는 로컬 저장소 정리 오류가 발생해도 App coordinator의
   Query cache 제거와 인증 진입 화면 이동을 완료한다.
-- `pages/profile`은 로그인한 비게스트 회원에게만 탈퇴 메뉴를 노출하고
+- `pages/profile/overview`는 로그인한 비게스트 회원에게만 탈퇴 메뉴를 노출하고
   Feature를 조합한다.
 - 서버가 이미 탈퇴 유예 중인 계정에 오류 응답을 반환하더라도 Entity API
   adapter에서 완료 상태로 정규화한다.

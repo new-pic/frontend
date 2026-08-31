@@ -28,7 +28,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export function ProfileRtcPhotoPage() {
   const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
   const {
-    data: storedPhotoData,
+    data,
     fetchNextPage,
     hasNextPage,
     isError,
@@ -41,8 +41,8 @@ export function ProfileRtcPhotoPage() {
     take: RTC_STORED_PHOTO_GALLERY_CONFIG.pageSize,
   });
   const photos = useMemo(
-    () => mergeUniqueRtcStoredPhotos(storedPhotoData?.pages),
-    [storedPhotoData?.pages],
+    () => mergeUniqueRtcStoredPhotos(data?.pages),
+    [data?.pages],
   );
   const activePhotos = useActiveRtcStoredPhotos(photos);
   const { isSaving, savePhoto } = useSaveRtcStoredPhoto();

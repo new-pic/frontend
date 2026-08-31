@@ -24,10 +24,10 @@ const originalLoad = Module._load;
 Module._load = function load(request, parent, isMain) {
   if (request === "@entities/feed") {
     return {
-      feedQueryKeys: {
+      userFeedQueryKeys: {
         savedFeedLists: () => savedFeedListsKey,
       },
-      feedQuery: {
+      userFeedQuery: {
         savedFeedsInfiniteQueryOptions: (userId, { take }) => ({
           queryKey: [...savedFeedListsKey, userId, { take }],
           queryFn: async () => {

@@ -1,4 +1,4 @@
-import { feedQueryKeys } from "@entities/feed";
+import { feedQueryKeys, userFeedQueryKeys } from "@entities/feed";
 import type { QueryClient } from "@tanstack/react-query";
 
 interface FeedListRefreshEntry {
@@ -19,7 +19,7 @@ function resetPublishedFeedLists(queryClient: QueryClient) {
       { cancelRefetch: true, throwOnError: true },
     ),
     queryClient.resetQueries(
-      { queryKey: feedQueryKeys.myFeedLists() },
+      { queryKey: userFeedQueryKeys.myFeedLists() },
       { cancelRefetch: true, throwOnError: true },
     ),
   ]).then(() => undefined);

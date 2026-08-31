@@ -7,8 +7,10 @@ const readSource = (relativePath) =>
   fs.readFileSync(path.resolve(__dirname, relativePath), "utf8");
 
 test("프로필 하위 화면은 탭 sibling이 아니라 Profile Stack에 속한다", () => {
-  const tabsLayout = readSource("../../../app/(tabs)/_layout.tsx");
-  const profileLayout = readSource("../../../app/(tabs)/profile/_layout.tsx");
+  const tabsLayout = readSource("../../../../app/(tabs)/_layout.tsx");
+  const profileLayout = readSource(
+    "../../../../app/(tabs)/profile/_layout.tsx",
+  );
 
   assert.match(profileLayout, /<Stack/);
   assert.doesNotMatch(tabsLayout, /name="profile\/rtc-photos"/);
@@ -19,7 +21,7 @@ test("프로필 하위 화면은 탭 sibling이 아니라 Profile Stack에 속�
 });
 
 test("최근 촬영 사진은 grid에서 선택한 사진으로 공용 갤러리를 연다", () => {
-  const source = readSource("../ui/profile-rtc-photo-page.tsx");
+  const source = readSource("../../rtc-photos/ui/profile-rtc-photo-page.tsx");
 
   assert.match(source, /onPress=\{\(_, index\) => setGalleryIndex\(index\)\}/);
   assert.match(source, /<PhotoGalleryModal/);
@@ -27,9 +29,9 @@ test("최근 촬영 사진은 grid에서 선택한 사진으로 공용 갤러리
 });
 
 test("최근 촬영 사진 상세는 만료 안내와 촬영 시각 및 다운로드를 제공한다", () => {
-  const source = readSource("../ui/profile-rtc-photo-page.tsx");
+  const source = readSource("../../rtc-photos/ui/profile-rtc-photo-page.tsx");
   const mediaSource = readSource(
-    "../../../shared/lib/media/save-image-to-media-library.ts",
+    "../../../../shared/lib/media/save-image-to-media-library.ts",
   );
 
   assert.match(source, /renderHeaderRight/);
@@ -46,7 +48,7 @@ test("최근 촬영 사진 상세는 만료 안내와 촬영 시각 및 다운�
 test("버그 제보 메뉴는 공용 외부 링크를 연다", () => {
   const profileSource = readSource("../ui/profile-page.tsx");
   const externalLinksSource = readSource(
-    "../../../shared/config/external-links.ts",
+    "../../../../shared/config/external-links.ts",
   );
 
   assert.match(
@@ -60,7 +62,7 @@ test("버그 제보 메뉴는 공용 외부 링크를 연다", () => {
 test("서비스 약관 메뉴는 공용 외부 링크를 연다", () => {
   const profileSource = readSource("../ui/profile-page.tsx");
   const externalLinksSource = readSource(
-    "../../../shared/config/external-links.ts",
+    "../../../../shared/config/external-links.ts",
   );
 
   assert.match(
@@ -78,7 +80,6 @@ test("프로필 하단 메뉴는 모바일 기본 텍스트 크기를 사용한�
   const source = readSource("../ui/profile-page.tsx");
 
   for (const label of [
-    "도움말",
     "버그 제보하기",
     "서비스 약관",
     "차단한 사용자",
@@ -100,12 +101,12 @@ test("회원 탈퇴 메뉴는 로그인한 비게스트 회원에게만 로그�
 
 test("회원 탈퇴는 유예 API 성공 후 세션을 종료하고 App이 Query cache를 정리한다", () => {
   const querySource = readSource(
-    "../../../features/user/delete-account/api/delete-account-mutation.ts",
+    "../../../../features/user/delete-account/api/delete-account-mutation.ts",
   );
   const featureSource = readSource(
-    "../../../features/user/delete-account/model/use-delete-account.ts",
+    "../../../../features/user/delete-account/model/use-delete-account.ts",
   );
-  const appLayoutSource = readSource("../../../app/_layout.tsx");
+  const appLayoutSource = readSource("../../../../app/_layout.tsx");
 
   assert.match(querySource, /privateApiClient\.delete\("\/users\/me"\)/);
   assert.match(featureSource, /계정과 작성 데이터는 30일 후 삭제됩니다/);
@@ -122,7 +123,7 @@ test("회원 탈퇴는 유예 API 성공 후 세션을 종료하고 App이 Query
 
 test("이미 탈퇴 유예 중인 응답은 완료 상태로 정규화한다", () => {
   const querySource = readSource(
-    "../../../features/user/delete-account/api/delete-account-mutation.ts",
+    "../../../../features/user/delete-account/api/delete-account-mutation.ts",
   );
 
   assert.match(

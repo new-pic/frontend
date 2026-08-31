@@ -41,7 +41,7 @@ function RtcViewerResultPage({
   onDone,
 }: RtcViewerResultPageProps) {
   const {
-    data: storedPhotoData,
+    data,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -62,7 +62,7 @@ function RtcViewerResultPage({
 
     // 방 사진 API 응답을 합친다.
     // 같은 ID가 있으면 API의 최신 URL을 사용한다.
-    for (const page of storedPhotoData?.pages ?? []) {
+    for (const page of data?.pages ?? []) {
       for (const photo of page.items) {
         uniqueImages.set(photo.id, {
           id: photo.id,
@@ -72,7 +72,7 @@ function RtcViewerResultPage({
     }
 
     return [...uniqueImages.values()];
-  }, [initialImages, storedPhotoData]);
+  }, [data, initialImages]);
 
   // RPC로 받은 사진도 없고 API까지 실패한 경우에만
   // 전체 오류 화면을 표시한다.

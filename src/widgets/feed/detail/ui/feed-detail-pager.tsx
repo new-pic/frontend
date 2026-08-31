@@ -48,7 +48,7 @@ export function FeedDetailPager({
     null,
   );
   const requireMember = useRequireMember();
-  const { blockUser, isBlocking } = useBlockUser({ requireMember });
+  const { blockUser, isBlocking } = useBlockUser();
   const insets = useSafeAreaInsets();
   const activeFeed = useMemo(() => {
     if (activePageIndex < 0 || activePageIndex >= feeds.length) {

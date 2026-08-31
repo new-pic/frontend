@@ -1,4 +1,4 @@
-import { feedQuery } from "@entities/feed";
+import { userFeedQuery } from "@entities/feed";
 import { adaptFeedToGuideSelection } from "../lib/feed-guide-selection-adapter";
 import type { GuideFeedSelection } from "../model";
 import {
@@ -31,15 +31,15 @@ export function GuideFeedBottomSheet({
   onClose,
 }: GuideFeedBottomSheetProps) {
   const {
-    data: savedFeedData,
+    data,
     fetchNextPage,
     hasNextPage,
     isError,
     isFetchingNextPage,
     isPending,
     refetch,
-  } = feedQuery.useReadSavedFeeds({ take: 24 }, { enabled: open });
-  const feeds = savedFeedData?.pages.flatMap((page) => page.items) ?? [];
+  } = userFeedQuery.useReadSavedFeeds({ take: 24 }, { enabled: open });
+  const feeds = data?.pages.flatMap((page) => page.items) ?? [];
   const gridItems = feeds.map((feed) => ({
     id: feed.id,
     imageUrl: feed.thumbnailUrl,

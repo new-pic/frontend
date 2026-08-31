@@ -23,20 +23,20 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export function ProfileEditPage() {
   const form = useSetupForm();
-  const { data: profile } = usersQuery.useReadMe();
+  const { data } = usersQuery.useReadMe();
   const {
     reset,
     formState: { isDirty, isSubmitting },
   } = form;
 
   useEffect(() => {
-    if (!profile || isDirty) return;
+    if (!data || isDirty) return;
 
     reset({
-      nickname: profile.nickname,
+      nickname: data.nickname,
       profileImageFile: undefined,
     });
-  }, [isDirty, profile, reset]);
+  }, [data, isDirty, reset]);
 
   const handleGoBack = () => {
     router.back();
@@ -67,7 +67,7 @@ export function ProfileEditPage() {
                 control={form.control}
                 render={({ field }) => (
                   <ProfileImageField
-                    currentImageUrl={profile?.profileImage}
+                    currentImageUrl={data?.profileImage}
                     disabled={isSubmitting}
                     value={field.value}
                     onChange={field.onChange}

@@ -17,11 +17,11 @@ export function RtcViewerReactionPicker({
   participantId,
 }: RtcViewerReactionPickerProps) {
   const {
-    data: emojiData,
+    data,
     isError: isEmojiError,
     refetch: refetchEmojis,
   } = rtcReactionQuery.useReadFeedbackEmojis();
-  const emojis = useMemo(() => adaptRtcReactionEmojis(emojiData), [emojiData]);
+  const emojis = useMemo(() => adaptRtcReactionEmojis(data), [data]);
   const channel = useRtcReactionChannel({
     active,
     roomId,

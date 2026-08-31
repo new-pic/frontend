@@ -24,13 +24,13 @@ interface ProfileRtcPhotoPreviewProps {
 export const ProfileRtcPhotoPreview = memo(function ProfileRtcPhotoPreview({
   onPress,
 }: ProfileRtcPhotoPreviewProps) {
-  const { data: storedPhotoData, isSuccess: isStoredPhotoSuccess } =
+  const { data, isSuccess: isStoredPhotoSuccess } =
     rtcStoredPhotoQuery.useReadMyRtcStoredPhotos({
       take: RTC_STORED_PHOTO_GALLERY_CONFIG.pageSize,
     });
   const photos = useMemo(
-    () => mergeUniqueRtcStoredPhotos(storedPhotoData?.pages),
-    [storedPhotoData?.pages],
+    () => mergeUniqueRtcStoredPhotos(data?.pages),
+    [data?.pages],
   );
   const activePhotos = useActiveRtcStoredPhotos(photos);
   const [failedPhotoIds, setFailedPhotoIds] = useState(() => new Set<string>());

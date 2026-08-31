@@ -18,12 +18,9 @@ require.extensions[".ts"] = (module, filename) => {
   module._compile(output.outputText, filename);
 };
 
-class MockFile {}
-
 const secureValues = new Map();
 const originalModuleLoad = Module._load;
 Module._load = function mockAuthDependencies(request, parent, isMain) {
-  if (request === "expo-file-system") return { File: MockFile };
   if (request === "expo-secure-store") {
     return {
       deleteItemAsync: async (key) => secureValues.delete(key),
@@ -48,7 +45,7 @@ const {
   GuestLoginRequestSchema,
   SocialLoginResponseSchema,
   TokenResponseSchema,
-} = require("../../../../entities/user/model/schema.ts");
+} = require("../model/social-login-schema.ts");
 const { useAuthStore } = require("../../../../shared/model/auth-store.ts");
 
 Module._load = originalModuleLoad;

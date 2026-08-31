@@ -32,3 +32,5 @@ export * from "./vstack";
 
 export * from "./keyboard-dismiss-layout";
 export * from "./slide-page-view";
+
+export * from "./theme";
