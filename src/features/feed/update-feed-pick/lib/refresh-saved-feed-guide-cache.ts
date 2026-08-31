@@ -1,4 +1,4 @@
-import { feedQuery, feedQueryKeys } from "@entities/feed";
+import { userFeedQuery, userFeedQueryKeys } from "@entities/feed";
 import type { QueryClient } from "@tanstack/react-query";
 import { SAVED_FEED_SYNC_CONFIG } from "../config/saved-feed-sync-config";
 
@@ -7,14 +7,14 @@ export async function refreshSavedFeedGuideCache(
   userId: string | null,
 ) {
   await queryClient.resetQueries(
-    { queryKey: feedQueryKeys.savedFeedLists() },
+    { queryKey: userFeedQueryKeys.savedFeedLists() },
     { cancelRefetch: true },
   );
 
   if (!userId) return;
 
   await queryClient.fetchInfiniteQuery(
-    feedQuery.savedFeedsInfiniteQueryOptions(userId, {
+    userFeedQuery.savedFeedsInfiniteQueryOptions(userId, {
       take: SAVED_FEED_SYNC_CONFIG.firstPageTake,
     }),
   );

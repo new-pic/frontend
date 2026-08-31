@@ -1,5 +1,4 @@
 import { privateApiClient } from "@shared/api";
-import { useAuthStore } from "@shared/model";
 import {
   infiniteQueryOptions,
   useInfiniteQuery,
@@ -7,36 +6,16 @@ import {
 } from "@tanstack/react-query";
 import {
   type FeedItemResponse,
+  type FeedListParams,
   type FeedListResponse,
   feedQueryKeys,
-  type UserFeedListParams,
 } from "../model";
 
-/** 여러 Slice가 공유하는 저장 피드 컬렉션을 조회합니다. */
-export function useReadSavedFeeds(
-  params: UserFeedListParams,
-  options?: { enabled?: boolean },
-) {
-  const isGuest = useAuthStore((state) => state.isGuest);
-  const userId = useAuthStore((state) => state.userId);
-
-  return useInfiniteQuery({
-    ...savedFeedsInfiniteQueryOptions(userId, params),
-    enabled: Boolean(userId) && !isGuest && (options?.enabled ?? true),
-  });
-}
-
-export function savedFeedsInfiniteQueryOptions(
-  userId: string | null,
-  params: UserFeedListParams,
-) {
+export function publicFeedsInfiniteQueryOptions(params: FeedListParams) {
   return infiniteQueryOptions({
-    queryKey: feedQueryKeys.savedFeedList(userId, params),
+    queryKey: feedQueryKeys.publicList(params),
     queryFn: async ({ pageParam, signal }): Promise<FeedListResponse> => {
-      if (!userId || useAuthStore.getState().isGuest) {
-        throw new Error("Cannot fetch saved feeds without a user session");
-      }
-      const response = await privateApiClient.get("/users/me/references", {
+      const response = await privateApiClient.get("/feed", {
         params: { ...params, cursor: pageParam },
         signal,
       });
@@ -46,6 +25,10 @@ export function savedFeedsInfiniteQueryOptions(
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 1000 * 60 * 5,
   });
+}
+
+export function useReadFeeds(params: FeedListParams) {
+  return useInfiniteQuery(publicFeedsInfiniteQueryOptions(params));
 }
 
 /** 여러 Page가 공유하는 피드 상세를 조회합니다. */

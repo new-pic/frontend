@@ -23,6 +23,8 @@ Module._load = function mockQueryKeys(request, parent, isMain) {
     return {
       feedQueryKeys: {
         lists: () => ["feed", "list"],
+      },
+      userFeedQueryKeys: {
         myFeedLists: () => ["feed", "me", "feeds"],
       },
     };

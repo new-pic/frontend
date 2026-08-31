@@ -1,4 +1,4 @@
-import { feedQuery } from "@entities/feed";
+import { userFeedQuery } from "@entities/feed";
 import { createFeedDetailHref } from "@features/feed/browse-feed-detail";
 import {
   Box,
@@ -15,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export function ProfileSaveFeedPage() {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
-    feedQuery.useReadSavedFeeds({ take: 24 });
+    userFeedQuery.useReadSavedFeeds({ take: 24 });
   const feeds = data?.pages.flatMap((page) => page.items) ?? [];
   const feedImages = feeds.map((feed) => ({
     id: feed.id,
