@@ -1,5 +1,6 @@
 import {
   feedQueryKeys,
+  invalidateFeedCollectionQueries,
   optimisticallyRemoveFeedAcrossCollections,
   rollbackRemovedFeeds,
 } from "@entities/feed";
@@ -32,5 +33,6 @@ export function useDeleteFeedMutation() {
         queryKey: feedQueryKeys.commentsByFeed(feedId),
       });
     },
+    onSettled: () => invalidateFeedCollectionQueries(queryClient),
   });
 }

@@ -4,6 +4,8 @@ import type {
   FeedListResponse,
   FeedResponse,
 } from "../model";
+import { feedQueryKeys } from "../model/feed-query-keys";
+import { userFeedQueryKeys } from "../model/user-feed-query-keys";
 import type {
   InfiniteData,
   QueryClient,
@@ -279,6 +281,17 @@ export function updateFeedLists(
       })),
     };
   });
+}
+
+export function invalidateFeedCollectionQueries(queryClient: QueryClient) {
+  return Promise.all([
+    queryClient.invalidateQueries({
+      queryKey: feedQueryKeys.lists(),
+    }),
+    queryClient.invalidateQueries({
+      queryKey: userFeedQueryKeys.all,
+    }),
+  ]);
 }
 
 export async function optimisticallyUpdateFeedAcrossCollections(

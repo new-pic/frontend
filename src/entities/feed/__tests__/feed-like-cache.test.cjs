@@ -17,6 +17,7 @@ require.extensions[".ts"] = (module, filename) => {
 };
 
 const {
+  invalidateFeedCollectionQueries,
   optimisticallyRemoveFeedAcrossCollections,
   optimisticallyUpdateFeedAcrossCollections,
   removeFeedFromListCacheData,
@@ -254,4 +255,51 @@ test("좋아요 rollback은 이후 변경된 저장 상태를 덮어쓰지 않�
   assert.equal(feed.likeCount, 2);
   assert.equal(feed.isPicked, true);
   assert.equal(feed.pickCount, 1);
+});
+
+test("동일 피드의 update와 delete rollback이 교차하면 collection을 재검증 대상으로 표시한다", async () => {
+  const queryClient = new QueryClient();
+  const publicQueryKey = ["feed", "list", { take: 24 }];
+  const userQueryKey = ["feed", "me", "feeds", "user-1", { take: 24 }];
+  const detailQueryKey = ["feed", "item", "feed-1"];
+  const serverCache = {
+    pages: [{ items: [createFeed()], nextCursor: null }],
+    pageParams: [undefined],
+  };
+
+  queryClient.setQueryData(publicQueryKey, serverCache);
+  queryClient.setQueryData(userQueryKey, serverCache);
+  queryClient.setQueryData(detailQueryKey, createFeed());
+
+  const updateSnapshot = await optimisticallyUpdateFeedAcrossCollections(
+    queryClient,
+    "feed-1",
+    likeFeed,
+  );
+  const deleteSnapshot = await optimisticallyRemoveFeedAcrossCollections(
+    queryClient,
+    "feed-1",
+  );
+
+  rollbackFeedUpdates(
+    queryClient,
+    updateSnapshot,
+    (currentFeed, previousFeed) => ({
+      ...currentFeed,
+      isLiked: previousFeed.isLiked,
+      likeCount: previousFeed.likeCount,
+    }),
+  );
+  rollbackRemovedFeeds(queryClient, deleteSnapshot);
+
+  assert.equal(
+    queryClient.getQueryData(publicQueryKey).pages[0].items[0].isLiked,
+    true,
+  );
+
+  await invalidateFeedCollectionQueries(queryClient);
+
+  [publicQueryKey, userQueryKey].forEach((queryKey) => {
+    assert.equal(queryClient.getQueryState(queryKey).isInvalidated, true);
+  });
 });
