@@ -71,20 +71,6 @@ export function useReadLikedFeeds(params: UserFeedListParams) {
   });
 }
 
-/** 여러 Slice가 공유하는 저장 피드 컬렉션을 조회합니다. */
-export function useReadSavedFeeds(
-  params: UserFeedListParams,
-  options?: { enabled?: boolean },
-) {
-  const isGuest = useAuthStore((state) => state.isGuest);
-  const userId = useAuthStore((state) => state.userId);
-
-  return useInfiniteQuery({
-    ...savedFeedsInfiniteQueryOptions(userId, params),
-    enabled: Boolean(userId) && !isGuest && (options?.enabled ?? true),
-  });
-}
-
 export function savedFeedsInfiniteQueryOptions(
   userId: string | null,
   params: UserFeedListParams,
@@ -104,5 +90,19 @@ export function savedFeedsInfiniteQueryOptions(
     initialPageParam: params.cursor,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 1000 * 60 * 5,
+  });
+}
+
+/** 여러 Slice가 공유하는 저장 피드 컬렉션을 조회합니다. */
+export function useReadSavedFeeds(
+  params: UserFeedListParams,
+  options?: { enabled?: boolean },
+) {
+  const isGuest = useAuthStore((state) => state.isGuest);
+  const userId = useAuthStore((state) => state.userId);
+
+  return useInfiniteQuery({
+    ...savedFeedsInfiniteQueryOptions(userId, params),
+    enabled: Boolean(userId) && !isGuest && (options?.enabled ?? true),
   });
 }
