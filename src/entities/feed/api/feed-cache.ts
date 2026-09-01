@@ -15,7 +15,6 @@ type FeedListInfiniteData = InfiniteData<
   FeedListParams["cursor"]
 >;
 
-type FeedListCacheSnapshot = [QueryKey, FeedListInfiniteData | undefined][];
 type FeedCacheSnapshot = [QueryKey, unknown][];
 
 interface FeedListPage {
@@ -126,6 +125,24 @@ export function updateFeedInCacheData(
   return didUpdate ? { ...data, pages } : data;
 }
 
+export function removeFeedFromListCacheData(
+  data: unknown,
+  feedId: string,
+): unknown {
+  if (!isInfiniteFeedListData(data)) return data;
+
+  let didRemove = false;
+  const pages = data.pages.map((page) => {
+    const items = page.items.filter((feed) => feed.id !== feedId);
+    if (items.length === page.items.length) return page;
+
+    didRemove = true;
+    return { ...page, items };
+  });
+
+  return didRemove ? { ...data, pages } : data;
+}
+
 export function removeFeedsByAuthorFromCacheData(
   data: unknown,
   userId: string,
@@ -162,16 +179,11 @@ export function removeCommentsByAuthorFromCacheData(
   return didRemove ? { ...data, pages } : data;
 }
 
-export async function optimisticallyUpdateFeedLists(
+export function updateFeedLists(
   queryClient: QueryClient,
   queryKey: QueryKey,
   updateItems: (items: FeedResponse[]) => FeedResponse[],
 ) {
-  await queryClient.cancelQueries({ queryKey });
-  const previousFeedLists = queryClient.getQueriesData<FeedListInfiniteData>({
-    queryKey,
-  });
-
   queryClient.setQueriesData<FeedListInfiniteData>({ queryKey }, (old) => {
     if (!old) return old;
 
@@ -182,17 +194,6 @@ export async function optimisticallyUpdateFeedLists(
         items: updateItems(page.items),
       })),
     };
-  });
-
-  return previousFeedLists;
-}
-
-export function rollbackFeedLists(
-  queryClient: QueryClient,
-  snapshot?: FeedListCacheSnapshot,
-) {
-  snapshot?.forEach(([queryKey, data]) => {
-    queryClient.setQueryData(queryKey, data);
   });
 }
 
@@ -226,6 +227,41 @@ export async function optimisticallyUpdateFeedAcrossCollections(
   matchingQueries.forEach((query) => {
     queryClient.setQueryData(query.queryKey, (data: unknown) =>
       updateFeedInCacheData(data, feedId, update),
+    );
+  });
+
+  return previousFeedCaches;
+}
+
+export async function optimisticallyRemoveFeedAcrossCollections(
+  queryClient: QueryClient,
+  feedId: string,
+) {
+  const matchingQueries = queryClient
+    .getQueryCache()
+    .findAll()
+    .filter((query) => {
+      const data = query.state.data;
+      return removeFeedFromListCacheData(data, feedId) !== data;
+    });
+
+  await Promise.all(
+    matchingQueries.map((query) =>
+      queryClient.cancelQueries({
+        queryKey: query.queryKey,
+        exact: true,
+      }),
+    ),
+  );
+
+  const previousFeedCaches: FeedCacheSnapshot = matchingQueries.map((query) => [
+    query.queryKey,
+    queryClient.getQueryData(query.queryKey),
+  ]);
+
+  matchingQueries.forEach((query) => {
+    queryClient.setQueryData(query.queryKey, (data: unknown) =>
+      removeFeedFromListCacheData(data, feedId),
     );
   });
 

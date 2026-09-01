@@ -2,6 +2,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const test = require("node:test");
 const ts = require("typescript");
+const { QueryClient } = require("@tanstack/react-query");
 
 require.extensions[".ts"] = (module, filename) => {
   const source = fs.readFileSync(filename, "utf8");
@@ -15,7 +16,13 @@ require.extensions[".ts"] = (module, filename) => {
   module._compile(output.outputText, filename);
 };
 
-const { updateFeedInCacheData } = require("../api/feed-cache.ts");
+const {
+  optimisticallyRemoveFeedAcrossCollections,
+  removeFeedFromListCacheData,
+  rollbackFeedCaches,
+  updateFeedInCacheData,
+  updateFeedLists,
+} = require("../api/feed-cache.ts");
 
 function createFeed(overrides = {}) {
   return {
@@ -108,4 +115,78 @@ test("피드 데이터가 아니거나 대상이 없으면 원래 참조를 유�
     updateFeedInCacheData(otherFeedCache, "feed-1", likeFeed),
     otherFeedCache,
   );
+});
+
+test("성공이 확정된 피드만 지정한 collection 목록에서 제거한다", async () => {
+  const queryClient = new QueryClient();
+  const likedFeedListsKey = ["feed", "me", "liked-feeds"];
+  const likedFeedListKey = [...likedFeedListsKey, "user-1", { take: 24 }];
+  const publicFeedListKey = ["feed", "list", { take: 24 }];
+  const cache = {
+    pages: [{ items: [createFeed()], nextCursor: null }],
+    pageParams: [undefined],
+  };
+
+  queryClient.setQueryData(likedFeedListKey, cache);
+  queryClient.setQueryData(publicFeedListKey, cache);
+
+  updateFeedLists(queryClient, likedFeedListsKey, (items) =>
+    items.filter((feed) => feed.id !== "feed-1"),
+  );
+
+  assert.deepEqual(
+    queryClient
+      .getQueryData(likedFeedListKey)
+      .pages.flatMap((page) => page.items),
+    [],
+  );
+  assert.equal(
+    queryClient.getQueryData(publicFeedListKey).pages[0].items[0].id,
+    "feed-1",
+  );
+});
+
+test("피드 삭제는 모든 collection에서 제거하고 실패 시 복구한다", async () => {
+  const queryClient = new QueryClient();
+  const queryKeys = [
+    ["feed", "list", { take: 24 }],
+    ["feed", "me", "feeds", "user-1", { take: 24 }],
+    ["feed", "me", "liked-feeds", "user-1", { take: 24 }],
+    ["feed", "me", "saved-feeds", "user-1", { take: 24 }],
+  ];
+  const cache = {
+    pages: [{ items: [createFeed()], nextCursor: null }],
+    pageParams: [undefined],
+  };
+
+  queryKeys.forEach((queryKey) => queryClient.setQueryData(queryKey, cache));
+  queryClient.setQueryData(["feed", "item", "feed-1"], createFeed());
+
+  const snapshot = await optimisticallyRemoveFeedAcrossCollections(
+    queryClient,
+    "feed-1",
+  );
+
+  queryKeys.forEach((queryKey) => {
+    assert.deepEqual(
+      queryClient.getQueryData(queryKey).pages.flatMap((page) => page.items),
+      [],
+    );
+  });
+  assert.equal(
+    removeFeedFromListCacheData(
+      queryClient.getQueryData(["feed", "item", "feed-1"]),
+      "feed-1",
+    ).id,
+    "feed-1",
+  );
+
+  rollbackFeedCaches(queryClient, snapshot);
+
+  queryKeys.forEach((queryKey) => {
+    assert.equal(
+      queryClient.getQueryData(queryKey).pages[0].items[0].id,
+      "feed-1",
+    );
+  });
 });

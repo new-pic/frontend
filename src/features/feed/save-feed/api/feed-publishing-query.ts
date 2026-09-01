@@ -1,10 +1,10 @@
 import {
   feedQueryKeys,
-  optimisticallyUpdateFeedLists,
   type CreateFeedRequest,
   type FeedAiJobResponseDto,
   type FeedResponse,
   type UpdateFeedRequest,
+  updateFeedLists,
 } from "@entities/feed";
 import { privateApiClient, uploadFetchClient } from "@shared/api";
 import { ObjectToFormData } from "@shared/lib";
@@ -38,14 +38,13 @@ export function useUpdateFeed({ feedId }: { feedId?: string }) {
       const response = await privateApiClient.patch(`/feed/${feedId}`, data);
       return response.data;
     },
-    onSuccess: async (data: FeedResponse) => {
-      await optimisticallyUpdateFeedLists(
-        queryClient,
-        feedQueryKeys.lists(),
-        (items) =>
-          items.map((feed) =>
-            feed.id === data.id ? { ...feed, ...data } : feed,
-          ),
+    onMutate: () =>
+      queryClient.cancelQueries({ queryKey: feedQueryKeys.lists() }),
+    onSuccess: (data: FeedResponse) => {
+      updateFeedLists(queryClient, feedQueryKeys.lists(), (items) =>
+        items.map((feed) =>
+          feed.id === data.id ? { ...feed, ...data } : feed,
+        ),
       );
       queryClient.setQueryData(feedQueryKeys.item(feedId), data);
     },
