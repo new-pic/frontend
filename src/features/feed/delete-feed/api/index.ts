@@ -1,1 +1,1 @@
-export * as deleteFeedQuery from "./delete-feed-mutation";
+export * as deleteFeedQuery from "./delete-feed-query";

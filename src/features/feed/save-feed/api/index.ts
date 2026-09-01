@@ -1,1 +1,1 @@
-export * as feedPublishingQuery from "./feed-mutation";
+export * as feedPublishingQuery from "./feed-publishing-query";

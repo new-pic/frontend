@@ -1,1 +1,1 @@
-export * as feedPickQuery from "./feed-pick-mutation";
+export * as feedPickQuery from "./feed-pick-query";

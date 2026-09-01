@@ -6,7 +6,7 @@ import { privateApiClient } from "@shared/api";
 import { useAuthStore } from "@shared/model";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-function useFeedLikeMutation(nextIsLiked: boolean) {
+function useUpdateFeedPick(nextIsPicked: boolean) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -14,9 +14,9 @@ function useFeedLikeMutation(nextIsLiked: boolean) {
       if (useAuthStore.getState().isGuest) {
         throw new Error("Member account is required.");
       }
-      const request = nextIsLiked
-        ? privateApiClient.post(`/feed/${feedId}/like`)
-        : privateApiClient.delete(`/feed/${feedId}/like`);
+      const request = nextIsPicked
+        ? privateApiClient.post(`/feed/${feedId}/pick`)
+        : privateApiClient.delete(`/feed/${feedId}/pick`);
       return (await request).data;
     },
     onMutate: async (feedId: string) => {
@@ -26,8 +26,8 @@ function useFeedLikeMutation(nextIsLiked: boolean) {
           feedId,
           (feed) => ({
             ...feed,
-            isLiked: nextIsLiked,
-            likeCount: Math.max(0, feed.likeCount + (nextIsLiked ? 1 : -1)),
+            isPicked: nextIsPicked,
+            pickCount: Math.max(0, feed.pickCount + (nextIsPicked ? 1 : -1)),
           }),
         );
       return { previousFeedCaches };
@@ -38,10 +38,10 @@ function useFeedLikeMutation(nextIsLiked: boolean) {
   });
 }
 
-export function useLikeFeed() {
-  return useFeedLikeMutation(true);
+export function useSaveFeed() {
+  return useUpdateFeedPick(true);
 }
 
-export function useUnlikeFeed() {
-  return useFeedLikeMutation(false);
+export function useUnsaveFeed() {
+  return useUpdateFeedPick(false);
 }
