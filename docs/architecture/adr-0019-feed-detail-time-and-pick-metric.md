@@ -12,8 +12,9 @@
 저장 수는 현재 상세 UI에서 노출하지 않는다. 저장 mutation은 public, 내
 피드, 저장한 피드, 좋아요한 피드와 단일 상세 cache에 동일한 낙관적 갱신을
 적용한다. 저장 여부와 개수는 `onMutate`에서 즉시 변경하지만 저장 목록의
-membership은 서버 성공 후에만 제거한다. 실패하면 이전 cache snapshot으로
-rollback한다.
+membership은 서버 성공 후에만 제거한다. `onMutate`에서 이전 저장 상태와
+개수를 기록하고, 실패하면 해당 필드만 rollback한다. cache 전체를
+복원하지 않으므로 그 사이 발생한 다른 cache 변경은 유지된다.
 
 ```text
 FeedResponse

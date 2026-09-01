@@ -1,6 +1,6 @@
 import {
   optimisticallyUpdateFeedAcrossCollections,
-  rollbackFeedCaches,
+  rollbackFeedUpdates,
   updateFeedLists,
   userFeedQueryKeys,
 } from "@entities/feed";
@@ -35,7 +35,15 @@ function useUpdateFeedLike(nextIsLiked: boolean) {
       return { previousFeedCaches };
     },
     onError: (_, __, context) => {
-      rollbackFeedCaches(queryClient, context?.previousFeedCaches);
+      rollbackFeedUpdates(
+        queryClient,
+        context?.previousFeedCaches,
+        (currentFeed, previousFeed) => ({
+          ...currentFeed,
+          isLiked: previousFeed.isLiked,
+          likeCount: previousFeed.likeCount,
+        }),
+      );
     },
     onSuccess: (_, feedId) => {
       if (nextIsLiked) return;

@@ -18,8 +18,10 @@ require.extensions[".ts"] = (module, filename) => {
 
 const {
   optimisticallyRemoveFeedAcrossCollections,
+  optimisticallyUpdateFeedAcrossCollections,
   removeFeedFromListCacheData,
-  rollbackFeedCaches,
+  rollbackFeedUpdates,
+  rollbackRemovedFeeds,
   updateFeedInCacheData,
   updateFeedLists,
 } = require("../api/feed-cache.ts");
@@ -146,7 +148,7 @@ test("성공이 확정된 피드만 지정한 collection 목록에서 제거한�
   );
 });
 
-test("피드 삭제는 모든 collection에서 제거하고 실패 시 복구한다", async () => {
+test("피드 삭제는 모든 collection에서 제거하고 실패 시 해당 피드만 복구한다", async () => {
   const queryClient = new QueryClient();
   const queryKeys = [
     ["feed", "list", { take: 24 }],
@@ -181,7 +183,7 @@ test("피드 삭제는 모든 collection에서 제거하고 실패 시 복구한
     "feed-1",
   );
 
-  rollbackFeedCaches(queryClient, snapshot);
+  rollbackRemovedFeeds(queryClient, snapshot);
 
   queryKeys.forEach((queryKey) => {
     assert.equal(
@@ -189,4 +191,67 @@ test("피드 삭제는 모든 collection에서 제거하고 실패 시 복구한
       "feed-1",
     );
   });
+});
+
+test("피드 삭제 rollback은 그 이후 발생한 다른 피드 변경을 덮어쓰지 않는다", async () => {
+  const queryClient = new QueryClient();
+  const queryKey = ["feed", "list", { take: 24 }];
+  const cache = {
+    pages: [
+      {
+        items: [createFeed({ id: "feed-1" }), createFeed({ id: "feed-2" })],
+        nextCursor: null,
+      },
+    ],
+    pageParams: [undefined],
+  };
+
+  queryClient.setQueryData(queryKey, cache);
+
+  const snapshot = await optimisticallyRemoveFeedAcrossCollections(
+    queryClient,
+    "feed-1",
+  );
+
+  queryClient.setQueryData(queryKey, (data) =>
+    updateFeedInCacheData(data, "feed-2", likeFeed),
+  );
+  rollbackRemovedFeeds(queryClient, snapshot);
+
+  const feeds = queryClient
+    .getQueryData(queryKey)
+    .pages.flatMap((page) => page.items);
+  assert.deepEqual(
+    feeds.map((feed) => feed.id),
+    ["feed-1", "feed-2"],
+  );
+  assert.equal(feeds[1].isLiked, true);
+  assert.equal(feeds[1].likeCount, 3);
+});
+
+test("좋아요 rollback은 이후 변경된 저장 상태를 덮어쓰지 않는다", async () => {
+  const queryClient = new QueryClient();
+  const queryKey = ["feed", "item", "feed-1"];
+  queryClient.setQueryData(queryKey, createFeed());
+
+  const snapshot = await optimisticallyUpdateFeedAcrossCollections(
+    queryClient,
+    "feed-1",
+    likeFeed,
+  );
+  queryClient.setQueryData(queryKey, (data) =>
+    updateFeedInCacheData(data, "feed-1", pickFeed),
+  );
+
+  rollbackFeedUpdates(queryClient, snapshot, (currentFeed, previousFeed) => ({
+    ...currentFeed,
+    isLiked: previousFeed.isLiked,
+    likeCount: previousFeed.likeCount,
+  }));
+
+  const feed = queryClient.getQueryData(queryKey);
+  assert.equal(feed.isLiked, false);
+  assert.equal(feed.likeCount, 2);
+  assert.equal(feed.isPicked, true);
+  assert.equal(feed.pickCount, 1);
 });

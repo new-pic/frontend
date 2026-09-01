@@ -17,7 +17,7 @@ export function useCreateFeedComment({ feedId }: { feedId: string }) {
       if (useAuthStore.getState().isGuest) {
         throw new Error("Member account is required.");
       }
-      const response = await privateApiClient.post(
+      const response = await privateApiClient.post<FeedCommentResponse>(
         `/feed/${feedId}/comments`,
         data,
       );

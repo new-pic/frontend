@@ -1,7 +1,7 @@
 import {
   feedQueryKeys,
   optimisticallyRemoveFeedAcrossCollections,
-  rollbackFeedCaches,
+  rollbackRemovedFeeds,
 } from "@entities/feed";
 import { privateApiClient } from "@shared/api";
 import { useAuthStore } from "@shared/model";
@@ -24,7 +24,7 @@ export function useDeleteFeedMutation() {
       return { previousFeedCaches };
     },
     onError: (_, __, context) => {
-      rollbackFeedCaches(queryClient, context?.previousFeedCaches);
+      rollbackRemovedFeeds(queryClient, context?.previousFeedCaches);
     },
     onSuccess: (_, feedId) => {
       queryClient.removeQueries({ queryKey: feedQueryKeys.item(feedId) });

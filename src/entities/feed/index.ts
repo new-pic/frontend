@@ -6,7 +6,8 @@ export {
   optimisticallyUpdateFeedAcrossCollections,
   removeCommentsByAuthorFromCacheData,
   removeFeedsByAuthorFromCacheData,
-  rollbackFeedCaches,
+  rollbackFeedUpdates,
+  rollbackRemovedFeeds,
   updateFeedLists,
 } from "./api/feed-cache";
 export * from "./model";

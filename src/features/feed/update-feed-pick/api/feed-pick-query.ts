@@ -1,6 +1,6 @@
 import {
   optimisticallyUpdateFeedAcrossCollections,
-  rollbackFeedCaches,
+  rollbackFeedUpdates,
   updateFeedLists,
   userFeedQueryKeys,
 } from "@entities/feed";
@@ -35,7 +35,15 @@ function useUpdateFeedPick(nextIsPicked: boolean) {
       return { previousFeedCaches };
     },
     onError: (_, __, context) => {
-      rollbackFeedCaches(queryClient, context?.previousFeedCaches);
+      rollbackFeedUpdates(
+        queryClient,
+        context?.previousFeedCaches,
+        (currentFeed, previousFeed) => ({
+          ...currentFeed,
+          isPicked: previousFeed.isPicked,
+          pickCount: previousFeed.pickCount,
+        }),
+      );
     },
     onSuccess: (_, feedId) => {
       if (nextIsPicked) return;

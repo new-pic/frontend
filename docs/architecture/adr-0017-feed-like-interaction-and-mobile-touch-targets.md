@@ -9,8 +9,10 @@
 
 좋아요 여부와 개수는 mutation `onMutate`에서 모든 Feed cache에 즉시
 반영한다. 좋아요한 피드 목록의 membership은 서버 성공이 확정된 뒤에만
-제거하고, 요청 실패 시 `onMutate` 이전 snapshot으로 상태와 개수를
-rollback한다.
+제거하고, `onMutate`에서 이전 상태와 개수를 기록한다. 요청 실패 시
+해당 필드만 rollback하며, cache 전체를 과거 snapshot으로
+복원하지 않으므로, 요청 이후 발생한 다른 피드나 다른 필드의 변경은
+유지된다.
 
 앱 공통 `Button`은 최소 48의 터치 영역을 제공하고, 시각 아이콘 크기는
 터치 영역과 분리한다. 피드 상세의 본문, 댓글, 작성자 정보와 직접
@@ -64,7 +66,7 @@ Member Gate + Pending/Throttle
 Feed Like/Unlike Mutation
   ├─ onMutate: 상태와 개수 낙관적 갱신
   ├─ onSuccess(unlike): 좋아요 목록에서 제거
-  └─ onError: snapshot rollback
+  └─ onError: 좋아요 상태·개수만 rollback
   ↓
 Feed Detail UI
 
