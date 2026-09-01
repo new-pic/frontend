@@ -1,1 +1,1 @@
-export * as feedLikeQuery from "./feed-like-mutation";
+export * as feedLikeQuery from "./feed-like-query";

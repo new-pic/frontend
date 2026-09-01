@@ -4,18 +4,18 @@ import {
   useRefreshPublishedFeeds,
 } from "@features/feed/save-feed";
 import { TagBottomSheet, TagList } from "@features/tags/select-feed-tags";
-import { gradients } from "@shared/ui/theme";
-import { useDebouncedValue } from "@shared/lib/debounce";
+import { useDebouncedValue } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
+import { gradients } from "@shared/ui/theme";
 
-import { Fab, Input, InputField, Text, VStack } from "@shared/ui";
-import { PhotoGrid } from "@shared/ui/photo-grid";
+import { Fab, Input, InputField, PhotoGrid, Text, VStack } from "@shared/ui";
 import { IconPencil } from "@tabler/icons-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { FEED_LIST_PAGE_SIZE } from "../model";
 
 export function FeedPage() {
   const isGuest = useAuthStore((state) => state.isGuest);
@@ -33,7 +33,7 @@ export function FeedPage() {
     hasNextPage,
     isFetchingNextPage,
   } = feedQuery.useReadFeeds({
-    take: 24,
+    take: FEED_LIST_PAGE_SIZE,
     q: debouncedSearchQuery || undefined,
     tag: selectedTags.length > 0 ? selectedTags.join(",") : undefined,
   });
@@ -62,7 +62,7 @@ export function FeedPage() {
       params: {
         id: feedId,
         index: String(index),
-        take: String(24),
+        take: String(FEED_LIST_PAGE_SIZE),
         q: debouncedSearchQuery || undefined,
         tag: selectedTags.length > 0 ? selectedTags.join(",") : undefined,
       },

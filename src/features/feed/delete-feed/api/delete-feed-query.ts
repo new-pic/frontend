@@ -1,7 +1,8 @@
 import {
   feedQueryKeys,
-  optimisticallyUpdateFeedLists,
-  rollbackFeedLists,
+  invalidateFeedCollectionQueries,
+  optimisticallyRemoveFeedAcrossCollections,
+  rollbackRemovedFeeds,
 } from "@entities/feed";
 import { privateApiClient } from "@shared/api";
 import { useAuthStore } from "@shared/model";
@@ -19,15 +20,12 @@ export function useDeleteFeedMutation() {
       return response.data;
     },
     onMutate: async (feedId: string) => {
-      const previousFeedLists = await optimisticallyUpdateFeedLists(
-        queryClient,
-        feedQueryKeys.lists(),
-        (items) => items.filter((feed) => feed.id !== feedId),
-      );
-      return { previousFeedLists };
+      const previousFeedCaches =
+        await optimisticallyRemoveFeedAcrossCollections(queryClient, feedId);
+      return { previousFeedCaches };
     },
     onError: (_, __, context) => {
-      rollbackFeedLists(queryClient, context?.previousFeedLists);
+      rollbackRemovedFeeds(queryClient, context?.previousFeedCaches);
     },
     onSuccess: (_, feedId) => {
       queryClient.removeQueries({ queryKey: feedQueryKeys.item(feedId) });
@@ -35,5 +33,6 @@ export function useDeleteFeedMutation() {
         queryKey: feedQueryKeys.commentsByFeed(feedId),
       });
     },
+    onSettled: () => invalidateFeedCollectionQueries(queryClient),
   });
 }

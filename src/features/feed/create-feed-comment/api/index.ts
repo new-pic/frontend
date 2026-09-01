@@ -1,1 +1,1 @@
-export * as feedCommentQuery from "./create-feed-comment-mutation";
+export * as feedCommentQuery from "./create-feed-comment-query";

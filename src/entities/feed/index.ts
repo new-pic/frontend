@@ -1,12 +1,14 @@
 export * as feedQuery from "./api/feed-query";
 export * as userFeedQuery from "./api/user-feed-query";
 export {
+  invalidateFeedCollectionQueries,
   isFeedAuthoredBy,
+  optimisticallyRemoveFeedAcrossCollections,
   optimisticallyUpdateFeedAcrossCollections,
-  optimisticallyUpdateFeedLists,
   removeCommentsByAuthorFromCacheData,
   removeFeedsByAuthorFromCacheData,
-  rollbackFeedCaches,
-  rollbackFeedLists,
+  rollbackFeedUpdates,
+  rollbackRemovedFeeds,
+  updateFeedLists,
 } from "./api/feed-cache";
 export * from "./model";

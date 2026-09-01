@@ -1,1 +1,1 @@
-export * as feedReportQuery from "./content-report-mutation";
+export * as feedReportQuery from "./content-report-query";

@@ -1,12 +1,14 @@
 import {
   optimisticallyUpdateFeedAcrossCollections,
-  rollbackFeedCaches,
+  rollbackFeedUpdates,
+  updateFeedLists,
+  userFeedQueryKeys,
 } from "@entities/feed";
 import { privateApiClient } from "@shared/api";
 import { useAuthStore } from "@shared/model";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-function useFeedPickMutation(nextIsPicked: boolean) {
+function useUpdateFeedPick(nextIsPicked: boolean) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -33,15 +35,32 @@ function useFeedPickMutation(nextIsPicked: boolean) {
       return { previousFeedCaches };
     },
     onError: (_, __, context) => {
-      rollbackFeedCaches(queryClient, context?.previousFeedCaches);
+      rollbackFeedUpdates(
+        queryClient,
+        context?.previousFeedCaches,
+        (currentFeed, previousFeed) => ({
+          ...currentFeed,
+          isPicked: previousFeed.isPicked,
+          pickCount: previousFeed.pickCount,
+        }),
+      );
+    },
+    onSuccess: (_, feedId) => {
+      if (nextIsPicked) return;
+
+      updateFeedLists(
+        queryClient,
+        userFeedQueryKeys.savedFeedLists(),
+        (items) => items.filter((feed) => feed.id !== feedId),
+      );
     },
   });
 }
 
 export function useSaveFeed() {
-  return useFeedPickMutation(true);
+  return useUpdateFeedPick(true);
 }
 
 export function useUnsaveFeed() {
-  return useFeedPickMutation(false);
+  return useUpdateFeedPick(false);
 }
