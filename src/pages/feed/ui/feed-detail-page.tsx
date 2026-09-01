@@ -9,6 +9,7 @@ import { FeedDetailPager, FeedDetailSkeleton } from "@widgets/feed/detail";
 
 import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { FEED_LIST_PAGE_SIZE } from "../model";
 
 interface FeedDetailSearchParams extends Record<string, string | string[]> {
   index: string;
@@ -29,9 +30,9 @@ export function FeedDetailPage() {
   } = useLocalSearchParams<"/feed/[id]", FeedDetailSearchParams>();
   const feedId = getFirstSearchParam(id) ?? "";
   const source = parseFeedDetailSource(sourceParam);
-  const parsedTake = Number(take ?? 24);
+  const parsedTake = Number(take ?? FEED_LIST_PAGE_SIZE);
   const feedSearchParams = {
-    take: Number.isFinite(parsedTake) ? parsedTake : 24,
+    take: Number.isFinite(parsedTake) ? parsedTake : FEED_LIST_PAGE_SIZE,
     q,
     tag,
   };
