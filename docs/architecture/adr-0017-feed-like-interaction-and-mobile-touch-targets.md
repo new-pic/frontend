@@ -7,6 +7,11 @@
 전환하며, 좋아요는 채워진 하트 확대, 좋아요 취소는 외곽선 하트 축소
 애니메이션으로 구분한다.
 
+좋아요 여부와 개수는 mutation `onMutate`에서 모든 Feed cache에 즉시
+반영한다. 좋아요한 피드 목록의 membership은 서버 성공이 확정된 뒤에만
+제거하고, 요청 실패 시 `onMutate` 이전 snapshot으로 상태와 개수를
+rollback한다.
+
 앱 공통 `Button`은 최소 48의 터치 영역을 제공하고, 시각 아이콘 크기는
 터치 영역과 분리한다. 피드 상세의 본문, 댓글, 작성자 정보와 직접
 `Pressable`을 사용하는 댓글 정렬 컨트롤도 같은 가독성·터치 기준에
@@ -57,8 +62,9 @@ useFeedLikeController
 Member Gate + Pending/Throttle
   ↓
 Feed Like/Unlike Mutation
-  ↓
-Optimistic Feed Collection Cache
+  ├─ onMutate: 상태와 개수 낙관적 갱신
+  ├─ onSuccess(unlike): 좋아요 목록에서 제거
+  └─ onError: snapshot rollback
   ↓
 Feed Detail UI
 
@@ -77,6 +83,7 @@ Gesture Handler와 Reanimated는 feature UI 내부에 격리한다. 서버 상�
 
 - 버튼과 이미지 제스처가 공유하는 단일 좋아요 lifecycle
 - public, 내 피드, 저장한 피드, 좋아요한 피드 cache의 일관된 낙관적 갱신
+- 서버 성공 전 좋아요 목록의 위치와 상세 탐색 흐름 유지
 - 48 크기의 공통 터치 영역과 접근성 label
 - 스크롤·슬라이드와 분리된 활성 이미지 더블 탭 제스처
 - 좋아요와 취소를 구분하는 즉각적인 시각 피드백
@@ -86,6 +93,8 @@ Gesture Handler와 Reanimated는 feature UI 내부에 격리한다. 서버 상�
 - 공통 버튼 높이 증가에 따라 고밀도 화면의 실기기 회귀 검증이 필요하다.
 - gesture 애니메이션은 낙관적 요청 승인 시 시작하므로 서버가 실패하면
   잠시 표시된 뒤 cache 상태가 rollback될 수 있다.
+- 좋아요 취소가 성공할 때까지 좋아요 목록에는 취소 상태의 피드가 잠시
+  남을 수 있다.
 - 앱 전체 타이포그래피를 일괄 확대하지 않고 의미가 분명한 본문과
   인터랙션 요소부터 단계적으로 적용한다.
 
@@ -93,6 +102,8 @@ Gesture Handler와 Reanimated는 feature UI 내부에 격리한다. 서버 상�
 
 - 피드 상세 이미지 더블 탭으로 좋아요와 좋아요 취소가 전환된다.
 - 좋아요 버튼과 더블 탭은 동일한 인증, pending, throttle을 사용한다.
+- 좋아요 취소는 상태를 즉시 변경하되 서버 성공 후 좋아요 목록에서
+  제거하고, 실패하면 기존 상태로 복구한다.
 - 공통 버튼 최소 터치 영역을 48로 변경하고 아이콘은 24~32로 유지했다.
 - 피드 상세 작성자·본문·댓글의 시각 크기와 댓글 정렬 터치 영역을 키웠다.
 - 전체 Node 테스트 103개와 iOS Expo export가 통과했다.
