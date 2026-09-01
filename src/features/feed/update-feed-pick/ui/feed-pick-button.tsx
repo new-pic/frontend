@@ -45,6 +45,8 @@ export function FeedPickButton({
 
     mutation.mutate(feedId, {
       onSuccess: async () => {
+        if (isPicked) return;
+
         try {
           await refreshSavedFeedGuideCache();
         } catch {

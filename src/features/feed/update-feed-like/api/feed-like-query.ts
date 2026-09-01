@@ -1,6 +1,8 @@
 import {
   optimisticallyUpdateFeedAcrossCollections,
   rollbackFeedCaches,
+  updateFeedLists,
+  userFeedQueryKeys,
 } from "@entities/feed";
 import { privateApiClient } from "@shared/api";
 import { useAuthStore } from "@shared/model";
@@ -34,6 +36,15 @@ function useUpdateFeedLike(nextIsLiked: boolean) {
     },
     onError: (_, __, context) => {
       rollbackFeedCaches(queryClient, context?.previousFeedCaches);
+    },
+    onSuccess: (_, feedId) => {
+      if (nextIsLiked) return;
+
+      updateFeedLists(
+        queryClient,
+        userFeedQueryKeys.likedFeedLists(),
+        (items) => items.filter((feed) => feed.id !== feedId),
+      );
     },
   });
 }
