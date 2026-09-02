@@ -94,7 +94,7 @@ RTC dropdown confirm
   ↓
 end request command
   ↓
-RtcHostLiveKitPage
+RtcHostLiveKit
   ↓
 사진 선택 → publisher 정리 → 서버 종료
   ↓

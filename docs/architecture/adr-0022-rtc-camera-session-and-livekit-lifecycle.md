@@ -13,9 +13,9 @@ RTC frame sink 활성화와 역순 cleanup을 소유한다. CameraPage와 LiveKi
 native track 구현을 직접 알지 않는다.
 
 RTC session identity는 메모리 Zustand store가 소유한다. `hostSession`과
-`viewerSession`은 상호배타적이며 LiveKit connection도 현재 role과 함께
-보관한다. 방 access token과 LiveKit token은 앱 재시작 이후 복구하지 않고
-현재 프로세스에만 유지한다. 이 런타임 책임은 서버의 방 상태와 구분하기 위해
+`viewerSession`은 상호배타적이다. LiveKit connection은 현재 role feature의
+화면 lifecycle에 로컬로 유지하며 앱 재시작 이후 복구하지 않는다. 이 런타임
+책임은 서버의 방 상태와 구분하기 위해
 `entities/rtc-session` Slice가 소유한다. 방 응답, 참가자와 이벤트는
 `entities/rtc-room`이 소유한다.
 
@@ -88,7 +88,7 @@ WebRTC track을, publisher는 LiveKit publication lifecycle을 담당한다. 경
 → unpublish → raw track stop/release 순서다. track registry 소유권은 실제
 release 호출 전에 소비해 cleanup 재진입에서도 두 번 해제하지 않는다.
 
-`RtcHostLiveKitPage`는 connect와 cleanup promise를 single-flight로 유지하고
+`RtcHostLiveKit`은 connect와 cleanup promise를 single-flight로 유지하고
 lifecycle epoch로 오래된 connect 완료를 무효화한다. Camera route가 focus를
 잃으면 CameraSession과 host publisher/Room cleanup을 시작하며, 다시 활성화될
 때만 새 연결 세대를 허용한다.
@@ -126,8 +126,9 @@ Room disconnect를 재시도한다.
   정확히 한 번 해제한다.
 - 호스트는 VisionCamera native track만 LiveKit에 publish하며 참여자는
   camera capture 없이 remote track만 구독한다.
-- store setter가 host와 viewer session을 상호배타적으로 전환하고 role이
-  일치하는 LiveKit connection만 함께 정리한다.
+- store setter가 host와 viewer session을 상호배타적으로 전환한다.
+- 역할별 LiveKit connection과 종료 lifecycle은 ADR-0044에 따라 feature
+  내부에서 관리한다.
 - 화면 blur, unmount와 방 종료가 같은 idempotent publisher cleanup 경로를
   재사용한다.
 - 참여자 종료 결과는 권한이 있는 host RPC와 같은 `roomId`인지 검증한 뒤에만

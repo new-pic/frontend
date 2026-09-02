@@ -60,7 +60,7 @@ CameraPage finalizationState
   └─ IDLE → 촬영 결과 화면 또는 기존 카메라
 ```
 
-종료 workflow와 재시도용 완료 결과 cache는 `RtcHostLiveKitPage`가,
+종료 workflow와 재시도용 완료 결과 cache는 Host termination controller가,
 presentation state snapshot은 CameraPage가 소유한다. overlay는 LiveKit이나
 서버 API를 알지 않고 `RtcHostFinalizationState`만 입력받는다. VisionCamera와
 LiveKit lifecycle은 기존 owner가 계속 관리한다.
@@ -87,7 +87,7 @@ LiveKit lifecycle은 기존 owner가 계속 관리한다.
 - `isRtcFinalizationBlocking` type guard로 차단 상태를 두 단계로 제한했다.
 - CameraPage가 `usePreventRemove`, hardware BackHandler, 최상단 pointer
   overlay를 같은 조건으로 적용한다.
-- overlay를 추가해도 Camera와 `RtcHostLiveKitPage`는 기존 component tree에
+- overlay를 추가해도 Camera와 `RtcHostLiveKit`은 기존 component tree에
   계속 마운트된다.
 - 상태 분류, navigation 차단, overlay pointer 계약 테스트와 iOS/Android
   Expo SDK 56 export를 통과했다.

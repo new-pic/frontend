@@ -31,6 +31,10 @@ LiveKit 토큰 발급 실패는 자동 반복하지 않는다. 같은 SSE 연결
 이벤트가 오면 viewer session을 먼저 무효화해 늦은 토큰 응답을 차단하고,
 Alert 확인 후 피드 화면으로 이동한다.
 
+발급된 LiveKit connection은 전역 RTC store가 아니라 이 entry hook의 현재
+session epoch에 로컬로 유지한다. 나가기 lifecycle은 연결 전후 모두 서버 leave를
+먼저 수행하는 ADR-0044의 Viewer exit controller가 담당한다.
+
 ## Context
 
 기존 참여 폼은 join API와 LiveKit 토큰 API를 하나의 submit 흐름으로 묶었다.
@@ -71,6 +75,7 @@ LIVE 판정, token single-flight와 수동 retry를 담당한다. 상태 경계�
 - 반복 LIVE 이벤트에 의한 자동 token 재요청 방지
 - 공용 SSE adapter와 역할별 lifecycle 분리
 - ended와 진행 중 token 응답 사이 race 차단
+- 이전 session epoch에서 늦게 완료된 token 응답의 연결 활성화 차단
 
 포기하거나 제한된 것:
 

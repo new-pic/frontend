@@ -15,7 +15,7 @@ entities/rtc-room
 
 entities/rtc-session
   - 메모리 기반 Host/Viewer session identity
-  - LiveKit connection과 token 계약
+  - 역할 feature가 사용하는 LiveKit connection과 token 계약
   - Host 인증 header 조합
   - VisionCamera → LiveKit video publisher adapter
 
@@ -125,8 +125,9 @@ LiveKit과 VisionCamera를 연결하는 publisher는 외부 라이브러리 세�
 ## Result
 
 - 방 관련 API, schema, SSE와 Query Key는 `entities/rtc-room`에서만 export한다.
-- Host/Viewer session, LiveKit connection과 publisher는
-  `entities/rtc-session`에서만 export한다.
+- Host/Viewer session과 LiveKit connection 계약, publisher adapter는
+  `entities/rtc-session`에서 export한다. 실제 connection 상태는 역할 feature가
+  로컬로 소유한다.
 - `entities/rtc-stored-photo`의 독립 Query와 만료 lifecycle은 유지한다.
 - Reaction emoji 계약과 Query Key는 `features/rtc/reactions` 내부로 이동했다.
 - 기존 endpoint, 요청 payload, RTC store 전이와 Camera/LiveKit lifecycle은
