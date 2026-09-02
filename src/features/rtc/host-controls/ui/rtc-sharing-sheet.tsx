@@ -11,7 +11,7 @@ import { useWindowDimensions } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export interface SharingCameraSheetProps {
+export interface RtcSharingSheetProps {
   joinCode: string;
   qrValue: string;
   participantCount: number;
@@ -21,7 +21,7 @@ export interface SharingCameraSheetProps {
   onStart: () => void;
 }
 
-export function SharingCameraSheet({
+export function RtcSharingSheet({
   joinCode,
   qrValue,
   participantCount,
@@ -29,7 +29,7 @@ export function SharingCameraSheet({
   canStart = true,
   onCancel,
   onStart,
-}: SharingCameraSheetProps) {
+}: RtcSharingSheetProps) {
   const { width } = useWindowDimensions();
   const qrSize = Math.min(236, Math.max(176, width - 112));
   const safeParticipantCount = Math.max(0, participantCount);

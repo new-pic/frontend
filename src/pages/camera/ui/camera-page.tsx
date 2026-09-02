@@ -3,7 +3,7 @@ import {
   RTC_MAX_CAPTURED_PHOTOS,
   RtcEndRoomResponse,
 } from "@entities/rtc-room";
-import { RtcLiveKitConnection, useRtcStore } from "@entities/rtc-session";
+import { type RtcLiveKitConnection, useRtcStore } from "@entities/rtc-session";
 import {
   Camera,
   CameraRuntimeGeometry,
@@ -22,6 +22,7 @@ import {
 } from "@features/camera/guide-feed";
 import {
   prepareRtcEndImages,
+  RtcEndPhotoSelection,
   useResetMyRtcStoredPhotos,
 } from "@features/rtc/finalize-session";
 import {
@@ -29,6 +30,9 @@ import {
   isRtcFinalizationPending,
   RtcCameraRoomMenu,
   RtcFinalizationOverlay,
+  RtcHostLiveKit,
+  RTC_HOST_ROOM_EXPIRES_IN_MINUTES,
+  RtcSharingSheet,
   rtcHostQuery,
   type RtcHostFinalizationState,
   useRtcRoomEvents,
@@ -49,9 +53,6 @@ import { Alert, BackHandler } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CapturedPhotosLayer } from "./captured-photos-layer";
 import { CameraHeader } from "./camera-header";
-import { RtcHostLiveKitPage } from "./rtc-livekit-page";
-import { SharingCameraSheet } from "./sharing-camera-page";
-import { SharingEndSelectionPage } from "./sharing-end-selection-page";
 import { SharingResultPage } from "./sharing-result-page";
 
 type CameraMode = "VISION_CAMERA" | "RESULT";
@@ -99,9 +100,6 @@ export function CameraPage() {
     RTC_NAVIGATION.values.joinSheetOpen;
   const hostSession = useRtcStore((state) => state.hostSession);
   const clearHostSession = useRtcStore((state) => state.clearHostSession);
-  const clearLiveKitConnection = useRtcStore(
-    (state) => state.clearLiveKitConnection,
-  );
   const createRoomMutation = rtcHostQuery.useCreateRtcRoom();
   const createHostTokenMutation = rtcHostQuery.useCreateHostLiveKitToken();
   const endRoomMutation = rtcHostQuery.useEndRtcRoom();
@@ -134,6 +132,7 @@ export function CameraPage() {
   );
   const selectedEndPhotosRef = useRef<SessionPhoto[] | null>(null);
   const preparedEndImagesRef = useRef<File[] | null>(null);
+  const shouldExitAfterResultRef = useRef(false);
   const appliedInitialGuideFeedIdRef = useRef<string | null>(null);
   const cameraGuide = useCameraGuideController({
     cameraActive:
@@ -154,19 +153,6 @@ export function CameraPage() {
     cameraGeometry.aspectRatio === cameraGuide.presentedGuide.cameraAspectRatio,
   );
   const openConfirm = useConfirm();
-
-  usePreventRemove(isFinalizationBlocking, () => undefined);
-
-  useEffect(() => {
-    if (!isFinalizationBlocking) return;
-
-    const subscription = BackHandler.addEventListener(
-      "hardwareBackPress",
-      () => true,
-    );
-
-    return () => subscription.remove();
-  }, [isFinalizationBlocking]);
 
   useEffect(() => {
     if (
@@ -277,7 +263,7 @@ export function CameraPage() {
     try {
       setIsJoinSheetOpen(false);
       await createRoomMutation.mutateAsync({
-        expiresInMinutes: 60,
+        expiresInMinutes: RTC_HOST_ROOM_EXPIRES_IN_MINUTES,
       });
       setCapturedPhotos([]);
       selectedEndPhotosRef.current = null;
@@ -288,22 +274,26 @@ export function CameraPage() {
     }
   };
 
-  const handleRequestEndRoom = useCallback(async () => {
-    if (!broadcastConnection || isRtcFinalizationPending(finalizationState)) {
-      return;
-    }
+  const handleRequestEndRoom = useCallback(
+    async (exitAfterResult = false) => {
+      if (!broadcastConnection || isRtcFinalizationPending(finalizationState)) {
+        return;
+      }
 
-    const confirmed = await openConfirm({
-      title: "실시간 공유를 종료할까요?",
-      message: "종료 전에 방에 저장할 촬영 사진을 선택할 수 있습니다.",
-      confirmText: "종료하기",
-      cancelText: "계속 공유",
-      destructive: true,
-    });
-    if (!confirmed) return;
+      const confirmed = await openConfirm({
+        title: "실시간 공유를 종료할까요?",
+        message: "종료 전에 방에 저장할 촬영 사진을 선택할 수 있습니다.",
+        confirmText: "종료하기",
+        cancelText: "계속 공유",
+        destructive: true,
+      });
+      if (!confirmed) return;
 
-    setEndRequestId((current) => current + 1);
-  }, [broadcastConnection, finalizationState, openConfirm]);
+      shouldExitAfterResultRef.current = exitAfterResult;
+      setEndRequestId((current) => current + 1);
+    },
+    [broadcastConnection, finalizationState, openConfirm],
+  );
 
   const handleOpenJoinSheet = () => {
     setJoinInitialCode(undefined);
@@ -330,7 +320,6 @@ export function CameraPage() {
         roomId: hostSession.roomId,
       });
       clearHostSession();
-      clearLiveKitConnection();
       selectedEndPhotosRef.current = null;
       preparedEndImagesRef.current = null;
       setIsShareSheetOpen(false);
@@ -360,7 +349,6 @@ export function CameraPage() {
         !isCameraPageFocusedRef.current ||
         !isVisionCameraRunningRef.current
       ) {
-        clearLiveKitConnection();
         Alert.alert(
           "카메라 상태 변경",
           "카메라가 중지되어 LiveKit 송출을 시작하지 않았습니다.",
@@ -368,10 +356,8 @@ export function CameraPage() {
         return;
       }
       const connection: RtcLiveKitConnection = {
-        role: "HOST",
         url: response.url,
         token: response.token,
-        expiresAt: response.expiresAt,
       };
 
       // VisionCamera는 그대로 실행됩니다. HOST RTC 계층은 같은
@@ -458,7 +444,6 @@ export function CameraPage() {
     );
 
     clearHostSession();
-    clearLiveKitConnection();
     setBroadcastConnection(null);
     setFinalizationState("IDLE");
     setEndRequestId(0);
@@ -485,6 +470,8 @@ export function CameraPage() {
   };
 
   const handleCloseResult = () => {
+    const shouldExit = shouldExitAfterResultRef.current;
+    shouldExitAfterResultRef.current = false;
     setResultImages(null);
     setCapturedPhotos([]);
     selectedEndPhotosRef.current = null;
@@ -492,8 +479,44 @@ export function CameraPage() {
     isVisionCameraRunningRef.current = false;
     setIsVisionCameraRunning(false);
     setCameraMode("VISION_CAMERA");
+
+    if (shouldExit) {
+      router.back();
+      return;
+    }
+
     setIsVisionCameraActive(true);
   };
+
+  const handleRequestCameraExit = useCallback(() => {
+    if (!broadcastConnection) {
+      router.back();
+      return;
+    }
+
+    void handleRequestEndRoom(true);
+  }, [broadcastConnection, handleRequestEndRoom]);
+
+  usePreventRemove(
+    Boolean(broadcastConnection) || isFinalizationBlocking,
+    () => {
+      if (!isFinalizationBlocking) handleRequestCameraExit();
+    },
+  );
+
+  useEffect(() => {
+    if (!broadcastConnection && !isFinalizationBlocking) return;
+
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        if (!isFinalizationBlocking) handleRequestCameraExit();
+        return true;
+      },
+    );
+
+    return () => subscription.remove();
+  }, [broadcastConnection, handleRequestCameraExit, isFinalizationBlocking]);
 
   const handlePhotoLimitReached = useCallback((maxPhotos: number) => {
     Alert.alert(
@@ -550,11 +573,11 @@ export function CameraPage() {
         <VStack className="h-full">
           <Camera
             isActive={isVisionCameraActive}
-            onClose={() => router.back()}
+            onClose={handleRequestCameraExit}
             renderHeader={({ onOpenSettings, presentation }) => (
               <CameraHeader
                 presentation={presentation}
-                onBackPress={() => router.back()}
+                onBackPress={handleRequestCameraExit}
                 onSettingsPress={onOpenSettings}
                 rtcControl={
                   <RtcCameraRoomMenu
@@ -570,7 +593,7 @@ export function CameraPage() {
                     isCameraReady={isVisionCameraRunning}
                     onSharePress={() => void handleOpenShare()}
                     onJoinPress={handleOpenJoinSheet}
-                    onEndRoomPress={() => void handleRequestEndRoom()}
+                    onEndRoomPress={() => void handleRequestEndRoom(false)}
                   />
                 }
               />
@@ -667,7 +690,7 @@ export function CameraPage() {
       />
 
       {broadcastConnection ? (
-        <RtcHostLiveKitPage
+        <RtcHostLiveKit
           connection={broadcastConnection}
           isActive={isCameraPageFocused && isVisionCameraActive}
           onPrepareEndRoom={handlePrepareEndRoom}
@@ -685,7 +708,7 @@ export function CameraPage() {
       />
 
       {isShareSheetOpen && hostSession ? (
-        <SharingCameraSheet
+        <RtcSharingSheet
           joinCode={hostSession.joinCode}
           qrValue={qrValue}
           participantCount={participants.length}
@@ -709,7 +732,7 @@ export function CameraPage() {
             zIndex: 50,
           }}
         >
-          <SharingEndSelectionPage
+          <RtcEndPhotoSelection
             photos={capturedPhotos}
             onConfirm={handleConfirmEndPhotoSelection}
           />

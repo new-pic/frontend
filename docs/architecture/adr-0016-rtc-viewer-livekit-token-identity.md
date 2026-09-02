@@ -49,7 +49,7 @@ lifecycle과 stale-response 처리 의도가 명확하다.
 서버 endpoint의 식별자 계약을 정확히 따르면서 비동기 응답을 현재
 Viewer session에만 적용하기 위해 두 식별자를 함께 유지하는 방식을
 선택했다. Host 토큰과 Viewer 토큰은 서로 다른 query와 endpoint를
-사용하며 앱 전체에는 `role: "VIEWER"`인 연결 정보만 노출한다.
+사용하며 Viewer entry lifecycle에는 실제 연결에 필요한 URL과 token만 노출한다.
 
 ## Trade-off
 

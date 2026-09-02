@@ -2,7 +2,7 @@ import { Button, ButtonText, Center, Text, VStack } from "@shared/ui";
 import { ActivityIndicator, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export interface SharingWaitingPageProps {
+export interface RtcViewerWaitingProps {
   hostNickname?: string;
   onCancel: () => void;
   isCanceling?: boolean;
@@ -11,14 +11,14 @@ export interface SharingWaitingPageProps {
   onRetry?: () => void;
 }
 
-export function SharingWaitingPage({
+export function RtcViewerWaiting({
   hostNickname,
   onCancel,
   isCanceling = false,
   isConnecting = false,
   connectionError,
   onRetry,
-}: SharingWaitingPageProps) {
+}: RtcViewerWaitingProps) {
   const displayHostNickname = hostNickname?.trim() || "호스트";
 
   return (

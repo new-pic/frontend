@@ -30,11 +30,7 @@ export interface RtcViewerSession {
   participantId: string;
 }
 
-export type RtcLiveKitRole = "HOST" | "VIEWER";
-
 export interface RtcLiveKitConnection {
-  role: RtcLiveKitRole;
   url: string;
   token: string;
-  expiresAt?: string;
 }

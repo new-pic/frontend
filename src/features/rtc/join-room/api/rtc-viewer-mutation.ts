@@ -8,7 +8,6 @@ import {
 } from "@entities/rtc-room";
 import {
   assertRtcAppAccessToken,
-  isCurrentRtcViewerSession,
   type RtcViewerLiveKitTokenRequest,
   type RtcViewerLiveKitTokenResponse,
   useRtcStore,
@@ -45,21 +44,6 @@ export function useCreateViewerLiveKitToken() {
           `/rtc/participants/${id}/livekit-token`,
         );
       return response.data;
-    },
-    onSuccess: (response, request) => {
-      if (
-        !isCurrentRtcViewerSession(
-          useRtcStore.getState().viewerSession,
-          request,
-        )
-      ) {
-        return;
-      }
-      useRtcStore.getState().setLiveKitConnection({
-        role: "VIEWER",
-        url: response.url,
-        token: response.token,
-      });
     },
   });
 }

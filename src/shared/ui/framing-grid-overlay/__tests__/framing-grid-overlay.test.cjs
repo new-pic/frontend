@@ -53,7 +53,10 @@ test("촬영자 그리드는 흰색 가이드보다 아래 레이어에 배치�
 
 test("참여자 영상은 전체 구도를 유지하고 그리드와 이모지 footer를 사용한다", () => {
   const liveKitSource = fs.readFileSync(
-    path.join(projectRoot, "src/pages/camera/ui/rtc-livekit-page.tsx"),
+    path.join(
+      projectRoot,
+      "src/features/rtc/join-room/ui/rtc-viewer-livekit.tsx",
+    ),
     "utf8",
   );
   const pickerSource = fs.readFileSync(

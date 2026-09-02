@@ -5,18 +5,22 @@ import {
 import { useRtcStore } from "@entities/rtc-session";
 import { RTC_STORED_PHOTO_MAX_TAKE } from "@entities/rtc-stored-photo";
 import { useResetMyRtcStoredPhotos } from "@features/rtc/finalize-session";
-import { rtcViewerQuery, useRtcViewerEntry } from "@features/rtc/join-room";
+import {
+  RtcViewerLiveKit,
+  RtcViewerWaiting,
+  shouldMountRtcViewerLiveKit,
+  useRtcViewerEntry,
+  useRtcViewerExitController,
+} from "@features/rtc/join-room";
 import { RtcViewerReactionPicker } from "@features/rtc/reactions";
-import { getApiErrorMessage } from "@shared/api";
 import { RTC_NAVIGATION } from "@shared/config";
 import { Button, ButtonText, Center, Text, VStack } from "@shared/ui";
 import { Href, router } from "expo-router";
+import { usePreventRemove } from "expo-router/react-navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert } from "react-native";
+import { Alert, BackHandler } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { RtcViewerLiveKitPage } from "./rtc-livekit-page";
 import { SharingResultPage } from "./sharing-result-page";
-import { SharingWaitingPage } from "./sharing-waiting-page";
 import { rtcStoredPhotoQuery } from "../api";
 
 interface ViewerResultImage {
@@ -131,29 +135,25 @@ function RtcViewerResultPage({
 }
 
 export function RtcViewerPage() {
-  const { mutateAsync: leaveRoom, isPending: isLeavingRoom } =
-    rtcViewerQuery.useLeaveRtcRoom();
-
   const resetMyRtcStoredPhotos = useResetMyRtcStoredPhotos();
 
   const viewerSession = useRtcStore((state) => state.viewerSession);
-  const liveKitConnection = useRtcStore((state) => state.liveKitConnection);
   const clearViewerSession = useRtcStore((state) => state.clearViewerSession);
 
   const [viewerResult, setViewerResult] = useState<ViewerResultState | null>(
     null,
   );
+  const [exitRequestId, setExitRequestId] = useState(0);
+  const [isExitCompleted, setIsExitCompleted] = useState(false);
+  const [isCancelingBeforeLiveKit, setIsCancelingBeforeLiveKit] =
+    useState(false);
 
   const hasPresentedEndedAlertRef = useRef(false);
   const hasPresentedResultRef = useRef(false);
   const hasEnteredLiveRef = useRef(false);
-  const leaveLockRef = useRef(false);
-
   const endedFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
-
-  const hasViewerConnection = liveKitConnection?.role === "VIEWER";
 
   // LiveKit 연결 이후에도 SSE 구독을 유지한다.
   const viewerEntry = useRtcViewerEntry({
@@ -162,10 +162,10 @@ export function RtcViewerPage() {
   });
 
   useEffect(() => {
-    if (hasViewerConnection) {
+    if (viewerEntry.connection) {
       hasEnteredLiveRef.current = true;
     }
-  }, [hasViewerConnection]);
+  }, [viewerEntry.connection]);
 
   const clearEndedFallbackTimer = useCallback(() => {
     if (!endedFallbackTimerRef.current) {
@@ -178,9 +178,14 @@ export function RtcViewerPage() {
 
   const finishViewerExit = useCallback(() => {
     clearEndedFallbackTimer();
+    setIsExitCompleted(true);
     clearViewerSession();
-    router.replace("/feed" as Href);
   }, [clearEndedFallbackTimer, clearViewerSession]);
+
+  const { isExiting, requestExit } = useRtcViewerExitController({
+    session: viewerSession,
+    onExited: finishViewerExit,
+  });
 
   /*
    * RPC와 SSE가 모두 이 함수를 통해 결과 화면으로 진입한다.
@@ -228,37 +233,48 @@ export function RtcViewerPage() {
   );
 
   const handleCancelBeforeLiveKit = useCallback(async () => {
-    const participantId = viewerSession?.participantId;
+    setIsCancelingBeforeLiveKit(true);
+    const result = await requestExit();
+    if (!result.ok) {
+      setIsCancelingBeforeLiveKit(false);
+      Alert.alert("RTC 방 나가기 실패", result.errorMessage);
+    }
+  }, [requestExit]);
 
-    if (!participantId || isLeavingRoom || leaveLockRef.current) {
+  const handleRequestViewerExit = useCallback(() => {
+    if (isExiting) return;
+
+    if (viewerEntry.connection) {
+      setExitRequestId((current) => current + 1);
       return;
     }
 
-    leaveLockRef.current = true;
+    void handleCancelBeforeLiveKit();
+  }, [handleCancelBeforeLiveKit, isExiting, viewerEntry.connection]);
 
-    try {
-      await leaveRoom({
-        participantId,
-      });
+  const shouldPreventViewerExit =
+    Boolean(viewerSession) && viewerResult === null && !isExitCompleted;
+  usePreventRemove(shouldPreventViewerExit, handleRequestViewerExit);
 
-      finishViewerExit();
-    } catch (error) {
-      Alert.alert(
-        "RTC 방 나가기 실패",
-        getApiErrorMessage(
-          error,
-          "방에서 나가지 못했습니다. 잠시 후 다시 시도해주세요.",
-        ),
-      );
-    } finally {
-      leaveLockRef.current = false;
+  useEffect(() => {
+    if (!shouldPreventViewerExit) return;
+
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        handleRequestViewerExit();
+        return true;
+      },
+    );
+
+    return () => subscription.remove();
+  }, [handleRequestViewerExit, shouldPreventViewerExit]);
+
+  useEffect(() => {
+    if (isExitCompleted) {
+      router.replace("/feed" as Href);
     }
-  }, [
-    finishViewerExit,
-    isLeavingRoom,
-    leaveRoom,
-    viewerSession?.participantId,
-  ]);
+  }, [isExitCompleted]);
 
   /*
    * 유효한 Viewer Session 없이 직접 Viewer 페이지에
@@ -271,12 +287,13 @@ export function RtcViewerPage() {
     if (
       !viewerSession &&
       viewerResult === null &&
+      !isExitCompleted &&
       !hasPresentedResultRef.current &&
       !hasPresentedEndedAlertRef.current
     ) {
       router.replace(RTC_NAVIGATION.paths.join as Href);
     }
-  }, [viewerResult, viewerSession]);
+  }, [isExitCompleted, viewerResult, viewerSession]);
 
   /*
    * SSE ended 처리
@@ -378,13 +395,15 @@ export function RtcViewerPage() {
     );
   }
 
-  if (
-    !viewerSession ||
-    !liveKitConnection ||
-    liveKitConnection.role !== "VIEWER"
-  ) {
+  const shouldMountLiveKit = shouldMountRtcViewerLiveKit({
+    hasSession: Boolean(viewerSession),
+    hasConnection: Boolean(viewerEntry.connection),
+    isCancelingBeforeLiveKit,
+  });
+
+  if (!shouldMountLiveKit || !viewerSession || !viewerEntry.connection) {
     return (
-      <SharingWaitingPage
+      <RtcViewerWaiting
         hostNickname={viewerEntry.room?.host.nickname}
         isConnecting={
           viewerEntry.phase === "REQUESTING_TOKEN" ||
@@ -397,7 +416,7 @@ export function RtcViewerPage() {
             ? viewerEntry.retryToken
             : undefined
         }
-        isCanceling={isLeavingRoom}
+        isCanceling={isExiting}
         onCancel={() => {
           void handleCancelBeforeLiveKit();
         }}
@@ -406,8 +425,8 @@ export function RtcViewerPage() {
   }
 
   return (
-    <RtcViewerLiveKitPage
-      connection={liveKitConnection}
+    <RtcViewerLiveKit
+      connection={viewerEntry.connection}
       roomId={viewerSession.roomId}
       rtcRoom={viewerEntry.room}
       reactionPicker={
@@ -417,7 +436,9 @@ export function RtcViewerPage() {
           participantId={viewerSession.participantId}
         />
       }
-      onCancel={finishViewerExit}
+      isExiting={isExiting}
+      exitRequestId={exitRequestId}
+      onRequestExit={requestExit}
       onRoomEnded={handleRoomEnded}
     />
   );
