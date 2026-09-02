@@ -30,7 +30,10 @@ test("3분할 촬영 그리드는 1/3과 2/3 위치에 선을 만든다", () => 
 
 test("촬영자 그리드는 흰색 가이드보다 아래 레이어에 배치된다", () => {
   const source = fs.readFileSync(
-    path.join(projectRoot, "src/pages/camera/ui/camera-page.tsx"),
+    path.join(
+      projectRoot,
+      "src/widgets/camera/capture-workspace/ui/camera-capture-workspace.tsx",
+    ),
     "utf8",
   );
   const guideSource = fs.readFileSync(

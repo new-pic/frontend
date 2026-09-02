@@ -11,6 +11,8 @@ export default defineConfig([
   {
     files: [
       "./src/entities/tag/**",
+      "./src/entities/rtc-room/**",
+      "./src/entities/rtc-session/**",
       "./src/features/camera/capture-photo/**",
       "./src/features/feed/create-feed-comment/**",
       "./src/features/feed/delete-feed/**",
@@ -18,6 +20,7 @@ export default defineConfig([
       "./src/features/feed/update-feed-like/**",
       "./src/features/feed/update-feed-pick/**",
       "./src/features/profile/save-user-setup/**",
+      "./src/features/photo/save-images-to-library/**",
       "./src/features/rtc-photo/browse-stored-photos/**",
       "./src/features/rtc-photo/save-stored-photo/**",
       "./src/features/rtc/finalize-session/**",
@@ -30,6 +33,8 @@ export default defineConfig([
       "./src/widgets/feed/detail/**",
       "./src/widgets/feed/edit/**",
       "./src/widgets/profile/rtc-photo-preview/**",
+      "./src/widgets/camera/capture-workspace/**",
+      "./src/widgets/rtc/session-workspace/**",
     ],
     rules: {
       // 단일 소비여도 독립 상태, lifecycle 또는 실패 경계를 소유합니다.
