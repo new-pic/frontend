@@ -1,10 +1,9 @@
-import { colors } from "@shared/ui/theme";
 import { deleteStagedUploadFile } from "@shared/lib";
 import { Pressable, Text } from "@shared/ui";
 import { IconAlertCircle, IconCheck, IconX } from "@tabler/icons-react-native";
 import { router } from "expo-router";
 import { useEffect, useRef } from "react";
-import { ActivityIndicator, AppState, StyleSheet, View } from "react-native";
+import { ActivityIndicator, AppState, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FEED_PROCESSING_CONFIG } from "../config/feed-processing-config";
 import { triggerFeedCompletionHaptic } from "../lib/feed-processing-haptics";
@@ -112,9 +111,14 @@ export function FeedProcessingBadge() {
     return (
       <View
         pointerEvents="box-none"
-        style={[styles.layer, { top: insets.top + 8 }]}
+        className="absolute left-4 right-4 z-[100] items-end"
+        style={{ top: insets.top + 8, elevation: 100 }}
       >
-        <View style={[styles.badge, isFailed && styles.failedBadge]}>
+        <View
+          className={`min-h-11 max-w-[84%] flex-row items-center rounded-[1.375rem] px-4 shadow-hard-2 ${
+            isFailed ? "bg-[#423b3b]" : "bg-brand"
+          }`}
+        >
           <Pressable
             accessibilityLabel={
               isFailed ? "실패한 피드 저장 다시 시도" : "피드로 이동"
@@ -170,12 +174,16 @@ export function FeedProcessingBadge() {
   return (
     <View
       pointerEvents="box-none"
-      style={[styles.layer, { top: insets.top + 8 }]}
+      className="absolute left-4 right-4 z-[100] items-end"
+      style={{ top: insets.top + 8, elevation: 100 }}
     >
-      <View style={[styles.badge, isFailed && styles.failedBadge]}>
+      <View
+        className={`min-h-11 max-w-[84%] flex-row items-center rounded-[1.375rem] px-4 shadow-hard-2 ${
+          isFailed ? "bg-[#423b3b]" : "bg-brand"
+        }`}
+      >
         <Pressable
-          className="flex-row items-center gap-2 flex-shrink"
-          style={styles.badgeContent}
+          className="z-[1] flex-shrink flex-row items-center gap-2"
           onPress={() => router.push("/feed")}
         >
           {isFailed ? (
@@ -204,13 +212,11 @@ export function FeedProcessingBadge() {
                 now: Math.round(displayProgressPercent),
               }}
               pointerEvents="none"
-              style={styles.progressTrack}
+              className="h-1 w-16 flex-shrink-0 overflow-hidden rounded-sm bg-white/35"
             >
               <View
-                style={[
-                  styles.progressValue,
-                  { width: `${displayProgressPercent}%` },
-                ]}
+                className="h-full rounded-sm bg-white"
+                style={{ width: `${displayProgressPercent}%` }}
               />
             </View>
           ) : null}
@@ -218,8 +224,7 @@ export function FeedProcessingBadge() {
         {job.phase !== "processing" ? (
           <Pressable
             accessibilityLabel="피드 처리 상태 닫기"
-            className="ml-2"
-            style={styles.badgeContent}
+            className="z-[1] ml-2"
             onPress={dismiss}
           >
             <IconX color="white" size={18} />
@@ -229,46 +234,3 @@ export function FeedProcessingBadge() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  layer: {
-    position: "absolute",
-    left: 16,
-    right: 16,
-    alignItems: "flex-end",
-    zIndex: 100,
-    elevation: 100,
-  },
-  badge: {
-    minHeight: 44,
-    maxWidth: "84%",
-    paddingHorizontal: 16,
-    borderRadius: 22,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.brand.primary,
-    shadowColor: "#000000",
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-  },
-  failedBadge: {
-    backgroundColor: "#423b3b",
-  },
-  progressTrack: {
-    width: 64,
-    height: 4,
-    flexShrink: 0,
-    overflow: "hidden",
-    borderRadius: 2,
-    backgroundColor: "rgba(255, 255, 255, 0.35)",
-  },
-  progressValue: {
-    height: "100%",
-    borderRadius: 2,
-    backgroundColor: "white",
-  },
-  badgeContent: {
-    zIndex: 1,
-  },
-});

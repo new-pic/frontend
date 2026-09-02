@@ -136,13 +136,20 @@ export function RtcCameraRoomMenu({
         statusBarTranslucent
         onRequestClose={() => setIsOpen(false)}
       >
-        <View style={styles.modal}>
+        <View className="flex-1">
           <NativePressable
             accessibilityLabel="RTC 공유 메뉴 닫기"
-            style={StyleSheet.absoluteFill}
+            className="absolute inset-0"
             onPress={() => setIsOpen(false)}
           />
-          <View accessibilityViewIsModal style={[styles.menu, menuPosition]}>
+          <View
+            accessibilityViewIsModal
+            className="absolute w-68 overflow-hidden rounded-2xl bg-white shadow-hard-2"
+            style={{
+              ...menuPosition,
+              borderCurve: "continuous",
+            }}
+          >
             {mode === "LIVE" ? (
               <>
                 <Text className="px-4 pb-2 pt-4 font-semibold">
@@ -160,15 +167,15 @@ export function RtcCameraRoomMenu({
                         PARTICIPANT_ROW_HEIGHT * MAX_VISIBLE_PARTICIPANTS,
                     }}
                     renderItem={({ item }) => (
-                      <View style={styles.participantRow}>
+                      <View className="h-13 flex-row items-center gap-3 px-4">
                         {item.profileImage ? (
                           <Image
                             source={item.profileImage}
                             contentFit="cover"
-                            style={styles.profileImage}
+                            className="h-9 w-9 rounded-full"
                           />
                         ) : (
-                          <View style={styles.profileFallback}>
+                          <View className="h-9 w-9 items-center justify-center rounded-full bg-outline">
                             <IconUserFilled size={20} color="white" />
                           </View>
                         )}
@@ -183,13 +190,16 @@ export function RtcCameraRoomMenu({
                     아직 참여자가 없습니다.
                   </Text>
                 )}
-                <View style={styles.separator} />
+                <View
+                  className="bg-outline"
+                  style={{ height: StyleSheet.hairlineWidth }}
+                />
                 <Pressable
                   accessibilityRole="menuitem"
                   onPress={() => runAction(onEndRoomPress)}
-                  style={styles.menuItem}
+                  className="min-h-13 justify-center px-[1.125rem]"
                 >
-                  <Text className="font-semibold" style={{ color: "#dc2626" }}>
+                  <Text className="font-semibold text-red-600">
                     방 종료하기
                   </Text>
                 </Pressable>
@@ -199,16 +209,19 @@ export function RtcCameraRoomMenu({
                 <Pressable
                   accessibilityRole="menuitem"
                   onPress={() => runAction(onJoinPress)}
-                  style={styles.menuItem}
+                  className="min-h-13 justify-center px-[1.125rem]"
                 >
                   <Text className="font-medium">참여하기</Text>
                 </Pressable>
-                <View style={styles.separator} />
+                <View
+                  className="bg-outline"
+                  style={{ height: StyleSheet.hairlineWidth }}
+                />
                 <Pressable
                   accessibilityRole="menuitem"
                   disabled={!isCameraReady}
                   onPress={() => runAction(onSharePress)}
-                  style={styles.menuItem}
+                  className="min-h-13 justify-center px-[1.125rem]"
                 >
                   <Text
                     className={
@@ -228,47 +241,3 @@ export function RtcCameraRoomMenu({
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  modal: {
-    flex: 1,
-  },
-  menu: {
-    position: "absolute",
-    width: 272,
-    overflow: "hidden",
-    borderRadius: 16,
-    borderCurve: "continuous",
-    backgroundColor: "white",
-    boxShadow: "0 5px 18px rgba(0,0,0,0.2)",
-  },
-  menuItem: {
-    minHeight: 52,
-    justifyContent: "center",
-    paddingHorizontal: 18,
-  },
-  participantRow: {
-    height: PARTICIPANT_ROW_HEIGHT,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 16,
-  },
-  profileImage: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-  },
-  profileFallback: {
-    width: 36,
-    height: 36,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 18,
-    backgroundColor: colors.outline,
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.outline,
-  },
-});

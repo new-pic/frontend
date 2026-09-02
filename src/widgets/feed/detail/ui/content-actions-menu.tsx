@@ -1,4 +1,3 @@
-import { colors } from "@shared/ui/theme";
 import { Button, ButtonIcon, Pressable, Text } from "@shared/ui";
 import { IconDotsVertical } from "@tabler/icons-react-native";
 import { useEffect, useRef, useState } from "react";
@@ -126,26 +125,33 @@ export function ContentActionsMenu({
         statusBarTranslucent
         onRequestClose={() => setIsOpen(false)}
       >
-        <View style={styles.modal}>
+        <View className="flex-1">
           <NativePressable
             accessibilityLabel={`${accessibilityLabel} 메뉴 닫기`}
-            style={StyleSheet.absoluteFill}
+            className="absolute inset-0"
             onPress={() => setIsOpen(false)}
           />
           <View
             accessibilityRole="menu"
             accessibilityViewIsModal
             pointerEvents={isMenuPositioned ? "auto" : "none"}
-            style={[
-              styles.menu,
-              menuPosition,
-              !isMenuPositioned && styles.measuringMenu,
-            ]}
+            className={`absolute w-38 overflow-hidden rounded-[0.875rem] bg-white shadow-hard-2 ${
+              isMenuPositioned ? "" : "opacity-0"
+            }`}
+            style={{
+              ...menuPosition,
+              borderCurve: "continuous",
+            }}
             onLayout={handleMenuLayout}
           >
             {items.map((item, index) => (
               <View key={item.key}>
-                {index > 0 ? <View style={styles.separator} /> : null}
+                {index > 0 ? (
+                  <View
+                    className="bg-outline"
+                    style={{ height: StyleSheet.hairlineWidth }}
+                  />
+                ) : null}
                 <Pressable
                   accessibilityRole="menuitem"
                   disabled={item.disabled}
@@ -156,13 +162,10 @@ export function ContentActionsMenu({
                       item.onPress();
                     }, MENU_DISMISS_DELAY_MS);
                   }}
-                  style={styles.menuItem}
+                  className="min-h-12 justify-center px-[1.125rem]"
                 >
                   <Text
-                    className="font-medium"
-                    style={
-                      item.destructive ? styles.destructiveText : undefined
-                    }
+                    className={`font-medium ${item.destructive ? "text-red-600" : ""}`}
                   >
                     {item.label}
                   </Text>
@@ -175,34 +178,3 @@ export function ContentActionsMenu({
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  modal: {
-    flex: 1,
-  },
-  menu: {
-    position: "absolute",
-    right: 20,
-    width: 152,
-    overflow: "hidden",
-    borderRadius: 14,
-    borderCurve: "continuous",
-    backgroundColor: "white",
-    boxShadow: "0 5px 18px rgba(0,0,0,0.18)",
-  },
-  menuItem: {
-    minHeight: 48,
-    justifyContent: "center",
-    paddingHorizontal: 18,
-  },
-  measuringMenu: {
-    opacity: 0,
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.outline,
-  },
-  destructiveText: {
-    color: "#dc2626",
-  },
-});

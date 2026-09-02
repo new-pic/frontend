@@ -354,9 +354,9 @@ function HostRoomContent({
   const errorMessage = publisherError ?? connectionError;
 
   return (
-    <View pointerEvents="box-none" style={styles.hostOverlay}>
+    <View pointerEvents="box-none" className="absolute inset-0 z-[15]">
       <SafeAreaView pointerEvents="box-none" style={StyleSheet.absoluteFill}>
-        <View pointerEvents="box-none" style={styles.hostControls}>
+        <View pointerEvents="box-none" className="flex-1 px-5 pt-16">
           {errorMessage ? (
             <VStack className="mt-3 items-center gap-3 rounded-2xl bg-black/70 p-4">
               <Text className="text-center text-white">{errorMessage}</Text>
@@ -687,7 +687,7 @@ function ViewerRoomContent({
 
   if (!remoteCameraTrack) {
     return (
-      <View style={styles.videoContainer}>
+      <View className="flex-1 bg-black">
         <SharingWaitingPage
           hostNickname={hostNickname}
           isConnecting={
@@ -793,23 +793,3 @@ export function RtcViewerLiveKitPage({
     </LiveKitRoom>
   );
 }
-
-const styles = StyleSheet.create({
-  videoContainer: {
-    flex: 1,
-    backgroundColor: "black",
-  },
-  hostOverlay: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    zIndex: 15,
-  },
-  hostControls: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 64,
-  },
-});

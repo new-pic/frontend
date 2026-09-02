@@ -1,13 +1,6 @@
-import { colors } from "@shared/ui/theme";
 import * as Haptics from "expo-haptics";
 import { useCallback } from "react";
-import {
-  AccessibilityInfo,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { AccessibilityInfo, Pressable, Text, View } from "react-native";
 import Animated, {
   cancelAnimation,
   Easing,
@@ -175,27 +168,14 @@ export function RtcViewerReactionButton({
   });
 
   return (
-    <View
-      style={{
-        position: "relative",
-        width: 56,
-        height: 56,
-      }}
-    >
+    <View className="relative h-14 w-14">
       {/* 전송 성공 시 버튼 테두리에서 퍼지는 효과 */}
       <Animated.View
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
         pointerEvents="none"
-        style={[
-          StyleSheet.absoluteFill,
-          {
-            borderWidth: 2,
-            borderColor: colors.brand.primary,
-            borderRadius: 28,
-          },
-          feedbackRingStyle,
-        ]}
+        className="absolute inset-0 rounded-full border-2 border-brand"
+        style={feedbackRingStyle}
       />
 
       {/* 전송 성공 시 위로 떠오르는 동일 이모지 */}
@@ -203,17 +183,8 @@ export function RtcViewerReactionButton({
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
         pointerEvents="none"
-        style={[
-          {
-            position: "absolute",
-            top: 17,
-            right: 0,
-            left: 0,
-            zIndex: 3,
-            alignItems: "center",
-          },
-          feedbackBubbleStyle,
-        ]}
+        className="absolute left-0 right-0 top-[1.0625rem] z-[3] items-center"
+        style={feedbackBubbleStyle}
       >
         <Text className="text-3xl leading-10">{emoji.symbol}</Text>
       </Animated.View>

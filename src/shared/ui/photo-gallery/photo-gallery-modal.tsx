@@ -5,7 +5,7 @@ import {
   IconChevronLeft,
 } from "@tabler/icons-react-native";
 import { type ReactNode, useEffect, useState } from "react";
-import { Modal, StyleSheet, View } from "react-native";
+import { Modal, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "../image";
 import { Box } from "../box";
@@ -111,11 +111,11 @@ export function PhotoGalleryModal<
               >
                 {images.map((image) => (
                   <SlidePageView.Item key={image.id}>
-                    <View style={styles.imagePage}>
+                    <View className="flex-1 bg-white">
                       <Image
                         source={image.imageUrl}
                         contentFit="contain"
-                        style={StyleSheet.absoluteFill}
+                        className="absolute inset-0"
                       />
                     </View>
                   </SlidePageView.Item>
@@ -134,7 +134,7 @@ export function PhotoGalleryModal<
                     checked: selectedImageIds.has(activeImage.id),
                   }}
                   onPress={() => onToggleSelection(activeImage)}
-                  style={styles.selectionButton}
+                  className="absolute bottom-[1.125rem] right-[1.125rem] min-h-12 flex-row items-center gap-2 rounded-3xl bg-black/55 px-4"
                 >
                   {selectedImageIds.has(activeImage.id) ? (
                     <IconCircleCheck
@@ -172,22 +172,3 @@ export function PhotoGalleryModal<
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  imagePage: {
-    flex: 1,
-    backgroundColor: "#ffffff",
-  },
-  selectionButton: {
-    position: "absolute",
-    right: 18,
-    bottom: 18,
-    minHeight: 48,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    borderRadius: 24,
-    backgroundColor: "rgba(0,0,0,0.55)",
-    paddingHorizontal: 16,
-  },
-});
