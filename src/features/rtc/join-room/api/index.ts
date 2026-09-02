@@ -1,1 +1,1 @@
-export * as rtcViewerQuery from "./rtc-viewer-mutation";
+export * as rtcViewerQuery from "./rtc-viewer-query";

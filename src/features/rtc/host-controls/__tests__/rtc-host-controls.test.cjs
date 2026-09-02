@@ -145,18 +145,25 @@ test("RTC 종료 요청과 결과 전달 단계에서만 카메라 입력을 차
 
 test("카메라 종료 오버레이는 lifecycle을 유지한 채 입력과 화면 이탈을 차단한다", () => {
   const pageSource = readSource("../../../../pages/camera/ui/camera-page.tsx");
+  const workspaceSource = readSource(
+    "../../../../widgets/camera/capture-workspace/ui/camera-capture-workspace.tsx",
+  );
+  const controllerSource = readSource(
+    "../model/use-rtc-host-session-controller.ts",
+  );
   const overlaySource = readSource("../ui/rtc-finalization-overlay.tsx");
 
-  assert.match(
-    pageSource,
-    /usePreventRemove\(\s*Boolean\(broadcastConnection\) \|\| isFinalizationBlocking/,
-  );
+  assert.match(pageSource, /usePreventRemove\(isExitBlocked/);
   assert.match(
     pageSource,
     /BackHandler\.addEventListener\(\s*"hardwareBackPress"/,
   );
   assert.match(
-    pageSource,
+    controllerSource,
+    /Boolean\(broadcastConnection\) \|\|\s*isRtcFinalizationBlocking/,
+  );
+  assert.match(
+    workspaceSource,
     /<RtcFinalizationOverlay state=\{finalizationState\} \/>/,
   );
   assert.match(overlaySource, /pointerEvents="auto"/);

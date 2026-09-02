@@ -32,8 +32,9 @@ viewer exit controller (single-flight)
 ```
 
 Host 종료 controller는 사진 준비, publisher 정리, 서버 종료, 결과 전달과 Room
-정리의 실행 순서를 조정한다. Camera Page는 사진 선택 UI와 종료 API callback을
-주입하고, LiveKit UI는 publisher/Room adapter를 주입한다. 종료 버튼과 화면
+정리의 실행 순서를 조정한다. Camera Workspace는 `finalize-session`의 사진 준비
+command와 `host-controls`의 종료 API callback을 조합하고, LiveKit UI는
+publisher/Room adapter를 주입한다. 종료 버튼과 화면
 이탈은 같은 요청을 사용한다. 화면 이탈에서 시작된 종료도 사진 선택과 결과
 전달을 생략하지 않으며, 결과 화면에서 `완료`를 선택한 뒤 이전 화면으로
 이동한다.
@@ -50,7 +51,7 @@ component unmount cleanup에 마지막 disconnect를 맡긴다.
 - `join-room`: Viewer SSE/token entry, LiveKit 구독, 대기 UI, exit controller
 - `finalize-session`: 종료 사진 선택 UI와 업로드 파일 준비
 
-Camera/Viewer/Result 화면 전체의 Widget 재설계는 이 결정에 포함하지 않는다.
+Camera/Viewer/Result 화면 조합의 후속 책임 분리는 ADR-0045에서 다룬다.
 
 ## Context
 
@@ -107,7 +108,7 @@ use case가 공유하는 runtime session identity이므로 Entity store에 남�
 - Viewer 연결 전후의 나가기가 같은 서버 leave 정책을 사용한다.
 - 중복 종료 입력은 controller의 진행 중 Promise를 재사용한다.
 - 서버 종료 실패 시 runtime session을 유지해 재시도할 수 있다.
-- lifecycle UI가 역할 feature public API를 통해 Pages에 제공된다.
+- lifecycle UI가 역할 feature public API를 통해 Workspace에 제공된다.
 
 포기하거나 제한된 것:
 
@@ -115,8 +116,7 @@ use case가 공유하는 runtime session identity이므로 Entity store에 남�
 - Host 서버 종료 후 Viewer RPC가 실패하면 재시도 시 새 Room 연결이 필요하다.
 - LiveKit disconnect 자체가 실패해도 서버 종료가 확정된 뒤에는 session 종료를
   되돌리지 않는다.
-- Camera/Viewer/Result의 큰 화면 조합과 표시 전용 UI 이동은 후속 구조 개선
-  범위로 남는다.
+- 화면 조합 책임은 ADR-0045의 Camera/RTC Workspace가 담당한다.
 
 ## Result
 

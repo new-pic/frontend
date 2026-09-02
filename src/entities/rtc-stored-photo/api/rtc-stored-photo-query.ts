@@ -1,6 +1,7 @@
 import { privateApiClient } from "@shared/api";
 import { useAuthStore } from "@shared/model";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 import {
   RTC_STORED_PHOTO_MAX_TAKE,
   RtcStoredPhotoListParamsSchema,
@@ -42,4 +43,17 @@ export function useReadMyRtcStoredPhotos(
     enabled: Boolean(userId && accessToken),
     staleTime: 60_000,
   });
+}
+
+export function useResetMyRtcStoredPhotos() {
+  const queryClient = useQueryClient();
+
+  return useCallback(
+    () =>
+      queryClient.resetQueries(
+        { queryKey: rtcStoredPhotoQueryKeys.myLists() },
+        { cancelRefetch: false, throwOnError: true },
+      ),
+    [queryClient],
+  );
 }

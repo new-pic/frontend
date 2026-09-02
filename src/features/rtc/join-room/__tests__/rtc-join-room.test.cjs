@@ -138,12 +138,23 @@ test("참여자 나가기는 서버 leave 성공 후 LiveKit과 session을 정�
 test("Viewer 화면 이탈도 연결 상태에 맞는 동일한 나가기 요청을 사용한다", () => {
   const fs = require("node:fs");
   const path = require("node:path");
-  const source = fs.readFileSync(
+  const pageSource = fs.readFileSync(
     path.resolve(__dirname, "../../../../pages/camera/ui/rtc-viewer-page.tsx"),
     "utf8",
   );
+  const controllerSource = fs.readFileSync(
+    path.resolve(__dirname, "../model/use-rtc-viewer-session-controller.ts"),
+    "utf8",
+  );
 
-  assert.match(source, /usePreventRemove\(shouldPreventViewerExit/);
-  assert.match(source, /setExitRequestId\(\(current\) => current \+ 1\)/);
-  assert.match(source, /void handleCancelBeforeLiveKit\(\)/);
+  assert.match(pageSource, /usePreventRemove\(/);
+  assert.match(
+    pageSource,
+    /usePreventRemove\(\s*shouldPreventExit,\s*requestPageExit,?\s*\)/,
+  );
+  assert.match(
+    controllerSource,
+    /setExitRequestId\(\s*\(current\)\s*=>\s*current\s*\+\s*1,?\s*\)/,
+  );
+  assert.match(controllerSource, /void\s+cancelBeforeLiveKit\(\s*\)/);
 });

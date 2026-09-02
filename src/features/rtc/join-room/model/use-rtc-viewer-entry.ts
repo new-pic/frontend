@@ -32,7 +32,7 @@ interface UseRtcViewerEntryOptions {
   session: RtcViewerSession | null;
 }
 
-interface UseRtcViewerEntryResult {
+export interface RtcViewerEntryResult {
   phase: RtcViewerEntryPhase;
   streamState: RtcViewerEntryStreamState;
   room: RtcRoomResponse | null;
@@ -63,7 +63,7 @@ function waitForReconnect(delayMs: number, signal: AbortSignal): Promise<void> {
 export function useRtcViewerEntry({
   enabled,
   session,
-}: UseRtcViewerEntryOptions): UseRtcViewerEntryResult {
+}: UseRtcViewerEntryOptions): RtcViewerEntryResult {
   const viewerTokenMutation = rtcViewerQuery.useCreateViewerLiveKitToken();
   const createViewerToken = viewerTokenMutation.mutateAsync;
   const resetViewerToken = viewerTokenMutation.reset;

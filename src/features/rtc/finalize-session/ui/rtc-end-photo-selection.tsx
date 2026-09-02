@@ -12,15 +12,11 @@ import {
 import { useMemo, useState } from "react";
 import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import type { RtcEndSelectablePhoto } from "../model/models";
 
 export interface RtcEndPhotoSelectionProps {
   photos: RtcEndSelectablePhoto[];
   onConfirm: (photos: RtcEndSelectablePhoto[]) => void;
-}
-
-export interface RtcEndSelectablePhoto {
-  id: string;
-  uri: string;
 }
 
 export function RtcEndPhotoSelection({
