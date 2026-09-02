@@ -123,7 +123,7 @@ export function FeedProcessingBadge() {
             accessibilityLabel={
               isFailed ? "실패한 피드 저장 다시 시도" : "피드로 이동"
             }
-            className="flex-row items-center gap-2 flex-shrink"
+            className="flex-row items-center gap-2 shrink"
             onPress={() => {
               if (isFailed) {
                 retryPublishing(publishingTask.id);
@@ -140,7 +140,7 @@ export function FeedProcessingBadge() {
               <ActivityIndicator color="white" size="small" />
             )}
             <Text
-              className="text-white font-semibold flex-shrink"
+              className="shrink font-semibold text-white"
               size="sm"
               numberOfLines={2}
             >
@@ -183,7 +183,7 @@ export function FeedProcessingBadge() {
         }`}
       >
         <Pressable
-          className="z-[1] flex-shrink flex-row items-center gap-2"
+          className="z-[1] shrink flex-row items-center gap-2"
           onPress={() => router.push("/feed")}
         >
           {isFailed ? (
@@ -192,7 +192,7 @@ export function FeedProcessingBadge() {
             <IconCheck color="white" size={19} />
           ) : null}
           <Text
-            className="text-white font-semibold flex-shrink"
+            className="shrink font-semibold text-white"
             size="sm"
             numberOfLines={1}
           >
@@ -212,7 +212,7 @@ export function FeedProcessingBadge() {
                 now: Math.round(displayProgressPercent),
               }}
               pointerEvents="none"
-              className="h-1 w-16 flex-shrink-0 overflow-hidden rounded-sm bg-white/35"
+              className="h-1 w-16 shrink-0 overflow-hidden rounded-sm bg-white/35"
             >
               <View
                 className="h-full rounded-sm bg-white"

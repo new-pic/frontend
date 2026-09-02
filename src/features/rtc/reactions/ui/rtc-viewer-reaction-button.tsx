@@ -1,4 +1,5 @@
 import * as Haptics from "expo-haptics";
+import { styled } from "nativewind";
 import { useCallback } from "react";
 import { AccessibilityInfo, Pressable, Text, View } from "react-native";
 import Animated, {
@@ -13,6 +14,8 @@ import Animated, {
 } from "react-native-reanimated";
 import { RTC_REACTION_EMOJI_CONFIG } from "../config/rtc-reaction-config";
 import type { RtcReactionEmoji } from "../model/types";
+
+const StyledAnimatedView = styled(Animated.View);
 
 interface RtcViewerReactionButtonProps {
   emoji: RtcReactionEmoji;
@@ -170,7 +173,7 @@ export function RtcViewerReactionButton({
   return (
     <View className="relative h-14 w-14">
       {/* 전송 성공 시 버튼 테두리에서 퍼지는 효과 */}
-      <Animated.View
+      <StyledAnimatedView
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
         pointerEvents="none"
@@ -179,7 +182,7 @@ export function RtcViewerReactionButton({
       />
 
       {/* 전송 성공 시 위로 떠오르는 동일 이모지 */}
-      <Animated.View
+      <StyledAnimatedView
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
         pointerEvents="none"
@@ -187,7 +190,7 @@ export function RtcViewerReactionButton({
         style={feedbackBubbleStyle}
       >
         <Text className="text-3xl leading-10">{emoji.symbol}</Text>
-      </Animated.View>
+      </StyledAnimatedView>
 
       <Animated.View style={buttonFeedbackStyle}>
         <Pressable

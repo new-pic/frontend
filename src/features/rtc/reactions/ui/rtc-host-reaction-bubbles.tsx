@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
+import { styled } from "nativewind";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -20,6 +21,7 @@ import { rtcReactionQuery } from "../api";
 
 const BUBBLE_SIZE = 52;
 const BUBBLE_LANE_GAP = 5;
+const StyledAnimatedView = styled(Animated.View);
 
 interface RtcHostReactionBubblesProps {
   active: boolean;
@@ -81,7 +83,7 @@ function ReactionBubble({ bubble, onExpired }: ReactionBubbleProps) {
   }, [bubble.renderId, onExpired]);
 
   return (
-    <Animated.View
+    <StyledAnimatedView
       className="absolute bottom-0 h-13 w-13 items-center justify-center rounded-full bg-white/[0.92] shadow-hard-2"
       style={[
         { right: bubble.lane * (BUBBLE_SIZE + BUBBLE_LANE_GAP) },
@@ -91,7 +93,7 @@ function ReactionBubble({ bubble, onExpired }: ReactionBubbleProps) {
       <Text className="text-[1.9375rem] leading-[2.4375rem]">
         {bubble.symbol}
       </Text>
-    </Animated.View>
+    </StyledAnimatedView>
   );
 }
 
