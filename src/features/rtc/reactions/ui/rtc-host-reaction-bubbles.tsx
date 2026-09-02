@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -20,6 +20,7 @@ import { rtcReactionQuery } from "../api";
 
 const BUBBLE_SIZE = 52;
 const BUBBLE_LANE_GAP = 5;
+const StyledAnimatedView = Animated.createAnimatedComponent(View);
 
 interface RtcHostReactionBubblesProps {
   active: boolean;
@@ -81,17 +82,17 @@ function ReactionBubble({ bubble, onExpired }: ReactionBubbleProps) {
   }, [bubble.renderId, onExpired]);
 
   return (
-    <Animated.View
+    <StyledAnimatedView
+      className="absolute bottom-0 h-13 w-13 items-center justify-center rounded-full bg-white/[0.92] shadow-hard-2"
       style={[
-        styles.bubble,
-        {
-          right: bubble.lane * (BUBBLE_SIZE + BUBBLE_LANE_GAP),
-        },
+        { right: bubble.lane * (BUBBLE_SIZE + BUBBLE_LANE_GAP) },
         animatedStyle,
       ]}
     >
-      <Text style={styles.bubbleEmoji}>{bubble.symbol}</Text>
-    </Animated.View>
+      <Text className="text-[1.9375rem] leading-[2.4375rem]">
+        {bubble.symbol}
+      </Text>
+    </StyledAnimatedView>
   );
 }
 
@@ -163,7 +164,10 @@ export function RtcHostReactionBubbles({
   if (!active || isEmojiError) return null;
 
   return (
-    <View pointerEvents="none" style={styles.root}>
+    <View
+      pointerEvents="none"
+      className="absolute bottom-5 right-[1.375rem] z-20 h-[14.375rem] w-[11.25rem]"
+    >
       {bubbles.map((bubble) => (
         <ReactionBubble
           key={bubble.renderId}
@@ -174,34 +178,3 @@ export function RtcHostReactionBubbles({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    position: "absolute",
-    right: 22,
-    bottom: 20,
-    width: 180,
-    height: 230,
-    zIndex: 20,
-  },
-  bubble: {
-    position: "absolute",
-    right: 0,
-    bottom: 0,
-    width: BUBBLE_SIZE,
-    height: BUBBLE_SIZE,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: BUBBLE_SIZE / 2,
-    backgroundColor: "rgba(255, 255, 255, 0.92)",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.22,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  bubbleEmoji: {
-    fontSize: 31,
-    lineHeight: 39,
-  },
-});

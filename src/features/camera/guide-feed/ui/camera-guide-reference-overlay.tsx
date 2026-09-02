@@ -1,6 +1,6 @@
 import { Image } from "@shared/ui";
 import { memo, useMemo } from "react";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import type { CoordinateSize } from "../lib/pose-matching";
 import { projectGuideSourceToPreviewRect } from "../lib/guide-contour-projection";
 
@@ -24,7 +24,7 @@ export const CameraGuideReferenceOverlay = memo(
     );
 
     return (
-      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      <View pointerEvents="none" className="absolute inset-0">
         <Image
           source={imageUrl}
           recyclingKey={imageUrl}

@@ -35,7 +35,7 @@ export const CameraGuideOverlay = memo(function CameraGuideOverlay({
   );
 
   return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+    <View pointerEvents="none" className="absolute inset-0">
       <Svg
         pointerEvents="none"
         width={previewSize.width}
