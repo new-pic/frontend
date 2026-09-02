@@ -11,20 +11,20 @@ import {
   claimFeedCompletionHaptic,
   getProcessingCompletionHapticKey,
   getPublishingCompletionHapticKey,
-} from "../model/feed-completion-haptic";
-import { useFeedProcessingStore } from "../model/feed-processing-store";
-import { useFeedPublishingStore } from "../model/feed-publishing-store";
-import { useFeedProcessingDisplayProgress } from "../model/use-feed-processing-display-progress";
+} from "../model/pipeline/feed-completion-haptic";
+import { useFeedProcessingDisplayProgress } from "../model/processing/use-feed-processing-display-progress";
+import { useFeedProcessingStore } from "../model/processing/feed-processing-store";
+import { useFeedPublishingStore } from "../model/publishing/feed-publishing-store";
 
 function getPublishingBadgeLabel(
   kind: "CREATE" | "UPDATE",
   phase: "queued" | "uploading" | "updating" | "completed" | "failed",
-  errorMessage?: string,
+  failureMessage?: string,
 ) {
   const action = kind === "CREATE" ? "게시" : "수정";
   if (phase === "failed") {
-    return errorMessage
-      ? `${action} 실패 · ${errorMessage}`
+    return failureMessage
+      ? `${action} 실패 · ${failureMessage}`
       : `${action} 실패 · 눌러서 다시 시도`;
   }
   if (phase === "completed") return `피드 ${action} 완료`;
@@ -35,18 +35,18 @@ function getPublishingBadgeLabel(
 function getBadgeLabel(
   phase: "processing" | "completed" | "failed",
   progressPercent: number,
-  transportState: string,
-  listRefreshState: string,
+  monitoringState: string,
+  feedListSyncState: string,
 ) {
   if (phase === "failed") return "피드 처리 실패";
   if (phase === "completed") {
-    if (listRefreshState === "pending") return "게시 완료 · 목록 갱신 중";
-    if (listRefreshState === "failed") {
+    if (feedListSyncState === "pending") return "게시 완료 · 목록 갱신 중";
+    if (feedListSyncState === "failed") {
       return "게시 완료 · 목록 새로고침 필요";
     }
     return "피드 게시 완료";
   }
-  if (transportState === "polling" || transportState === "disconnected") {
+  if (monitoringState === "polling" || monitoringState === "disconnected") {
     return `피드 처리 상태 확인 중 · ${Math.round(progressPercent)}%`;
   }
   return `피드 처리 중 · ${Math.round(progressPercent)}%`;
@@ -55,15 +55,26 @@ function getBadgeLabel(
 export function FeedProcessingBadge() {
   const insets = useSafeAreaInsets();
   const handledHapticKeysRef = useRef(new Set<string>());
-  const publishingTask = useFeedPublishingStore((state) => state.task);
-  const retryPublishing = useFeedPublishingStore((state) => state.retry);
-  const dismissPublishing = useFeedPublishingStore((state) => state.dismiss);
-  const job = useFeedProcessingStore((state) => state.job);
-  const dismiss = useFeedProcessingStore((state) => state.dismiss);
-  const displayProgressPercent = useFeedProcessingDisplayProgress(job);
+  const publishingTask = useFeedPublishingStore(
+    (state) => state.publishingTask,
+  );
+  const retryPublishing = useFeedPublishingStore(
+    (state) => state.retryPublishing,
+  );
+  const dismissPublishing = useFeedPublishingStore(
+    (state) => state.dismissPublishing,
+  );
+  const processingLifecycle = useFeedProcessingStore(
+    (state) => state.processingLifecycle,
+  );
+  const dismissProcessing = useFeedProcessingStore(
+    (state) => state.dismissProcessing,
+  );
+  const displayProgressPercent =
+    useFeedProcessingDisplayProgress(processingLifecycle);
   const completionHapticKey =
     getPublishingCompletionHapticKey(publishingTask) ??
-    getProcessingCompletionHapticKey(job);
+    getProcessingCompletionHapticKey(processingLifecycle);
 
   useEffect(() => {
     const shouldTrigger = claimFeedCompletionHaptic(
@@ -75,37 +86,49 @@ export function FeedProcessingBadge() {
   }, [completionHapticKey]);
 
   useEffect(() => {
-    if (job?.phase !== "completed" || job.listRefreshState !== "succeeded") {
+    if (
+      processingLifecycle?.processingPhase !== "completed" ||
+      processingLifecycle.feedListSyncState !== "succeeded"
+    ) {
       return;
     }
 
     const timeout = setTimeout(
-      dismiss,
+      dismissProcessing,
       FEED_PROCESSING_CONFIG.completedBadgeDurationMs,
     );
     return () => clearTimeout(timeout);
-  }, [dismiss, job?.jobId, job?.listRefreshState, job?.phase]);
+  }, [
+    dismissProcessing,
+    processingLifecycle?.feedListSyncState,
+    processingLifecycle?.jobId,
+    processingLifecycle?.processingPhase,
+  ]);
 
   useEffect(() => {
-    if (publishingTask?.phase !== "completed") return;
+    if (publishingTask?.publishingPhase !== "completed") return;
 
-    const taskId = publishingTask.id;
+    const publishingTaskId = publishingTask.publishingTaskId;
     const timeout = setTimeout(
-      () => dismissPublishing(taskId),
+      () => dismissPublishing(publishingTaskId),
       FEED_PROCESSING_CONFIG.completedBadgeDurationMs,
     );
     return () => clearTimeout(timeout);
-  }, [dismissPublishing, publishingTask?.id, publishingTask?.phase]);
+  }, [
+    dismissPublishing,
+    publishingTask?.publishingPhase,
+    publishingTask?.publishingTaskId,
+  ]);
 
   if (publishingTask) {
-    const isFailed = publishingTask.phase === "failed";
-    const isCompleted = publishingTask.phase === "completed";
+    const isFailed = publishingTask.publishingPhase === "failed";
+    const isCompleted = publishingTask.publishingPhase === "completed";
 
     const handleDismiss = () => {
       if (publishingTask.command.kind === "CREATE") {
         deleteStagedUploadFile(publishingTask.command.image);
       }
-      dismissPublishing(publishingTask.id);
+      dismissPublishing(publishingTask.publishingTaskId);
     };
 
     return (
@@ -126,7 +149,7 @@ export function FeedProcessingBadge() {
             className="flex-row items-center gap-2 shrink"
             onPress={() => {
               if (isFailed) {
-                retryPublishing(publishingTask.id);
+                retryPublishing(publishingTask.publishingTaskId);
               } else {
                 router.push("/feed");
               }
@@ -146,8 +169,8 @@ export function FeedProcessingBadge() {
             >
               {getPublishingBadgeLabel(
                 publishingTask.command.kind,
-                publishingTask.phase,
-                publishingTask.errorMessage,
+                publishingTask.publishingPhase,
+                publishingTask.failureMessage,
               )}
             </Text>
           </Pressable>
@@ -165,11 +188,14 @@ export function FeedProcessingBadge() {
     );
   }
 
-  if (!job) return null;
+  if (!processingLifecycle) return null;
 
-  const isFailed = job.phase === "failed" || job.listRefreshState === "failed";
+  const isFailed =
+    processingLifecycle.processingPhase === "failed" ||
+    processingLifecycle.feedListSyncState === "failed";
   const isCompleted =
-    job.phase === "completed" && job.listRefreshState === "succeeded";
+    processingLifecycle.processingPhase === "completed" &&
+    processingLifecycle.feedListSyncState === "succeeded";
 
   return (
     <View
@@ -197,13 +223,13 @@ export function FeedProcessingBadge() {
             numberOfLines={1}
           >
             {getBadgeLabel(
-              job.phase,
+              processingLifecycle.processingPhase,
               displayProgressPercent,
-              job.transportState,
-              job.listRefreshState,
+              processingLifecycle.monitoringState,
+              processingLifecycle.feedListSyncState,
             )}
           </Text>
-          {job.phase === "processing" ? (
+          {processingLifecycle.processingPhase === "processing" ? (
             <View
               accessibilityRole="progressbar"
               accessibilityValue={{
@@ -221,11 +247,11 @@ export function FeedProcessingBadge() {
             </View>
           ) : null}
         </Pressable>
-        {job.phase !== "processing" ? (
+        {processingLifecycle.processingPhase !== "processing" ? (
           <Pressable
             accessibilityLabel="피드 처리 상태 닫기"
             className="z-[1] ml-2"
-            onPress={dismiss}
+            onPress={dismissProcessing}
           >
             <IconX color="white" size={18} />
           </Pressable>

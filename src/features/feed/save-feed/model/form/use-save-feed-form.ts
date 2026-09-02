@@ -10,8 +10,8 @@ import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { getApiErrorMessage } from "@shared/api";
 import { deleteStagedUploadFile, stageFileForUpload } from "@shared/lib";
 import { useForm } from "react-hook-form";
-import { FeedFormMode } from "./models";
-import type { CreateFeedPublishingCommand } from "./feed-publishing-types";
+import type { CreateFeedPublishingCommand } from "../publishing/feed-publishing-types";
+import type { FeedFormMode } from "./feed-form-types";
 
 export interface UseSaveFeedFormProps {
   mode: FeedFormMode;

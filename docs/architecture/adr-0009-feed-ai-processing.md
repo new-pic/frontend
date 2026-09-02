@@ -1,5 +1,9 @@
 # ADR-0009: 피드 AI 작업의 루트 Coordinator 추적
 
+> `FeedProcessingCoordinator`의 내부 책임 분리는
+> [ADR-0043](./adr-0043-feed-publishing-processing-lifecycle-boundaries.md)에서
+> 구체화한다. 루트에서 작업을 추적한다는 이 문서의 결정은 유지한다.
+
 ## Decision
 
 피드 생성 후 DWPose/RMBG 비동기 작업을 페이지가 아닌 앱 루트의

@@ -19,8 +19,10 @@ require.extensions[".ts"] = (module, filename) => {
 
 const {
   isFeedPublishingPipelineActive,
-} = require("../model/feed-publishing-state.ts");
-const { useFeedPublishingStore } = require("../model/feed-publishing-store.ts");
+} = require("../model/pipeline/feed-publishing-pipeline-state.ts");
+const {
+  useFeedPublishingStore,
+} = require("../model/publishing/feed-publishing-store.ts");
 const {
   FEED_PROCESSING_CONFIG,
 } = require("../config/feed-processing-config.ts");
@@ -28,7 +30,7 @@ const {
   claimFeedCompletionHaptic,
   getProcessingCompletionHapticKey,
   getPublishingCompletionHapticKey,
-} = require("../model/feed-completion-haptic.ts");
+} = require("../model/pipeline/feed-completion-haptic.ts");
 const {
   createApiRequestError,
   getApiErrorMessage,
@@ -62,22 +64,22 @@ test("성공 배지는 8초 동안 표시한다", () => {
 
 test("수정 완료와 목록 갱신이 끝난 생성 작업만 햅틱 대상으로 만든다", () => {
   const updateTask = {
-    id: "update-1",
+    publishingTaskId: "update-1",
     command: {
       kind: "UPDATE",
       feedId: "feed-1",
       description: "수정한 설명",
       tags: [],
     },
-    phase: "completed",
+    publishingPhase: "completed",
   };
   const completedJob = {
     jobId: "job-1",
     feedId: "feed-1",
-    phase: "completed",
+    processingPhase: "completed",
     serverProgressPercent: 100,
-    transportState: "idle",
-    listRefreshState: "succeeded",
+    monitoringState: "idle",
+    feedListSyncState: "succeeded",
   };
 
   assert.equal(
@@ -87,7 +89,7 @@ test("수정 완료와 목록 갱신이 끝난 생성 작업만 햅틱 대상으
   assert.equal(
     getPublishingCompletionHapticKey({
       ...updateTask,
-      phase: "updating",
+      publishingPhase: "updating",
     }),
     null,
   );
@@ -98,7 +100,7 @@ test("수정 완료와 목록 갱신이 끝난 생성 작업만 햅틱 대상으
   assert.equal(
     getProcessingCompletionHapticKey({
       ...completedJob,
-      listRefreshState: "pending",
+      feedListSyncState: "pending",
     }),
     null,
   );
@@ -133,22 +135,26 @@ test("활성 게시 작업이 있으면 두 번째 게시 명령을 거절한다
     false,
   );
 
-  const task = useFeedPublishingStore.getState().task;
+  const task = useFeedPublishingStore.getState().publishingTask;
   assert.equal(task.command.description, "설명");
-  store.dismiss(task.id);
+  store.dismissPublishing(task.publishingTaskId);
 });
 
 test("실패한 작업은 같은 명령으로 재시도할 수 있다", () => {
   const store = useFeedPublishingStore.getState();
   store.enqueue(createCommand);
-  const taskId = useFeedPublishingStore.getState().task.id;
+  const taskId =
+    useFeedPublishingStore.getState().publishingTask.publishingTaskId;
 
-  store.setPhase(taskId, "uploading");
-  store.fail(taskId, "네트워크 오류");
-  assert.equal(useFeedPublishingStore.getState().task.phase, "failed");
+  store.setPublishingPhase(taskId, "uploading");
+  store.markPublishingFailed(taskId, "네트워크 오류");
+  assert.equal(
+    useFeedPublishingStore.getState().publishingTask.publishingPhase,
+    "failed",
+  );
   assert.equal(
     isFeedPublishingPipelineActive(
-      useFeedPublishingStore.getState().task,
+      useFeedPublishingStore.getState().publishingTask,
       null,
     ),
     true,
@@ -158,9 +164,12 @@ test("실패한 작업은 같은 명령으로 재시도할 수 있다", () => {
     false,
   );
 
-  store.retry(taskId);
-  assert.equal(useFeedPublishingStore.getState().task.phase, "queued");
-  store.dismiss(taskId);
+  store.retryPublishing(taskId);
+  assert.equal(
+    useFeedPublishingStore.getState().publishingTask.publishingPhase,
+    "queued",
+  );
+  store.dismissPublishing(taskId);
 });
 
 test("완료 배지가 남아 있어도 게시 슬롯을 해제하고 새 작업으로 교체한다", () => {
@@ -173,46 +182,52 @@ test("완료 배지가 남아 있어도 게시 슬롯을 해제하고 새 작업
   };
 
   assert.equal(store.enqueue(updateCommand), true);
-  const completedTaskId = useFeedPublishingStore.getState().task.id;
-  store.setPhase(completedTaskId, "completed");
+  const completedTaskId =
+    useFeedPublishingStore.getState().publishingTask.publishingTaskId;
+  store.setPublishingPhase(completedTaskId, "completed");
 
   assert.equal(
     isFeedPublishingPipelineActive(
-      useFeedPublishingStore.getState().task,
+      useFeedPublishingStore.getState().publishingTask,
       null,
     ),
     false,
   );
   assert.equal(store.enqueue(createCommand), true);
-  assert.equal(useFeedPublishingStore.getState().task.command.kind, "CREATE");
+  assert.equal(
+    useFeedPublishingStore.getState().publishingTask.command.kind,
+    "CREATE",
+  );
 
-  store.dismiss(useFeedPublishingStore.getState().task.id);
+  store.dismissPublishing(
+    useFeedPublishingStore.getState().publishingTask.publishingTaskId,
+  );
 });
 
 test("서버 AI 처리와 목록 갱신까지 단일 게시 파이프라인으로 본다", () => {
   const processingJob = {
     jobId: "job-1",
     feedId: "feed-1",
-    phase: "processing",
+    processingPhase: "processing",
     serverProgressPercent: 40,
-    transportState: "streaming",
-    listRefreshState: "idle",
+    monitoringState: "streaming",
+    feedListSyncState: "idle",
   };
 
   assert.equal(isFeedPublishingPipelineActive(null, processingJob), true);
   assert.equal(
     isFeedPublishingPipelineActive(null, {
       ...processingJob,
-      phase: "completed",
-      listRefreshState: "pending",
+      processingPhase: "completed",
+      feedListSyncState: "pending",
     }),
     true,
   );
   assert.equal(
     isFeedPublishingPipelineActive(null, {
       ...processingJob,
-      phase: "completed",
-      listRefreshState: "succeeded",
+      processingPhase: "completed",
+      feedListSyncState: "succeeded",
     }),
     false,
   );

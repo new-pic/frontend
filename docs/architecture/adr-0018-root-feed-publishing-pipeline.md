@@ -1,5 +1,9 @@
 # ADR-0018: 루트 피드 게시 파이프라인
 
+> 게시·AI 처리·목록 동기화의 내부 책임과 상태 명칭은
+> [ADR-0043](./adr-0043-feed-publishing-processing-lifecycle-boundaries.md)에서
+> 구체화한다. 루트 파이프라인과 단일 활성 작업 정책은 유지한다.
+
 ## Decision
 
 피드 작성·수정 폼은 모드별 Zod 검증과 생성 이미지의 cache staging까지만

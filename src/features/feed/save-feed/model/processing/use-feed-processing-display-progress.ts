@@ -1,29 +1,30 @@
 import { useEffect, useRef, useState } from "react";
 import { AppState, type AppStateStatus } from "react-native";
-import { FEED_PROCESSING_CONFIG } from "../config/feed-processing-config";
+import { FEED_PROCESSING_CONFIG } from "../../config/feed-processing-config";
 import {
   createFeedProcessingProgressProjection,
   projectFeedProcessingProgress,
   rebaseFeedProcessingProgressProjection,
   type FeedProcessingProgressProjection,
 } from "./feed-processing-progress";
-import type { FeedProcessingJob } from "./types";
+import type { FeedAiProcessingLifecycle } from "./feed-processing-types";
 
 interface ActiveProjection {
   jobId: string;
   projection: FeedProcessingProgressProjection;
 }
 
-function getProgressInput(job: FeedProcessingJob) {
+function getProgressInput(processingLifecycle: FeedAiProcessingLifecycle) {
   return {
-    serverProgressPercent: job.serverProgressPercent,
-    estimatedRemainingSeconds: job.estimatedRemainingSeconds,
-    progressEstimateUpdatedAt: job.progressEstimateUpdatedAt,
+    serverProgressPercent: processingLifecycle.serverProgressPercent,
+    estimatedRemainingSeconds: processingLifecycle.estimatedRemainingSeconds,
+    progressSnapshotReceivedAtMs:
+      processingLifecycle.progressSnapshotReceivedAtMs,
   };
 }
 
 export function useFeedProcessingDisplayProgress(
-  job: FeedProcessingJob | null,
+  processingLifecycle: FeedAiProcessingLifecycle | null,
 ) {
   const projectionRef = useRef<ActiveProjection | null>(null);
   const [displayProgressPercent, setDisplayProgressPercent] = useState(0);
@@ -37,13 +38,13 @@ export function useFeedProcessingDisplayProgress(
   }, []);
 
   useEffect(() => {
-    if (!job) {
+    if (!processingLifecycle) {
       projectionRef.current = null;
       setDisplayProgressPercent(0);
       return;
     }
 
-    if (job.phase === "completed") {
+    if (processingLifecycle.processingPhase === "completed") {
       projectionRef.current = null;
       setDisplayProgressPercent(100);
       return;
@@ -51,15 +52,18 @@ export function useFeedProcessingDisplayProgress(
 
     const now = Date.now();
     const current = projectionRef.current;
-    const isSameJob = current?.jobId === job.jobId;
+    const isSameJob = current?.jobId === processingLifecycle.jobId;
     const projection = isSameJob
       ? rebaseFeedProcessingProgressProjection(
           current.projection,
-          getProgressInput(job),
+          getProgressInput(processingLifecycle),
           now,
         )
-      : createFeedProcessingProgressProjection(getProgressInput(job), now);
-    projectionRef.current = { jobId: job.jobId, projection };
+      : createFeedProcessingProgressProjection(
+          getProgressInput(processingLifecycle),
+          now,
+        );
+    projectionRef.current = { jobId: processingLifecycle.jobId, projection };
 
     const projectedProgress = projectFeedProcessingProgress(projection, now);
     setDisplayProgressPercent((previousProgress) =>
@@ -68,21 +72,25 @@ export function useFeedProcessingDisplayProgress(
         : projectedProgress,
     );
   }, [
-    job?.estimatedRemainingSeconds,
-    job?.jobId,
-    job?.phase,
-    job?.progressEstimateUpdatedAt,
-    job?.serverProgressPercent,
+    processingLifecycle?.estimatedRemainingSeconds,
+    processingLifecycle?.jobId,
+    processingLifecycle?.processingPhase,
+    processingLifecycle?.progressSnapshotReceivedAtMs,
+    processingLifecycle?.serverProgressPercent,
   ]);
 
   useEffect(() => {
-    if (!job || job.phase !== "processing" || appState !== "active") {
+    if (
+      !processingLifecycle ||
+      processingLifecycle.processingPhase !== "processing" ||
+      appState !== "active"
+    ) {
       return;
     }
 
     const tick = () => {
       const current = projectionRef.current;
-      if (!current || current.jobId !== job.jobId) return;
+      if (!current || current.jobId !== processingLifecycle.jobId) return;
 
       const projectedProgress = projectFeedProcessingProgress(
         current.projection,
@@ -99,7 +107,11 @@ export function useFeedProcessingDisplayProgress(
       FEED_PROCESSING_CONFIG.progressDisplayTickMs,
     );
     return () => clearInterval(interval);
-  }, [appState, job?.jobId, job?.phase]);
+  }, [
+    appState,
+    processingLifecycle?.jobId,
+    processingLifecycle?.processingPhase,
+  ]);
 
   return displayProgressPercent;
 }

@@ -5,9 +5,9 @@ import { Button, ButtonText } from "@shared/ui";
 import { router } from "expo-router";
 import { Alert } from "react-native";
 import { FeedFormMode, UseSaveFeedFormReturn } from "../model";
-import type { CreateFeedPublishingCommand } from "../model/feed-publishing-types";
-import { useFeedPublishingStore } from "../model/feed-publishing-store";
-import { useFeedPublishingPipelineActive } from "../model/use-feed-publishing-pipeline-active";
+import { useFeedPublishingPipelineActive } from "../model/pipeline/use-feed-publishing-pipeline-active";
+import { useFeedPublishingStore } from "../model/publishing/feed-publishing-store";
+import type { CreateFeedPublishingCommand } from "../model/publishing/feed-publishing-types";
 
 interface SaveFeedButtonProps {
   mode: FeedFormMode;
