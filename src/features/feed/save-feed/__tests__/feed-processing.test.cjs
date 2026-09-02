@@ -141,10 +141,13 @@ test("SSE terminal event는 polling 없이 모니터링을 완료한다", async 
     statusRequestCount += 1;
     return processingStatus;
   };
-  subscribeEventsImpl = async ({ onOpen, onEvent }) => {
-    onOpen();
-    onEvent({ type: "completed" });
-  };
+  subscribeEventsImpl = ({ onOpen, onEvent, signal }) =>
+    new Promise((resolve) => {
+      onOpen();
+      onEvent({ type: "completed" });
+
+      signal.addEventListener("abort", resolve, { once: true });
+    });
 
   const result = await monitorFeedAiJob({
     jobId: "job-1",
