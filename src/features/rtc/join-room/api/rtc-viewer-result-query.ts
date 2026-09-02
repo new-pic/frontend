@@ -10,7 +10,7 @@ import {
 import { privateApiClient } from "@shared/api";
 import { useAuthStore } from "@shared/model";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { cameraPageQueryKeys } from "../model/query-keys";
+import { rtcViewerQueryKeys } from "../model/query-keys";
 
 export function useReadRoomRtcStoredPhotos({
   roomId,
@@ -24,7 +24,7 @@ export function useReadRoomRtcStoredPhotos({
   const accessToken = useAuthStore((state) => state.accessToken);
 
   return useInfiniteQuery({
-    queryKey: cameraPageQueryKeys.roomStoredPhotoList(
+    queryKey: rtcViewerQueryKeys.roomStoredPhotoList(
       normalizedRoomId,
       normalizedParams,
     ),

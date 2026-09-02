@@ -10,6 +10,7 @@ export {
 } from "./model/rtc-viewer-entry";
 export {
   useRtcViewerEntry,
+  type RtcViewerEntryResult,
   type RtcViewerEntryPhase,
   type RtcViewerEntryStreamState,
 } from "./model/use-rtc-viewer-entry";
@@ -17,4 +18,8 @@ export {
   useRtcViewerExitController,
   type RtcViewerExitResult,
 } from "./model/use-rtc-viewer-exit-controller";
+export {
+  useRtcViewerSessionController,
+  type RtcViewerResultState,
+} from "./model/use-rtc-viewer-session-controller";
 export { rtcViewerQuery } from "./api";

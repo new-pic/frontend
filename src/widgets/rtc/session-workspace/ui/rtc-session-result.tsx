@@ -1,5 +1,5 @@
 import { RTC_MAX_SELECTED_PHOTOS } from "@entities/rtc-room";
-import { saveImageToMediaLibrary } from "@shared/lib";
+import { useSaveImagesToLibrary } from "@features/photo/save-images-to-library";
 import {
   Button,
   ButtonText,
@@ -10,18 +10,17 @@ import {
   Text,
   VStack,
 } from "@shared/ui";
-import * as MediaLibrary from "expo-media-library";
 import { useEffect, useMemo, useState } from "react";
 import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export interface SharingResultImage {
+export interface RtcSessionResultImage {
   id: string;
   imageUrl: string;
 }
 
-export interface SharingResultPageProps {
-  images: SharingResultImage[];
+interface RtcSessionResultProps {
+  images: RtcSessionResultImage[];
   onDone: () => void;
   maxSelection?: number;
   isPending?: boolean;
@@ -29,23 +28,19 @@ export interface SharingResultPageProps {
   onEndReached?: () => void;
 }
 
-export function SharingResultPage({
+export function RtcSessionResult({
   images,
   onDone,
   maxSelection = RTC_MAX_SELECTED_PHOTOS,
   isPending = false,
   isFetchingNextPage = false,
   onEndReached,
-}: SharingResultPageProps) {
+}: RtcSessionResultProps) {
   const [selectedImageIds, setSelectedImageIds] = useState<Set<string>>(
     () => new Set(),
   );
-  const [isSaving, setIsSaving] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
-  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions({
-    writeOnly: true,
-    granularPermissions: ["photo"],
-  });
+  const { isSaving, saveImages } = useSaveImagesToLibrary();
 
   useEffect(() => {
     const availableImageIds = new Set(images.map((image) => image.id));
@@ -71,14 +66,7 @@ export function SharingResultPage({
     selectableImages.length > 0 &&
     selectableImages.every(({ id }) => selectedImageIds.has(id));
 
-  const showSelectionLimitAlert = () => {
-    Alert.alert(
-      "사진 선택 한도",
-      `사진은 최대 ${maxSelection}장까지 선택할 수 있습니다.`,
-    );
-  };
-
-  const handleToggleImage = (image: SharingResultImage) => {
+  const handleToggleImage = (image: RtcSessionResultImage) => {
     if (isSaving) return;
 
     if (selectedImageIds.has(image.id)) {
@@ -91,7 +79,10 @@ export function SharingResultPage({
     }
 
     if (selectedImageIds.size >= maxSelection) {
-      showSelectionLimitAlert();
+      Alert.alert(
+        "사진 선택 한도",
+        `사진은 최대 ${maxSelection}장까지 선택할 수 있습니다.`,
+      );
       return;
     }
 
@@ -101,79 +92,50 @@ export function SharingResultPage({
   const handleToggleAll = () => {
     if (isSaving) return;
 
-    if (isAllSelectableSelected) {
-      setSelectedImageIds(new Set());
-      return;
-    }
-
-    setSelectedImageIds(new Set(selectableImages.map(({ id }) => id)));
-  };
-
-  const requestWritePermission = async (): Promise<boolean> => {
-    if (permissionResponse?.granted) return true;
-
-    try {
-      const result = await requestPermission();
-      if (result.granted) return true;
-    } catch {
-      // 아래 공통 권한 안내를 표시합니다.
-    }
-
-    Alert.alert(
-      "사진 권한 필요",
-      "선택한 사진을 저장하려면 사진 보관함 추가 권한이 필요합니다.",
+    setSelectedImageIds(
+      isAllSelectableSelected
+        ? new Set()
+        : new Set(selectableImages.map(({ id }) => id)),
     );
-    return false;
   };
 
   const handleSaveSelectedImages = async () => {
     if (selectedImages.length === 0 || isSaving) return;
-    if (!(await requestWritePermission())) return;
 
-    setIsSaving(true);
-
-    const failedImageIds: string[] = [];
-    let savedCount = 0;
-
-    try {
-      for (const image of selectedImages) {
-        try {
-          await saveImageToMediaLibrary(image);
-          savedCount += 1;
-        } catch {
-          failedImageIds.push(image.id);
-        }
-      }
-
-      setSelectedImageIds(new Set(failedImageIds));
-
-      if (failedImageIds.length === 0) {
-        Alert.alert(
-          "사진 저장 완료",
-          `${savedCount}장의 사진을 사진 보관함에 저장했습니다.`,
-        );
-        return;
-      }
-
-      if (savedCount > 0) {
-        Alert.alert(
-          "일부 사진 저장 실패",
-          `${savedCount}장은 저장했고, ${failedImageIds.length}장은 저장하지 못했습니다. 실패한 사진을 다시 시도해주세요.`,
-        );
-        return;
-      }
-
+    const result = await saveImages(selectedImages);
+    if (result.status === "BUSY") return;
+    if (result.status === "PERMISSION_DENIED") {
       Alert.alert(
-        "사진 저장 실패",
-        "선택한 사진을 저장하지 못했습니다. 잠시 후 다시 시도해주세요.",
+        "사진 권한 필요",
+        "선택한 사진을 저장하려면 사진 보관함 추가 권한이 필요합니다.",
       );
-    } finally {
-      setIsSaving(false);
+      return;
     }
+
+    setSelectedImageIds(new Set(result.failedImageIds));
+    if (result.status === "SAVED") {
+      Alert.alert(
+        "사진 저장 완료",
+        `${result.savedCount}장의 사진을 사진 보관함에 저장했습니다.`,
+      );
+      return;
+    }
+    if (result.status === "PARTIALLY_SAVED") {
+      Alert.alert(
+        "일부 사진 저장 실패",
+        `${result.savedCount}장은 저장했고, ${result.failedImageIds.length}장은 저장하지 못했습니다. 실패한 사진을 다시 시도해주세요.`,
+      );
+      return;
+    }
+
+    Alert.alert(
+      "사진 저장 실패",
+      "선택한 사진을 저장하지 못했습니다. 잠시 후 다시 시도해주세요.",
+    );
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
+    <SafeAreaView className="flex-1 bg-white">
       <VStack className="flex-1 bg-white">
         <VStack className="gap-2 border-b border-outline-light px-6 py-4">
           <HStack className="items-center justify-between">
@@ -223,7 +185,7 @@ export function SharingResultPage({
             size="lg"
             disabled={selectedImages.length === 0 || isSaving || isPending}
             isLoading={isSaving}
-            onPress={handleSaveSelectedImages}
+            onPress={() => void handleSaveSelectedImages()}
             accessibilityLabel={`${selectedImages.length}장의 선택한 사진 저장`}
           >
             <ButtonText>
