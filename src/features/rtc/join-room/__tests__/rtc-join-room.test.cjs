@@ -1,49 +1,7 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
-const {
-  isCurrentRtcViewerSession,
-} = require("../../../../entities/rtc-session/model/rtc-viewer-session.ts");
 const { resolveRtcViewerRoomSignal } = require("../model/rtc-viewer-entry.ts");
-
-const currentSession = {
-  roomId: "room-1",
-  participantId: "participant-1",
-};
-
-test("참여자 LiveKit 요청은 roomId와 participantId가 모두 같아야 현재 세션이다", () => {
-  assert.equal(
-    isCurrentRtcViewerSession(currentSession, {
-      roomId: "room-1",
-      participantId: "participant-1",
-    }),
-    true,
-  );
-  assert.equal(
-    isCurrentRtcViewerSession(currentSession, {
-      roomId: "room-2",
-      participantId: "participant-1",
-    }),
-    false,
-  );
-  assert.equal(
-    isCurrentRtcViewerSession(currentSession, {
-      roomId: "room-1",
-      participantId: "participant-2",
-    }),
-    false,
-  );
-});
-
-test("참여자 LiveKit 요청 비교 전 ID의 바깥 공백을 제거한다", () => {
-  assert.equal(
-    isCurrentRtcViewerSession(currentSession, {
-      roomId: " room-1 ",
-      participantId: " participant-1 ",
-    }),
-    true,
-  );
-});
 
 test("RTC snapshot 상태가 LIVE일 때만 참여자 연결 신호를 반환한다", () => {
   assert.equal(
@@ -105,4 +63,34 @@ test("참여자 진입 hook은 공용 SSE와 수동 토큰 재시도를 소유�
   assert.match(source, /signal === "LIVE"/);
   assert.match(source, /phase !== "TOKEN_ERROR"/);
   assert.match(source, /tokenAttemptedRef\.current = false/);
+  assert.match(source, /setConnection\(\{/);
+});
+
+test("참여자 나가기는 서버 leave 성공 후 LiveKit과 session을 정리한다", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const source = fs.readFileSync(
+    path.resolve(__dirname, "../model/use-rtc-viewer-exit-controller.ts"),
+    "utf8",
+  );
+  const leaveIndex = source.indexOf("await leaveRoom");
+  const disconnectIndex = source.indexOf("await disconnectLiveKit?.()");
+  const exitIndex = source.indexOf("onExited()", disconnectIndex);
+
+  assert.ok(leaveIndex >= 0);
+  assert.ok(disconnectIndex > leaveIndex);
+  assert.ok(exitIndex > disconnectIndex);
+});
+
+test("Viewer 화면 이탈도 연결 상태에 맞는 동일한 나가기 요청을 사용한다", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const source = fs.readFileSync(
+    path.resolve(__dirname, "../../../../pages/camera/ui/rtc-viewer-page.tsx"),
+    "utf8",
+  );
+
+  assert.match(source, /usePreventRemove\(shouldPreventViewerExit/);
+  assert.match(source, /setExitRequestId\(\(current\) => current \+ 1\)/);
+  assert.match(source, /void handleCancelBeforeLiveKit\(\)/);
 });

@@ -2,6 +2,19 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
+const ts = require("typescript");
+
+require.extensions[".ts"] = (module, filename) => {
+  const source = fs.readFileSync(filename, "utf8");
+  const output = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2022,
+    },
+    fileName: filename,
+  });
+  module._compile(output.outputText, filename);
+};
 
 const readSource = (relativePath) =>
   fs.readFileSync(path.resolve(__dirname, relativePath), "utf8");
@@ -131,10 +144,13 @@ test("카메라 종료 오버레이는 lifecycle을 유지한 채 입력과 화�
   const pageSource = readSource("../../../../pages/camera/ui/camera-page.tsx");
   const overlaySource = readSource("../ui/rtc-finalization-overlay.tsx");
 
-  assert.match(pageSource, /usePreventRemove\(isFinalizationBlocking/);
   assert.match(
     pageSource,
-    /BackHandler\.addEventListener\(\s*"hardwareBackPress",\s*\(\) => true/,
+    /usePreventRemove\(\s*Boolean\(broadcastConnection\) \|\| isFinalizationBlocking/,
+  );
+  assert.match(
+    pageSource,
+    /BackHandler\.addEventListener\(\s*"hardwareBackPress"/,
   );
   assert.match(
     pageSource,
@@ -153,16 +169,34 @@ test("사진이 포함된 RTC 종료 요청은 호스트 인증과 upload fetch�
   assert.match(source, /headers,/);
   assert.match(
     source,
-    /privateApiClient\.patch\(url, undefined, \{\s*headers,/,
+    /privateApiClient\.patch\(url, undefined, \{\s*headers\s*\}\)/,
   );
 });
 
 test("RTC 종료 실패는 인라인 문구 대신 재시도 Alert로 표시한다", () => {
-  const source = readSource("../../../../pages/camera/ui/rtc-livekit-page.tsx");
+  const source = readSource("../ui/rtc-host-livekit.tsx");
 
   assert.match(source, /Alert\.alert\(\s*"RTC 방 종료 실패"/);
   assert.match(source, /text: "종료 처리 다시 시도"/);
   assert.doesNotMatch(source, /<ButtonText>종료 처리 다시 시도<\/ButtonText>/);
+});
+
+test("Host 종료 controller는 사진 준비부터 연결 정리까지 순서대로 실행한다", () => {
+  const source = readSource("../model/use-rtc-host-termination-controller.ts");
+  const prepareIndex = source.indexOf("await preparePhotos()");
+  const stopIndex = source.indexOf("await stopPublishing()", prepareIndex);
+  const endIndex = source.indexOf("result = await endRoom()", stopIndex);
+  const deliverIndex = source.indexOf("await deliverResult(result)", endIndex);
+  const disconnectIndex = source.indexOf(
+    "await disconnectRoom()",
+    deliverIndex,
+  );
+
+  assert.ok(prepareIndex >= 0);
+  assert.ok(stopIndex > prepareIndex);
+  assert.ok(endIndex > stopIndex);
+  assert.ok(deliverIndex > endIndex);
+  assert.ok(disconnectIndex > deliverIndex);
 });
 
 test("RTC SSE 재연결 지연은 지수 증가 후 15초로 제한한다", () => {
