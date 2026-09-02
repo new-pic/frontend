@@ -3,7 +3,7 @@
 ## Decision
 
 RTC 호스트 종료 처리 중 `ENDING_ROOM`과 `DELIVERING_RESULT` 단계에서만
-CameraPage 최상단에 full-screen blocking overlay를 표시한다. overlay는
+Camera Capture Workspace 최상단에 full-screen blocking overlay를 표시한다. overlay는
 모든 pointer 입력을 가로채고, 같은 조건에서 navigation remove와 Android
 hardware back을 차단한다.
 
@@ -52,7 +52,7 @@ Option A를 선택했다. 종료 workflow와 native resource owner를 바꾸지 
 ```text
 HostRoomContent finalization workflow
   ↓ onFinalizationStateChange
-CameraPage finalizationState
+host-controls finalizationState
   ├─ PREPARING_PHOTOS → 기존 사진 선택 화면
   ├─ ENDING_ROOM → blocking overlay
   ├─ DELIVERING_RESULT → blocking overlay
@@ -61,8 +61,10 @@ CameraPage finalizationState
 ```
 
 종료 workflow와 재시도용 완료 결과 cache는 Host termination controller가,
-presentation state snapshot은 CameraPage가 소유한다. overlay는 LiveKit이나
-서버 API를 알지 않고 `RtcHostFinalizationState`만 입력받는다. VisionCamera와
+presentation state snapshot은 Host session controller가 소유하고 Camera
+Workspace가 overlay에 전달한다. CameraPage는 `isExitBlocked`만 받아 route
+guard를 연결한다. overlay는 LiveKit이나 서버 API를 알지 않고
+`RtcHostFinalizationState`만 입력받는다. VisionCamera와
 LiveKit lifecycle은 기존 owner가 계속 관리한다.
 
 ## Trade-off
@@ -85,8 +87,8 @@ LiveKit lifecycle은 기존 owner가 계속 관리한다.
 ## Result
 
 - `isRtcFinalizationBlocking` type guard로 차단 상태를 두 단계로 제한했다.
-- CameraPage가 `usePreventRemove`, hardware BackHandler, 최상단 pointer
-  overlay를 같은 조건으로 적용한다.
+- CameraPage가 `usePreventRemove`와 hardware BackHandler를 연결하고, Camera
+  Workspace가 같은 상태에서 최상단 pointer overlay를 적용한다.
 - overlay를 추가해도 Camera와 `RtcHostLiveKit`은 기존 component tree에
   계속 마운트된다.
 - 상태 분류, navigation 차단, overlay pointer 계약 테스트와 iOS/Android
