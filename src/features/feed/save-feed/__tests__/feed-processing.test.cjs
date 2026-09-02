@@ -1,5 +1,6 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const Module = require("node:module");
 const test = require("node:test");
 const ts = require("typescript");
 
@@ -23,13 +24,44 @@ const { parseFeedAiJobEvent } = require("../api/feed-ai-job-event.ts");
 const {
   adaptCreatedFeedAiJob,
   adaptFeedAiJobStatus,
-} = require("../lib/feed-ai-job-adapter.ts");
-const { useFeedProcessingStore } = require("../model/feed-processing-store.ts");
+} = require("../model/processing/feed-ai-job-adapter.ts");
+const {
+  useFeedProcessingStore,
+} = require("../model/processing/feed-processing-store.ts");
 const {
   createFeedProcessingProgressProjection,
   projectFeedProcessingProgress,
   rebaseFeedProcessingProgressProjection,
-} = require("../model/feed-processing-progress.ts");
+} = require("../model/processing/feed-processing-progress.ts");
+
+let getStatusImpl;
+let subscribeEventsImpl;
+const originalModuleLoad = Module._load;
+Module._load = function mockFeedAiJobClient(request, parent, isMain) {
+  if (request === "../../api/feed-ai-job-client") {
+    return {
+      getFeedAiJobStatus: (...args) => getStatusImpl(...args),
+      subscribeFeedAiJobEvents: (...args) => subscribeEventsImpl(...args),
+    };
+  }
+  return originalModuleLoad.call(this, request, parent, isMain);
+};
+const {
+  monitorFeedAiJob,
+} = require("../model/processing/feed-ai-job-monitor.ts");
+Module._load = originalModuleLoad;
+
+const processingStatus = {
+  status: "PROCESSING",
+  progressPercent: 20,
+  isCompleted: false,
+};
+
+const completedStatus = {
+  status: "COMPLETED",
+  progressPercent: 100,
+  isCompleted: true,
+};
 
 test("분할된 SSE chunk와 CRLF를 하나의 progress event로 조립한다", () => {
   const messages = [];
@@ -80,6 +112,53 @@ test("알 수 없는 event와 잘못된 progress payload는 무시한다", () =>
   );
 });
 
+test("SSE가 terminal event 없이 실패하면 status polling으로 완료를 확인한다", async () => {
+  const statuses = [processingStatus, completedStatus];
+  const monitoringStates = [];
+  const receivedStatuses = [];
+  getStatusImpl = async () => statuses.shift();
+  subscribeEventsImpl = async () => {
+    throw new Error("stream disconnected");
+  };
+
+  const result = await monitorFeedAiJob({
+    jobId: "job-1",
+    signal: new AbortController().signal,
+    onStatusSnapshot: (status) => receivedStatuses.push(status.status),
+    onProgressEvent: () => {},
+    onMonitoringStateChange: (state) => monitoringStates.push(state),
+  });
+
+  assert.equal(result, "completed");
+  assert.deepEqual(receivedStatuses, ["PROCESSING", "COMPLETED"]);
+  assert.deepEqual(monitoringStates, ["connecting", "disconnected", "polling"]);
+});
+
+test("SSE terminal event는 polling 없이 모니터링을 완료한다", async () => {
+  const monitoringStates = [];
+  let statusRequestCount = 0;
+  getStatusImpl = async () => {
+    statusRequestCount += 1;
+    return processingStatus;
+  };
+  subscribeEventsImpl = async ({ onOpen, onEvent }) => {
+    onOpen();
+    onEvent({ type: "completed" });
+  };
+
+  const result = await monitorFeedAiJob({
+    jobId: "job-1",
+    signal: new AbortController().signal,
+    onStatusSnapshot: () => {},
+    onProgressEvent: () => {},
+    onMonitoringStateChange: (state) => monitoringStates.push(state),
+  });
+
+  assert.equal(result, "completed");
+  assert.equal(statusRequestCount, 1);
+  assert.deepEqual(monitoringStates, ["connecting", "streaming"]);
+});
+
 test("생성 응답을 processing domain으로 변환하고 진행률을 보정한다", () => {
   assert.deepEqual(
     adaptCreatedFeedAiJob({
@@ -94,11 +173,11 @@ test("생성 응답을 processing domain으로 변환하고 진행률을 보정�
     {
       jobId: "job-1",
       feedId: "feed-1",
-      phase: "processing",
+      processingPhase: "processing",
       serverProgressPercent: 0,
       estimatedRemainingSeconds: 60,
-      transportState: "idle",
-      listRefreshState: "idle",
+      monitoringState: "idle",
+      feedListSyncState: "idle",
     },
   );
 });
@@ -110,7 +189,7 @@ test("status enum을 completed/failed domain으로 분리한다", () => {
       progressPercent: 101,
       isCompleted: true,
     }),
-    { phase: "completed", serverProgressPercent: 100 },
+    { processingPhase: "completed", serverProgressPercent: 100 },
   );
   assert.deepEqual(
     adaptFeedAiJobStatus({
@@ -118,7 +197,7 @@ test("status enum을 completed/failed domain으로 분리한다", () => {
       progressPercent: 73,
       isCompleted: true,
     }),
-    { phase: "failed", serverProgressPercent: 73 },
+    { processingPhase: "failed", serverProgressPercent: 73 },
   );
 });
 
@@ -127,7 +206,7 @@ test("SSE가 없어도 예상 잔여 시간에 따라 95%까지 증가한다", (
     {
       serverProgressPercent: 20,
       estimatedRemainingSeconds: 100,
-      progressEstimateUpdatedAt: 1_000,
+      progressSnapshotReceivedAtMs: 1_000,
     },
     1_000,
   );
@@ -142,7 +221,7 @@ test("표시값보다 낮은 SSE는 역행시키지 않고 새 잔여 시간만 
     {
       serverProgressPercent: 60,
       estimatedRemainingSeconds: 40,
-      progressEstimateUpdatedAt: 0,
+      progressSnapshotReceivedAtMs: 0,
     },
     0,
   );
@@ -152,7 +231,7 @@ test("표시값보다 낮은 SSE는 역행시키지 않고 새 잔여 시간만 
     {
       serverProgressPercent: 50,
       estimatedRemainingSeconds: 60,
-      progressEstimateUpdatedAt: 10_000,
+      progressSnapshotReceivedAtMs: 10_000,
     },
     10_000,
   );
@@ -167,7 +246,7 @@ test("높은 서버 진행률은 즉시 반영하되 완료 전에는 100%가 �
     {
       serverProgressPercent: 20,
       estimatedRemainingSeconds: 100,
-      progressEstimateUpdatedAt: 0,
+      progressSnapshotReceivedAtMs: 0,
     },
     0,
   );
@@ -176,7 +255,7 @@ test("높은 서버 진행률은 즉시 반영하되 완료 전에는 100%가 �
     {
       serverProgressPercent: 98,
       estimatedRemainingSeconds: 20,
-      progressEstimateUpdatedAt: 5_000,
+      progressSnapshotReceivedAtMs: 5_000,
     },
     5_000,
   );
@@ -194,7 +273,7 @@ test("높은 서버 진행률은 즉시 반영하되 완료 전에는 100%가 �
 });
 
 test("store는 현재 jobId의 update만 적용한다", () => {
-  useFeedProcessingStore.getState().start({
+  useFeedProcessingStore.getState().startProcessing({
     jobId: "job-current",
     feedId: "feed-current",
     status: "PROCESSING",
@@ -204,37 +283,47 @@ test("store는 현재 jobId의 update만 적용한다", () => {
     isCompleted: false,
   });
 
-  useFeedProcessingStore.getState().applyStatus("job-old", {
+  useFeedProcessingStore.getState().applyStatusSnapshot("job-old", {
     status: "COMPLETED",
     progressPercent: 100,
     isCompleted: true,
   });
-  assert.equal(useFeedProcessingStore.getState().job.serverProgressPercent, 10);
+  assert.equal(
+    useFeedProcessingStore.getState().processingLifecycle.serverProgressPercent,
+    10,
+  );
 
-  useFeedProcessingStore.getState().applyStatus("job-current", {
+  useFeedProcessingStore.getState().applyStatusSnapshot("job-current", {
     status: "PROCESSING",
     progressPercent: 62,
     isCompleted: false,
   });
-  assert.equal(useFeedProcessingStore.getState().job.serverProgressPercent, 62);
+  assert.equal(
+    useFeedProcessingStore.getState().processingLifecycle.serverProgressPercent,
+    62,
+  );
 
   const progressEstimateObservedAfter = Date.now();
-  useFeedProcessingStore.getState().applyProgress("job-current", {
+  useFeedProcessingStore.getState().applyProgressEvent("job-current", {
     jobId: "job-current",
     status: "PROCESSING",
     progressPercent: 50,
     estimatedRemainingSeconds: 120,
     isCompleted: false,
   });
-  assert.equal(useFeedProcessingStore.getState().job.serverProgressPercent, 50);
   assert.equal(
-    useFeedProcessingStore.getState().job.estimatedRemainingSeconds,
+    useFeedProcessingStore.getState().processingLifecycle.serverProgressPercent,
+    50,
+  );
+  assert.equal(
+    useFeedProcessingStore.getState().processingLifecycle
+      .estimatedRemainingSeconds,
     120,
   );
   assert.ok(
-    useFeedProcessingStore.getState().job.progressEstimateUpdatedAt >=
-      progressEstimateObservedAfter,
+    useFeedProcessingStore.getState().processingLifecycle
+      .progressSnapshotReceivedAtMs >= progressEstimateObservedAfter,
   );
 
-  useFeedProcessingStore.getState().dismiss();
+  useFeedProcessingStore.getState().dismissProcessing();
 });

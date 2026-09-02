@@ -1,9 +1,9 @@
-import { FEED_PROCESSING_CONFIG } from "../config/feed-processing-config";
+import { FEED_PROCESSING_CONFIG } from "../../config/feed-processing-config";
 
 export interface FeedProcessingProgressInput {
   serverProgressPercent: number;
   estimatedRemainingSeconds?: number;
-  progressEstimateUpdatedAt?: number;
+  progressSnapshotReceivedAtMs?: number;
 }
 
 export interface FeedProcessingProgressProjection {
@@ -26,7 +26,7 @@ function normalizeProcessingServerProgress(progressPercent: number) {
 
 function getEstimatedEndTimeMs(input: FeedProcessingProgressInput) {
   if (
-    input.progressEstimateUpdatedAt === undefined ||
+    input.progressSnapshotReceivedAtMs === undefined ||
     input.estimatedRemainingSeconds === undefined ||
     !Number.isFinite(input.estimatedRemainingSeconds)
   ) {
@@ -37,7 +37,7 @@ function getEstimatedEndTimeMs(input: FeedProcessingProgressInput) {
     FEED_PROCESSING_CONFIG.minimumEstimatedRemainingSeconds,
     input.estimatedRemainingSeconds,
   );
-  return input.progressEstimateUpdatedAt + remainingSeconds * 1_000;
+  return input.progressSnapshotReceivedAtMs + remainingSeconds * 1_000;
 }
 
 export function createFeedProcessingProgressProjection(
@@ -48,7 +48,7 @@ export function createFeedProcessingProgressProjection(
     anchorPercent: normalizeProcessingServerProgress(
       input.serverProgressPercent,
     ),
-    anchorTimeMs: input.progressEstimateUpdatedAt ?? now,
+    anchorTimeMs: input.progressSnapshotReceivedAtMs ?? now,
     estimatedEndTimeMs: getEstimatedEndTimeMs(input),
   };
 }

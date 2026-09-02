@@ -1,5 +1,5 @@
-export * from "./models";
+export * from "./form/feed-form-types";
 export {
   useSaveFeedForm,
   type UseSaveFeedFormReturn,
-} from "./use-save-feed-form";
+} from "./form/use-save-feed-form";
