@@ -8,6 +8,8 @@ export type RtcFinalizationBlockingState = Extract<
   "ENDING_ROOM" | "DELIVERING_RESULT"
 >;
 
+export const RTC_HOST_ROOM_EXPIRES_IN_MINUTES = 60;
+
 export function resolveRtcCameraMenuMode({
   isBusy,
   isLive,

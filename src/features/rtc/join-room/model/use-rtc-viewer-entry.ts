@@ -5,7 +5,10 @@ import {
   RtcRoomResponseSchema,
   type RtcRoomEvent,
 } from "@entities/rtc-room";
-import type { RtcViewerSession } from "@entities/rtc-session";
+import type {
+  RtcLiveKitConnection,
+  RtcViewerSession,
+} from "@entities/rtc-session";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { resolveRtcViewerRoomSignal } from "./rtc-viewer-entry";
 import { rtcViewerQuery } from "../api";
@@ -30,6 +33,7 @@ interface UseRtcViewerEntryResult {
   phase: RtcViewerEntryPhase;
   streamState: RtcViewerEntryStreamState;
   room: RtcRoomResponse | null;
+  connection: RtcLiveKitConnection | null;
   tokenErrorMessage: string | null;
   retryToken: () => void;
 }
@@ -65,6 +69,9 @@ export function useRtcViewerEntry({
     useState<RtcViewerEntryStreamState>("IDLE");
 
   const [room, setRoom] = useState<RtcRoomResponse | null>(null);
+  const [connection, setConnection] = useState<RtcLiveKitConnection | null>(
+    null,
+  );
 
   const [tokenErrorMessage, setTokenErrorMessage] = useState<string | null>(
     null,
@@ -73,17 +80,20 @@ export function useRtcViewerEntry({
     ? `${session.roomId.trim()}:${session.participantId.trim()}`
     : "";
   const sessionKeyRef = useRef(sessionKey);
+  const entryEpochRef = useRef(0);
   const latestRoomSignalRef = useRef<"LIVE" | null>(null);
   const tokenAttemptedRef = useRef(false);
   const tokenPendingRef = useRef(false);
   const roomEndedRef = useRef(false);
 
   useEffect(() => {
+    entryEpochRef.current += 1;
     sessionKeyRef.current = sessionKey;
     latestRoomSignalRef.current = null;
     tokenAttemptedRef.current = false;
     tokenPendingRef.current = false;
     roomEndedRef.current = false;
+    setConnection(null);
     setTokenErrorMessage(null);
     setPhase(enabled && session ? "WAITING_FOR_LIVE" : "IDLE");
     setStreamState(enabled && session ? "CONNECTING" : "IDLE");
@@ -106,6 +116,7 @@ export function useRtcViewerEntry({
     }
 
     const requestSessionKey = sessionKey;
+    const requestEntryEpoch = entryEpochRef.current;
     tokenAttemptedRef.current = true;
     tokenPendingRef.current = true;
     setTokenErrorMessage(null);
@@ -115,17 +126,23 @@ export function useRtcViewerEntry({
       roomId: session.roomId,
       participantId: session.participantId,
     })
-      .then(() => {
+      .then((response) => {
         if (
           sessionKeyRef.current === requestSessionKey &&
+          entryEpochRef.current === requestEntryEpoch &&
           !roomEndedRef.current
         ) {
+          setConnection({
+            url: response.url,
+            token: response.token,
+          });
           setPhase("READY");
         }
       })
       .catch((error: unknown) => {
         if (
           sessionKeyRef.current === requestSessionKey &&
+          entryEpochRef.current === requestEntryEpoch &&
           !roomEndedRef.current
         ) {
           setTokenErrorMessage(getErrorMessage(error));
@@ -133,7 +150,10 @@ export function useRtcViewerEntry({
         }
       })
       .finally(() => {
-        if (sessionKeyRef.current === requestSessionKey) {
+        if (
+          sessionKeyRef.current === requestSessionKey &&
+          entryEpochRef.current === requestEntryEpoch
+        ) {
           tokenPendingRef.current = false;
         }
       });
@@ -189,6 +209,7 @@ export function useRtcViewerEntry({
         roomEndedRef.current = true;
         latestRoomSignalRef.current = null;
         if (isMounted) {
+          setConnection(null);
           setPhase("ROOM_ENDED");
           setStreamState("ENDED");
         }
@@ -255,6 +276,7 @@ export function useRtcViewerEntry({
     phase,
     streamState,
     room,
+    connection,
     tokenErrorMessage,
     retryToken,
   };

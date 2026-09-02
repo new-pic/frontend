@@ -1,5 +1,4 @@
 import { RTC_MAX_SELECTED_PHOTOS } from "@entities/rtc-room";
-import { SessionPhoto } from "@features/camera/capture-photo";
 import {
   Button,
   ButtonText,
@@ -14,15 +13,20 @@ import { useMemo, useState } from "react";
 import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export interface SharingEndSelectionPageProps {
-  photos: SessionPhoto[];
-  onConfirm: (photos: SessionPhoto[]) => void;
+export interface RtcEndPhotoSelectionProps {
+  photos: RtcEndSelectablePhoto[];
+  onConfirm: (photos: RtcEndSelectablePhoto[]) => void;
 }
 
-export function SharingEndSelectionPage({
+export interface RtcEndSelectablePhoto {
+  id: string;
+  uri: string;
+}
+
+export function RtcEndPhotoSelection({
   photos,
   onConfirm,
-}: SharingEndSelectionPageProps) {
+}: RtcEndPhotoSelectionProps) {
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(
     () => new Set(),
   );

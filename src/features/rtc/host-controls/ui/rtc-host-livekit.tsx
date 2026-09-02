@@ -1,53 +1,32 @@
 import {
-  decodeRtcRoomEndedRpcPayload,
   encodeRtcRoomEndedRpcPayload,
   RTC_ROOM_ENDED_RPC_ACK,
   RTC_ROOM_ENDED_RPC_METHOD,
   RtcEndRoomResponse,
-  RtcRoomResponse,
 } from "@entities/rtc-room";
 import {
   createVisionCameraVideoPublisher,
-  RtcLiveKitConnection,
-  RtcVideoPublisher,
-  RtcVideoPublisherFactory,
+  type RtcLiveKitConnection,
+  type RtcVideoPublisher,
+  type RtcVideoPublisherFactory,
 } from "@entities/rtc-session";
-import type { RtcHostFinalizationState } from "@features/rtc/host-controls";
+import type { RtcHostFinalizationState } from "../model/rtc-host-control";
+import { useRtcHostTerminationController } from "../model/use-rtc-host-termination-controller";
 import {
-  LiveKitRoom,
   RoomContext,
   useConnectionState,
   useRoomContext,
-  useTracks,
-  VideoTrack,
 } from "@livekit/react-native";
-import {
-  Box,
-  Button,
-  ButtonIcon,
-  ButtonText,
-  FramingGridOverlay,
-  Text,
-  VStack,
-} from "@shared/ui";
-import { IconX } from "@tabler/icons-react-native";
-import { ConnectionState, Room, RoomEvent, Track } from "livekit-client";
-import {
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { Alert, BackHandler, StyleSheet, View } from "react-native";
+import { Button, ButtonText, Text, VStack } from "@shared/ui";
+import { ConnectionState, Room, RoomEvent } from "livekit-client";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Alert, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { SharingWaitingPage } from "./sharing-waiting-page";
 
 const isRoomConnected = (room: Room) =>
   room.state === ConnectionState.Connected;
 
-interface RtcHostLiveKitPageProps {
+interface RtcHostLiveKitProps {
   connection: RtcLiveKitConnection;
   isActive: boolean;
   onPrepareEndRoom: () => Promise<void>;
@@ -58,18 +37,10 @@ interface RtcHostLiveKitPageProps {
   publisherFactory?: RtcVideoPublisherFactory;
 }
 
-interface RtcViewerLiveKitPageProps {
-  connection: RtcLiveKitConnection;
-  roomId: string;
-  rtcRoom: RtcRoomResponse | null;
-  reactionPicker: ReactNode;
-  onCancel: () => void | Promise<void>;
-  onRoomEnded: (result: RtcEndRoomResponse) => void | Promise<void>;
-}
-
 interface HostRoomContentProps {
   canPublish: boolean;
   connectionError: string | null;
+  disconnectRoom: () => Promise<void>;
   ensureConnected: () => Promise<void>;
   isActive: boolean;
   onPrepareEndRoom: () => Promise<void>;
@@ -83,6 +54,7 @@ interface HostRoomContentProps {
 function HostRoomContent({
   canPublish,
   connectionError,
+  disconnectRoom,
   ensureConnected,
   isActive,
   onPrepareEndRoom,
@@ -98,16 +70,9 @@ function HostRoomContent({
   const isActiveRef = useRef(isActive);
   const canPublishRef = useRef(canPublish);
   const hasPublisherStartBeenRequestedRef = useRef(false);
-  const isStoppingRef = useRef(false);
-  const hasStopBeenRequestedRef = useRef(false);
-  const completedResultRef = useRef<RtcEndRoomResponse | null>(null);
   const handledEndRequestIdRef = useRef(endRequestId);
   const [publisherError, setPublisherError] = useState<string | null>(null);
-  const [finalizationErrorMessage, setFinalizationErrorMessage] = useState<
-    string | null
-  >(null);
   const [isPublishing, setIsPublishing] = useState(false);
-  const [, setIsStopping] = useState(false);
   isActiveRef.current = isActive;
   canPublishRef.current = canPublish;
 
@@ -131,7 +96,6 @@ function HostRoomContent({
     if (
       !canPublishRef.current ||
       connectionState !== ConnectionState.Connected ||
-      hasStopBeenRequestedRef.current ||
       hasPublisherStartBeenRequestedRef.current
     ) {
       return;
@@ -140,7 +104,6 @@ function HostRoomContent({
     hasPublisherStartBeenRequestedRef.current = true;
     setIsPublishing(true);
     setPublisherError(null);
-    setFinalizationErrorMessage(null);
 
     try {
       await publisher.start();
@@ -219,93 +182,23 @@ function HostRoomContent({
     [ensureConnected, room],
   );
 
-  const handleStop = useCallback(async () => {
-    if (isStoppingRef.current) return;
-
-    isStoppingRef.current = true;
-    hasStopBeenRequestedRef.current = true;
-    setIsStopping(true);
-    onFinalizationStateChange?.("PREPARING_PHOTOS");
-    setPublisherError(null);
-    setFinalizationErrorMessage(null);
-
-    let result = completedResultRef.current;
-    let finalizationError: unknown;
-
-    try {
-      // 호스트가 사진을 고르는 동안에는 기존 영상 송출을 유지합니다.
-      // 선택을 확정한 뒤에만 publisher와 native frame sink를 정리합니다.
-      await onPrepareEndRoom();
-
-      // publisher 내부에서 frame sink 차단 → unpublish → raw track
-      // stop/release 순서로 정리합니다.
-      onFinalizationStateChange?.("ENDING_ROOM");
-      await publisher.stop();
-
-      if (!result) {
-        result = await onEndRoom();
-        completedResultRef.current = result;
-      }
-
-      // 화면 cleanup이 이미 시작됐다면 결과 전송을 위해 Room을 다시
-      // 연결하지 않습니다. 아래 finally에서 마지막 disconnect만 보장합니다.
-      if (!isMountedRef.current) return;
-
-      onFinalizationStateChange?.("DELIVERING_RESULT");
-      await deliverResult(result);
-    } catch (error) {
-      finalizationError = error;
-    } finally {
-      // API/RPC가 실패해도 카메라 track과 Room 연결이 남지 않습니다.
-      try {
-        await publisher.stop();
-      } catch (error) {
-        finalizationError ??= error;
-      }
-      try {
-        await room.disconnect();
-      } catch (error) {
-        finalizationError ??= error;
-      }
-    }
-
-    if (finalizationError || !result) {
-      if (isMountedRef.current) {
-        setFinalizationErrorMessage(
-          finalizationError instanceof Error
-            ? finalizationError.message
-            : "RTC 공유 종료에 실패했습니다. 종료 처리를 다시 시도해주세요.",
-        );
-        setIsStopping(false);
-        onFinalizationStateChange?.("FAILED");
-      }
-      isStoppingRef.current = false;
-      return;
-    }
-
-    try {
-      await onStopped(result);
-    } finally {
-      isStoppingRef.current = false;
-      if (isMountedRef.current) {
-        setIsStopping(false);
-        onFinalizationStateChange?.("IDLE");
-      }
-    }
-  }, [
+  const {
+    clearError: clearFinalizationError,
+    errorMessage: finalizationErrorMessage,
+    requestTermination,
+  } = useRtcHostTerminationController({
+    preparePhotos: onPrepareEndRoom,
+    stopPublishing: () => publisher.stop(),
+    endRoom: onEndRoom,
     deliverResult,
-    onPrepareEndRoom,
-    onEndRoom,
-    onStopped,
-    onFinalizationStateChange,
-    publisher,
-    room,
-  ]);
+    disconnectRoom,
+    onCompleted: onStopped,
+    onStateChange: onFinalizationStateChange,
+  });
 
   useEffect(() => {
     if (!finalizationErrorMessage) return;
 
-    const clearError = () => setFinalizationErrorMessage(null);
     Alert.alert(
       "RTC 방 종료 실패",
       finalizationErrorMessage,
@@ -313,22 +206,22 @@ function HostRoomContent({
         {
           text: "닫기",
           style: "cancel",
-          onPress: clearError,
+          onPress: clearFinalizationError,
         },
         {
           text: "종료 처리 다시 시도",
           onPress: () => {
-            clearError();
-            void handleStop();
+            clearFinalizationError();
+            void requestTermination();
           },
         },
       ],
       {
         cancelable: true,
-        onDismiss: clearError,
+        onDismiss: clearFinalizationError,
       },
     );
-  }, [finalizationErrorMessage, handleStop]);
+  }, [clearFinalizationError, finalizationErrorMessage, requestTermination]);
 
   useEffect(() => {
     if (endRequestId <= handledEndRequestIdRef.current || endRequestId <= 0) {
@@ -336,20 +229,8 @@ function HostRoomContent({
     }
 
     handledEndRequestIdRef.current = endRequestId;
-    void handleStop();
-  }, [endRequestId, handleStop]);
-
-  useEffect(() => {
-    const subscription = BackHandler.addEventListener(
-      "hardwareBackPress",
-      () => {
-        void handleStop();
-        return true;
-      },
-    );
-
-    return () => subscription.remove();
-  }, [handleStop]);
+    void requestTermination();
+  }, [endRequestId, requestTermination]);
 
   const errorMessage = publisherError ?? connectionError;
 
@@ -377,7 +258,7 @@ function HostRoomContent({
   );
 }
 
-export function RtcHostLiveKitPage({
+export function RtcHostLiveKit({
   connection,
   isActive,
   onPrepareEndRoom,
@@ -386,7 +267,7 @@ export function RtcHostLiveKitPage({
   endRequestId = 0,
   onFinalizationStateChange,
   publisherFactory = createVisionCameraVideoPublisher,
-}: RtcHostLiveKitPageProps) {
+}: RtcHostLiveKitProps) {
   const room = useMemo(
     () =>
       new Room({
@@ -573,6 +454,7 @@ export function RtcHostLiveKitPage({
       <HostRoomContent
         canPublish={canPublish}
         connectionError={connectionError}
+        disconnectRoom={stopAndDisconnect}
         ensureConnected={ensureConnected}
         isActive={isActive}
         onPrepareEndRoom={onPrepareEndRoom}
@@ -583,213 +465,5 @@ export function RtcHostLiveKitPage({
         publisher={publisher}
       />
     </RoomContext.Provider>
-  );
-}
-
-interface ViewerRoomContentProps {
-  connectionError: string | null;
-  roomId: string;
-  rtcRoom: RtcRoomResponse | null;
-  reactionPicker: ReactNode;
-  onCancel: () => void | Promise<void>;
-  onRoomEnded: (result: RtcEndRoomResponse) => void | Promise<void>;
-}
-
-function ViewerRoomContent({
-  connectionError,
-  roomId,
-  rtcRoom,
-  reactionPicker,
-  onCancel,
-  onRoomEnded,
-}: ViewerRoomContentProps) {
-  const room = useRoomContext();
-  const connectionState = useConnectionState();
-  const cameraTracks = useTracks([Track.Source.Camera], {
-    onlySubscribed: true,
-  });
-  const remoteCameraTrack = cameraTracks.find(
-    ({ participant }) => !participant.isLocal,
-  );
-  const [isLeaving, setIsLeaving] = useState(false);
-  const hostNickname = rtcRoom?.host.nickname.trim() || "호스트";
-  const isLeavingRef = useRef(false);
-  const deliveredResultRef = useRef<RtcEndRoomResponse | null>(null);
-
-  const handleCancel = useCallback(async () => {
-    if (isLeavingRef.current) return;
-
-    isLeavingRef.current = true;
-    setIsLeaving(true);
-    try {
-      await room.disconnect();
-    } finally {
-      await onCancel();
-    }
-  }, [onCancel, room]);
-
-  useEffect(() => {
-    room.registerRpcMethod(
-      RTC_ROOM_ENDED_RPC_METHOD,
-      async ({ callerIdentity, payload }) => {
-        const caller = room.remoteParticipants.get(callerIdentity);
-        const result = decodeRtcRoomEndedRpcPayload(payload);
-
-        if (
-          caller?.permissions?.canPublish !== true ||
-          !result ||
-          result.roomId !== roomId
-        ) {
-          throw new Error("유효하지 않은 RTC 종료 결과입니다.");
-        }
-
-        if (!isLeavingRef.current) {
-          isLeavingRef.current = true;
-          deliveredResultRef.current = result;
-          setIsLeaving(true);
-
-          // RPC 응답이 host에 도착한 뒤 LiveKitRoom을 unmount하도록
-          // 다음 macrotask에서 결과 화면 전환을 시작합니다.
-          setTimeout(() => {
-            const deliveredResult = deliveredResultRef.current;
-            if (!deliveredResult) return;
-
-            void (async () => {
-              try {
-                await room.disconnect();
-              } finally {
-                await onRoomEnded(deliveredResult);
-              }
-            })();
-          }, 0);
-        }
-
-        return RTC_ROOM_ENDED_RPC_ACK;
-      },
-    );
-
-    return () => {
-      room.unregisterRpcMethod(RTC_ROOM_ENDED_RPC_METHOD);
-    };
-  }, [onRoomEnded, room, roomId]);
-
-  useEffect(() => {
-    const subscription = BackHandler.addEventListener(
-      "hardwareBackPress",
-      () => {
-        void handleCancel();
-        return true;
-      },
-    );
-
-    return () => subscription.remove();
-  }, [handleCancel]);
-
-  if (!remoteCameraTrack) {
-    return (
-      <View className="flex-1 bg-black">
-        <SharingWaitingPage
-          hostNickname={hostNickname}
-          isConnecting={
-            connectionState !== ConnectionState.Connected && !connectionError
-          }
-          onCancel={() => void handleCancel()}
-        />
-        {connectionError ? (
-          <Box className="absolute left-6 right-6 top-16 rounded-xl bg-red-500 px-4 py-3">
-            <Text className="text-center text-white">{connectionError}</Text>
-          </Box>
-        ) : null}
-      </View>
-    );
-  }
-
-  return (
-    <SafeAreaView
-      edges={["top", "bottom"]}
-      style={{ flex: 1, backgroundColor: "white" }}
-    >
-      <View className="relative min-h-24 flex-row items-center justify-center bg-white px-16 py-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute left-4 rounded-full"
-          disabled={isLeaving}
-          isLoading={isLeaving}
-          accessibilityLabel={
-            isLeaving ? "실시간 공유에서 나가는 중" : "실시간 공유 나가기"
-          }
-          onPress={() => void handleCancel()}
-        >
-          <ButtonIcon as={IconX} className="h-7 w-7" />
-        </Button>
-
-        <VStack className="items-center gap-1">
-          <Text className="text-center text-label-muted">
-            {hostNickname} 님의 실시간 공유
-          </Text>
-
-          <Text size="2xl" bold className="text-center text-foreground">
-            사진에 찍히는 내 모습
-          </Text>
-        </VStack>
-      </View>
-
-      <View className="relative flex-1 overflow-hidden bg-black">
-        <VideoTrack
-          trackRef={remoteCameraTrack}
-          style={StyleSheet.absoluteFill}
-          objectFit="contain"
-        />
-        <FramingGridOverlay />
-        {connectionError ? (
-          <Box className="absolute left-6 right-6 top-6 rounded-xl bg-red-500 px-4 py-3">
-            <Text className="text-center text-white">{connectionError}</Text>
-          </Box>
-        ) : null}
-      </View>
-
-      <View className="min-h-24 justify-center bg-white py-3">
-        {reactionPicker}
-      </View>
-    </SafeAreaView>
-  );
-}
-
-export function RtcViewerLiveKitPage({
-  connection,
-  roomId,
-  rtcRoom,
-  reactionPicker,
-  onCancel,
-  onRoomEnded,
-}: RtcViewerLiveKitPageProps) {
-  const [connectionError, setConnectionError] = useState<string | null>(null);
-
-  return (
-    <LiveKitRoom
-      serverUrl={connection.url}
-      token={connection.token}
-      connect
-      audio={false}
-      video={false}
-      options={{
-        adaptiveStream: { pixelDensity: "screen" },
-      }}
-      onConnected={() => setConnectionError(null)}
-      onDisconnected={() =>
-        setConnectionError("LiveKit 연결이 종료되었습니다.")
-      }
-      onError={(error) => setConnectionError(error.message)}
-    >
-      <ViewerRoomContent
-        connectionError={connectionError}
-        roomId={roomId}
-        rtcRoom={rtcRoom}
-        reactionPicker={reactionPicker}
-        onCancel={onCancel}
-        onRoomEnded={onRoomEnded}
-      />
-    </LiveKitRoom>
   );
 }

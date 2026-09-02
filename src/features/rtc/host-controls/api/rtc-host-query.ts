@@ -89,15 +89,6 @@ export function useCreateHostLiveKitToken() {
       );
       return response.data;
     },
-    onSuccess: (response, { roomId }) => {
-      if (useRtcStore.getState().hostSession?.roomId !== roomId.trim()) return;
-      useRtcStore.getState().setLiveKitConnection({
-        role: "HOST",
-        url: response.url,
-        token: response.token,
-        expiresAt: response.expiresAt,
-      });
-    },
   });
 }
 
