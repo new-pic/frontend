@@ -5,6 +5,7 @@ export { RtcViewerWaiting } from "./ui/rtc-viewer-waiting";
 export { RtcViewerLiveKit } from "./ui/rtc-viewer-livekit";
 export {
   resolveRtcViewerRoomSignal,
+  shouldMountRtcViewerLiveKit,
   type RtcViewerRoomSignal,
 } from "./model/rtc-viewer-entry";
 export {

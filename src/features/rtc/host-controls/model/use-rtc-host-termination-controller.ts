@@ -1,6 +1,7 @@
 import type { RtcEndRoomResponse } from "@entities/rtc-room";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { RtcHostFinalizationState } from "./rtc-host-control";
+import { completeRtcHostTermination } from "./rtc-host-termination";
 
 interface UseRtcHostTerminationControllerOptions {
   preparePhotos: () => Promise<void>;
@@ -91,8 +92,27 @@ export function useRtcHostTerminationController({
         return;
       }
 
-      await onCompleted(result);
-      if (isMountedRef.current) onStateChange?.("IDLE");
+      const completion = await completeRtcHostTermination({
+        result,
+        isMounted: () => isMountedRef.current,
+        onCompleted,
+      });
+
+      if (completion.status === "FAILED") {
+        if (isMountedRef.current) {
+          setErrorMessage(
+            completion.error instanceof Error
+              ? completion.error.message
+              : "RTC 공유 종료에 실패했습니다. 종료 처리를 다시 시도해주세요.",
+          );
+          onStateChange?.("FAILED");
+        }
+        return;
+      }
+
+      if (completion.status === "COMPLETED" && isMountedRef.current) {
+        onStateChange?.("IDLE");
+      }
     })().finally(() => {
       terminationPromiseRef.current = null;
     });

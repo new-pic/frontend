@@ -8,6 +8,7 @@ import { useResetMyRtcStoredPhotos } from "@features/rtc/finalize-session";
 import {
   RtcViewerLiveKit,
   RtcViewerWaiting,
+  shouldMountRtcViewerLiveKit,
   useRtcViewerEntry,
   useRtcViewerExitController,
 } from "@features/rtc/join-room";
@@ -144,6 +145,8 @@ export function RtcViewerPage() {
   );
   const [exitRequestId, setExitRequestId] = useState(0);
   const [isExitCompleted, setIsExitCompleted] = useState(false);
+  const [isCancelingBeforeLiveKit, setIsCancelingBeforeLiveKit] =
+    useState(false);
 
   const hasPresentedEndedAlertRef = useRef(false);
   const hasPresentedResultRef = useRef(false);
@@ -230,8 +233,10 @@ export function RtcViewerPage() {
   );
 
   const handleCancelBeforeLiveKit = useCallback(async () => {
+    setIsCancelingBeforeLiveKit(true);
     const result = await requestExit();
     if (!result.ok) {
+      setIsCancelingBeforeLiveKit(false);
       Alert.alert("RTC 방 나가기 실패", result.errorMessage);
     }
   }, [requestExit]);
@@ -390,7 +395,13 @@ export function RtcViewerPage() {
     );
   }
 
-  if (!viewerSession || !viewerEntry.connection) {
+  const shouldMountLiveKit = shouldMountRtcViewerLiveKit({
+    hasSession: Boolean(viewerSession),
+    hasConnection: Boolean(viewerEntry.connection),
+    isCancelingBeforeLiveKit,
+  });
+
+  if (!shouldMountLiveKit || !viewerSession || !viewerEntry.connection) {
     return (
       <RtcViewerWaiting
         hostNickname={viewerEntry.room?.host.nickname}

@@ -10,7 +10,10 @@ import type {
   RtcViewerSession,
 } from "@entities/rtc-session";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { resolveRtcViewerRoomSignal } from "./rtc-viewer-entry";
+import {
+  isRtcViewerEntryCallbackCurrent,
+  resolveRtcViewerRoomSignal,
+} from "./rtc-viewer-entry";
 import { rtcViewerQuery } from "../api";
 
 export type RtcViewerEntryPhase =
@@ -178,6 +181,7 @@ export function useRtcViewerEntry({
     if (!enabled || !roomId) return;
 
     const lifecycleController = new AbortController();
+    const callbackEntryEpoch = entryEpochRef.current;
     let isMounted = true;
     let isTerminal = false;
 
@@ -185,6 +189,16 @@ export function useRtcViewerEntry({
       event: RtcRoomEvent,
       streamController: AbortController,
     ) => {
+      if (
+        !isRtcViewerEntryCallbackCurrent({
+          currentEpoch: entryEpochRef.current,
+          callbackEpoch: callbackEntryEpoch,
+          isMounted,
+        })
+      ) {
+        return;
+      }
+
       if (event.type !== "heartbeat" && event.payload.roomId !== roomId) {
         return;
       }
@@ -242,7 +256,15 @@ export function useRtcViewerEntry({
             roomId,
             signal: streamController.signal,
             onOpen: () => {
-              if (isMounted) setStreamState("OPEN");
+              if (
+                isRtcViewerEntryCallbackCurrent({
+                  currentEpoch: entryEpochRef.current,
+                  callbackEpoch: callbackEntryEpoch,
+                  isMounted,
+                })
+              ) {
+                setStreamState("OPEN");
+              }
             },
             onEvent: (event) => handleEvent(event, streamController),
           });

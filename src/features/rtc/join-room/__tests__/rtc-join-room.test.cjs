@@ -1,7 +1,11 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
-const { resolveRtcViewerRoomSignal } = require("../model/rtc-viewer-entry.ts");
+const {
+  isRtcViewerEntryCallbackCurrent,
+  resolveRtcViewerRoomSignal,
+  shouldMountRtcViewerLiveKit,
+} = require("../model/rtc-viewer-entry.ts");
 
 test("RTC snapshot 상태가 LIVE일 때만 참여자 연결 신호를 반환한다", () => {
   assert.equal(
@@ -35,6 +39,55 @@ test("ended 이벤트는 LIVE 이전에도 종료 신호로 처리한다", () =>
       },
     }),
     "ENDED",
+  );
+});
+
+test("정리된 이전 Viewer entry의 늦은 LIVE와 ENDED callback을 무시한다", () => {
+  for (const signal of ["LIVE", "ENDED"]) {
+    assert.equal(
+      isRtcViewerEntryCallbackCurrent({
+        currentEpoch: 2,
+        callbackEpoch: 1,
+        isMounted: true,
+      }),
+      false,
+      `${signal} callback이 이전 entry에서 전달됨`,
+    );
+  }
+  assert.equal(
+    isRtcViewerEntryCallbackCurrent({
+      currentEpoch: 1,
+      callbackEpoch: 1,
+      isMounted: false,
+    }),
+    false,
+  );
+  assert.equal(
+    isRtcViewerEntryCallbackCurrent({
+      currentEpoch: 1,
+      callbackEpoch: 1,
+      isMounted: true,
+    }),
+    true,
+  );
+});
+
+test("LiveKit 진입 전 취소 중에는 늦게 도착한 connection을 mount하지 않는다", () => {
+  assert.equal(
+    shouldMountRtcViewerLiveKit({
+      hasSession: true,
+      hasConnection: true,
+      isCancelingBeforeLiveKit: true,
+    }),
+    false,
+  );
+  assert.equal(
+    shouldMountRtcViewerLiveKit({
+      hasSession: true,
+      hasConnection: true,
+      isCancelingBeforeLiveKit: false,
+    }),
+    true,
   );
 });
 

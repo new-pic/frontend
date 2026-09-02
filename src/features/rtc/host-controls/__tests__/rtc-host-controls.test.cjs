@@ -26,6 +26,9 @@ const {
   resolveRtcCameraMenuMode,
 } = require("../model/rtc-host-control.ts");
 const {
+  completeRtcHostTermination,
+} = require("../model/rtc-host-termination.ts");
+const {
   mergeRtcRoomEvent,
 } = require("../../../../entities/rtc-room/api/rtc-room-event-state.ts");
 const {
@@ -197,6 +200,43 @@ test("Host 종료 controller는 사진 준비부터 연결 정리까지 순서�
   assert.ok(endIndex > stopIndex);
   assert.ok(deliverIndex > endIndex);
   assert.ok(disconnectIndex > deliverIndex);
+});
+
+test("Host 종료 완료 callback 실패를 lifecycle 실패로 반환한다", async () => {
+  const expectedError = new Error("결과 화면 전환 실패");
+  const result = await completeRtcHostTermination({
+    result: {
+      roomId: "room-1",
+      status: "ENDED",
+      endedAt: "2026-09-02T12:00:00.000Z",
+      savedImages: [],
+    },
+    isMounted: () => true,
+    onCompleted: async () => {
+      throw expectedError;
+    },
+  });
+
+  assert.deepEqual(result, { status: "FAILED", error: expectedError });
+});
+
+test("Host 종료 cleanup 중 unmount되면 완료 callback을 실행하지 않는다", async () => {
+  let completed = false;
+  const result = await completeRtcHostTermination({
+    result: {
+      roomId: "room-1",
+      status: "ENDED",
+      endedAt: "2026-09-02T12:00:00.000Z",
+      savedImages: [],
+    },
+    isMounted: () => false,
+    onCompleted: () => {
+      completed = true;
+    },
+  });
+
+  assert.deepEqual(result, { status: "SKIPPED" });
+  assert.equal(completed, false);
 });
 
 test("RTC SSE 재연결 지연은 지수 증가 후 15초로 제한한다", () => {

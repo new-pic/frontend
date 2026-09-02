@@ -113,7 +113,12 @@ function ViewerRoomContent({
               } finally {
                 await onRoomEnded(deliveredResult);
               }
-            })();
+            })().catch((error: unknown) => {
+              console.error("[RTC Viewer] room-end cleanup failed", {
+                error,
+                roomId,
+              });
+            });
           }, 0);
         }
 
