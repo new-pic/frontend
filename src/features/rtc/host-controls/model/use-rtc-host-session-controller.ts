@@ -88,10 +88,7 @@ export function useRtcHostSessionController({
         return {
           ok: false,
           title: "RTC 방 생성 실패",
-          message:
-            error instanceof Error
-              ? error.message
-              : "잠시 후 다시 시도해주세요.",
+          message: getApiErrorMessage(error, "잠시 후 다시 시도해주세요."),
         };
       }
     }, [createRoomMutation]);
@@ -108,10 +105,7 @@ export function useRtcHostSessionController({
         return {
           ok: false,
           title: "RTC 방 종료 실패",
-          message:
-            error instanceof Error
-              ? error.message
-              : "잠시 후 다시 시도해주세요.",
+          message: getApiErrorMessage(error, "잠시 후 다시 시도해주세요."),
         };
       }
     }, [clearHostSession, endRoomMutation, hostSession]);
@@ -152,10 +146,7 @@ export function useRtcHostSessionController({
         return {
           ok: false,
           title: "실시간 공유 시작 실패",
-          message:
-            error instanceof Error
-              ? error.message
-              : "잠시 후 다시 시도해주세요.",
+          message: getApiErrorMessage(error, "잠시 후 다시 시도해주세요."),
         };
       }
     }, [broadcastConnection, createHostTokenMutation, hostSession]);
@@ -222,6 +213,11 @@ export function useRtcHostSessionController({
     setEndRequestId((current) => current + 1);
   }, [broadcastConnection, finalizationState]);
 
+  const handleFinalizationStateChange = useCallback(
+    (state: RtcHostFinalizationState) => setFinalizationState(state),
+    [],
+  );
+
   return {
     hostSession,
     broadcastConnection,
@@ -246,6 +242,6 @@ export function useRtcHostSessionController({
     prepareEndPhotos,
     endRoom,
     completeTermination,
-    setFinalizationState,
+    handleFinalizationStateChange,
   };
 }

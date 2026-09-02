@@ -88,7 +88,7 @@ export const CameraCaptureWorkspace = forwardRef<
   const [isGuideReferenceVisible, setIsGuideReferenceVisible] = useState(false);
   const [cameraGeometry, setCameraGeometry] =
     useState<CameraRuntimeGeometry | null>(null);
-  const [isVisionCameraActive, setIsVisionCameraActive] = useState(true);
+  const [isVisionCameraActive, setIsVisionCameraActive] = useState(isFocused);
   const [isVisionCameraRunning, setIsVisionCameraRunning] = useState(false);
   const [capturedPhotos, setCapturedPhotos] = useState<SessionPhoto[]>([]);
   const [isCapturedPhotosOpen, setIsCapturedPhotosOpen] = useState(false);
@@ -152,7 +152,7 @@ export const CameraCaptureWorkspace = forwardRef<
     prepareEndPhotos,
     endRoom,
     completeTermination,
-    setFinalizationState,
+    handleFinalizationStateChange,
   } = hostController;
 
   const cameraGuide = useCameraGuideController({
@@ -376,10 +376,9 @@ export const CameraCaptureWorkspace = forwardRef<
             previewOverlay={
               <>
                 <FramingGridOverlay />
-                {cameraGeometry &&
-                cameraGuide.presentedGuide?.outline &&
-                cameraGeometry.aspectRatio ===
-                  cameraGuide.presentedGuide.cameraAspectRatio ? (
+                {isGuideReferenceAvailable &&
+                cameraGeometry &&
+                cameraGuide.presentedGuide?.outline ? (
                   <>
                     {isGuideReferenceVisible ? (
                       <CameraGuideReferenceOverlay
@@ -457,7 +456,7 @@ export const CameraCaptureWorkspace = forwardRef<
           onEndRoom={endRoom}
           onStopped={completeTermination}
           endRequestId={endRequestId}
-          onFinalizationStateChange={setFinalizationState}
+          onFinalizationStateChange={handleFinalizationStateChange}
         />
       ) : null}
 

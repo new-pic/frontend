@@ -24,6 +24,7 @@ export function RtcViewerResult({
     data,
     fetchNextPage,
     hasNextPage,
+    isError,
     isFetchingNextPage,
     isPending,
     refetch,
@@ -54,14 +55,20 @@ export function RtcViewerResult({
         <Center className="flex-1 bg-white px-6">
           <VStack className="w-full gap-4">
             <Text size="lg" bold className="text-center">
-              촬영 결과를 불러오지 못했습니다.
+              {isError
+                ? "촬영 결과를 불러오지 못했습니다."
+                : "저장된 촬영 사진이 없습니다."}
             </Text>
-            <Text className="text-center text-label-muted">
-              잠시 후 다시 시도해주세요.
-            </Text>
-            <Button variant="outline" onPress={() => void refetch()}>
-              <ButtonText>다시 시도</ButtonText>
-            </Button>
+            {isError ? (
+              <>
+                <Text className="text-center text-label-muted">
+                  잠시 후 다시 시도해주세요.
+                </Text>
+                <Button variant="outline" onPress={() => void refetch()}>
+                  <ButtonText>다시 시도</ButtonText>
+                </Button>
+              </>
+            ) : null}
             <Button variant="ghost" onPress={onDone}>
               <ButtonText>나가기</ButtonText>
             </Button>

@@ -150,11 +150,11 @@ test("Viewer 화면 이탈도 연결 상태에 맞는 동일한 나가기 요청
   assert.match(pageSource, /usePreventRemove\(/);
   assert.match(
     pageSource,
-    /usePreventRemove\(shouldPreventExit, requestPageExit\)/,
+    /usePreventRemove\(\s*shouldPreventExit,\s*requestPageExit,?\s*\)/,
   );
   assert.match(
     controllerSource,
-    /setExitRequestId\(\(current\) => current \+ 1\)/,
+    /setExitRequestId\(\s*\(current\)\s*=>\s*current\s*\+\s*1,?\s*\)/,
   );
-  assert.match(controllerSource, /void cancelBeforeLiveKit\(\)/);
+  assert.match(controllerSource, /void\s+cancelBeforeLiveKit\(\s*\)/);
 });

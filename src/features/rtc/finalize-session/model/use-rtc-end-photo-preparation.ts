@@ -12,9 +12,11 @@ export function useRtcEndPhotoPreparation() {
   const selectionRequestRef = useRef<PhotoSelectionRequest | null>(null);
   const selectedPhotosRef = useRef<RtcEndSelectablePhoto[] | null>(null);
   const preparedImagesRef = useRef<File[] | null>(null);
+  const preparationGenerationRef = useRef(0);
   const [isSelectionOpen, setIsSelectionOpen] = useState(false);
   useEffect(() => {
     return () => {
+      preparationGenerationRef.current += 1;
       selectionRequestRef.current?.reject(
         new Error("화면을 벗어나 사진 선택이 취소되었습니다."),
       );
@@ -25,8 +27,11 @@ export function useRtcEndPhotoPreparation() {
   const preparePhotos = useCallback(async () => {
     if (preparedImagesRef.current) return;
 
-    if (!selectedPhotosRef.current) {
-      selectedPhotosRef.current = await new Promise<RtcEndSelectablePhoto[]>(
+    const generation = preparationGenerationRef.current;
+    let selectedPhotos = selectedPhotosRef.current;
+
+    if (!selectedPhotos) {
+      selectedPhotos = await new Promise<RtcEndSelectablePhoto[]>(
         (resolve, reject) => {
           selectionRequestRef.current = { resolve, reject };
           setIsSelectionOpen(true);
@@ -34,9 +39,19 @@ export function useRtcEndPhotoPreparation() {
       );
     }
 
-    preparedImagesRef.current = await prepareRtcEndImages(
-      selectedPhotosRef.current,
-    );
+    try {
+      const preparedImages = await prepareRtcEndImages(selectedPhotos);
+      if (generation !== preparationGenerationRef.current) {
+        throw new Error("RTC 사진 준비가 취소되었습니다.");
+      }
+      preparedImagesRef.current = preparedImages;
+    } catch (error) {
+      if (generation === preparationGenerationRef.current) {
+        selectedPhotosRef.current = null;
+        preparedImagesRef.current = null;
+      }
+      throw error;
+    }
   }, []);
 
   const confirmSelection = useCallback(
@@ -54,6 +69,7 @@ export function useRtcEndPhotoPreparation() {
   );
 
   const reset = useCallback(() => {
+    preparationGenerationRef.current += 1;
     selectionRequestRef.current?.reject(
       new Error("RTC 사진 선택이 취소되었습니다."),
     );
