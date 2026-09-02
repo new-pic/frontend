@@ -80,9 +80,19 @@ export async function monitorFeedAiJob({
 }: MonitorFeedAiJobOptions): Promise<FeedAiJobMonitorResult> {
   const streamController = new AbortController();
   const { signal } = streamController;
-  let terminalResult: Exclude<FeedAiJobMonitorResult, "aborted"> | null = null;
+
+  let resolveTerminal!: (
+    result: Exclude<FeedAiJobMonitorResult, "aborted">,
+  ) => void;
+
+  const terminalResultPromise = new Promise<
+    Exclude<FeedAiJobMonitorResult, "aborted">
+  >((resolve) => {
+    resolveTerminal = resolve;
+  });
 
   const abortStream = () => streamController.abort(lifecycleSignal.reason);
+
   if (lifecycleSignal.aborted) abortStream();
   else lifecycleSignal.addEventListener("abort", abortStream, { once: true });
 
@@ -94,12 +104,15 @@ export async function monitorFeedAiJob({
 
   const handleEvent = (event: FeedAiJobEvent) => {
     const result = getEventResult(event);
+
     if (result) {
-      terminalResult = result;
-      streamController.abort();
+      resolveTerminal(result);
       return;
     }
-    if (event.type === "progress") onProgressEvent(event.data);
+
+    if (event.type === "progress") {
+      onProgressEvent(event.data);
+    }
   };
 
   const pollUntilTerminal = async (): Promise<FeedAiJobMonitorResult> => {
@@ -138,18 +151,26 @@ export async function monitorFeedAiJob({
 
     try {
       onMonitoringStateChange("connecting");
-      await subscribeFeedAiJobEvents({
-        jobId,
-        signal,
-        onOpen: () => onMonitoringStateChange("streaming"),
-        onEvent: handleEvent,
-      });
 
-      if (terminalResult) return terminalResult;
+      const streamResult = await Promise.race([
+        terminalResultPromise,
+        subscribeFeedAiJobEvents({
+          jobId,
+          signal,
+          onOpen: () => onMonitoringStateChange("streaming"),
+          onEvent: handleEvent,
+        }).then(() => null),
+      ]);
+
+      if (streamResult) {
+        streamController.abort();
+        return streamResult;
+      }
+
       throw new Error("Feed AI job stream ended before a terminal event");
     } catch (error) {
-      if (terminalResult) return terminalResult;
       if (isAbortError(error, signal)) return "aborted";
+
       onMonitoringStateChange("disconnected");
       return pollUntilTerminal();
     }
