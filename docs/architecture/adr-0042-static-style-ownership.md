@@ -67,6 +67,7 @@ NativeWind인 현재 구조와 맞지 않아 선택하지 않았다.
 기존 `StyleSheet.create` 선언을 제거하고 정적 레이아웃, 색상, 간격,
 타이포그래피를 NativeWind로 이동했다. 메뉴 위치, safe-area 위치, 진행률,
 RTC 반응 애니메이션은 기존과 같이 런타임 `style`로 계산한다. Reanimated
-컴포넌트의 정적 스타일은 로컬 `styled()` adapter를 통해 `className`으로
-전달한다. Camera, VideoTrack, SVG의 absolute fill과 실제 디바이스
-hairline은 외부 및 플랫폼 경계로 유지한다.
+컴포넌트는 CSS 변환 경계에 포함된 React Native `View`를
+`Animated.createAnimatedComponent()`로 감싸 정적 `className`과 animated
+`style`을 함께 전달한다. Camera, VideoTrack, SVG의 absolute fill과 실제
+디바이스 hairline은 외부 및 플랫폼 경계로 유지한다.

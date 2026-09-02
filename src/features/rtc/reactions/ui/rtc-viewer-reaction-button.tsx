@@ -1,5 +1,4 @@
 import * as Haptics from "expo-haptics";
-import { styled } from "nativewind";
 import { useCallback } from "react";
 import { AccessibilityInfo, Pressable, Text, View } from "react-native";
 import Animated, {
@@ -15,7 +14,7 @@ import Animated, {
 import { RTC_REACTION_EMOJI_CONFIG } from "../config/rtc-reaction-config";
 import type { RtcReactionEmoji } from "../model/types";
 
-const StyledAnimatedView = styled(Animated.View);
+const StyledAnimatedView = Animated.createAnimatedComponent(View);
 
 interface RtcViewerReactionButtonProps {
   emoji: RtcReactionEmoji;

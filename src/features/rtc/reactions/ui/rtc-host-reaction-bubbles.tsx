@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
-import { styled } from "nativewind";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -21,7 +20,7 @@ import { rtcReactionQuery } from "../api";
 
 const BUBBLE_SIZE = 52;
 const BUBBLE_LANE_GAP = 5;
-const StyledAnimatedView = styled(Animated.View);
+const StyledAnimatedView = Animated.createAnimatedComponent(View);
 
 interface RtcHostReactionBubblesProps {
   active: boolean;
