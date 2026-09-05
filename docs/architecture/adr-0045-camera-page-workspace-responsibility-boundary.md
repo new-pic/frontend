@@ -29,6 +29,7 @@ CameraPage
   ↓ props + route guard command
 CameraCaptureWorkspace
   ├─ capture-photo / guide-feed
+  ├─ captured photos → save-images-to-library
   ├─ host-controls
   └─ finalize-session
        ↓
@@ -117,6 +118,8 @@ Camera로 돌아올 때 유지되며, VisionCamera와 Host connection은 Feature
 - Viewer RPC 우선 결과, SSE 1초 fallback과 pre-LiveKit 종료 정책을 한
   controller에서 유지한다.
 - 다중 사진 저장이 권한, single-flight와 부분 성공을 명시적으로 표현한다.
+- RTC 방 생성 여부와 관계없이 촬영 사진 layer가 같은 다중 사진 저장 Feature를
+  사용한다.
 - Widget API나 전역 Camera/RTC 상태 머신을 추가하지 않는다.
 
 포기하거나 제한된 것:
@@ -144,6 +147,9 @@ Camera로 돌아올 때 유지되며, VisionCamera와 Host connection은 Feature
   `useRtcHostTerminationController`가 계속 직렬화한다.
 - Viewer SSE/RPC 결과 경합과 session cleanup은
   `useRtcViewerSessionController`가 담당한다.
+- 일반 촬영 사진은 Capture Workspace의 사진 layer에서 선택할 수 있고,
+  `save-images-to-library` Feature가 로컬 파일 저장과 권한·부분 실패 정책을
+  처리한다.
 - TypeScript, Host/Viewer RTC 회귀 테스트와 Steiger 검사는 통과했다.
 - 실제 기기에서 Camera capture, Host/Viewer 연결, 종료 결과와 Media Library
   권한 dialog는 이번 작업에서 실행하지 않았으며 별도 수동 검증이 필요하다.
