@@ -118,12 +118,17 @@ test("transport는 join 성공 전 전송을 막고 disconnect에서 상태를 �
   assert.match(source, /joined = false;\s*clearJoinRetry\(\);/);
   assert.match(source, /RTC_REACTION_SOCKET_CONFIG\.hostJoinEvent/);
   assert.match(source, /RTC_REACTION_SOCKET_CONFIG\.viewerJoinEvent/);
+  assert.match(source, /auth: \(callback\) =>/);
+  assert.match(source, /resolveAccessToken\(\)/);
 });
 
 test("viewer reaction UI는 session participantId를 join 계층에 전달한다", () => {
   const path = require("node:path");
-  const pageSource = fs.readFileSync(
-    path.resolve(__dirname, "../../../../pages/camera/ui/rtc-viewer-page.tsx"),
+  const workspaceSource = fs.readFileSync(
+    path.resolve(
+      __dirname,
+      "../../../../widgets/rtc/session-workspace/ui/rtc-viewer-workspace.tsx",
+    ),
     "utf8",
   );
   const pickerSource = fs.readFileSync(
@@ -131,7 +136,10 @@ test("viewer reaction UI는 session participantId를 join 계층에 전달한다
     "utf8",
   );
 
-  assert.match(pageSource, /participantId=\{viewerSession\.participantId\}/);
+  assert.match(
+    workspaceSource,
+    /participantId=\{viewerSession\.participantId\}/,
+  );
   assert.match(pickerSource, /participantId,/);
   assert.match(pickerSource, /role: "VIEWER"/);
 });
