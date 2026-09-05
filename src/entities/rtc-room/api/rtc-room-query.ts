@@ -1,6 +1,5 @@
-import { createSseParser } from "@shared/api";
+import { createSseParser, executeAuthenticatedFetch } from "@shared/api";
 import { env } from "@shared/config";
-import { useAuthStore } from "@shared/model";
 import { fetch } from "expo/fetch";
 import { verifyRtcId } from "../lib";
 import { type RtcRoomEvent } from "../model";
@@ -14,7 +13,8 @@ interface SubscribeRtcRoomEventsOptions {
 }
 
 /**
- * RTC 역할과 관계없이 앱 access token으로 방 상태를 구독합니다.
+ * RTC 방 상태·참여자 현황 실시간 구독
+ * @description RTC 역할과 관계없이 앱 access token으로 방 상태를 구독합니다.
  */
 export async function subscribeRtcRoomEvents({
   roomId,
@@ -27,18 +27,17 @@ export async function subscribeRtcRoomEvents({
   }
 
   const id = verifyRtcId(roomId, "RTC 방 ID");
-  const accessToken = useAuthStore.getState().accessToken?.trim() ?? "";
-  if (!accessToken) {
-    throw new Error("로그인이 필요합니다.");
-  }
-
-  const response = await fetch(`${env.API_URL}/rtc/rooms/${id}/events`, {
-    method: "GET",
-    headers: {
-      Accept: "text/event-stream",
-      Authorization: `Bearer ${accessToken}`,
-    },
+  const response = await executeAuthenticatedFetch({
     signal,
+    request: (accessToken) =>
+      fetch(`${env.API_URL}/rtc/rooms/${id}/events`, {
+        method: "GET",
+        headers: {
+          Accept: "text/event-stream",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        signal,
+      }),
   });
 
   if (!response.ok) {

@@ -256,6 +256,7 @@ export function useRtcViewerEntry({
             roomId,
             signal: streamController.signal,
             onOpen: () => {
+              retryAttempt = 0;
               if (
                 isRtcViewerEntryCallbackCurrent({
                   currentEpoch: entryEpochRef.current,
