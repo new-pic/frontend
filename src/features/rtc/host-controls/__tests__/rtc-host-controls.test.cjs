@@ -209,6 +209,15 @@ test("Host 종료 controller는 사진 준비부터 연결 정리까지 순서�
   assert.ok(disconnectIndex > deliverIndex);
 });
 
+test("서버 종료 이후 결과 전달과 로컬 cleanup 오류는 종료 결과를 무효화하지 않는다", () => {
+  const source = readSource("../model/use-rtc-host-termination-controller.ts");
+
+  assert.match(source, /onNonFatalError\?\.\("RESULT_DELIVERY", error\)/);
+  assert.match(source, /onNonFatalError\?\.\("PUBLISHER_CLEANUP", error\)/);
+  assert.match(source, /onNonFatalError\?\.\("ROOM_DISCONNECT", error\)/);
+  assert.match(source, /if \(result\) \{/);
+});
+
 test("Host 종료 완료 callback 실패를 lifecycle 실패로 반환한다", async () => {
   const expectedError = new Error("결과 화면 전환 실패");
   const result = await completeRtcHostTermination({

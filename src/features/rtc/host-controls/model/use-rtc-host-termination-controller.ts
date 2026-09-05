@@ -11,12 +11,17 @@ interface UseRtcHostTerminationControllerOptions {
   disconnectRoom: () => Promise<void>;
   onCompleted: (result: RtcEndRoomResponse) => void | Promise<void>;
   onStateChange?: (state: RtcHostFinalizationState) => void;
+  onNonFatalError?: (
+    stage: "RESULT_DELIVERY" | "PUBLISHER_CLEANUP" | "ROOM_DISCONNECT",
+    error: unknown,
+  ) => void;
 }
 
 /**
  * Host 종료의 단일 lifecycle을 소유합니다.
  * 사진 확정 → 송출 중단 → 서버 종료 → 결과 전달 → 연결 정리 순서를
- * single-flight로 실행하며, 서버가 이미 종료된 재시도에서는 결과를 재사용합니다.
+ * single-flight로 실행합니다. 서버 종료가 성공한 뒤의 RPC 전달과 로컬 연결
+ * 정리는 best-effort로 수행하며, 서버가 확정한 결과를 종료의 기준으로 삼습니다.
  */
 export function useRtcHostTerminationController({
   preparePhotos,
@@ -26,6 +31,7 @@ export function useRtcHostTerminationController({
   disconnectRoom,
   onCompleted,
   onStateChange,
+  onNonFatalError,
 }: UseRtcHostTerminationControllerOptions) {
   const isMountedRef = useRef(true);
   const terminationPromiseRef = useRef<Promise<void> | null>(null);
@@ -64,19 +70,31 @@ export function useRtcHostTerminationController({
         if (!isMountedRef.current) return;
 
         onStateChange?.("DELIVERING_RESULT");
-        await deliverResult(result);
+        try {
+          await deliverResult(result);
+        } catch (error) {
+          onNonFatalError?.("RESULT_DELIVERY", error);
+        }
       } catch (error) {
         finalizationError = error;
       } finally {
         try {
           await stopPublishing();
         } catch (error) {
-          finalizationError ??= error;
+          if (result) {
+            onNonFatalError?.("PUBLISHER_CLEANUP", error);
+          } else {
+            finalizationError ??= error;
+          }
         }
         try {
           await disconnectRoom();
         } catch (error) {
-          finalizationError ??= error;
+          if (result) {
+            onNonFatalError?.("ROOM_DISCONNECT", error);
+          } else {
+            finalizationError ??= error;
+          }
         }
       }
 
@@ -124,6 +142,7 @@ export function useRtcHostTerminationController({
     disconnectRoom,
     endRoom,
     onCompleted,
+    onNonFatalError,
     onStateChange,
     preparePhotos,
     stopPublishing,
