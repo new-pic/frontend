@@ -47,7 +47,7 @@ export interface RtcReactionTransport {
 }
 
 interface CreateRtcReactionTransportOptions {
-  accessToken: string;
+  resolveAccessToken: () => Promise<string>;
   role: RtcReactionRole;
   roomId: string;
   participantId?: string;
@@ -56,7 +56,7 @@ interface CreateRtcReactionTransportOptions {
 }
 
 export const createSocketIoReactionTransport = ({
-  accessToken,
+  resolveAccessToken,
   role,
   roomId,
   participantId,
@@ -77,11 +77,32 @@ export const createSocketIoReactionTransport = ({
   }
 
   const serverUrl = getRtcReactionServerUrl(env.API_URL);
+  let joined = false;
+  let disposed = false;
+  let connectionEpoch = 0;
+  let joinRetryAttempt = 0;
+  let joinRetryTimer: ReturnType<typeof setTimeout> | null = null;
   const socket: RtcReactionSocket = io(
     `${serverUrl}${RTC_REACTION_SOCKET_CONFIG.namespace}`,
     {
       path: RTC_REACTION_SOCKET_CONFIG.path,
-      auth: { token: accessToken },
+      auth: (callback) => {
+        void resolveAccessToken()
+          .then((accessToken) => {
+            if (!disposed) callback({ token: accessToken });
+          })
+          .catch((error: unknown) => {
+            if (disposed) return;
+
+            onStatusChange(
+              "ERROR",
+              error instanceof Error
+                ? error.message
+                : "반응 채널 인증 정보를 갱신하지 못했습니다.",
+            );
+            callback({ token: "" });
+          });
+      },
       autoConnect: false,
       forceNew: true,
       reconnection: true,
@@ -90,12 +111,6 @@ export const createSocketIoReactionTransport = ({
       tryAllTransports: true,
     },
   );
-
-  let joined = false;
-  let disposed = false;
-  let connectionEpoch = 0;
-  let joinRetryAttempt = 0;
-  let joinRetryTimer: ReturnType<typeof setTimeout> | null = null;
 
   const clearJoinRetry = () => {
     if (joinRetryTimer === null) return;

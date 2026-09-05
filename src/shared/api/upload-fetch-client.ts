@@ -3,9 +3,8 @@
 
 import { env } from "@shared/config";
 import { fetch } from "expo/fetch";
-import { useAuthStore } from "../model/auth-store";
 import { createApiRequestError } from "./api-error";
-import { refreshAuthSession } from "./refresh-auth-session";
+import { executeAuthenticatedFetch } from "./authenticated-fetch";
 
 type UPLOAD_METHODS = "POST" | "PUT" | "PATCH";
 
@@ -17,23 +16,17 @@ const coreUploadFetchClient = async (
 ): Promise<{ data: any; status: number }> => {
   if (!env.API_URL) throw new Error("API_URL is not configured");
 
-  const request = (accessToken: string | null) =>
+  const request = (accessToken: string) =>
     fetch(`${env.API_URL}${url}`, {
       method,
       headers: {
-        ...(accessToken
-          ? { Authorization: `Bearer ${accessToken}` }
-          : undefined),
+        Authorization: `Bearer ${accessToken}`,
         ...headers,
       },
       body: formData,
     });
 
-  let res = await request(useAuthStore.getState().accessToken);
-  if (res.status === 401) {
-    const newToken = await refreshAuthSession();
-    res = await request(newToken.accessToken);
-  }
+  const res = await executeAuthenticatedFetch({ request });
 
   const responseData = await res.json().catch(() => null);
 

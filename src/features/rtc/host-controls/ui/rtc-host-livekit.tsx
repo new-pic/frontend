@@ -194,6 +194,13 @@ function HostRoomContent({
     disconnectRoom,
     onCompleted: onStopped,
     onStateChange: onFinalizationStateChange,
+    onNonFatalError: (stage, error) => {
+      console.error("[RTC Host] post-end cleanup failed", {
+        stage,
+        error,
+        roomId: room.name,
+      });
+    },
   });
 
   useEffect(() => {

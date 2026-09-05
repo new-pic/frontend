@@ -50,6 +50,17 @@ join timeout 또는 거절 시 joined 상태를 false로 유지하고 1초부터
 15초까지 지수 backoff로 join handshake를 재시도한다. 이 기간에는 VIEWER
 전송을 차단한다.
 
+Socket handshake의 `auth`는 고정 token 객체가 아니라 연결 시점마다 현재
+access token을 반환하는 비동기 resolver를 사용한다. JWT가 만료되었거나 30초
+안에 만료될 예정이면 공용 single-flight refresh를 먼저 수행하고, Socket.IO의
+최초 연결과 자동 reconnect 모두 갱신된 token으로 handshake한다. refresh가
+실패하면 공용 인증 lifecycle이 session을 종료한다.
+
+서버의 역할별 join 실패 계약에는 인증 만료를 식별할 안정적인 error code가
+없다. 따라서 일반 join timeout이나 disconnect를 인증 오류로 추정해 refresh하지
+않고 기존 backoff 재시도 정책을 유지한다. 이는 네트워크 장애를 잘못된 logout으로
+확대하지 않기 위한 경계다.
+
 ## Trade-off
 
 영상과 반응에 각각 연결이 필요해 연결 상태가 하나 더 생긴다. 대신 반응
@@ -67,6 +78,8 @@ event ID로 취급하지 않는다.
 - join acknowledgement 성공 이후에만 CONNECTED와 VIEWER 전송을 허용한다.
 - disconnect cleanup과 Socket.IO reconnect에서 joined 상태를 초기화하고
   역할별 join을 다시 수행한다.
+- 최초 연결과 reconnect는 매번 현재 access token을 resolve하며, 만료 임박
+  token은 공용 single-flight refresh 후 사용한다.
 - DEV 로그는 socket connect, join, send, receive, bubble queue 단계를 토큰
   노출 없이 추적한다.
 - 실제 기기에서 다중 VIEWER 전송, HOST burst queue, 재연결, 방 전환 후

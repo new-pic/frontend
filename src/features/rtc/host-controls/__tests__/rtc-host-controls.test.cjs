@@ -27,6 +27,7 @@ const {
 } = require("../model/rtc-host-control.ts");
 const {
   completeRtcHostTermination,
+  executeRtcHostTermination,
 } = require("../model/rtc-host-termination.ts");
 const {
   mergeRtcRoomEvent,
@@ -191,23 +192,106 @@ test("RTC 종료 실패는 인라인 문구 대신 재시도 Alert로 표시한�
   assert.doesNotMatch(source, /<ButtonText>종료 처리 다시 시도<\/ButtonText>/);
 });
 
-test("Host 종료 controller는 사진 준비부터 연결 정리까지 순서대로 실행한다", () => {
-  const source = readSource("../model/use-rtc-host-termination-controller.ts");
-  const prepareIndex = source.indexOf("await preparePhotos()");
-  const stopIndex = source.indexOf("await stopPublishing()", prepareIndex);
-  const endIndex = source.indexOf("result = await endRoom()", stopIndex);
-  const deliverIndex = source.indexOf("await deliverResult(result)", endIndex);
-  const disconnectIndex = source.indexOf(
-    "await disconnectRoom()",
-    deliverIndex,
-  );
+test("Host 종료는 사진 준비부터 완료 callback까지 순서대로 실행한다", async () => {
+  const calls = [];
+  const result = {
+    roomId: "room-1",
+    status: "ENDED",
+    endedAt: "2026-09-05T12:00:00.000Z",
+    savedImages: [],
+  };
 
-  assert.ok(prepareIndex >= 0);
-  assert.ok(stopIndex > prepareIndex);
-  assert.ok(endIndex > stopIndex);
-  assert.ok(deliverIndex > endIndex);
-  assert.ok(disconnectIndex > deliverIndex);
+  const completion = await executeRtcHostTermination({
+    existingResult: null,
+    preparePhotos: async () => calls.push("prepare"),
+    stopPublishing: async () => calls.push("stop"),
+    endRoom: async () => {
+      calls.push("end");
+      return result;
+    },
+    deliverResult: async () => calls.push("deliver"),
+    disconnectRoom: async () => calls.push("disconnect"),
+    isMounted: () => true,
+    onCompleted: () => calls.push("complete"),
+    onRoomEnded: () => calls.push("cache-result"),
+    onStateChange: (state) => calls.push(state),
+  });
+
+  assert.deepEqual(completion, { status: "COMPLETED" });
+  assert.deepEqual(calls, [
+    "PREPARING_PHOTOS",
+    "prepare",
+    "ENDING_ROOM",
+    "stop",
+    "end",
+    "cache-result",
+    "DELIVERING_RESULT",
+    "deliver",
+    "stop",
+    "disconnect",
+    "complete",
+  ]);
 });
+
+for (const failureStage of [
+  "RESULT_DELIVERY",
+  "PUBLISHER_CLEANUP",
+  "ROOM_DISCONNECT",
+]) {
+  test(`${failureStage} 실패는 Host 종료 완료를 막지 않는다`, async () => {
+    const calls = [];
+    const diagnostics = [];
+    let stopCallCount = 0;
+    const expectedError = new Error(`${failureStage} failed`);
+    const result = {
+      roomId: "room-1",
+      status: "ENDED",
+      endedAt: "2026-09-05T12:00:00.000Z",
+      savedImages: [],
+    };
+
+    const completion = await executeRtcHostTermination({
+      existingResult: null,
+      preparePhotos: async () => calls.push("prepare"),
+      stopPublishing: async () => {
+        stopCallCount += 1;
+        calls.push(`stop-${stopCallCount}`);
+        if (failureStage === "PUBLISHER_CLEANUP" && stopCallCount === 2) {
+          throw expectedError;
+        }
+      },
+      endRoom: async () => {
+        calls.push("end");
+        return result;
+      },
+      deliverResult: async () => {
+        calls.push("deliver");
+        if (failureStage === "RESULT_DELIVERY") throw expectedError;
+      },
+      disconnectRoom: async () => {
+        calls.push("disconnect");
+        if (failureStage === "ROOM_DISCONNECT") throw expectedError;
+      },
+      isMounted: () => true,
+      onCompleted: () => calls.push("complete"),
+      onRoomEnded: () => calls.push("cache-result"),
+      onNonFatalError: (stage, error) => diagnostics.push([stage, error]),
+    });
+
+    assert.deepEqual(completion, { status: "COMPLETED" });
+    assert.deepEqual(diagnostics, [[failureStage, expectedError]]);
+    assert.deepEqual(calls, [
+      "prepare",
+      "stop-1",
+      "end",
+      "cache-result",
+      "deliver",
+      "stop-2",
+      "disconnect",
+      "complete",
+    ]);
+  });
+}
 
 test("Host 종료 완료 callback 실패를 lifecycle 실패로 반환한다", async () => {
   const expectedError = new Error("결과 화면 전환 실패");

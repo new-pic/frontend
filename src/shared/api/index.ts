@@ -4,6 +4,10 @@ export {
   createApiRequestError,
   getApiErrorMessage,
 } from "./api-error";
+export {
+  executeAuthenticatedFetch,
+  getFreshAccessToken,
+} from "./authenticated-fetch";
 export { privateApiClient } from "./api-private-instance";
 export { setupInterceptors } from "./interceptors";
 export { refreshAuthSession } from "./refresh-auth-session";

@@ -15,8 +15,8 @@ host termination controller (single-flight)
   ↓ 사진 선택·업로드 준비
   ↓ publisher stop
   ↓ 서버 room end
-  ↓ Viewer 결과 RPC
-  ↓ LiveKit disconnect
+  ↓ Viewer 결과 RPC (best-effort)
+  ↓ LiveKit disconnect (best-effort)
   ↓ Host session clear
   ↓ 결과 화면
   ↓ 완료: Camera 유지 또는 이전 화면 이동
@@ -38,6 +38,14 @@ publisher/Room adapter를 주입한다. 종료 버튼과 화면
 이탈은 같은 요청을 사용한다. 화면 이탈에서 시작된 종료도 사진 선택과 결과
 전달을 생략하지 않으며, 결과 화면에서 `완료`를 선택한 뒤 이전 화면으로
 이동한다.
+
+서버 `endRoom` 성공 응답을 Host 종료의 authoritative result로 사용한다. 그 뒤
+Viewer RPC는 결과 화면을 빠르게 전달하기 위한 최적화이며 종료 transaction의
+성공 조건이 아니다. RPC 또는 publisher/Room의 사후 cleanup이 실패해도 이미
+확정된 서버 종료와 사진 저장을 실패 상태로 되돌리지 않고 Host session 정리와
+결과 화면 전환을 계속한다. 반대로 사진 준비, 최초 publisher stop, 서버
+`endRoom` 중 하나가 실패하면 server result가 없으므로 session을 유지하고
+재시도 가능한 실패로 처리한다.
 
 Viewer exit controller는 LiveKit 연결 전후에 관계없이 서버 leave를 먼저
 수행한다. 서버 leave가 실패하면 LiveKit 연결과 Viewer session을 유지해 같은
@@ -108,12 +116,14 @@ use case가 공유하는 runtime session identity이므로 Entity store에 남�
 - Viewer 연결 전후의 나가기가 같은 서버 leave 정책을 사용한다.
 - 중복 종료 입력은 controller의 진행 중 Promise를 재사용한다.
 - 서버 종료 실패 시 runtime session을 유지해 재시도할 수 있다.
+- 서버 종료 성공 이후 RPC와 로컬 cleanup 실패는 서버 결과를 무효화하지 않는다.
 - lifecycle UI가 역할 feature public API를 통해 Workspace에 제공된다.
 
 포기하거나 제한된 것:
 
 - 앱 프로세스가 종료되면 LiveKit 연결 정보와 RTC session은 복원되지 않는다.
-- Host 서버 종료 후 Viewer RPC가 실패하면 재시도 시 새 Room 연결이 필요하다.
+- Viewer RPC 실패 시 Viewer는 종료 SSE 뒤의 photo query fallback으로 결과를
+  복구하므로 Host 종료를 다시 요청하지 않는다.
 - LiveKit disconnect 자체가 실패해도 서버 종료가 확정된 뒤에는 session 종료를
   되돌리지 않는다.
 - 화면 조합 책임은 ADR-0045의 Camera/RTC Workspace가 담당한다.
@@ -128,6 +138,8 @@ use case가 공유하는 runtime session identity이므로 Entity store에 남�
   epoch가 바뀐 뒤 완료된 응답은 무시한다.
 - Host 종료 controller가 사진 선택, publisher stop, 서버 end, 결과 RPC와 Room
   disconnect를 직렬화한다.
+- Host의 authoritative 종료 경계는 서버 end 성공이며, 이후 RPC와 로컬
+  cleanup은 진단 가능한 best-effort 단계다.
 - Host 뒤로가기는 종료 완료와 결과 확인 전에는 route를 제거하지 않는다.
 - Viewer exit controller는 서버 leave 성공 뒤에만 LiveKit과 session을 정리한다.
 - 서버 leave/end 실패 시 현재 화면과 session identity를 유지한다.

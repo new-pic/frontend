@@ -19,6 +19,7 @@ interface RtcViewerWorkspaceProps {
   viewerResult: RtcViewerResultState | null;
   exitRequestId: number;
   isCancelingBeforeLiveKit: boolean;
+  isResultPending: boolean;
   isExiting: boolean;
   exitErrorMessage: string | null;
   onClearExitError: () => void;
@@ -36,6 +37,7 @@ export function RtcViewerWorkspace({
   viewerResult,
   exitRequestId,
   isCancelingBeforeLiveKit,
+  isResultPending,
   isExiting,
   exitErrorMessage,
   onClearExitError,
@@ -60,6 +62,10 @@ export function RtcViewerWorkspace({
         onDone={onResultDone}
       />
     );
+  }
+
+  if (isResultPending) {
+    return <RtcViewerWaiting mode="PREPARING_RESULT" />;
   }
 
   const shouldMountLiveKit = shouldMountRtcViewerLiveKit({

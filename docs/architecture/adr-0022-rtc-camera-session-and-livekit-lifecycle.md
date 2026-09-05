@@ -94,8 +94,9 @@ lifecycle epoch로 오래된 connect 완료를 무효화한다. Camera route가 
 때만 새 연결 세대를 허용한다.
 
 종료 흐름은 사용자가 사진을 확정한 후 publisher를 정리하고 서버 방 종료 및
-참여자 결과 RPC를 수행한다. 중간 단계가 실패해도 `finally`에서 publisher와
-Room disconnect를 재시도한다.
+참여자 결과 RPC를 수행한다. `finally`에서 publisher와 Room disconnect를
+재시도하되, 서버 방 종료가 성공한 뒤의 RPC와 로컬 cleanup은 ADR-0044에 따라
+best-effort로 취급한다.
 
 ## Trade-off
 

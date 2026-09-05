@@ -137,7 +137,12 @@ export function useRtcViewerSessionController() {
   }, [requestExit]);
 
   const requestPageExit = useCallback(() => {
-    if (isExiting) return;
+    if (
+      isExiting ||
+      (viewerEntry.phase === "ROOM_ENDED" && hasEnteredLiveRef.current)
+    ) {
+      return;
+    }
 
     if (viewerEntry.connection) {
       setExitRequestId((current) => current + 1);
@@ -145,7 +150,12 @@ export function useRtcViewerSessionController() {
     }
 
     void cancelBeforeLiveKit();
-  }, [cancelBeforeLiveKit, isExiting, viewerEntry.connection]);
+  }, [
+    cancelBeforeLiveKit,
+    isExiting,
+    viewerEntry.connection,
+    viewerEntry.phase,
+  ]);
 
   const clearExitError = useCallback(() => setExitErrorMessage(null), []);
 
@@ -157,6 +167,10 @@ export function useRtcViewerSessionController() {
     !isExitCompleted &&
     !hasPresentedResultRef.current &&
     !hasEndedBeforeLive;
+  const isResultPending =
+    viewerEntry.phase === "ROOM_ENDED" &&
+    hasEnteredLiveRef.current &&
+    viewerResult === null;
 
   return {
     viewerSession,
@@ -168,6 +182,7 @@ export function useRtcViewerSessionController() {
     isExiting,
     exitErrorMessage,
     hasEndedBeforeLive,
+    isResultPending,
     shouldPreventExit,
     shouldRedirectToJoin,
     requestExit,

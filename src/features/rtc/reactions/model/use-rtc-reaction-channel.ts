@@ -1,3 +1,4 @@
+import { getFreshAccessToken } from "@shared/api";
 import { useAuthStore } from "@shared/model";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createSocketIoReactionTransport } from "../api/socket-io-reaction-transport";
@@ -59,7 +60,7 @@ export const useRtcReactionChannel = ({
 
     try {
       transport = createSocketIoReactionTransport({
-        accessToken: normalizedToken,
+        resolveAccessToken: getFreshAccessToken,
         role,
         roomId: normalizedRoomId,
         participantId: role === "VIEWER" ? normalizedParticipantId : undefined,

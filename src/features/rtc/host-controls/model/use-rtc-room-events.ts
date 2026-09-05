@@ -65,6 +65,7 @@ export function useRtcRoomEvents({
             roomId: normalizedRoomId,
             signal: streamController.signal,
             onOpen: () => {
+              retryAttempt = 0;
               if (isMounted) setStreamState("OPEN");
             },
             onEvent: (event) => {

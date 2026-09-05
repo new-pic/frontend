@@ -1,7 +1,10 @@
 import type { RtcEndRoomResponse } from "@entities/rtc-room";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { RtcHostFinalizationState } from "./rtc-host-control";
-import { completeRtcHostTermination } from "./rtc-host-termination";
+import {
+  executeRtcHostTermination,
+  type RtcHostNonFatalTerminationStage,
+} from "./rtc-host-termination";
 
 interface UseRtcHostTerminationControllerOptions {
   preparePhotos: () => Promise<void>;
@@ -11,12 +14,17 @@ interface UseRtcHostTerminationControllerOptions {
   disconnectRoom: () => Promise<void>;
   onCompleted: (result: RtcEndRoomResponse) => void | Promise<void>;
   onStateChange?: (state: RtcHostFinalizationState) => void;
+  onNonFatalError?: (
+    stage: RtcHostNonFatalTerminationStage,
+    error: unknown,
+  ) => void;
 }
 
 /**
  * Host 종료의 단일 lifecycle을 소유합니다.
  * 사진 확정 → 송출 중단 → 서버 종료 → 결과 전달 → 연결 정리 순서를
- * single-flight로 실행하며, 서버가 이미 종료된 재시도에서는 결과를 재사용합니다.
+ * single-flight로 실행합니다. 서버 종료가 성공한 뒤의 RPC 전달과 로컬 연결
+ * 정리는 best-effort로 수행하며, 서버가 확정한 결과를 종료의 기준으로 삼습니다.
  */
 export function useRtcHostTerminationController({
   preparePhotos,
@@ -26,6 +34,7 @@ export function useRtcHostTerminationController({
   disconnectRoom,
   onCompleted,
   onStateChange,
+  onNonFatalError,
 }: UseRtcHostTerminationControllerOptions) {
   const isMountedRef = useRef(true);
   const terminationPromiseRef = useRef<Promise<void> | null>(null);
@@ -43,59 +52,22 @@ export function useRtcHostTerminationController({
     if (terminationPromiseRef.current) return terminationPromiseRef.current;
 
     const terminationPromise = (async () => {
-      onStateChange?.("PREPARING_PHOTOS");
       setErrorMessage(null);
 
-      let result = completedResultRef.current;
-      let finalizationError: unknown;
-
-      try {
-        // 사진을 고르는 동안에는 기존 영상 송출을 유지합니다.
-        await preparePhotos();
-
-        onStateChange?.("ENDING_ROOM");
-        await stopPublishing();
-
-        if (!result) {
-          result = await endRoom();
-          completedResultRef.current = result;
-        }
-
-        if (!isMountedRef.current) return;
-
-        onStateChange?.("DELIVERING_RESULT");
-        await deliverResult(result);
-      } catch (error) {
-        finalizationError = error;
-      } finally {
-        try {
-          await stopPublishing();
-        } catch (error) {
-          finalizationError ??= error;
-        }
-        try {
-          await disconnectRoom();
-        } catch (error) {
-          finalizationError ??= error;
-        }
-      }
-
-      if (finalizationError || !result) {
-        if (isMountedRef.current) {
-          setErrorMessage(
-            finalizationError instanceof Error
-              ? finalizationError.message
-              : "RTC 공유 종료에 실패했습니다. 종료 처리를 다시 시도해주세요.",
-          );
-          onStateChange?.("FAILED");
-        }
-        return;
-      }
-
-      const completion = await completeRtcHostTermination({
-        result,
+      const completion = await executeRtcHostTermination({
+        existingResult: completedResultRef.current,
+        preparePhotos,
+        stopPublishing,
+        endRoom,
+        deliverResult,
+        disconnectRoom,
         isMounted: () => isMountedRef.current,
         onCompleted,
+        onRoomEnded: (result) => {
+          completedResultRef.current = result;
+        },
+        onStateChange,
+        onNonFatalError,
       });
 
       if (completion.status === "FAILED") {
@@ -124,6 +96,7 @@ export function useRtcHostTerminationController({
     disconnectRoom,
     endRoom,
     onCompleted,
+    onNonFatalError,
     onStateChange,
     preparePhotos,
     stopPublishing,

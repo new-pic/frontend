@@ -15,6 +15,7 @@ export function RtcViewerPage() {
     exitRequestId,
     isExitCompleted,
     isCancelingBeforeLiveKit,
+    isResultPending,
     isExiting,
     exitErrorMessage,
     hasEndedBeforeLive,
@@ -73,6 +74,7 @@ export function RtcViewerPage() {
       viewerResult={viewerResult}
       exitRequestId={exitRequestId}
       isCancelingBeforeLiveKit={isCancelingBeforeLiveKit}
+      isResultPending={isResultPending}
       isExiting={isExiting}
       exitErrorMessage={exitErrorMessage}
       onClearExitError={clearExitError}

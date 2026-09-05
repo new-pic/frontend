@@ -158,3 +158,26 @@ test("Viewer 화면 이탈도 연결 상태에 맞는 동일한 나가기 요청
   );
   assert.match(controllerSource, /void\s+cancelBeforeLiveKit\(\s*\)/);
 });
+
+test("종료 결과 fallback 대기 중에는 결과 준비 화면을 유지하고 이탈을 막는다", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const controllerSource = fs.readFileSync(
+    path.resolve(__dirname, "../model/use-rtc-viewer-session-controller.ts"),
+    "utf8",
+  );
+  const workspaceSource = fs.readFileSync(
+    path.resolve(
+      __dirname,
+      "../../../../widgets/rtc/session-workspace/ui/rtc-viewer-workspace.tsx",
+    ),
+    "utf8",
+  );
+
+  assert.match(
+    controllerSource,
+    /viewerEntry\.phase === "ROOM_ENDED" &&\s*hasEnteredLiveRef\.current/,
+  );
+  assert.match(controllerSource, /const isResultPending =/);
+  assert.match(workspaceSource, /<RtcViewerWaiting mode="PREPARING_RESULT"/);
+});

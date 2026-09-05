@@ -25,6 +25,12 @@ SSE 구독 adapter는 호스트 전용 query와 분리해
 둔다. 앱 access token을 사용하는 공용 전송 경계이며, host와 viewer feature가
 각자의 lifecycle에 맞게 재사용한다.
 
+SSE의 `expo/fetch` 요청은 upload와 같은 공용 authenticated fetch 정책을
+사용한다. 첫 401에서는 single-flight token refresh 후 한 번만 다시 구독하고,
+재요청도 401이면 이전 session을 유지하지 않고 logout한다. stream이 정상적으로
+열리면 해당 lifecycle의 지수 backoff 횟수를 0으로 초기화하여 과거 장애의 긴
+재연결 지연이 다음 장애에 누적되지 않게 한다.
+
 LiveKit 토큰 발급 실패는 자동 반복하지 않는다. 같은 SSE 연결에서 LIVE가
 반복되어도 최초 실패 상태를 유지하고 사용자가 대기 화면의 `다시 시도`를
 누른 경우에만 동일한 `participantId`로 다시 요청한다. LIVE 전에 `ended`
@@ -34,6 +40,13 @@ Alert 확인 후 피드 화면으로 이동한다.
 발급된 LiveKit connection은 전역 RTC store가 아니라 이 entry hook의 현재
 session epoch에 로컬로 유지한다. 나가기 lifecycle은 연결 전후 모두 서버 leave를
 먼저 수행하는 ADR-0044의 Viewer exit controller가 담당한다.
+
+LIVE 진입 후 종료 SSE가 RPC 결과보다 먼저 도착하면 기존 대기 UI를
+`PREPARING_RESULT` 모드로 사용한다. 이 1초 fallback 구간에는 취소 동작과 route
+이탈을 허용하지 않는다. RPC가 도착하면 즉시 그 결과를 사용하고, 도착하지 않으면
+같은 화면에서 room photo query로 결과를 복구한다. fallback timer는 결과 표시,
+session 종료와 unmount에서 항상 취소하므로 다른 화면으로 이동한 뒤 늦게 결과
+화면이 나타나지 않는다.
 
 ## Context
 
@@ -90,5 +103,8 @@ LIVE 판정, token single-flight와 수동 retry를 담당한다. 상태 경계�
   ROOM_ENDED 전이를 소유한다.
 - token 오류 시 대기 화면에 다시 시도 버튼과 취소 버튼이 함께 표시된다.
 - LIVE 이전 ended는 취소 불가능한 Alert로 안내하고 확인 후 피드로 이동한다.
+- LIVE 이후 ended와 RPC 사이에는 결과 준비 대기 화면을 유지하며, fallback이
+  끝날 때까지 화면 이탈을 차단한다.
+- SSE가 정상적으로 open되면 재연결 backoff를 초기화한다.
 - 실제 서버 SSE 순서와 실제 기기 LiveKit 연결 결과는 통합 테스트 후 이 항목에
   추가 기록한다.
