@@ -10,6 +10,13 @@ VisionCamera를 유일한 Camera owner로 유지하고 RTC와 Pose를 각각
 Pose Landmarker Lite는 `LIVE_STREAM`, 최대 4명, 최대 10 FPS,
 입력 긴 변 640px, segmentation mask 비활성 상태로 시작한다.
 
+Feature model의 `useLivePoseDetection`이 AppState, 활성 조건,
+검출 상태와 React lifecycle을 소유한다. `lib`의 native Pose runtime
+adapter는 callback 등록, FrameSink 제어와 native 결과 변환만 담당한다.
+따라서 model은 native package를 직접 호출하지 않고 runtime port를 통해
+검출 lifecycle을 조율한다. Native 모듈이 전역 callback과 FrameSink를
+하나만 제공하므로 runtime은 동시에 하나의 owner만 허용한다.
+
 ## Context
 
 RTC 송출과 Pose 추론은 같은 카메라 프레임이 필요하지만 처리 시간,
@@ -34,6 +41,10 @@ lifetime을 침범하지 않는다.
 latest-only 전달은 JS가 느릴 때 과거 자세 결과가 누적되는 것을
 막고 현재 자세에 가까운 결과를 유지한다.
 
+React hook을 단순 계산 유틸과 구분해 model에 배치하고 native runtime을
+adapter로 격리하면 화면 lifecycle 정책과 MediaPipe/VisionCamera 연동
+구현을 독립적으로 변경할 수 있다.
+
 ## Trade-off
 
 Pose가 수락한 프레임에는 플랫폼별 YUV→RGB/BGRA 복사 비용이
@@ -53,6 +64,10 @@ iOS `VisionCameraPose` 타깃 컴파일, Nitro TypeScript 타입 검사,
 pose detection 단위 테스트를 통과했다. Android 공식 AAR의 API
 시그니처는 검증했지만 작업 환경에 Android SDK가 없어 Android
 타깃 컴파일과 실제 기기 추론 검증은 남아 있다.
+
+Feature model의 검출 hook과 native Pose runtime adapter를 분리하되,
+기존 configure/start/stop/release 순서와 latest-only callback 정책은
+유지했다.
 
 실제 기기에서는 DEV debug 로그의 `poseCount`와 `landmarkCounts`로
 1명, 2명, 3명 이상 결과를 확인하고, 평균 추론 시간, 수락/드롭

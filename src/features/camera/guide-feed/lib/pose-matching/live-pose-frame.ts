@@ -1,6 +1,11 @@
-import type { CommonPose, CoordinateSize, ResizeMode } from "./types";
+import type {
+  CommonPose,
+  CoordinateSize,
+  DetectedPoseFrame,
+} from "../../model/pose-types";
 import { projectMediaPipePoseToCapture } from "./coordinate-transform";
 import { adaptMediaPipePoses } from "./mediapipe-pose-adapter";
+import type { ResizeMode } from "./types";
 
 export interface PrepareLivePoseFrameOptions {
   captureSize: CoordinateSize;
@@ -8,20 +13,8 @@ export interface PrepareLivePoseFrameOptions {
   captureResizeMode?: ResizeMode;
 }
 
-export interface LiveDetectedPoseFrame {
-  poses: {
-    landmarks: {
-      x: number;
-      y: number;
-      z?: number;
-      confidence?: number;
-    }[];
-  }[];
-  inputSize: CoordinateSize;
-}
-
 export function prepareLivePoses(
-  frame: LiveDetectedPoseFrame,
+  frame: DetectedPoseFrame,
   {
     captureSize,
     mirrorX,

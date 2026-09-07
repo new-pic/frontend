@@ -6,7 +6,7 @@ import {
   type PoseMismatchCause,
   type PosePairMatch,
   type PoseSceneMatchResult,
-} from "./types";
+} from "../../model/pose-types";
 import {
   DEFAULT_POSE_MATCH_CONFIG,
   type PoseMatchConfig,

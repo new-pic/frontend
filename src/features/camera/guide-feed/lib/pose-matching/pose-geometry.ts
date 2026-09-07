@@ -6,7 +6,7 @@ import {
   type PoseBoundingBox,
   type PoseJointGroup,
   type PosePairMatch,
-} from "./types";
+} from "../../model/pose-types";
 import type { PoseMatchConfig } from "./pose-match-config";
 
 const EMPTY_SCORE = {

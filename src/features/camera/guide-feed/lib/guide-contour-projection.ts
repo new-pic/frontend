@@ -1,8 +1,5 @@
-import {
-  calculateCanvasRenderRect,
-  type CoordinateSize,
-  type PreviewPoint,
-} from "./pose-matching";
+import { calculateCanvasRenderRect, type PreviewPoint } from "./pose-matching";
+import type { CoordinateSize } from "../model/pose-types";
 import type { CameraGuideContour, CameraGuideOutline } from "../model/types";
 
 export interface ProjectedCameraGuideContour extends Omit<

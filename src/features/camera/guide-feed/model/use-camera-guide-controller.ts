@@ -7,10 +7,6 @@ import {
   useState,
 } from "react";
 import {
-  type DetectedPoseFrame,
-  useLivePoseDetection,
-} from "../lib/pose-detection";
-import {
   adaptDWPoseResult,
   DWPoseContractError,
   matchPoseScene,
@@ -20,7 +16,9 @@ import {
 } from "../lib/pose-matching";
 import { adaptFeedBackgroundRemoval } from "../lib/feed-guide-contour-adapter";
 import { cameraGuideReducer, INITIAL_CAMERA_GUIDE_STATE } from "./guide-state";
+import type { DetectedPoseFrame } from "./pose-types";
 import { usePoseGuideAlignment } from "./use-pose-guide-alignment";
+import { useLivePoseDetection } from "./use-live-pose-detection";
 import type {
   CameraGuideErrors,
   CameraGuideGeometry,
