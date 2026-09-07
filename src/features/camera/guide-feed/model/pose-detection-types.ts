@@ -33,7 +33,7 @@ export interface PoseDetectionRuntimeListener {
 
 export interface PoseDetectionRuntime<TFrameSink> {
   frameSink: TFrameSink;
-  subscribe: (listener: PoseDetectionRuntimeListener) => () => void;
+  acquire: (listener: PoseDetectionRuntimeListener) => () => void;
   configure: (config: ResolvedPoseDetectionConfig) => void;
   start: () => void;
   stop: () => void;

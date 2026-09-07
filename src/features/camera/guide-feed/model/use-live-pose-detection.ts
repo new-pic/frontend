@@ -27,9 +27,6 @@ export function useLivePoseDetection({
   const debugRef = useRef(debug);
   const onFrameRef = useRef(onFrame);
   const exposeFrameRef = useRef(exposeFrame);
-  debugRef.current = debug;
-  onFrameRef.current = onFrame;
-  exposeFrameRef.current = exposeFrame;
   const resolvedConfig = useMemo(
     () => resolvePoseDetectionConfig(config),
     [
@@ -45,12 +42,18 @@ export function useLivePoseDetection({
   const shouldRun = enabled && isForeground;
 
   useEffect(() => {
+    debugRef.current = debug;
+    onFrameRef.current = onFrame;
+    exposeFrameRef.current = exposeFrame;
+  }, [debug, exposeFrame, onFrame]);
+
+  useEffect(() => {
     const subscription = AppState.addEventListener("change", setAppState);
     return () => subscription.remove();
   }, []);
 
   useEffect(() => {
-    const unsubscribe = nativePoseDetectionRuntime.subscribe({
+    const releaseOwnership = nativePoseDetectionRuntime.acquire({
       shouldAcceptResult: () => shouldAcceptResultsRef.current,
       onFrame: (detectedFrame) => {
         onFrameRef.current?.(detectedFrame);
@@ -82,7 +85,7 @@ export function useLivePoseDetection({
 
     return () => {
       shouldAcceptResultsRef.current = false;
-      unsubscribe();
+      releaseOwnership();
       nativePoseDetectionRuntime.stop();
       nativePoseDetectionRuntime.release();
     };

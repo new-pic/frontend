@@ -6,10 +6,18 @@ import {
 import type { PoseDetectionRuntime } from "../../model/pose-detection-types";
 import { adaptNativeDetectedPoseFrame } from "./native-pose-result-adapter";
 
+let activeOwner: symbol | null = null;
+
 export const nativePoseDetectionRuntime = {
   frameSink: visionCameraPoseFrameSink,
 
-  subscribe({ shouldAcceptResult, onFrame, onError }) {
+  acquire({ shouldAcceptResult, onFrame, onError }) {
+    if (activeOwner) {
+      throw new Error("Native pose detection runtime already has an owner.");
+    }
+
+    const owner = Symbol("native-pose-detection-owner");
+    activeOwner = owner;
     setVisionCameraPoseResultCallback((nativeFrame) => {
       if (!shouldAcceptResult()) return;
       onFrame(adaptNativeDetectedPoseFrame(nativeFrame));
@@ -20,6 +28,9 @@ export const nativePoseDetectionRuntime = {
     });
 
     return () => {
+      if (activeOwner !== owner) return;
+
+      activeOwner = null;
       setVisionCameraPoseResultCallback(undefined);
       setVisionCameraPoseErrorCallback(undefined);
     };
