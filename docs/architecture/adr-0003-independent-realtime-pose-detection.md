@@ -14,7 +14,8 @@ Feature model의 `useLivePoseDetection`이 AppState, 활성 조건,
 검출 상태와 React lifecycle을 소유한다. `lib`의 native Pose runtime
 adapter는 callback 등록, FrameSink 제어와 native 결과 변환만 담당한다.
 따라서 model은 native package를 직접 호출하지 않고 runtime port를 통해
-검출 lifecycle을 조율한다.
+검출 lifecycle을 조율한다. Native 모듈이 전역 callback과 FrameSink를
+하나만 제공하므로 runtime은 동시에 하나의 owner만 허용한다.
 
 ## Context
 
