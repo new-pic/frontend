@@ -1,3 +1,8 @@
+import type {
+  PoseDetectionConfig,
+  ResolvedPoseDetectionConfig,
+} from "../../model/pose-detection-types";
+
 export const MAX_POSE_COUNT = 4;
 export const MAX_POSE_INFERENCE_FPS = 10;
 
@@ -14,22 +19,15 @@ export const DEFAULT_POSE_DETECTION_CONFIG = {
   minTrackingConfidence: 0.5,
 } as const;
 
-export type PoseDetectionConfig = {
-  targetPersonCount?: number;
-  maxInferenceFps?: number;
-  maxInputLongEdge?: number;
-  minPoseDetectionConfidence?: number;
-  minPosePresenceConfidence?: number;
-  minTrackingConfidence?: number;
-};
-
 export function resolvePoseCount(targetPersonCount?: number) {
   const requested =
     targetPersonCount ?? DEFAULT_POSE_DETECTION_CONFIG.defaultPoseCount;
   return Math.min(MAX_POSE_COUNT, Math.max(1, Math.trunc(requested)));
 }
 
-export function resolvePoseDetectionConfig(config: PoseDetectionConfig = {}) {
+export function resolvePoseDetectionConfig(
+  config: PoseDetectionConfig = {},
+): ResolvedPoseDetectionConfig {
   return {
     numPoses: resolvePoseCount(config.targetPersonCount),
     maxInferenceFps: Math.min(
