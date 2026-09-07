@@ -1,5 +1,5 @@
+import type { CoordinateSize } from "../model/pose-types";
 import type { CameraGuideAspectRatio } from "../model/types";
-import type { CoordinateSize } from "./pose-matching";
 
 const SUPPORTED_ASPECT_RATIOS = {
   "4:3": 4 / 3,

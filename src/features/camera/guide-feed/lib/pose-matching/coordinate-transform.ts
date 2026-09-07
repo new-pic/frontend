@@ -1,14 +1,16 @@
 import type {
-  CaptureAspectRatio,
-  CaptureToPreviewTransform,
-  CanvasRenderRect,
   CommonPose,
   CommonPosePoint,
   CoordinateSize,
   DWPoseSourcePose,
   MediaPipeInputPose,
-  MediaPipePoseToCaptureTransform,
   PoseJointMap,
+} from "../../model/pose-types";
+import type {
+  CaptureAspectRatio,
+  CaptureToPreviewTransform,
+  CanvasRenderRect,
+  MediaPipePoseToCaptureTransform,
   PreviewPoint,
   QuarterTurn,
   ResizeMode,

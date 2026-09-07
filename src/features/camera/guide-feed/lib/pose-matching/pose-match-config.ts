@@ -1,4 +1,4 @@
-import type { CommonJoint, PoseJointGroup } from "./types";
+import type { CommonJoint, PoseJointGroup } from "../../model/pose-types";
 
 export interface PoseMatchConfig {
   minConfidence: number;

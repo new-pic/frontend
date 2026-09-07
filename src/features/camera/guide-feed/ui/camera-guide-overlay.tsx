@@ -1,12 +1,11 @@
 import { memo, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import type { CoordinateSize } from "../lib/pose-matching";
 import {
   createGuideContourPath,
   projectGuideOutlineToPreview,
 } from "../lib/guide-contour-projection";
-import type { CameraGuideOutline } from "../model";
+import type { CameraGuideOutline, CoordinateSize } from "../model";
 
 interface CameraGuideOverlayProps {
   previewSize: CoordinateSize;

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { PoseSceneMatchResult } from "../lib/pose-matching";
+import type { PoseSceneMatchResult } from "./pose-types";
 import {
   advancePoseGuideAlignmentPolicy,
   createPoseGuideAlignmentPolicyState,

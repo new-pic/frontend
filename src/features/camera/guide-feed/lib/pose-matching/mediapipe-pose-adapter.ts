@@ -1,11 +1,8 @@
-import type { CommonJoint, MediaPipeInputPose } from "./types";
-
-export interface MediaPipePoseLandmark {
-  x: number;
-  y: number;
-  z?: number;
-  confidence?: number;
-}
+import type {
+  CommonJoint,
+  MediaPipeInputPose,
+  MediaPipePoseLandmark,
+} from "../../model/pose-types";
 
 const MEDIAPIPE_POSE_INDEX: Record<CommonJoint, number> = {
   NOSE: 0,

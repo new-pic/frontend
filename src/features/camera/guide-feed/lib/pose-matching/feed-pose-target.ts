@@ -1,7 +1,8 @@
 import type { FeedPoseResponse, NormalizedPoseResult } from "@entities/feed";
-import type { CommonPose, SourcePoseToCaptureTransform } from "./types";
+import type { CommonPose } from "../../model/pose-types";
 import { projectDWPosePoseToCapture } from "./coordinate-transform";
 import { adaptDWPoseResult } from "./dwpose-pose-adapter";
+import type { SourcePoseToCaptureTransform } from "./types";
 
 export function getNormalizedPoseResult(
   response: FeedPoseResponse,

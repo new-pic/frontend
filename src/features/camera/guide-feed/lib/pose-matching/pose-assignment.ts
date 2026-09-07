@@ -1,4 +1,8 @@
-import type { CommonPose, PoseAssignment, PosePairMatch } from "./types";
+import type {
+  CommonPose,
+  PoseAssignment,
+  PosePairMatch,
+} from "../../model/pose-types";
 import type { PoseMatchConfig } from "./pose-match-config";
 import { matchPosePair } from "./pose-geometry";
 

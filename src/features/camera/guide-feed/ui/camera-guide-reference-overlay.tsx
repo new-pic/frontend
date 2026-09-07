@@ -1,7 +1,7 @@
 import { Image } from "@shared/ui";
 import { memo, useMemo } from "react";
 import { View } from "react-native";
-import type { CoordinateSize } from "../lib/pose-matching";
+import type { CoordinateSize } from "../model";
 import { projectGuideSourceToPreviewRect } from "../lib/guide-contour-projection";
 
 interface CameraGuideReferenceOverlayProps {

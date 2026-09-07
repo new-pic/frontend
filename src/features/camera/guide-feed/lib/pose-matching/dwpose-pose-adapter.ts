@@ -3,7 +3,11 @@ import type {
   NormalizedPosePerson,
   NormalizedPoseResult,
 } from "@entities/feed";
-import type { CommonJoint, CoordinateSize, DWPoseSourcePose } from "./types";
+import type {
+  CommonJoint,
+  CoordinateSize,
+  DWPoseSourcePose,
+} from "../../model/pose-types";
 
 export const DWPOSE_KEYPOINT_FORMAT = "dwpose_xy_score" as const;
 

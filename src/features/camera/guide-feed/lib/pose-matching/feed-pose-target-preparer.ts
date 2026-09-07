@@ -1,7 +1,7 @@
 import type { FeedPoseResponse } from "@entities/feed";
+import type { CoordinateSize, DWPoseSourcePose } from "../../model/pose-types";
 import { resolveFeedCameraAspectRatio } from "../feed-camera-aspect-ratio";
 import { adaptDWPoseResult } from "./dwpose-pose-adapter";
-import type { CoordinateSize, DWPoseSourcePose } from "./types";
 
 export interface FeedPoseTargetSelection {
   feedId: string;

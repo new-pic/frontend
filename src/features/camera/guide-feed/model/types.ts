@@ -3,7 +3,7 @@ import type {
   CoordinateSize,
   DWPoseSourcePose,
   PoseSceneMatchResult,
-} from "../lib/pose-matching";
+} from "./pose-types";
 
 export type CameraGuideAspectRatio = "4:3" | "16:9";
 
