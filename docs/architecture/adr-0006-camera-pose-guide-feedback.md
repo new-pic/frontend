@@ -12,9 +12,10 @@
 PoseSceneMatchResult
  ↓
 PoseGuideAlignmentPolicy
- ├─ EMA smoothing
- ├─ hysteresis
+ ├─ elapsed-time EMA smoothing
+ ├─ time-based enter/exit hysteresis
  ├─ no-pose grace
+ ├─ no-frame timeout
  └─ feedback debounce / cooldown
  ↓
 PoseGuideAlignmentSnapshot
@@ -70,11 +71,14 @@ Alignment 또는 표시할 feedback이 실제로 바뀔 때만 갱신한다.
 
 ## Feedback policy
 
-- EMA: `S(t) = 0.3 × raw(t) + 0.7 × S(t-1)`
-- 초기 안정화: 유효 결과 3개
-- ALIGNED → MISALIGNED: smoothed score `< 78`
-- MISALIGNED → ALIGNED: matcher가 aligned이고 score `>= 85`
+- EMA: `alpha = 1 - exp(-elapsedMs / 280ms)`
+- 마지막 frame 시각과 마지막 유효 score 시각을 분리해, no-pose frame이
+  no-frame timeout은 갱신하되 EMA 경과 시간을 왜곡하지 않게 한다.
+- 초기 관찰 유지: 200ms
+- ALIGNED 진입 유지: matcher가 aligned이고 score `>= 85`인 상태 200ms
+- ALIGNED 이탈 유지: matcher가 실패하거나 score `< 78`인 상태 200ms
 - no-pose grace: 800ms
+- no-frame timeout: 1,200ms
 - feedback debounce: 350ms
 - feedback minimum cooldown: 800ms
 
@@ -97,12 +101,14 @@ SEARCHING과 ALIGNED에서는 원본 Mask만 보인다.
 
 - Guide identity 변경: Alignment policy state 전체 reset
 - Guide 해제: snapshot 비활성화, Mask/Banner 즉시 제거
-- Target 미준비: SEARCHING, matching 미실행
+- Target 미준비 또는 Camera 비활성: tracking state 즉시 reset
 - Mask가 표시되는 동안: Pose detector는 실행하되 Target 미준비
   frame은 matching 없이 폐기
 - 한 프레임 NO_PERSON: 기존 UI 상태 유지
 - 800ms 이상 NO_PERSON: SEARCHING 전환 후 안내 후보 생성
-- unmount timer: timestamp 기반 정책이라 별도 delayed timer 없음
+- detector idle/error: tracking state 즉시 reset
+- 1,200ms 동안 새 frame 없음: timer가 stale alignment를 SEARCHING으로 reset
+- unmount: no-frame timer 해제
 
 ## Trade-off
 
@@ -117,7 +123,8 @@ SEARCHING과 ALIGNED에서는 원본 Mask만 보인다.
 비용:
 
 - feedback 변경은 debounce/cooldown만큼 늦게 보일 수 있음
-- no-pose와 cooldown 진행은 다음 Pose result가 들어올 때 평가됨
+- no-pose grace와 feedback cooldown은 Pose result가 들어올 때 평가됨
+- no-frame timeout을 위해 Guide hook이 단일 timer를 관리함
 - red tint opacity와 threshold는 실제 기기 calibration이 필요함
 
 ## Result
