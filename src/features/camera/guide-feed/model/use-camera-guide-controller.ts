@@ -22,7 +22,6 @@ import { useLivePoseDetection } from "./use-live-pose-detection";
 import type {
   CameraGuideErrors,
   CameraGuideGeometry,
-  CameraGuideMatching,
   GuideFeedSelection,
 } from "./types";
 import { feedGuideQuery } from "../api";
@@ -357,28 +356,19 @@ export function useCameraGuideController({
     geometry: CameraGuideGeometry;
     targetPoses: typeof targetPoses;
   } | null>(null);
-  matchingInputRef.current =
-    targetReady && geometry
-      ? {
-          geometry,
-          targetPoses,
-        }
-      : null;
-  const latestMatchingRef = useRef<CameraGuideMatching>({
-    targetPoses: [],
-    currentPoses: [],
-    result: null,
-  });
-  if (
-    latestMatchingRef.current.targetPoses !== targetPoses &&
-    matchingInputRef.current === null
-  ) {
-    latestMatchingRef.current = {
-      targetPoses,
-      currentPoses: [],
-      result: null,
+  useEffect(() => {
+    matchingInputRef.current =
+      targetReady && geometry
+        ? {
+            geometry,
+            targetPoses,
+          }
+        : null;
+
+    return () => {
+      matchingInputRef.current = null;
     };
-  }
+  }, [geometry, targetPoses, targetReady]);
   const handlePoseFrame = useCallback(
     (frame: DetectedPoseFrame) => {
       const matchingInput = matchingInputRef.current;
@@ -390,11 +380,6 @@ export function useCameraGuideController({
         captureResizeMode: "cover",
       });
       const result = matchPoseScene(matchingInput.targetPoses, currentPoses);
-      latestMatchingRef.current = {
-        targetPoses: matchingInput.targetPoses,
-        currentPoses,
-        result,
-      };
       observeAlignment({
         result,
         targetPersonCount: matchingInput.targetPoses.length,
@@ -429,15 +414,6 @@ export function useCameraGuideController({
     target:
       targetPreparationError ?? (poseError ? getErrorMessage(poseError) : null),
   };
-  const latestMatching = latestMatchingRef.current;
-  const matching: CameraGuideMatching =
-    latestMatching.targetPoses === targetPoses
-      ? latestMatching
-      : {
-          targetPoses,
-          currentPoses: [],
-          result: null,
-        };
   return {
     selectedGuide: state.selected,
     activeGuide: state.active,
@@ -449,7 +425,6 @@ export function useCameraGuideController({
     isOutlineLoading: Boolean(state.selected) && isOutlinePending,
     isTargetLoading: Boolean(state.selected) && isPosePending,
     errors,
-    matching,
     alignment,
     poseDetection: livePoseDetection,
     selectGuide,
