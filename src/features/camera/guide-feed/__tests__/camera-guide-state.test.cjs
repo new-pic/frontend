@@ -40,9 +40,11 @@ const {
   resolveFeedCameraAspectRatio,
 } = require("../lib/feed-camera-aspect-ratio.ts");
 const {
+  advancePoseGuideAlignmentClock,
   advancePoseGuideAlignmentPolicy,
   createPoseGuideAlignmentPolicyState,
   resetPoseGuideAlignmentPolicy,
+  resetPoseGuideAlignmentTracking,
   toPoseGuideAlignmentSnapshot,
 } = require("../model/pose-guide-alignment-policy.ts");
 const {
@@ -439,7 +441,7 @@ test("clearing a guide removes outline and target immediately", () => {
   assert.equal(state.active, null);
 });
 
-test("alignment starts searching and waits for stable samples", () => {
+test("alignment starts searching and waits for the enter hold", () => {
   let state = createPoseGuideAlignmentPolicyState("feed-a", true);
 
   state = observe(state, {
@@ -468,11 +470,12 @@ test("alignment starts searching and waits for stable samples", () => {
   assert.equal(state.smoothedOverallScore, 100);
 });
 
-test("EMA smooths raw overall score with the configured alpha", () => {
+test("EMA uses elapsed time rather than the number of frames", () => {
   const config = {
     ...DEFAULT_POSE_GUIDE_FEEDBACK_CONFIG,
-    scoreEmaAlpha: 0.3,
-    minimumStableSamples: 1,
+    scoreEmaTimeConstantMs: -100 / Math.log(0.7),
+    initialObservationHoldMs: 0,
+    alignmentEnterHoldMs: 0,
   };
   let state = createPoseGuideAlignmentPolicyState("feed-a", true);
   state = observe(
@@ -496,15 +499,66 @@ test("EMA smooths raw overall score with the configured alpha", () => {
     config,
   );
 
-  assert.equal(state.smoothedOverallScore, 85);
+  assert.ok(Math.abs(state.smoothedOverallScore - 85) < 1e-9);
   assert.equal(state.alignmentState, "ALIGNED");
+});
+
+test("EMA elapsed time is measured from the last valid score, not a missing-pose frame", () => {
+  const config = {
+    ...DEFAULT_POSE_GUIDE_FEEDBACK_CONFIG,
+    scoreEmaTimeConstantMs: -100 / Math.log(0.5),
+    initialObservationHoldMs: 0,
+    alignmentEnterHoldMs: 0,
+  };
+  let state = createPoseGuideAlignmentPolicyState("feed-a", true);
+  state = observe(
+    state,
+    {
+      score: 100,
+      aligned: true,
+      feedback: "ALIGNED",
+      nowMs: 0,
+    },
+    config,
+  );
+  state = observe(
+    state,
+    {
+      score: 0,
+      aligned: false,
+      feedback: "NO_PERSON",
+      nowMs: 900,
+      livePersonCount: 0,
+    },
+    config,
+  );
+
+  assert.equal(state.lastFrameObservationMs, 900);
+  assert.equal(state.lastScoreObservationMs, 0);
+
+  state = observe(
+    state,
+    {
+      score: 0,
+      aligned: false,
+      feedback: "MOVE_RIGHT",
+      nowMs: 1_000,
+    },
+    config,
+  );
+
+  assert.ok(Math.abs(state.smoothedOverallScore - 0.09765625) < 1e-9);
+  assert.equal(state.lastFrameObservationMs, 1_000);
+  assert.equal(state.lastScoreObservationMs, 1_000);
 });
 
 test("warning and recovery thresholds apply hysteresis", () => {
   const config = {
     ...DEFAULT_POSE_GUIDE_FEEDBACK_CONFIG,
-    scoreEmaAlpha: 1,
-    minimumStableSamples: 1,
+    scoreEmaTimeConstantMs: 0,
+    initialObservationHoldMs: 0,
+    alignmentEnterHoldMs: 0,
+    alignmentExitHoldMs: 0,
     feedbackDebounceMs: 0,
     feedbackCooldownMs: 0,
   };
@@ -525,8 +579,8 @@ test("warning and recovery thresholds apply hysteresis", () => {
     state,
     {
       score: 80,
-      aligned: false,
-      feedback: "MOVE_RIGHT",
+      aligned: true,
+      feedback: "ALIGNED",
       nowMs: 100,
     },
     config,
@@ -570,11 +624,161 @@ test("warning and recovery thresholds apply hysteresis", () => {
   assert.equal(state.alignmentState, "ALIGNED");
 });
 
+test("component failure exits ALIGNED after a time-based hold", () => {
+  const config = {
+    ...DEFAULT_POSE_GUIDE_FEEDBACK_CONFIG,
+    scoreEmaTimeConstantMs: 0,
+    initialObservationHoldMs: 0,
+    alignmentEnterHoldMs: 0,
+    alignmentExitHoldMs: 200,
+    feedbackDebounceMs: 0,
+    feedbackCooldownMs: 0,
+  };
+  let state = createPoseGuideAlignmentPolicyState("feed-a", true);
+  state = observe(
+    state,
+    {
+      score: 90,
+      aligned: true,
+      feedback: "ALIGNED",
+      nowMs: 0,
+    },
+    config,
+  );
+
+  state = observe(
+    state,
+    {
+      score: 80,
+      aligned: false,
+      feedback: "ADJUST_LEFT_ARM",
+      nowMs: 100,
+    },
+    config,
+  );
+  assert.equal(state.alignmentState, "ALIGNED");
+
+  state = observe(
+    state,
+    {
+      score: 80,
+      aligned: false,
+      feedback: "ADJUST_LEFT_ARM",
+      nowMs: 299,
+    },
+    config,
+  );
+  assert.equal(state.alignmentState, "ALIGNED");
+
+  state = observe(
+    state,
+    {
+      score: 80,
+      aligned: false,
+      feedback: "ADJUST_LEFT_ARM",
+      nowMs: 300,
+    },
+    config,
+  );
+  assert.equal(state.alignmentState, "MISALIGNED");
+});
+
+test("alignment hold duration does not depend on inference FPS", () => {
+  const config = {
+    ...DEFAULT_POSE_GUIDE_FEEDBACK_CONFIG,
+    scoreEmaTimeConstantMs: 0,
+    initialObservationHoldMs: 0,
+    alignmentEnterHoldMs: 200,
+  };
+  let state = createPoseGuideAlignmentPolicyState("feed-a", true);
+  state = observe(
+    state,
+    {
+      score: 95,
+      aligned: true,
+      feedback: "ALIGNED",
+      nowMs: 0,
+    },
+    config,
+  );
+  assert.equal(state.alignmentState, "SEARCHING");
+
+  state = observe(
+    state,
+    {
+      score: 95,
+      aligned: true,
+      feedback: "ALIGNED",
+      nowMs: 250,
+    },
+    config,
+  );
+  assert.equal(state.alignmentState, "ALIGNED");
+});
+
+test("a stalled detector clears stale alignment after the frame timeout", () => {
+  const config = {
+    ...DEFAULT_POSE_GUIDE_FEEDBACK_CONFIG,
+    scoreEmaTimeConstantMs: 0,
+    initialObservationHoldMs: 0,
+    alignmentEnterHoldMs: 0,
+    noFrameTimeoutMs: 500,
+  };
+  let state = createPoseGuideAlignmentPolicyState("feed-a", true);
+  state = observe(
+    state,
+    {
+      score: 95,
+      aligned: true,
+      feedback: "ALIGNED",
+      nowMs: 0,
+    },
+    config,
+  );
+
+  state = advancePoseGuideAlignmentClock(state, 499, config);
+  assert.equal(state.alignmentState, "ALIGNED");
+
+  state = advancePoseGuideAlignmentClock(state, 500, config);
+  assert.equal(state.alignmentState, "SEARCHING");
+  assert.equal(state.smoothedOverallScore, null);
+  assert.equal(state.feedback, null);
+});
+
+test("camera or detector lifecycle reset clears stale alignment immediately", () => {
+  const config = {
+    ...DEFAULT_POSE_GUIDE_FEEDBACK_CONFIG,
+    scoreEmaTimeConstantMs: 0,
+    initialObservationHoldMs: 0,
+    alignmentEnterHoldMs: 0,
+  };
+  let state = createPoseGuideAlignmentPolicyState("feed-a", true);
+  state = observe(
+    state,
+    {
+      score: 95,
+      aligned: true,
+      feedback: "ALIGNED",
+      nowMs: 0,
+    },
+    config,
+  );
+
+  state = resetPoseGuideAlignmentTracking(state);
+  assert.equal(state.alignmentState, "SEARCHING");
+  assert.equal(state.smoothedOverallScore, null);
+  assert.equal(state.lastFrameObservationMs, null);
+  assert.equal(state.lastScoreObservationMs, null);
+  assert.equal(state.feedback, null);
+});
+
 test("a brief missing-person result stays in the previous UI state", () => {
   const config = {
     ...DEFAULT_POSE_GUIDE_FEEDBACK_CONFIG,
-    scoreEmaAlpha: 1,
-    minimumStableSamples: 1,
+    scoreEmaTimeConstantMs: 0,
+    initialObservationHoldMs: 0,
+    alignmentEnterHoldMs: 0,
+    alignmentExitHoldMs: 0,
     feedbackDebounceMs: 0,
   };
   let state = createPoseGuideAlignmentPolicyState("feed-a", true);
@@ -645,8 +849,10 @@ test("a brief missing-person result stays in the previous UI state", () => {
 test("feedback changes use debounce and cooldown", () => {
   const config = {
     ...DEFAULT_POSE_GUIDE_FEEDBACK_CONFIG,
-    scoreEmaAlpha: 1,
-    minimumStableSamples: 1,
+    scoreEmaTimeConstantMs: 0,
+    initialObservationHoldMs: 0,
+    alignmentEnterHoldMs: 0,
+    alignmentExitHoldMs: 0,
   };
   let state = createPoseGuideAlignmentPolicyState("feed-a", true);
   state = observe(
@@ -711,8 +917,10 @@ test("feedback changes use debounce and cooldown", () => {
 test("guide identity and readiness reset all feedback state", () => {
   const config = {
     ...DEFAULT_POSE_GUIDE_FEEDBACK_CONFIG,
-    scoreEmaAlpha: 1,
-    minimumStableSamples: 1,
+    scoreEmaTimeConstantMs: 0,
+    initialObservationHoldMs: 0,
+    alignmentEnterHoldMs: 0,
+    alignmentExitHoldMs: 0,
     feedbackDebounceMs: 0,
     feedbackCooldownMs: 0,
   };
@@ -778,8 +986,10 @@ test("feedback message uses correction direction from the domain", () => {
 test("multi-person feedback labels the worst live assignment", () => {
   const config = {
     ...DEFAULT_POSE_GUIDE_FEEDBACK_CONFIG,
-    scoreEmaAlpha: 1,
-    minimumStableSamples: 1,
+    scoreEmaTimeConstantMs: 0,
+    initialObservationHoldMs: 0,
+    alignmentEnterHoldMs: 0,
+    alignmentExitHoldMs: 0,
     feedbackDebounceMs: 0,
     feedbackCooldownMs: 0,
   };
