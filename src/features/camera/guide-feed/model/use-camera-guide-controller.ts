@@ -344,11 +344,15 @@ export function useCameraGuideController({
   }, [canProjectToCurrentCapture, geometry, state.active]);
 
   const targetReady = canProjectToCurrentCapture && targetPoses.length > 0;
-  const { snapshot: alignment, observe: observeAlignment } =
-    usePoseGuideAlignment({
-      guideId: selectedFeedId ?? null,
-      targetReady,
-    });
+  const {
+    snapshot: alignment,
+    observe: observeAlignment,
+    resetTracking: resetAlignmentTracking,
+  } = usePoseGuideAlignment({
+    guideId: selectedFeedId ?? null,
+    targetReady,
+    enabled: cameraActive && targetReady,
+  });
   const matchingInputRef = useRef<{
     geometry: CameraGuideGeometry;
     targetPoses: typeof targetPoses;
@@ -408,6 +412,14 @@ export function useCameraGuideController({
     exposeFrame: false,
     onFrame: handlePoseFrame,
   });
+  useEffect(() => {
+    if (
+      livePoseDetection.status === "idle" ||
+      livePoseDetection.status === "error"
+    ) {
+      resetAlignmentTracking();
+    }
+  }, [livePoseDetection.status, resetAlignmentTracking]);
 
   const errors: CameraGuideErrors = {
     reference: referenceError,
