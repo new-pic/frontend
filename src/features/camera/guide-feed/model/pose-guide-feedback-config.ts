@@ -1,9 +1,12 @@
 export interface PoseGuideFeedbackConfig {
-  scoreEmaAlpha: number;
-  minimumStableSamples: number;
+  scoreEmaTimeConstantMs: number;
+  initialObservationHoldMs: number;
+  alignmentEnterHoldMs: number;
+  alignmentExitHoldMs: number;
   warningThreshold: number;
   recoveryThreshold: number;
   noPoseGraceMs: number;
+  noFrameTimeoutMs: number;
   feedbackDebounceMs: number;
   feedbackCooldownMs: number;
   personPositionBoundaries: {
@@ -20,11 +23,15 @@ export interface PoseGuideFeedbackConfig {
  * people before release.
  */
 export const DEFAULT_POSE_GUIDE_FEEDBACK_CONFIG: PoseGuideFeedbackConfig = {
-  scoreEmaAlpha: 0.3,
-  minimumStableSamples: 3,
+  // Equivalent to alpha ~= 0.3 at 10 FPS, but stable across frame rates.
+  scoreEmaTimeConstantMs: 280,
+  initialObservationHoldMs: 200,
+  alignmentEnterHoldMs: 200,
+  alignmentExitHoldMs: 200,
   warningThreshold: 78,
   recoveryThreshold: 85,
   noPoseGraceMs: 800,
+  noFrameTimeoutMs: 1_200,
   feedbackDebounceMs: 350,
   feedbackCooldownMs: 800,
   personPositionBoundaries: {

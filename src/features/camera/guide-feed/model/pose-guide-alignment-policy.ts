@@ -29,11 +29,26 @@ export interface PoseGuideAlignmentSnapshot {
 
 export interface PoseGuideAlignmentPolicyState extends PoseGuideAlignmentSnapshot {
   targetReady: boolean;
-  stableSampleCount: number;
+  trackingSinceMs: number | null;
+  alignedCandidateSinceMs: number | null;
+  misalignedCandidateSinceMs: number | null;
+  lastFrameObservationMs: number | null;
+  lastScoreObservationMs: number | null;
   noPoseSinceMs: number | null;
   pendingFeedback: PoseGuideFeedbackDescriptor | null;
   pendingFeedbackSinceMs: number | null;
   lastFeedbackChangeMs: number | null;
+}
+
+function getScoreEmaAlpha(
+  previousObservationMs: number | null,
+  nowMs: number,
+  timeConstantMs: number,
+) {
+  if (previousObservationMs === null || timeConstantMs <= 0) return 1;
+
+  const elapsedMs = Math.max(0, nowMs - previousObservationMs);
+  return 1 - Math.exp(-elapsedMs / timeConstantMs);
 }
 
 export interface PoseGuideMatchObservation {
@@ -173,7 +188,31 @@ export function createPoseGuideAlignmentPolicyState(
     alignmentState: guideId === null ? null : "SEARCHING",
     smoothedOverallScore: null,
     feedback: null,
-    stableSampleCount: 0,
+    trackingSinceMs: null,
+    alignedCandidateSinceMs: null,
+    misalignedCandidateSinceMs: null,
+    lastFrameObservationMs: null,
+    lastScoreObservationMs: null,
+    noPoseSinceMs: null,
+    pendingFeedback: null,
+    pendingFeedbackSinceMs: null,
+    lastFeedbackChangeMs: null,
+  };
+}
+
+export function resetPoseGuideAlignmentTracking(
+  state: PoseGuideAlignmentPolicyState,
+): PoseGuideAlignmentPolicyState {
+  return {
+    ...state,
+    alignmentState: state.active ? "SEARCHING" : null,
+    smoothedOverallScore: null,
+    feedback: null,
+    trackingSinceMs: null,
+    alignedCandidateSinceMs: null,
+    misalignedCandidateSinceMs: null,
+    lastFrameObservationMs: null,
+    lastScoreObservationMs: null,
     noPoseSinceMs: null,
     pendingFeedback: null,
     pendingFeedbackSinceMs: null,
@@ -193,6 +232,23 @@ export function resetPoseGuideAlignmentPolicy(
   return createPoseGuideAlignmentPolicyState(guideId, targetReady);
 }
 
+export function advancePoseGuideAlignmentClock(
+  state: PoseGuideAlignmentPolicyState,
+  nowMs: number,
+  config: PoseGuideFeedbackConfig = DEFAULT_POSE_GUIDE_FEEDBACK_CONFIG,
+): PoseGuideAlignmentPolicyState {
+  if (
+    !state.active ||
+    !state.targetReady ||
+    state.lastFrameObservationMs === null ||
+    nowMs - state.lastFrameObservationMs < config.noFrameTimeoutMs
+  ) {
+    return state;
+  }
+
+  return resetPoseGuideAlignmentTracking(state);
+}
+
 export function advancePoseGuideAlignmentPolicy(
   state: PoseGuideAlignmentPolicyState,
   observation: PoseGuideMatchObservation,
@@ -209,6 +265,9 @@ export function advancePoseGuideAlignmentPolicy(
     if (nowMs - noPoseSinceMs < config.noPoseGraceMs) {
       return {
         ...state,
+        alignedCandidateSinceMs: null,
+        misalignedCandidateSinceMs: null,
+        lastFrameObservationMs: nowMs,
         noPoseSinceMs,
       };
     }
@@ -217,7 +276,11 @@ export function advancePoseGuideAlignmentPolicy(
       ...state,
       alignmentState: "SEARCHING",
       smoothedOverallScore: null,
-      stableSampleCount: 0,
+      trackingSinceMs: null,
+      alignedCandidateSinceMs: null,
+      misalignedCandidateSinceMs: null,
+      lastFrameObservationMs: nowMs,
+      lastScoreObservationMs: null,
       noPoseSinceMs,
     };
     return withFeedbackCandidate(
@@ -233,34 +296,64 @@ export function advancePoseGuideAlignmentPolicy(
     );
   }
 
+  const scoreEmaAlpha = getScoreEmaAlpha(
+    state.lastScoreObservationMs,
+    nowMs,
+    config.scoreEmaTimeConstantMs,
+  );
   const smoothedOverallScore =
     state.smoothedOverallScore === null
       ? result.sceneScore
-      : config.scoreEmaAlpha * result.sceneScore +
-        (1 - config.scoreEmaAlpha) * state.smoothedOverallScore;
-  const stableSampleCount = state.stableSampleCount + 1;
+      : scoreEmaAlpha * result.sceneScore +
+        (1 - scoreEmaAlpha) * state.smoothedOverallScore;
+  const trackingSinceMs = state.trackingSinceMs ?? nowMs;
   let alignmentState = state.alignmentState ?? "SEARCHING";
+  let alignedCandidateSinceMs = state.alignedCandidateSinceMs;
+  let misalignedCandidateSinceMs = state.misalignedCandidateSinceMs;
+  const isAlignmentCandidate =
+    result.aligned && smoothedOverallScore >= config.recoveryThreshold;
+  const isMisalignmentCandidate =
+    !result.aligned || smoothedOverallScore < config.warningThreshold;
 
-  if (stableSampleCount < config.minimumStableSamples) {
-    alignmentState = "SEARCHING";
-  } else if (alignmentState === "ALIGNED") {
-    if (smoothedOverallScore < config.warningThreshold) {
-      alignmentState = "MISALIGNED";
+  if (alignmentState === "ALIGNED") {
+    alignedCandidateSinceMs = null;
+    if (isMisalignmentCandidate) {
+      misalignedCandidateSinceMs ??= nowMs;
+      if (nowMs - misalignedCandidateSinceMs >= config.alignmentExitHoldMs) {
+        alignmentState = "MISALIGNED";
+        misalignedCandidateSinceMs = null;
+      }
+    } else {
+      misalignedCandidateSinceMs = null;
     }
-  } else if (
-    result.aligned &&
-    smoothedOverallScore >= config.recoveryThreshold
-  ) {
-    alignmentState = "ALIGNED";
+  } else if (isAlignmentCandidate) {
+    misalignedCandidateSinceMs = null;
+    alignedCandidateSinceMs ??= nowMs;
+    if (nowMs - alignedCandidateSinceMs >= config.alignmentEnterHoldMs) {
+      alignmentState = "ALIGNED";
+      alignedCandidateSinceMs = null;
+    } else {
+      alignmentState = "SEARCHING";
+    }
   } else {
-    alignmentState = "MISALIGNED";
+    alignedCandidateSinceMs = null;
+    misalignedCandidateSinceMs = null;
+    if (nowMs - trackingSinceMs >= config.initialObservationHoldMs) {
+      alignmentState = "MISALIGNED";
+    } else {
+      alignmentState = "SEARCHING";
+    }
   }
 
   const nextState: PoseGuideAlignmentPolicyState = {
     ...state,
     alignmentState,
     smoothedOverallScore,
-    stableSampleCount,
+    trackingSinceMs,
+    alignedCandidateSinceMs,
+    misalignedCandidateSinceMs,
+    lastFrameObservationMs: nowMs,
+    lastScoreObservationMs: nowMs,
     noPoseSinceMs: null,
   };
 
