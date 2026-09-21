@@ -15,7 +15,12 @@ export function useLivePoseDetection({
   debug = false,
   onFrame,
   exposeFrame = true,
-  ...config
+  targetPersonCount,
+  maxInferenceFps,
+  maxInputLongEdge,
+  minPoseDetectionConfidence,
+  minPosePresenceConfidence,
+  minTrackingConfidence,
 }: UseLivePoseDetectionOptions): LivePoseDetection<
   typeof nativePoseDetectionRuntime.frameSink
 > {
@@ -28,14 +33,22 @@ export function useLivePoseDetection({
   const onFrameRef = useRef(onFrame);
   const exposeFrameRef = useRef(exposeFrame);
   const resolvedConfig = useMemo(
-    () => resolvePoseDetectionConfig(config),
+    () =>
+      resolvePoseDetectionConfig({
+        targetPersonCount,
+        maxInferenceFps,
+        maxInputLongEdge,
+        minPoseDetectionConfidence,
+        minPosePresenceConfidence,
+        minTrackingConfidence,
+      }),
     [
-      config.maxInferenceFps,
-      config.maxInputLongEdge,
-      config.minPoseDetectionConfidence,
-      config.minPosePresenceConfidence,
-      config.minTrackingConfidence,
-      config.targetPersonCount,
+      maxInferenceFps,
+      maxInputLongEdge,
+      minPoseDetectionConfidence,
+      minPosePresenceConfidence,
+      minTrackingConfidence,
+      targetPersonCount,
     ],
   );
   const isForeground = appState === "active";

@@ -1,9 +1,4 @@
-import type {
-  CommonPose,
-  CoordinateSize,
-  DWPoseSourcePose,
-  PoseSceneMatchResult,
-} from "./pose-types";
+import type { CoordinateSize, DWPoseSourcePose } from "./pose-types";
 
 export type CameraGuideAspectRatio = "4:3" | "16:9";
 
@@ -52,10 +47,4 @@ export interface CameraGuideErrors {
   reference: string | null;
   outline: string | null;
   target: string | null;
-}
-
-export interface CameraGuideMatching {
-  targetPoses: CommonPose[];
-  currentPoses: CommonPose[];
-  result: PoseSceneMatchResult | null;
 }
