@@ -503,6 +503,37 @@ test("EMA uses elapsed time rather than the number of frames", () => {
   assert.equal(state.alignmentState, "ALIGNED");
 });
 
+test("presentation snapshot omits score-only EMA changes", () => {
+  const config = {
+    ...DEFAULT_POSE_GUIDE_FEEDBACK_CONFIG,
+    scoreEmaTimeConstantMs: 0,
+    initialObservationHoldMs: 0,
+    alignmentEnterHoldMs: 0,
+  };
+  let state = createPoseGuideAlignmentPolicyState("feed-a", true);
+  state = observe(
+    state,
+    { score: 90, aligned: true, feedback: "ALIGNED", nowMs: 0 },
+    config,
+  );
+  const presentation = toPoseGuideAlignmentSnapshot(state);
+
+  state = observe(
+    state,
+    { score: 95, aligned: true, feedback: "ALIGNED", nowMs: 100 },
+    config,
+  );
+
+  assert.equal(state.smoothedOverallScore, 95);
+  assert.deepEqual(presentation, {
+    guideId: "feed-a",
+    active: true,
+    alignmentState: "ALIGNED",
+    feedback: null,
+  });
+  assert.deepEqual(toPoseGuideAlignmentSnapshot(state), presentation);
+});
+
 test("EMA elapsed time is measured from the last valid score, not a missing-pose frame", () => {
   const config = {
     ...DEFAULT_POSE_GUIDE_FEEDBACK_CONFIG,
@@ -952,7 +983,6 @@ test("guide identity and readiness reset all feedback state", () => {
     guideId: "feed-b",
     active: true,
     alignmentState: "SEARCHING",
-    smoothedOverallScore: null,
     feedback: null,
   });
 

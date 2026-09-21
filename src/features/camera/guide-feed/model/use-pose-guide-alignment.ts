@@ -55,18 +55,12 @@ export function usePoseGuideAlignment({
   );
   const publishedSnapshotRef = useRef(snapshot);
 
-  const publish = useCallback(
-    (nextSnapshot: PoseGuideAlignmentSnapshot, force = false) => {
-      if (
-        force ||
-        !isSameSnapshot(publishedSnapshotRef.current, nextSnapshot)
-      ) {
-        publishedSnapshotRef.current = nextSnapshot;
-        setSnapshot(nextSnapshot);
-      }
-    },
-    [],
-  );
+  const publish = useCallback((nextSnapshot: PoseGuideAlignmentSnapshot) => {
+    if (!isSameSnapshot(publishedSnapshotRef.current, nextSnapshot)) {
+      publishedSnapshotRef.current = nextSnapshot;
+      setSnapshot(nextSnapshot);
+    }
+  }, []);
 
   const clearNoFrameTimer = useCallback(() => {
     if (noFrameTimerRef.current !== null) {
@@ -77,13 +71,8 @@ export function usePoseGuideAlignment({
 
   const resetTracking = useCallback(() => {
     clearNoFrameTimer();
-    const shouldPublishScoreReset =
-      policyRef.current.smoothedOverallScore !== null;
     policyRef.current = resetPoseGuideAlignmentTracking(policyRef.current);
-    publish(
-      toPoseGuideAlignmentSnapshot(policyRef.current),
-      shouldPublishScoreReset,
-    );
+    publish(toPoseGuideAlignmentSnapshot(policyRef.current));
   }, [clearNoFrameTimer, publish]);
 
   useEffect(() => {
@@ -136,7 +125,7 @@ export function usePoseGuideAlignment({
           policyRef.current,
           Math.max(Date.now(), noFrameDeadlineMs),
         );
-        publish(toPoseGuideAlignmentSnapshot(policyRef.current), true);
+        publish(toPoseGuideAlignmentSnapshot(policyRef.current));
         noFrameTimerRef.current = null;
       }, DEFAULT_POSE_GUIDE_FEEDBACK_CONFIG.noFrameTimeoutMs);
     },

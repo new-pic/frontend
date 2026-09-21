@@ -23,12 +23,12 @@ export interface PoseGuideAlignmentSnapshot {
   guideId: string | null;
   active: boolean;
   alignmentState: CameraGuideAlignmentState | null;
-  smoothedOverallScore: number | null;
   feedback: PoseGuideFeedbackDescriptor | null;
 }
 
 export interface PoseGuideAlignmentPolicyState extends PoseGuideAlignmentSnapshot {
   targetReady: boolean;
+  smoothedOverallScore: number | null;
   trackingSinceMs: number | null;
   alignedCandidateSinceMs: number | null;
   misalignedCandidateSinceMs: number | null;
@@ -381,7 +381,6 @@ export function toPoseGuideAlignmentSnapshot(
     guideId: state.guideId,
     active: state.active,
     alignmentState: state.alignmentState,
-    smoothedOverallScore: state.smoothedOverallScore,
     feedback: state.feedback,
   };
 }
