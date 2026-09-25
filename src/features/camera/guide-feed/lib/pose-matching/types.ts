@@ -4,6 +4,24 @@ export type QuarterTurn = 0 | 90 | 180 | 270;
 export type ResizeMode = "cover" | "contain";
 export type CaptureAspectRatio = "4:3" | "16:9";
 
+/**
+ * Matching projection is defined once per configured camera session.
+ *
+ * `center-cover` records the project's current crop approximation explicitly.
+ * A future native crop-rect adapter can replace this model without changing
+ * the DWPose/MediaPipe domain adapters.
+ */
+export interface PoseProjectionContext {
+  captureSize: CoordinateSize;
+  cropModel: "center-cover";
+  /**
+   * Whether the configured final PhotoOutput uses the mirrored selfie policy.
+   * The per-frame input-to-output delta still comes from Frame metadata,
+   * because an iOS input buffer may already be mirrored.
+   */
+  captureMirrorX: boolean;
+}
+
 export interface SourcePoseToCaptureTransform {
   sourceSize: CoordinateSize;
   captureSize: CoordinateSize;

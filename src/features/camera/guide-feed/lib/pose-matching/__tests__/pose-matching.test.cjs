@@ -22,6 +22,9 @@ const {
   DWPoseContractError,
   adaptMediaPipePose,
   capturePointToPreview,
+  createLivePoseProjectionTransform,
+  createPoseProjectionContext,
+  createTargetPoseProjectionTransform,
   createFeedPoseTargetPreparer,
   createCaptureCanvasSize,
   matchPoseScene,
@@ -264,6 +267,38 @@ test("upright MediaPipe input is not rotated again and can be mirrored", () => {
 
   assert.ok(Math.abs(transformed.x - 0.8) < 1e-9);
   assert.ok(Math.abs(transformed.y - 0.3) < 1e-9);
+});
+
+test("projection context gives target and live poses one capture contract", () => {
+  const context = createPoseProjectionContext({
+    captureSize: { width: 400, height: 300 },
+    captureMirrorX: true,
+  });
+  const targetTransform = createTargetPoseProjectionTransform(context, {
+    width: 400,
+    height: 300,
+  });
+  const liveTransform = createLivePoseProjectionTransform(
+    context,
+    {
+      width: 400,
+      height: 300,
+    },
+    true,
+  );
+  const alreadyMirroredInputTransform = createLivePoseProjectionTransform(
+    context,
+    { width: 400, height: 300 },
+    false,
+  );
+
+  assert.equal(context.cropModel, "center-cover");
+  assert.equal(context.captureMirrorX, true);
+  assert.equal(targetTransform.mirrorX, false);
+  assert.equal(liveTransform.mirrorX, true);
+  assert.equal(alreadyMirroredInputTransform.mirrorX, false);
+  assert.equal(targetTransform.captureSize, context.captureSize);
+  assert.equal(liveTransform.captureSize, context.captureSize);
 });
 
 test("capture canvas size supports portrait 4:3 and 16:9", () => {
