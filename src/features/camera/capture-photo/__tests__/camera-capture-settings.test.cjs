@@ -36,6 +36,7 @@ const {
   getPortraitPreviewAspectRatio,
   isResolutionMatchingAspectRatio,
   orientCameraResolution,
+  resolveCameraMirrorMode,
 } = require("../lib/camera-capture-settings.ts");
 const {
   resolveCameraChromePresentation,
@@ -88,6 +89,11 @@ test("sensor-native resolution follows the configured output orientation", () =>
     orientCameraResolution({ width: 1920, height: 1080 }, "up"),
     { width: 1920, height: 1080 },
   );
+});
+
+test("camera outputs use an explicit mirror mode for each lens position", () => {
+  assert.equal(resolveCameraMirrorMode("front"), "on");
+  assert.equal(resolveCameraMirrorMode("back"), "off");
 });
 
 test("unsupported physical flash always resolves to off", () => {
