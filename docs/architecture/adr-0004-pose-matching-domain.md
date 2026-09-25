@@ -4,6 +4,8 @@
 
 서버 DWPose와 실시간 MediaPipe를 직접 비교하지 않고 모델별
 adapter와 capture projector를 거쳐 `CommonPose`로 변환한다.
+한 Camera session의 capture 크기, crop 모델, capture mirror 정책은
+`PoseProjectionContext`가 소유하고 target/live projector가 이를 공유한다.
 
 ```text
 NormalizedPoseResult (source-image pixel x/y)
@@ -43,6 +45,12 @@ JS에서 Frame rotation을 다시 적용하면 이중 회전된다.
 FrameOutput은 16:9이고 PhotoOutput은 Feed 비율에 따라 4:3 또는
 16:9가 될 수 있다. 모델 좌표를 바로 비교하면 output 간 cover crop,
 front-camera mirroring, 실제 capture 영역이 반영되지 않는다.
+
+VisionCamera의 플랫폼별 `auto` mirror 해석에 의존하지 않는다. Camera
+경계에서 front=`on`, back=`off`를 명시하고 같은 값을 runtime geometry와
+`PoseProjectionContext`로 전달한다. 실제 MediaPipe input에서 capture까지
+필요한 상대 반전은 Frame metadata를 사용한다. iOS input buffer가 이미
+미러된 경우 정책을 좌표에 중복 적용하지 않기 위해서다.
 
 서버 `NormalizedPoseResult`는 `single_person`일 때 flat landmark
 배열, `multi_person`일 때 `NormalizedPosePerson[]`을 저장한다.
@@ -180,6 +188,7 @@ pose mismatch는 가장 낮은 joint group으로 팔/다리/몸통 feedback을
 
 - 서버/MediaPipe 모델 교체가 adapter 경계에 격리됨
 - capture와 preview 좌표 변환 분리
+- session 단위 ProjectionContext와 명시적인 front/back mirror 계약
 - 4:3/16:9, orientation, mirror, cover crop 순수 함수 테스트
 - 다중 인물 순서가 달라도 전역 최소 assignment
 - Feed 전환 실패나 stale completion이 현재 target을 지우지 않음
@@ -193,6 +202,8 @@ pose mismatch는 가장 낮은 joint group으로 팔/다리/몸통 feedback을
   Camera 연결 시 `currentResolution`을 capture size로 전달해야 함
 - score threshold는 실제 사용자 테스트 전까지 초기 calibration 값
 - target pose 변환은 pose `imageUrl`의 decoded 크기가 준비된 뒤 시작됨
+- native crop rect가 제공되기 전까지 ProjectionContext의 crop 모델은
+  `center-cover`이며 실제 기기 FOV 측정이 필요함
 
 ## Result
 
@@ -202,9 +213,11 @@ pose mismatch는 가장 낮은 joint group으로 팔/다리/몸통 feedback을
   source pose로 변환하고, 이미지 밖 예측 좌표는 clamp하지 않음
 - MediaPipe app-domain `confidence` 연결
 - 누락 visibility를 confidence 0으로 처리
-- DWPose/MediaPipe adapter와 capture projector 분리
+- DWPose/MediaPipe adapter와 session `PoseProjectionContext` 기반 capture
+  projector 분리
+- 전면/후면 Camera output mirror mode를 `on`/`off`로 명시
 - Feed 비율 자동 선택과 latest-only target 준비 구현
-- Pose Matching 29개, Camera 설정 12개, Pose detection 5개 테스트 통과
-- 변경 영역 TypeScript 오류 없음
-- 전체 TypeScript 검사는 기존 shared checkbox/spinner 오류가 남아 있음
+- Pose Matching 30개, Camera 설정 11개, Pose detection 5개 테스트 통과
+- 전체 TypeScript 및 FSD 검사 통과
+- Expo iOS/Android production export 통과
 - UI toast와 overlay 색상은 변경하지 않음
