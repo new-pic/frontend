@@ -11,11 +11,54 @@ import type {
   CaptureToPreviewTransform,
   CanvasRenderRect,
   MediaPipePoseToCaptureTransform,
+  PoseProjectionContext,
   PreviewPoint,
   QuarterTurn,
   ResizeMode,
   SourcePoseToCaptureTransform,
 } from "./types";
+
+export function createPoseProjectionContext({
+  captureSize,
+  captureMirrorX,
+}: {
+  captureSize: CoordinateSize;
+  captureMirrorX: boolean;
+}): PoseProjectionContext {
+  assertPositiveSize(captureSize, "Capture");
+
+  return {
+    captureSize,
+    cropModel: "center-cover",
+    captureMirrorX,
+  };
+}
+
+export function createTargetPoseProjectionTransform(
+  context: PoseProjectionContext,
+  sourceSize: CoordinateSize,
+): SourcePoseToCaptureTransform {
+  return {
+    sourceSize,
+    captureSize: context.captureSize,
+    mirrorX: false,
+    captureResizeMode: "cover",
+  };
+}
+
+export function createLivePoseProjectionTransform(
+  context: PoseProjectionContext,
+  inputSize: CoordinateSize,
+  /** Relative mirror still required after the native input buffer is upright. */
+  frameToCaptureMirrorX: boolean,
+): MediaPipePoseToCaptureTransform {
+  return {
+    inputSize,
+    captureSize: context.captureSize,
+    mirrorX: frameToCaptureMirrorX,
+    captureResizeMode: "cover",
+  };
+}
 
 function assertPositiveSize(size: CoordinateSize, label: string) {
   if (

@@ -42,11 +42,13 @@ import {
   orientCameraResolution,
   resolveCameraChromePresentation,
   resolveCameraDisplayZoomMultiplier,
+  resolveCameraMirrorMode,
   resolveCameraStageAlignment,
 } from "../lib";
 import type {
   CameraAspectRatio,
   CameraCaptureSettings,
+  CameraPosition,
   CameraPhotoFlashMode,
   CameraRuntimeGeometry,
   SessionPhoto,
@@ -154,7 +156,8 @@ function CameraView({
     captureSettings.aspectRatio,
   );
 
-  const [cameraDevice, setCameraDevice] = useState<"front" | "back">("back");
+  const [cameraDevice, setCameraDevice] = useState<CameraPosition>("back");
+  const cameraMirrorMode = resolveCameraMirrorMode(cameraDevice);
   const device = useCameraDevice(cameraDevice, {
     physicalDevices: ["ultra-wide-angle", "wide-angle", "telephoto"],
   });
@@ -246,9 +249,11 @@ function CameraView({
       ),
       previewSize,
       cameraPosition: cameraDevice,
+      captureMirrorX: cameraMirrorMode === "on",
     };
   }, [
     cameraDevice,
+    cameraMirrorMode,
     captureSettings.aspectRatio,
     currentPhotoHeight,
     currentPhotoWidth,
@@ -601,6 +606,7 @@ function CameraView({
                 ref={cameraRef}
                 style={StyleSheet.absoluteFill}
                 resizeMode="cover"
+                mirrorMode={cameraMirrorMode}
                 isActive={isActive}
                 zoom={zoom}
                 device={device}

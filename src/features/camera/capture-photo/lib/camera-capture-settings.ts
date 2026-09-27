@@ -3,7 +3,9 @@ import { CommonResolutions } from "react-native-vision-camera";
 import type {
   CameraAspectRatio,
   CameraCaptureSettings,
+  CameraMirrorMode,
   CameraPhotoFlashMode,
+  CameraPosition,
   CameraResolution,
 } from "../model/models";
 
@@ -43,6 +45,12 @@ export function getEffectivePhotoFlashMode(
   hasFlash: boolean,
 ): CameraPhotoFlashMode {
   return hasFlash ? flashMode : "off";
+}
+
+export function resolveCameraMirrorMode(
+  position: CameraPosition,
+): CameraMirrorMode {
+  return position === "front" ? "on" : "off";
 }
 
 export function getNextPhotoFlashMode(

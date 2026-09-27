@@ -296,6 +296,7 @@ export const CameraCaptureWorkspace = forwardRef<
         const isSame =
           current.aspectRatio === geometry.aspectRatio &&
           current.cameraPosition === geometry.cameraPosition &&
+          current.captureMirrorX === geometry.captureMirrorX &&
           current.captureSize.width === geometry.captureSize.width &&
           current.captureSize.height === geometry.captureSize.height &&
           current.previewSize.width === geometry.previewSize.width &&

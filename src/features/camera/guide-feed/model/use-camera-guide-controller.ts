@@ -8,6 +8,8 @@ import {
 } from "react";
 import {
   adaptDWPoseResult,
+  createPoseProjectionContext,
+  createTargetPoseProjectionTransform,
   DWPoseContractError,
   matchPoseScene,
   prepareLivePoses,
@@ -326,21 +328,36 @@ export function useCameraGuideController({
     state.active !== null &&
     state.active.selection.feedId === selectedFeedId &&
     geometry.aspectRatio === state.active.cameraAspectRatio;
+  const projectionContext = useMemo(
+    () =>
+      geometry
+        ? createPoseProjectionContext({
+            captureSize: geometry.captureSize,
+            captureMirrorX: geometry.captureMirrorX,
+          })
+        : null,
+    [geometry],
+  );
   const targetPoses = useMemo(() => {
-    if (!canProjectToCurrentCapture || !geometry || !state.active?.target) {
+    if (
+      !canProjectToCurrentCapture ||
+      !projectionContext ||
+      !state.active?.target
+    ) {
       return [];
     }
 
     const { target } = state.active;
     return target.sourcePoses.map((pose) =>
-      projectDWPosePoseToCapture(pose, {
-        sourceSize: target.sourceSize,
-        captureSize: geometry.captureSize,
-        mirrorX: false,
-        captureResizeMode: "cover",
-      }),
+      projectDWPosePoseToCapture(
+        pose,
+        createTargetPoseProjectionTransform(
+          projectionContext,
+          target.sourceSize,
+        ),
+      ),
     );
-  }, [canProjectToCurrentCapture, geometry, state.active]);
+  }, [canProjectToCurrentCapture, projectionContext, state.active]);
 
   const targetReady = canProjectToCurrentCapture && targetPoses.length > 0;
   const {
@@ -353,14 +370,14 @@ export function useCameraGuideController({
     enabled: cameraActive && targetReady,
   });
   const matchingInputRef = useRef<{
-    geometry: CameraGuideGeometry;
+    projectionContext: NonNullable<typeof projectionContext>;
     targetPoses: typeof targetPoses;
   } | null>(null);
   useEffect(() => {
     matchingInputRef.current =
-      targetReady && geometry
+      targetReady && projectionContext
         ? {
-            geometry,
+            projectionContext,
             targetPoses,
           }
         : null;
@@ -368,16 +385,14 @@ export function useCameraGuideController({
     return () => {
       matchingInputRef.current = null;
     };
-  }, [geometry, targetPoses, targetReady]);
+  }, [projectionContext, targetPoses, targetReady]);
   const handlePoseFrame = useCallback(
     (frame: DetectedPoseFrame) => {
       const matchingInput = matchingInputRef.current;
       if (!matchingInput) return;
 
       const currentPoses = prepareLivePoses(frame, {
-        captureSize: matchingInput.geometry.captureSize,
-        mirrorX: frame.sourceFrame.isMirrored,
-        captureResizeMode: "cover",
+        projectionContext: matchingInput.projectionContext,
       });
       const result = matchPoseScene(matchingInput.targetPoses, currentPoses);
       observeAlignment({

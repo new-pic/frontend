@@ -1,32 +1,27 @@
-import type {
-  CommonPose,
-  CoordinateSize,
-  DetectedPoseFrame,
-} from "../../model/pose-types";
-import { projectMediaPipePoseToCapture } from "./coordinate-transform";
+import type { CommonPose, DetectedPoseFrame } from "../../model/pose-types";
+import {
+  createLivePoseProjectionTransform,
+  projectMediaPipePoseToCapture,
+} from "./coordinate-transform";
 import { adaptMediaPipePoses } from "./mediapipe-pose-adapter";
-import type { ResizeMode } from "./types";
+import type { PoseProjectionContext } from "./types";
 
 export interface PrepareLivePoseFrameOptions {
-  captureSize: CoordinateSize;
-  mirrorX: boolean;
-  captureResizeMode?: ResizeMode;
+  projectionContext: PoseProjectionContext;
 }
 
 export function prepareLivePoses(
   frame: DetectedPoseFrame,
-  {
-    captureSize,
-    mirrorX,
-    captureResizeMode = "cover",
-  }: PrepareLivePoseFrameOptions,
+  { projectionContext }: PrepareLivePoseFrameOptions,
 ): CommonPose[] {
   return adaptMediaPipePoses(frame.poses).map((pose) =>
-    projectMediaPipePoseToCapture(pose, {
-      inputSize: frame.inputSize,
-      captureSize,
-      mirrorX,
-      captureResizeMode,
-    }),
+    projectMediaPipePoseToCapture(
+      pose,
+      createLivePoseProjectionTransform(
+        projectionContext,
+        frame.inputSize,
+        frame.sourceFrame.isMirrored,
+      ),
+    ),
   );
 }

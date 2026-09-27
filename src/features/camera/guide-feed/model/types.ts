@@ -5,6 +5,7 @@ export type CameraGuideAspectRatio = "4:3" | "16:9";
 export interface CameraGuideGeometry {
   aspectRatio: CameraGuideAspectRatio;
   captureSize: CoordinateSize;
+  captureMirrorX: boolean;
 }
 
 export interface GuideFeedSelection {
