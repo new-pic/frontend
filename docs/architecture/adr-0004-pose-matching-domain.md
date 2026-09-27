@@ -128,7 +128,8 @@ positionScore = score(positionError, positionTolerance)
 
 ### Scale
 
-유효 joint bbox 면적의 제곱근 비율을 사용한다.
+target/live 양쪽에서 유효한 동일 joint 집합으로 만든 bbox 면적의 제곱근
+비율을 사용한다.
 
 ```text
 scaleRatio = sqrt(liveBBoxArea / targetBBoxArea)
@@ -181,6 +182,11 @@ pose mismatch는 가장 낮은 joint group으로 팔/다리/몸통 feedback을
 
 비교 가능한 joint 수가 부족하면 자세 보정으로 오인하지 않고
 `LOW_CONFIDENCE`를 반환한다. UI 문자열은 domain에 포함하지 않는다.
+target에서 joint가 2개 이상 유효한 신체 그룹은 해당 target이 요구하는
+그룹으로 간주한다. live에서 같은 그룹의 공통 joint가 2개 미만이면 다른
+component score가 높아도 비교 불가로 처리한다. 따라서 상반신 target은
+상반신만 요구하지만, 전신 target에서 다리가 사라진 경우 거리 문제로
+오인하지 않는다.
 
 ## Trade-off
 
@@ -215,9 +221,11 @@ pose mismatch는 가장 낮은 joint group으로 팔/다리/몸통 feedback을
 - 누락 visibility를 confidence 0으로 처리
 - DWPose/MediaPipe adapter와 session `PoseProjectionContext` 기반 capture
   projector 분리
+- target/live bbox, center, body scale을 pairwise 공통 joint로 계산
+- target에 존재하는 신체 그룹별 최소 공통 coverage 적용
 - 전면/후면 Camera output mirror mode를 `on`/`off`로 명시
 - Feed 비율 자동 선택과 latest-only target 준비 구현
-- Pose Matching 30개, Camera 설정 11개, Pose detection 5개 테스트 통과
-- 전체 TypeScript 및 FSD 검사 통과
+- Pose Matching 33개, Camera 설정 11개, Pose detection 5개 테스트 통과
+- 전체 TypeScript 검사 통과
 - Expo iOS/Android production export 통과
 - UI toast와 overlay 색상은 변경하지 않음

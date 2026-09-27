@@ -27,6 +27,7 @@ const {
   createTargetPoseProjectionTransform,
   createFeedPoseTargetPreparer,
   createCaptureCanvasSize,
+  DEFAULT_POSE_MATCH_CONFIG,
   matchPoseScene,
   normalizeDWPosePeople,
   orientCoordinateSize,
@@ -228,6 +229,55 @@ test("low-confidence landmarks are excluded from pose error", () => {
   assert.equal(result.aligned, true);
   assert.ok(result.sceneScore > 95);
   assert.equal(result.assignments[0].match.metrics.comparableJointCount, 12);
+});
+
+test("joint group scoring uses the configured minimum comparable joint count", () => {
+  const target = mapPose(createPose(), (value, joint) =>
+    joint === "LEFT_WRIST" ? { ...value, confidence: 0 } : value,
+  );
+  const result = matchPoseScene([target], [target], {
+    ...DEFAULT_POSE_MATCH_CONFIG,
+    minimumComparableJointsPerGroup: 3,
+  });
+
+  assert.equal(
+    result.assignments[0].match.metrics.jointGroupScores.LEFT_ARM,
+    undefined,
+  );
+});
+
+test("pairwise geometry treats missing body groups as confidence loss, not distance", () => {
+  const target = createPose();
+  const live = mapPose(target, (value, joint) =>
+    joint.includes("KNEE") || joint.includes("ANKLE")
+      ? { ...value, confidence: 0 }
+      : value,
+  );
+  const result = matchPoseScene([target], [live]);
+  const metrics = result.assignments[0].match.metrics;
+
+  assert.equal(result.feedback, "LOW_CONFIDENCE");
+  assert.ok(Math.abs(metrics.scaleRatio - 1) < 1e-9);
+  assert.deepEqual(metrics.missingRequiredJointGroups, [
+    "LEFT_LEG",
+    "RIGHT_LEG",
+  ]);
+});
+
+test("an upper-body target only requires body groups visible in the target", () => {
+  const upperBodyTarget = mapPose(createPose(), (value, joint) =>
+    joint.includes("KNEE") || joint.includes("ANKLE")
+      ? { ...value, confidence: 0 }
+      : value,
+  );
+  const result = matchPoseScene([upperBodyTarget], [upperBodyTarget]);
+
+  assert.equal(result.aligned, true);
+  assert.deepEqual(result.assignments[0].match.metrics.requiredJointGroups, [
+    "TORSO",
+    "LEFT_ARM",
+    "RIGHT_ARM",
+  ]);
 });
 
 test("4:3 and 16:9 cover transforms map into capture coordinates", () => {
