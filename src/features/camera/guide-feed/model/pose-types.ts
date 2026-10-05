@@ -121,6 +121,8 @@ export interface PosePairMetrics {
   liveBoundingBox: PoseBoundingBox;
   scaleRatio: number;
   comparableJointCount: number;
+  requiredJointGroups: PoseJointGroup[];
+  missingRequiredJointGroups: PoseJointGroup[];
   jointErrors: Partial<Record<CommonJoint, number>>;
   jointGroupScores: Partial<Record<PoseJointGroup, number>>;
 }

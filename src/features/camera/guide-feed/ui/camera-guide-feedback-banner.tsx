@@ -6,12 +6,18 @@ import type { PoseGuideFeedbackDescriptor } from "../model";
 
 interface CameraGuideFeedbackBannerProps {
   feedback: PoseGuideFeedbackDescriptor | null;
+  personLimitNotice?: string | null;
 }
 
 export function CameraGuideFeedbackBanner({
   feedback,
+  personLimitNotice,
 }: CameraGuideFeedbackBannerProps) {
-  const message = useMemo(() => mapPoseFeedbackMessage(feedback), [feedback]);
+  const feedbackMessage = useMemo(
+    () => mapPoseFeedbackMessage(feedback),
+    [feedback],
+  );
+  const message = personLimitNotice ?? feedbackMessage;
   if (!message) return null;
 
   return (

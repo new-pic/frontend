@@ -129,8 +129,12 @@ SEARCHING과 ALIGNED에서는 원본 Mask만 보인다.
 
 ## Result
 
-- Alignment/EMA/hysteresis/no-pose/rate-limit/message 단위 테스트 추가
-- 전체 Camera/Pose/Guide 단위 테스트 53개 통과
-- Android/iOS Expo production export 성공
-- 전체 TypeScript 검사는 기존 shared checkbox/spinner 오류만 남음
+- elapsed-time EMA, enter/exit hold, component hard-failure, no-frame timeout,
+  no-pose/rate-limit/message 단위 테스트 추가
+- Camera Guide 30개, Pose Matching 33개, Pose detection 5개 테스트 통과
+- 전체 TypeScript 검사 통과
+- Expo iOS/Android production export 통과
+- Pose Guide hook/controller의 render-time ref 접근을 제거해 해당 feature의 React
+  Compiler/Hook 경고를 12개에서 2개로 축소
 - 실제 기기에서 Mask tint 품질과 1~4인 label 안정성 검증 필요
+- 실제 기기에서 `ALIGNED` 진입·이탈 threshold calibration 필요
