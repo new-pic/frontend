@@ -137,3 +137,4 @@ SEARCHING과 ALIGNED에서는 원본 Mask만 보인다.
 - Pose Guide hook/controller의 render-time ref 접근을 제거해 해당 feature의 React
   Compiler/Hook 경고를 12개에서 2개로 축소
 - 실제 기기에서 Mask tint 품질과 1~4인 label 안정성 검증 필요
+- 실제 기기에서 `ALIGNED` 진입·이탈 threshold calibration 필요
