@@ -37,6 +37,9 @@ const {
 } = require("../lib/guide-contour-projection.ts");
 const { mapPoseFeedbackMessage } = require("../lib/pose-feedback-message.ts");
 const {
+  getPoseGuidePersonLimitNotice,
+} = require("../lib/pose-guide-person-limit.ts");
+const {
   resolveFeedCameraAspectRatio,
 } = require("../lib/feed-camera-aspect-ratio.ts");
 const {
@@ -81,6 +84,30 @@ test("피드 이미지 크기가 유효하지 않으면 비율을 선택하지 �
   assert.throws(
     () => resolveFeedCameraAspectRatio({ width: 0, height: 0 }),
     /positive dimensions/,
+  );
+});
+
+test("4명 target은 선택 시 표시할 인원 제한 안내를 제공한다", () => {
+  const input = {
+    selectionRequestId: 7,
+    notifiedSelectionRequestId: null,
+  };
+
+  assert.equal(
+    getPoseGuidePersonLimitNotice({ ...input, targetPersonCount: 3 }),
+    null,
+  );
+  assert.match(
+    getPoseGuidePersonLimitNotice({ ...input, targetPersonCount: 4 }),
+    /최대 4명/,
+  );
+  assert.equal(
+    getPoseGuidePersonLimitNotice({
+      ...input,
+      targetPersonCount: 4,
+      notifiedSelectionRequestId: 7,
+    }),
+    null,
   );
 });
 

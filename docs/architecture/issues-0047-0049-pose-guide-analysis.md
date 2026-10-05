@@ -9,8 +9,8 @@
   - [#48 Pose Matching 및 다중 인물 정렬 판정 로직 재검증](https://github.com/new-pic/frontend/issues/48)
   - [#49 Pose Guide Alignment 및 사용자 Feedback 안정화 정책 재검증](https://github.com/new-pic/frontend/issues/49)
 - 문서 상태: 권장안 47-B + 48-A + 49-B의 클라이언트 구현 및 자동 검증 완료.
-  실제 기기 projection calibration과 #48의 5명 이상 서버 실패 계약 확인은 후속
-  검증이 필요하다.
+  실제 기기 projection calibration은 후속 검증이 필요하다. 서버가 Pose target을
+  최대 4명만 반환하는 정책에 맞춰 선택별 1회 제한 안내를 추가했다.
 
 ## 1. 결론 요약
 
@@ -31,11 +31,11 @@ Capture CommonPose ──────→ PoseSceneMatchResult ───→ Align
 있어 책임 배치는 대체로 적절하다. 다만 현재 상태로 세 이슈를 완료 처리하기는
 어렵다.
 
-| 이슈 | 현재 판정                           | 이유                                                                                                                                                                      |
-| ---- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| #47  | 부분 완료                           | `PoseProjectionContext`와 명시적인 front/back mirror mode를 적용했다. FrameOutput 16:9 → PhotoOutput 4:3은 여전히 `center-cover` 모델이므로 실제 기기 crop 검증은 남는다. |
-| #48  | 클라이언트 구현 완료·서버 계약 대기 | bbox/center/scale의 pairwise 공통 관절 계산과 target-relative body group coverage는 구현했다. 최대 4명 제한의 실제 서버 처리와 오류 계약은 문서로 검증되지 않았다.        |
-| #49  | 구현 완료                           | elapsed-time EMA와 진입/이탈 hold를 적용하고 component 실패, detector idle/error, camera 비활성, frame stall에서 stale `ALIGNED`가 해제되도록 구현했다.                   |
+| 이슈 | 현재 판정            | 이유                                                                                                                                                                      |
+| ---- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| #47  | 부분 완료            | `PoseProjectionContext`와 명시적인 front/back mirror mode를 적용했다. FrameOutput 16:9 → PhotoOutput 4:3은 여전히 `center-cover` 모델이므로 실제 기기 crop 검증은 남는다. |
+| #48  | 클라이언트 구현 완료 | pairwise 공통 관절 계산과 target-relative body group coverage를 구현했다. 4명 target은 선택별 한 번 지원 범위 안내를 표시한다.                                            |
+| #49  | 구현 완료            | elapsed-time EMA와 진입/이탈 hold를 적용하고 component 실패, detector idle/error, camera 비활성, frame stall에서 stale `ALIGNED`가 해제되도록 구현했다.                   |
 
 우선순위가 높은 발견 사항은 다음과 같다.
 
@@ -57,7 +57,7 @@ Capture CommonPose ──────→ PoseSceneMatchResult ───→ Align
 | 검증                                              | 결과             |
 | ------------------------------------------------- | ---------------- |
 | `pnpm test:pose-match`                            | 33/33 통과       |
-| `pnpm test:camera-guide`                          | 28/28 통과       |
+| `pnpm test:camera-guide`                          | 30/30 통과       |
 | `pnpm test:pose-detection`                        | 5/5 통과         |
 | `pnpm test:camera-settings`                       | 11/11 통과       |
 | `pnpm typecheck`                                  | 통과             |
@@ -369,11 +369,12 @@ bbox, center, body scale을 같은 공통 관절 집합으로 계산하지 않�
 
 현재 구현은 두 정책을 명시하지 않은 채 결과적으로 일부 그룹 누락을 허용한다.
 
-#### C. 5명 이상 target은 성공할 수 없다
+#### C. 서버가 최대 4명만 반환하면 제외된 인원을 프론트가 식별할 수 없다
 
-target Pose 배열은 인원 제한 없이 받아들이지만 MediaPipe `numPoses`는 4로 clamp된다.
-5명 이상의 DWPose 결과가 들어오면 live count가 target count와 같아질 수 없으므로
-항상 `PERSON_COUNT_MISMATCH`다.
+MediaPipe `numPoses`와 서버 target은 모두 최대 4명이다. 서버가 탐지 단계부터
+4명으로 제한하면 `rawPersonCount`도 원본 인원을 나타내지 못하므로, 프론트는 원본
+사진이 5명 이상이었다고 단정할 수 없다. 4명 target에서 지원 범위와 일부 인물 제외
+가능성을 선택별 한 번 안내한다.
 
 #### D. assignment는 frame 간 identity를 기억하지 않는다
 
@@ -451,32 +452,29 @@ feedback은 debounce 이전에 후보가 흔들릴 수 있다.
 ### 5.5 결정 기록 — 최대 판정 인원
 
 Decision:
-Pose Guide의 판정 가능 인원을 최대 4명으로 제한하고, DWPose가 5명 이상을 검출하면
-서버가 생성 단계에서 지원 불가 오류를 반환한다. 해당 피드는 생성하거나 저장하지
-않으며, 생성 후 Guide만 비활성화하는 부분 성공 상태를 허용하지 않는다.
+Pose Guide의 판정 가능 인원을 최대 4명으로 제한한다. 서버 target이 4명이면 가이드
+선택 건마다 한 번, 원본 사진에 더 많은 사람이 있을 경우 일부 인물이 제외될 수
+있음을 비차단 배너로 안내한다.
 
 Context:
-DWPose는 5명 이상을 반환할 수 있지만 현재 live MediaPipe detector는 최대 4명이고,
-assignment도 최대 4명을 전제로 한다. 이 차이를 허용하면 클라이언트는 성공할 수 없는
-Guide에 대해 계속 `PERSON_COUNT_MISMATCH`를 반환한다.
+live MediaPipe detector와 assignment, 서버 target이 모두 최대 4명을 전제로 한다.
+서버가 별도 오류 없이 최대 4명만 반환하면 프론트는 원본 인원을 정확히 알 수 없다.
 
 Alternatives:
-대표 4명을 자동 선택하거나, detector 상한을 높이고 assignment를 다인원 알고리즘으로
-교체하는 방안을 검토했다.
+모든 선택에 고정 안내하거나, 서버가 정확한 잘림 metadata를 제공하거나, detector
+상한을 높이고 assignment를 다인원 알고리즘으로 교체하는 방안을 검토했다.
 
 Reason:
-자동 선택은 사용자가 의도한 인물을 조용히 제외할 수 있다. 완전한 5명 이상 지원은
-실시간 추론 성능, 인물 identity, 가림 정책까지 함께 설계해야 하므로 현재 범위를 넘는다.
+4명 target에서만 안내하면 1~3인 사용자의 안내 피로를 줄이고, 5명 이상이라고
+단정하지 않으면서 현재 제한을 설명할 수 있다.
 
 Trade-off:
-판정 가능 범위가 4명으로 명확하고 안정적으로 유지되는 대신 5명 이상 단체 Guide를
-지원하지 않는다.
+4명 target이 정확히 4명인 경우에도 안내하며, 원본이 5명 이상이어도 서버가 3명
+이하만 반환하면 안내하지 못한다.
 
 Result:
-백엔드 담당자로부터 최대 4명으로 변경했다는 전달을 받았다. 그러나 현재 Swagger에는
-최대 4명 제한, 5명 이상 처리 방식, 고정 error code, 임시 Feed·이미지 정리 정책이
-명시되어 있지 않다. 서버 계약 확인 전까지 클라이언트 domain error 매핑과 UI 표현은
-구현하지 않는다.
+백엔드 담당자로부터 최대 4명으로 변경했다는 전달을 받았다. 별도 오류 계약을
+가정하지 않고, 4명 target이 준비되면 선택별 한 번 제한 안내를 표시한다.
 
 ## 6. Issue #49 — Alignment와 Feedback 안정화
 
@@ -686,28 +684,16 @@ required group 판정은 `minimumComparableJointsPerGroup`을 사용했지만 �
 바꾸면 eligibility와 scoring이 서로 다른 정책을 사용할 수 있다. 그룹 score도 같은
 설정값을 사용하도록 수정하고 회귀 테스트를 추가했다.
 
-### 7.8 생성 단계 인원 제한 오류의 클라이언트 경계
+### 7.8 최대 인원 안내의 클라이언트 경계
 
-현재 `/feed` 생성 요청이 즉시 실패하면 `shared/api`의 `ApiRequestError`가 HTTP
-status와 payload를 보존하고, `save-feed`가 서버 message를 실패 배지에 표시한다.
-하지만 이 실패 배지는 누르면 동일 이미지를 재시도하므로, 5명 이상처럼 입력을
-바꾸기 전에는 성공할 수 없는 오류에 맞지 않는다.
+서버는 별도 오류 대신 Pose target을 최대 4명까지만 반환한다. 탐지 자체가 4명으로
+제한되면 프론트는 원본 사진에 더 많은 사람이 있었는지 알 수 없으므로, 5명 이상이라고
+단정하는 오류 UI를 만들 수 없다.
 
-또한 생성 요청이 먼저 job을 반환한 뒤 비동기 DWPose 단계에서 실패한다면 현재
-status/SSE DTO는 `FAILED`만 전달하고 failure code/message를 잃는다. 따라서 이
-오류의 분류와 retry 가능 여부는 Camera Guide가 아니라 `features/feed/save-feed`
-model이 소유해야 한다. `shared/api`는 transport payload 보존까지만 담당한다.
-
-검토할 실제 계약은 다음 두 가지다.
-
-1. 동기 거절: `/feed`가 domain code를 포함한 4xx를 반환하고 job/feed를 만들지 않는다.
-2. 비동기 거절: job은 만들되 `FAILED` status/SSE에 domain code/message를 포함하고
-   feed는 저장하지 않는다.
-
-현재 비동기 publishing pipeline을 유지할 수 있는 2번이 구조 변화가 적다. 어느
-방식이든 안정적인 error code와 `retryable=false` 의미가 정해져야 client가 동일
-이미지 자동 재시도를 막고 이미지 교체 안내를 할 수 있다. 서버 구현이 아직 없으므로
-클라이언트는 payload를 추측해 선행 구현하지 않고 계약 확정까지 대기한다.
+최대 인원 안내는 피드 생성 실패가 아니라 Camera Guide의 기능 한계다. 따라서
+`features/camera/guide-feed`가 target 준비 후 인원 수를 확인하고, 4명 target에서
+선택별 한 번 비차단 안내를 표시한다. 안내는 촬영, RTC, Pose Matching 상태를
+변경하지 않으며 5초 후 기존 Alignment 피드백으로 복귀한다.
 
 ## 8. 추천 통합 구조
 
@@ -784,7 +770,7 @@ front/back, 4:3/16:9 각각에서 화면의 알려진 5~9개 지점에 marker를
 - 상반신/전신 target
 - 한쪽 팔/다리 가림, capture 경계 밖 joint
 - target/live confidence 비대칭
-- 5명 이상 target eligibility
+- 4명 target의 선택별 제한 안내와 1~3명 비노출
 - 동일 구도에서 front mirror on/off
 
 ### 9.3 Alignment timeline test
@@ -854,22 +840,22 @@ validity → alignment state machine 순서로 작게 구현**하는 것이 가�
 - 사용되지 않던 raw matching snapshot ref를 제거하고 render-time ref 접근을 effect
   경계로 옮겨 Pose Guide 영역의 React Compiler 경고를 줄였다.
 
-자동 검증 결과는 Pose Matching 33/33, Camera Guide 28/28, Pose Detection 5/5,
+자동 검증 결과는 Pose Matching 33/33, Camera Guide 30/30, Pose Detection 5/5,
 Camera Settings 11/11이며 TypeScript와 FSD 검사는 통과했다. FSD 검사는 현재
 환경의 native watcher 제한을 피하기 위해 polling mode로 실행했다. Expo iOS/Android
 production export도 모두 통과했다.
 
 ## 13. 책임 경계 재검토 결과
 
-| 책임                                                       | 소유 위치                          | 판정                   |
-| ---------------------------------------------------------- | ---------------------------------- | ---------------------- |
-| Camera output 크기·비율·front/back mirror 정책             | `features/camera/capture-photo`    | 적합                   |
-| VisionCamera Frame metadata와 MediaPipe native 수명        | `modules/vision-camera-pose`       | 적합                   |
-| DWPose/MediaPipe → CommonPose adapter, projection, matcher | `features/camera/guide-feed/lib`   | 적합                   |
-| Guide 선택·target 준비·detector/alignment 수명             | `features/camera/guide-feed/model` | 적합                   |
-| Camera와 Guide feature 조합 및 geometry 전달               | `widgets/camera/capture-workspace` | 적합                   |
-| Overlay/banner 표현                                        | `features/camera/guide-feed/ui`    | 적합                   |
-| 5명 이상 생성 실패 분류·retry 정책                         | `features/feed/save-feed/model`    | 계약 확정 후 구현 필요 |
+| 책임                                                       | 소유 위치                          | 판정 |
+| ---------------------------------------------------------- | ---------------------------------- | ---- |
+| Camera output 크기·비율·front/back mirror 정책             | `features/camera/capture-photo`    | 적합 |
+| VisionCamera Frame metadata와 MediaPipe native 수명        | `modules/vision-camera-pose`       | 적합 |
+| DWPose/MediaPipe → CommonPose adapter, projection, matcher | `features/camera/guide-feed/lib`   | 적합 |
+| Guide 선택·target 준비·detector/alignment 수명             | `features/camera/guide-feed/model` | 적합 |
+| Camera와 Guide feature 조합 및 geometry 전달               | `widgets/camera/capture-workspace` | 적합 |
+| Overlay/banner 표현                                        | `features/camera/guide-feed/ui`    | 적합 |
+| 4명 target의 선택별 제한 안내                              | `features/camera/guide-feed`       | 적합 |
 
 `capture-photo`와 `guide-feed`가 서로 직접 import하지 않고 widget이 두 public API를
 조립한다. `CameraRuntimeGeometry` 전체를 Guide가 소유하지 않고 필요한 subset만
@@ -891,26 +877,22 @@ Steiger FSD 검사도 위반 없이 통과했다. 따라서 현재 구현에서 
 [확정된 사항]
 
 1. Pose Guide 판정 인원은 최대 4명으로 제한한다.
-2. DWPose가 5명 이상을 검출하면 임의로 4명을 선택하지 않고 서버가 지원 불가 오류를
-   반환한다.
-3. 이 오류는 생성 단계에서 전체 요청을 실패시키며 해당 피드를 저장하지 않는다.
+2. 서버가 Pose target을 최대 4명만 반환하는 정책을 수용한다.
+3. 4명 target은 선택별 한 번, 일부 인물이 제외될 수 있음을 비차단 안내한다.
 4. #47은 `PoseProjectionContext`를 도입하는 47-B를 선택한다.
 5. 전면 카메라는 기존 selfie 동작을 명시화해 Preview와 저장 사진을 모두 mirror한다.
 6. #48은 pairwise 공통 관절과 target-relative group coverage를 적용하는 48-A를
    선택한다.
 7. #49는 FPS 독립적인 시간 기반 상태 머신인 49-B를 선택한다.
 8. 이 환경에서 Expo 개발 서버를 LAN에 공개하는 실제 iPhone 검증은 진행하지 않는다.
-9. 백엔드 담당자로부터 최대 4명 변경을 전달받았지만 Swagger 계약으로 확인되기 전에는
-   클라이언트 error code를 추측해 구현하지 않는다.
+9. 서버가 원본 인원이나 잘림 여부를 보장하지 않으므로 5명 이상이라고 단정하지 않는다.
 
 [결정이 필요한 사항]
 
 1. 향후 별도 실제 기기 검증에서 16:9 FrameOutput → 4:3 PhotoOutput 좌표 오차를
    측정한 뒤 현재
    `center-cover` adapter를 유지할지 native crop transform을 추가할지 결정해야 한다.
-2. 5명 이상에서 DWPose 결과를 4명으로 자르는지, 비동기 job `FAILED`로 종료하는지,
-   그리고 고정 error code/message와 임시 Feed·이미지 정리 정책을 확인해야 한다.
-3. backend Pose 응답에 source width/height, orientation/mirror, body layout,
+2. backend Pose 응답에 source width/height, orientation/mirror, body layout,
    schema/model version을 추가할 수 있는지 협의가 필요하다.
-4. 좌표 오차, ALIGNED 진입/이탈 시간, feedback 지연에 대한 실제 기기 합격 기준을
+3. 좌표 오차, ALIGNED 진입/이탈 시간, feedback 지연에 대한 실제 기기 합격 기준을
    함께 정해야 한다.
