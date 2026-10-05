@@ -5,6 +5,10 @@ import {
   FeedPublishingCoordinator,
 } from "@features/feed/save-feed";
 import {
+  AuthRecoveryErrorScreen,
+  recoverAuthSession,
+} from "@features/user/restore-auth-session";
+import {
   CAMERA_GUIDE_NAVIGATION,
   CameraGuideNavigationSearchParams,
   createCameraGuidePath,
@@ -73,12 +77,9 @@ export default function RootLayout() {
   const returnToParam = searchParams.returnTo;
   const guideFeedIdParam = searchParams[CAMERA_GUIDE_NAVIGATION.params.feedId];
 
-  const initializeAuthState = useAuthStore(
-    (state) => state.initializeAuthState,
-  );
   const accessToken = useAuthStore((state) => state.accessToken);
   const authEntryIntent = useAuthStore((state) => state.authEntryIntent);
-  const isInitialized = useAuthStore((state) => state.isInitialized);
+  const authRecoveryStatus = useAuthStore((state) => state.authRecoveryStatus);
 
   const [loaded] = useFonts({
     "Paperlogy-1Thin": require("@assets/fonts/Paperlogy-1Thin.ttf"),
@@ -93,14 +94,11 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      await initializeAuthState();
-    };
-    initializeAuth();
-  }, [initializeAuthState]);
+    void recoverAuthSession();
+  }, []);
 
   useEffect(() => {
-    if (!isInitialized) return;
+    if (authRecoveryStatus !== "ready") return;
 
     const code = getFirstSearchParam(codeParam);
     const joinSheet = getFirstSearchParam(joinSheetParam);
@@ -137,16 +135,26 @@ export default function RootLayout() {
     }
   }, [
     accessToken,
+    authRecoveryStatus,
     authEntryIntent,
     codeParam,
     guideFeedIdParam,
-    isInitialized,
     joinSheetParam,
     pathname,
     returnToParam,
   ]);
 
-  if (!loaded || !isInitialized) return null;
+  if (!loaded || authRecoveryStatus === "initializing") return null;
+
+  if (authRecoveryStatus === "recoverable-error") {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <GluestackUIProvider>
+          <AuthRecoveryErrorScreen />
+        </GluestackUIProvider>
+      </GestureHandlerRootView>
+    );
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

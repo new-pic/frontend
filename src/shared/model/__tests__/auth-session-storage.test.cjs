@@ -63,6 +63,7 @@ const seedAuthenticatedState = () => {
     userId: "member-id",
     isGuest: false,
     isInitialized: true,
+    authRecoveryStatus: "ready",
     termsAgreed: true,
   });
 };
@@ -73,6 +74,7 @@ const assertLoggedOutState = () => {
   assert.equal(state.userId, null);
   assert.equal(state.isGuest, false);
   assert.equal(state.isInitialized, true);
+  assert.equal(state.authRecoveryStatus, "ready");
   assert.equal(state.termsAgreed, false);
 };
 
@@ -130,6 +132,21 @@ test("두 token 저장이 모두 성공한 뒤 runtime session을 활성화한�
   assert.deepEqual(requestedKeys, []);
   assert.equal(useAuthStore.getState().accessToken, "new-access-token");
   assert.equal(useAuthStore.getState().userId, "new-member-id");
+});
+
+test("token 갱신은 refresh token을 다시 쓰지 않고 access token만 교체한다", async () => {
+  seedAuthenticatedState();
+
+  await useAuthStore.getState().setRefreshedAccessToken({
+    accessToken: "refreshed-access-token",
+    termsAgreed: true,
+  });
+
+  assert.deepEqual(storedEntries, [
+    [AUTH_SESSION_STORAGE_KEYS.ACCESS_TOKEN, "refreshed-access-token"],
+  ]);
+  assert.equal(useAuthStore.getState().accessToken, "refreshed-access-token");
+  assert.equal(useAuthStore.getState().authRecoveryStatus, "ready");
 });
 
 test("access token 저장 실패 시 영속 session을 rollback하고 runtime session을 유지한다", async () => {

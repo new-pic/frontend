@@ -61,6 +61,7 @@ test.beforeEach(() => {
     userId: null,
     isGuest: false,
     isInitialized: false,
+    authRecoveryStatus: "initializing",
     termsAgreed: false,
   });
 });
@@ -144,10 +145,8 @@ test("동의하지 않은 세션은 토큰을 저장하지 않는다", async () 
   assert.equal(useAuthStore.getState().accessToken, null);
 });
 
-test("저장된 토큰은 약관 동의가 완료된 세션으로 복원한다", async () => {
-  secureValues.set("accessToken", "guest-access-token");
-
-  await useAuthStore.getState().initializeAuthState();
+test("복구된 토큰은 약관 동의가 완료된 세션으로 활성화한다", () => {
+  useAuthStore.getState().restorePersistedSession("guest-access-token");
 
   assert.equal(useAuthStore.getState().termsAgreed, true);
   assert.equal(useAuthStore.getState().accessToken, "guest-access-token");

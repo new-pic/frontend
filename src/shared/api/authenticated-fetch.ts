@@ -1,8 +1,7 @@
 import { decodeAccessToken } from "@shared/lib/jwt";
 import { useAuthStore } from "@shared/model";
+import { AUTH_ACCESS_TOKEN_EXPIRY_LEEWAY_MS } from "./auth-token-policy";
 import { refreshAuthSession } from "./refresh-auth-session";
-
-const ACCESS_TOKEN_EXPIRY_LEEWAY_MS = 30_000;
 
 type AuthenticatedRequest = (accessToken: string) => Promise<Response>;
 
@@ -23,7 +22,7 @@ export async function getFreshAccessToken(): Promise<string> {
     !decodeAccessToken.isExpired(
       accessToken,
       Date.now(),
-      ACCESS_TOKEN_EXPIRY_LEEWAY_MS,
+      AUTH_ACCESS_TOKEN_EXPIRY_LEEWAY_MS,
     )
   ) {
     return accessToken;
