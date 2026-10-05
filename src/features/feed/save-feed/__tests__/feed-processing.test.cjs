@@ -33,6 +33,10 @@ const {
   projectFeedProcessingProgress,
   rebaseFeedProcessingProgressProjection,
 } = require("../model/processing/feed-processing-progress.ts");
+const {
+  createFeedProcessingDataPreview,
+  summarizeFeedProcessingError,
+} = require("../lib/feed-processing-debug.ts");
 
 let getStatusImpl;
 let subscribeEventsImpl;
@@ -62,6 +66,31 @@ const completedStatus = {
   progressPercent: 100,
   isCompleted: true,
 };
+
+test("디버깅 오류 요약은 인증 헤더를 제외하고 상태와 코드만 남긴다", () => {
+  const summary = summarizeFeedProcessingError({
+    name: "AxiosError",
+    message: "Request failed with status code 401",
+    code: "ERR_BAD_REQUEST",
+    response: { status: 401 },
+    config: { headers: { Authorization: "Bearer secret-token" } },
+  });
+
+  assert.deepEqual(summary, {
+    name: "AxiosError",
+    message: "Request failed with status code 401",
+    code: "ERR_BAD_REQUEST",
+    status: 401,
+  });
+  assert.equal(JSON.stringify(summary).includes("secret-token"), false);
+});
+
+test("SSE payload 미리보기는 공백을 정리하고 길이를 제한한다", () => {
+  const preview = createFeedProcessingDataPreview(`  ${"a".repeat(400)}\n`);
+
+  assert.equal(preview.length, 301);
+  assert.equal(preview.endsWith("…"), true);
+});
 
 test("분할된 SSE chunk와 CRLF를 하나의 progress event로 조립한다", () => {
   const messages = [];

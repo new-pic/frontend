@@ -8,6 +8,11 @@ import {
 } from "../../api/feed-ai-job-client";
 import type { FeedAiJobEvent } from "../../api/feed-ai-job-event";
 import { FEED_PROCESSING_CONFIG } from "../../config/feed-processing-config";
+import {
+  logFeedProcessingDebug,
+  summarizeFeedProcessingError,
+  warnFeedProcessingDebug,
+} from "../../lib/feed-processing-debug";
 import type { FeedProcessingMonitoringState } from "./feed-processing-types";
 
 export type FeedAiJobMonitorResult = "completed" | "failed" | "aborted";
@@ -81,6 +86,11 @@ export async function monitorFeedAiJob({
   const streamController = new AbortController();
   const { signal } = streamController;
 
+  logFeedProcessingDebug("Monitor", "started", {
+    jobId,
+    lifecycleAlreadyAborted: lifecycleSignal.aborted,
+  });
+
   let resolveTerminal!: (
     result: Exclude<FeedAiJobMonitorResult, "aborted">,
   ) => void;
@@ -96,8 +106,15 @@ export async function monitorFeedAiJob({
   if (lifecycleSignal.aborted) abortStream();
   else lifecycleSignal.addEventListener("abort", abortStream, { once: true });
 
-  const synchronizeStatus = async () => {
+  const synchronizeStatus = async (source: "initial" | "polling") => {
     const status = await getFeedAiJobStatus(jobId, signal);
+    logFeedProcessingDebug("Status", "snapshot-received", {
+      jobId,
+      source,
+      status: status.status,
+      progressPercent: status.progressPercent,
+      isCompleted: status.isCompleted,
+    });
     onStatusSnapshot(status);
     return getStatusResult(status);
   };
@@ -106,6 +123,11 @@ export async function monitorFeedAiJob({
     const result = getEventResult(event);
 
     if (result) {
+      logFeedProcessingDebug("Monitor", "terminal-event-received", {
+        jobId,
+        eventType: event.type,
+        result,
+      });
       resolveTerminal(result);
       return;
     }
@@ -116,15 +138,32 @@ export async function monitorFeedAiJob({
   };
 
   const pollUntilTerminal = async (): Promise<FeedAiJobMonitorResult> => {
+    logFeedProcessingDebug("Polling", "started", {
+      jobId,
+      intervalMs: FEED_PROCESSING_CONFIG.pollingIntervalMs,
+    });
     onMonitoringStateChange("polling");
 
     while (!signal.aborted) {
       try {
-        const result = await synchronizeStatus();
-        if (result) return result;
+        const result = await synchronizeStatus("polling");
+        if (result) {
+          logFeedProcessingDebug("Polling", "terminal-status-received", {
+            jobId,
+            result,
+          });
+          return result;
+        }
         onMonitoringStateChange("polling");
       } catch (error) {
-        if (isAbortError(error, signal)) return "aborted";
+        if (isAbortError(error, signal)) {
+          logFeedProcessingDebug("Polling", "aborted", { jobId });
+          return "aborted";
+        }
+        warnFeedProcessingDebug("Polling", "status-request-failed", {
+          jobId,
+          error: summarizeFeedProcessingError(error),
+        });
         onMonitoringStateChange("disconnected");
       }
 
@@ -140,16 +179,33 @@ export async function monitorFeedAiJob({
 
   try {
     try {
-      const result = await synchronizeStatus();
-      if (result) return result;
+      const result = await synchronizeStatus("initial");
+      if (result) {
+        logFeedProcessingDebug("Monitor", "initial-status-terminal", {
+          jobId,
+          result,
+        });
+        return result;
+      }
     } catch (error) {
-      if (isAbortError(error, signal)) return "aborted";
+      if (isAbortError(error, signal)) {
+        logFeedProcessingDebug("Monitor", "initial-status-aborted", { jobId });
+        return "aborted";
+      }
+      warnFeedProcessingDebug("Status", "initial-request-failed", {
+        jobId,
+        error: summarizeFeedProcessingError(error),
+      });
       onMonitoringStateChange("disconnected");
     }
 
-    if (signal.aborted) return "aborted";
+    if (signal.aborted) {
+      logFeedProcessingDebug("Monitor", "aborted-before-stream", { jobId });
+      return "aborted";
+    }
 
     try {
+      logFeedProcessingDebug("Monitor", "stream-connecting", { jobId });
       onMonitoringStateChange("connecting");
 
       const streamResult = await Promise.race([
@@ -163,18 +219,33 @@ export async function monitorFeedAiJob({
       ]);
 
       if (streamResult) {
+        logFeedProcessingDebug("Monitor", "stream-terminal-result", {
+          jobId,
+          result: streamResult,
+        });
         streamController.abort();
         return streamResult;
       }
 
       throw new Error("Feed AI job stream ended before a terminal event");
     } catch (error) {
-      if (isAbortError(error, signal)) return "aborted";
+      if (isAbortError(error, signal)) {
+        logFeedProcessingDebug("Monitor", "stream-aborted", { jobId });
+        return "aborted";
+      }
 
+      warnFeedProcessingDebug("Monitor", "stream-fallback-to-polling", {
+        jobId,
+        error: summarizeFeedProcessingError(error),
+      });
       onMonitoringStateChange("disconnected");
       return pollUntilTerminal();
     }
   } finally {
     lifecycleSignal.removeEventListener("abort", abortStream);
+    logFeedProcessingDebug("Monitor", "finished", {
+      jobId,
+      aborted: signal.aborted,
+    });
   }
 }
