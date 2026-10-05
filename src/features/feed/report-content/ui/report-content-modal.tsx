@@ -86,7 +86,7 @@ export function ReportContentModal({
       <BottomSheetModal open onClose={onClose} lockedSnapPoint="50%">
         <VStack className="flex-1 items-center justify-center px-6" space="xl">
           <VStack className="items-center" space="sm">
-            <Text size="xl" className="font-bold">
+            <Text size="xl" className="font-paperlogy-bold">
               {t("feed.report.receivedTitle")}
             </Text>
             <Text className="text-center text-label-muted">
@@ -118,7 +118,7 @@ export function ReportContentModal({
           contentContainerStyle={{ padding: 24, gap: 24 }}
         >
           <VStack space="xs">
-            <Text size="xl" className="font-bold">
+            <Text size="xl" className="font-paperlogy-bold">
               {t("feed.report.title", { target: targetLabel })}
             </Text>
             <Text className="text-label-muted">
@@ -131,7 +131,7 @@ export function ReportContentModal({
             control={form.control}
             render={({ field }) => (
               <VStack space="sm">
-                <Text className="font-semibold">
+                <Text className="font-paperlogy-semibold">
                   {t("feed.report.reasonLabel")}
                 </Text>
                 <Pressable
@@ -173,7 +173,11 @@ export function ReportContentModal({
                             setIsReasonListOpen(false);
                           }}
                         >
-                          <Text className={isSelected ? "font-semibold" : ""}>
+                          <Text
+                            className={
+                              isSelected ? "font-paperlogy-semibold" : ""
+                            }
+                          >
                             {t(option.translationKey)}
                           </Text>
                           {isSelected ? (
@@ -197,7 +201,7 @@ export function ReportContentModal({
             render={({ field }) => (
               <VStack space="xs">
                 <HStack className="items-center justify-between">
-                  <Text className="font-semibold">
+                  <Text className="font-paperlogy-semibold">
                     {t("feed.report.detailOptional")}
                   </Text>
                   <Text size="xs" className="text-label-muted">

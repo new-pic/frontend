@@ -159,7 +159,7 @@ export function FeedEditPage({ id, isEditMode }: FeedEditPageProps) {
             >
               <ButtonIcon as={IconChevronLeft} />
             </Button>
-            <Text className="font-semibold" size="lg">
+            <Text className="font-paperlogy-semibold" size="lg">
               {isEditMode ? t("feed.editTitle") : t("feed.createTitle")}
             </Text>
             <Box className="w-12" />
@@ -190,7 +190,7 @@ export function FeedEditPage({ id, isEditMode }: FeedEditPageProps) {
                   disabled={!selectedImage || isLoadingAlbum}
                   onPress={handlePressButton}
                 >
-                  <ButtonText size="lg" className="font-semibold">
+                  <ButtonText size="lg" className="font-paperlogy-semibold">
                     {isLoadingAlbum
                       ? t("common.actions.selecting")
                       : t("common.actions.select")}

@@ -169,7 +169,7 @@ export function FeedDetailContent({
                       </Avatar>
                     </View>
                     <Text
-                      className="font-semibold text-white"
+                      className="font-paperlogy-semibold text-white"
                       size="lg"
                       numberOfLines={1}
                       style={{
@@ -206,7 +206,7 @@ export function FeedDetailContent({
                       onPress={() => void feedLike.toggle()}
                     />
                     <Text
-                      className="font-semibold text-white"
+                      className="font-paperlogy-semibold text-white"
                       size="lg"
                       style={{
                         fontVariant: ["tabular-nums"],

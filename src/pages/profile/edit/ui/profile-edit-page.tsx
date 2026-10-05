@@ -57,7 +57,7 @@ export function ProfileEditPage() {
             >
               <ButtonIcon as={IconChevronLeft} />
             </Button>
-            <Text className="font-semibold" size="lg">
+            <Text className="font-paperlogy-semibold" size="lg">
               {t("profile.editTitle")}
             </Text>
             <Box className="w-12" />
@@ -84,7 +84,9 @@ export function ProfileEditPage() {
                 control={form.control}
                 render={({ field }) => (
                   <VStack space="xs">
-                    <Text className="font-medium">{t("profile.nickname")}</Text>
+                    <Text className="font-paperlogy-medium">
+                      {t("profile.nickname")}
+                    </Text>
                     <Input>
                       <InputField
                         value={field.value}

@@ -685,7 +685,7 @@ export function CustomCamera({
   if (!hasPermission) {
     return (
       <VStack className="h-full items-center justify-center bg-white">
-        <Text className="mb-4 font-bold text-black whitespace-pre-line">
+        <Text className="mb-4 font-paperlogy-bold text-black whitespace-pre-line">
           {t("camera.permission")}
         </Text>
         <Button variant="outline" onPress={requestPermission}>

@@ -41,7 +41,7 @@ export function SetupButton({ form }: { form: UseSetupFormReturn }) {
       isLoading={isSubmitting}
       onPress={form.handleSubmit(onSubmit)}
     >
-      <ButtonText size="lg" className="font-semibold">
+      <ButtonText size="lg" className="font-paperlogy-semibold">
         {t("profile.setup")}
       </ButtonText>
     </Button>

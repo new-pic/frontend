@@ -150,7 +150,7 @@ export function GuideSelectionControl({
           />
         ) : (
           !selectedGuide && (
-            <Text className="font-semibold text-xs text-white">
+            <Text className="font-paperlogy-semibold text-xs text-white">
               {t("guide.selectButton")}
             </Text>
           )

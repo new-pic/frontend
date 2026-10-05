@@ -82,7 +82,7 @@ export function TagBottomSheet({
       >
         <VStack className="px-6 pt-3" style={{ flexShrink: 0 }} space="xl">
           <HStack className="justify-center">
-            <Text className="font-semibold text-lg">
+            <Text className="font-paperlogy-semibold text-lg">
               {t("feed.tags.searchTitle")}
             </Text>
           </HStack>
@@ -121,7 +121,7 @@ export function TagBottomSheet({
                 }}
               >
                 <HStack className="px-2 py-3 items-center justify-between">
-                  <Text className="font-medium"># {item.label}</Text>
+                  <Text className="font-paperlogy-medium"># {item.label}</Text>
                   {localSelectedTags?.includes(item.label) && (
                     <Icon as={IconCheck} color={colors.brand.primary} />
                   )}
@@ -137,7 +137,9 @@ export function TagBottomSheet({
         >
           <VStack className="flex-1 px-8 py-4" space="md">
             <HStack className="items-center justify-between">
-              <Text className="font-semibold">{t("feed.tags.selected")}</Text>
+              <Text className="font-paperlogy-semibold">
+                {t("feed.tags.selected")}
+              </Text>
             </HStack>
             <HStack className="gap-1">
               {localSelectedTags?.map((tag) => (

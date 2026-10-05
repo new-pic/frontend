@@ -98,7 +98,7 @@ export function PhotoGalleryModal<
               >
                 <ButtonIcon as={IconChevronLeft} />
               </Button>
-              <Text size="lg" className="font-semibold">
+              <Text size="lg" className="font-paperlogy-semibold">
                 {t("photo.preview")}
               </Text>
               <Box className="w-12 items-center">
@@ -162,7 +162,7 @@ export function PhotoGalleryModal<
               <HStack className="items-center justify-center">
                 <Text
                   size="lg"
-                  className="font-semibold"
+                  className="font-paperlogy-semibold"
                   style={{ fontVariant: ["tabular-nums"] }}
                 >
                   {activeIndex + 1} / {images.length}
