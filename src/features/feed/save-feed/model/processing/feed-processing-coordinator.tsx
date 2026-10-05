@@ -2,6 +2,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 import { refreshPublishedFeedLists } from "../../lib/refresh-published-feed-lists";
+import {
+  errorFeedProcessingDebug,
+  logFeedProcessingDebug,
+  summarizeFeedProcessingError,
+} from "../../lib/feed-processing-debug";
 import { monitorFeedAiJob } from "./feed-ai-job-monitor";
 import { useFeedProcessingStore } from "./feed-processing-store";
 
@@ -18,7 +23,15 @@ export function FeedProcessingCoordinator() {
   );
 
   useEffect(() => {
-    const subscription = AppState.addEventListener("change", setAppState);
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      setAppState((previousAppState) => {
+        logFeedProcessingDebug("Coordinator", "app-state-changed", {
+          previousAppState,
+          nextAppState,
+        });
+        return nextAppState;
+      });
+    });
     return () => subscription.remove();
   }, []);
 
@@ -52,6 +65,12 @@ export function FeedProcessingCoordinator() {
 
     const controller = new AbortController();
 
+    logFeedProcessingDebug("Coordinator", "monitor-started", {
+      jobId,
+      processingPhase,
+      appState,
+    });
+
     void monitorFeedAiJob({
       jobId,
       signal: controller.signal,
@@ -61,15 +80,31 @@ export function FeedProcessingCoordinator() {
         useFeedProcessingStore.getState().applyProgressEvent(jobId, event),
       onMonitoringStateChange: (state) =>
         useFeedProcessingStore.getState().setMonitoringState(jobId, state),
-    }).then((result) => {
-      if (result === "completed") {
-        useFeedProcessingStore.getState().markProcessingCompleted(jobId);
-      } else if (result === "failed") {
-        useFeedProcessingStore.getState().markProcessingFailed(jobId);
-      }
-    });
+    })
+      .then((result) => {
+        logFeedProcessingDebug("Coordinator", "monitor-result", {
+          jobId,
+          result,
+        });
+        if (result === "completed") {
+          useFeedProcessingStore.getState().markProcessingCompleted(jobId);
+        } else if (result === "failed") {
+          useFeedProcessingStore.getState().markProcessingFailed(jobId);
+        }
+      })
+      .catch((error) => {
+        errorFeedProcessingDebug("Coordinator", "monitor-rejected", {
+          jobId,
+          error: summarizeFeedProcessingError(error),
+        });
+      });
 
     return () => {
+      logFeedProcessingDebug("Coordinator", "monitor-cleanup", {
+        jobId,
+        processingPhase,
+        appState,
+      });
       controller.abort();
       const current = useFeedProcessingStore.getState().processingLifecycle;
       if (
