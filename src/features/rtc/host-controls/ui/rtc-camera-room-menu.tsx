@@ -152,7 +152,7 @@ export function RtcCameraRoomMenu({
           >
             {mode === "LIVE" ? (
               <>
-                <Text className="px-4 pb-2 pt-4 font-semibold">
+                <Text className="px-4 pb-2 pt-4 font-paperlogy-semibold">
                   참여자 {participants.length}명
                 </Text>
                 {participants.length > 0 ? (
@@ -179,7 +179,10 @@ export function RtcCameraRoomMenu({
                             <IconUserFilled size={20} color="white" />
                           </View>
                         )}
-                        <Text numberOfLines={1} className="flex-1 font-medium">
+                        <Text
+                          numberOfLines={1}
+                          className="flex-1 font-paperlogy-medium"
+                        >
                           {item.nickname}
                         </Text>
                       </View>
@@ -199,7 +202,7 @@ export function RtcCameraRoomMenu({
                   onPress={() => runAction(onEndRoomPress)}
                   className="min-h-13 justify-center px-[1.125rem]"
                 >
-                  <Text className="font-semibold text-red-600">
+                  <Text className="font-paperlogy-semibold text-red-600">
                     방 종료하기
                   </Text>
                 </Pressable>
@@ -211,7 +214,7 @@ export function RtcCameraRoomMenu({
                   onPress={() => runAction(onJoinPress)}
                   className="min-h-13 justify-center px-[1.125rem]"
                 >
-                  <Text className="font-medium">참여하기</Text>
+                  <Text className="font-paperlogy-medium">참여하기</Text>
                 </Pressable>
                 <View
                   className="bg-outline"
@@ -226,8 +229,8 @@ export function RtcCameraRoomMenu({
                   <Text
                     className={
                       isCameraReady
-                        ? "font-medium"
-                        : "font-medium text-label-muted"
+                        ? "font-paperlogy-medium"
+                        : "font-paperlogy-medium text-label-muted"
                     }
                   >
                     {isCameraReady ? "실시간 공유하기" : "카메라 준비 중"}

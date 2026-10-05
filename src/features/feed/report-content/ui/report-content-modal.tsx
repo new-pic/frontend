@@ -81,7 +81,7 @@ export function ReportContentModal({
       <BottomSheetModal open onClose={onClose} lockedSnapPoint="50%">
         <VStack className="flex-1 items-center justify-center px-6" space="xl">
           <VStack className="items-center" space="sm">
-            <Text size="xl" className="font-bold">
+            <Text size="xl" className="font-paperlogy-bold">
               신고가 접수되었습니다
             </Text>
             <Text className="text-center text-label-muted">
@@ -113,7 +113,7 @@ export function ReportContentModal({
           contentContainerStyle={{ padding: 24, gap: 24 }}
         >
           <VStack space="xs">
-            <Text size="xl" className="font-bold">
+            <Text size="xl" className="font-paperlogy-bold">
               {targetLabel} 신고
             </Text>
             <Text className="text-label-muted">
@@ -126,7 +126,7 @@ export function ReportContentModal({
             control={form.control}
             render={({ field }) => (
               <VStack space="sm">
-                <Text className="font-semibold">신고 사유</Text>
+                <Text className="font-paperlogy-semibold">신고 사유</Text>
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="신고 사유 선택"
@@ -164,7 +164,11 @@ export function ReportContentModal({
                             setIsReasonListOpen(false);
                           }}
                         >
-                          <Text className={isSelected ? "font-semibold" : ""}>
+                          <Text
+                            className={
+                              isSelected ? "font-paperlogy-semibold" : ""
+                            }
+                          >
                             {option.label}
                           </Text>
                           {isSelected ? (
@@ -188,7 +192,9 @@ export function ReportContentModal({
             render={({ field }) => (
               <VStack space="xs">
                 <HStack className="items-center justify-between">
-                  <Text className="font-semibold">상세 사유 (선택)</Text>
+                  <Text className="font-paperlogy-semibold">
+                    상세 사유 (선택)
+                  </Text>
                   <Text size="xs" className="text-label-muted">
                     {description.length}/{CONTENT_REPORT_DESCRIPTION_MAX_LENGTH}
                   </Text>

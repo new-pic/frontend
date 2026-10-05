@@ -157,7 +157,7 @@ export function FeedEditPage({ id, isEditMode }: FeedEditPageProps) {
             >
               <ButtonIcon as={IconChevronLeft} />
             </Button>
-            <Text className="font-semibold" size="lg">
+            <Text className="font-paperlogy-semibold" size="lg">
               {isEditMode ? "피드 수정하기" : "피드 작성하기"}
             </Text>
             <Box className="w-12" />
@@ -188,7 +188,7 @@ export function FeedEditPage({ id, isEditMode }: FeedEditPageProps) {
                   disabled={!selectedImage || isLoadingAlbum}
                   onPress={handlePressButton}
                 >
-                  <ButtonText size="lg" className="font-semibold">
+                  <ButtonText size="lg" className="font-paperlogy-semibold">
                     {isLoadingAlbum ? "불러오는 중..." : "선택하기"}
                   </ButtonText>
                 </Button>

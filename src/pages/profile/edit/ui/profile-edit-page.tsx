@@ -55,7 +55,7 @@ export function ProfileEditPage() {
             >
               <ButtonIcon as={IconChevronLeft} />
             </Button>
-            <Text className="font-semibold" size="lg">
+            <Text className="font-paperlogy-semibold" size="lg">
               프로필 설정하기
             </Text>
             <Box className="w-12" />
@@ -82,7 +82,7 @@ export function ProfileEditPage() {
                 control={form.control}
                 render={({ field }) => (
                   <VStack space="xs">
-                    <Text className="font-medium">닉네임</Text>
+                    <Text className="font-paperlogy-medium">닉네임</Text>
                     <Input>
                       <InputField
                         value={field.value}

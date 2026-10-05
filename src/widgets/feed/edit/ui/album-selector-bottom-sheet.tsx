@@ -60,7 +60,9 @@ export function AlbumSelectorBottomSheet({
   return (
     <BottomSheetModal open={isOpen} onClose={onClose}>
       <VStack>
-        <Text className="font-semibold text-lg px-6 py-3">앨범 선택</Text>
+        <Text className="font-paperlogy-semibold text-lg px-6 py-3">
+          앨범 선택
+        </Text>
         <FlatList
           data={albums}
           keyExtractor={(item) => item.id}
@@ -75,7 +77,7 @@ export function AlbumSelectorBottomSheet({
                 className="px-6 py-3 items-center justify-between"
                 space="sm"
               >
-                <Text className="font-medium">{item.title}</Text>
+                <Text className="font-paperlogy-medium">{item.title}</Text>
                 {selectedAlbum?.id === item.id && (
                   <Icon as={IconCheck} color="primary" />
                 )}

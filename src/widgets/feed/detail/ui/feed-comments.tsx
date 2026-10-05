@@ -48,7 +48,7 @@ export function FeedCommentItem({
       </Avatar>
       <VStack className="flex-1" space="xs">
         <HStack className="items-center justify-between">
-          <Text size="md" className="font-semibold">
+          <Text size="md" className="font-paperlogy-semibold">
             {comment.user.nickname}
           </Text>
           <HStack className="items-center" space="xs">
@@ -94,7 +94,7 @@ export function FeedCommentsHeader({
 }: FeedCommentsHeaderProps) {
   return (
     <HStack className="px-6 py-3 items-center justify-between border-t border-b border-outline-light">
-      <Text className="font-semibold">댓글 {commentCount}개</Text>
+      <Text className="font-paperlogy-semibold">댓글 {commentCount}개</Text>
       <HStack className="items-center" space="md">
         <Pressable
           accessibilityRole="button"
@@ -106,7 +106,7 @@ export function FeedCommentsHeader({
             size="sm"
             className={
               sort === "latest"
-                ? "font-semibold text-brand"
+                ? "font-paperlogy-semibold text-brand"
                 : "text-label-muted"
             }
           >
@@ -123,7 +123,7 @@ export function FeedCommentsHeader({
             size="sm"
             className={
               sort === "oldest"
-                ? "font-semibold text-brand"
+                ? "font-paperlogy-semibold text-brand"
                 : "text-label-muted"
             }
           >

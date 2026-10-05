@@ -71,7 +71,7 @@ export function SaveFeedButton({ mode, form, feedId }: SaveFeedButtonProps) {
       isLoading={isPending}
       onPress={handlePress}
     >
-      <ButtonText size="lg" className="font-semibold">
+      <ButtonText size="lg" className="font-paperlogy-semibold">
         {isCreate ? "게시하기" : "수정하기"}
       </ButtonText>
     </Button>

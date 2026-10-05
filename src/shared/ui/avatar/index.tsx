@@ -20,7 +20,7 @@ const avatarStyle = tva({
 });
 
 const avatarFallbackTextStyle = tva({
-  base: "text-white text-xs font-medium text-transform:uppercase",
+  base: "text-white text-xs font-paperlogy-medium text-transform:uppercase",
 });
 
 const avatarGroupStyle = tva({

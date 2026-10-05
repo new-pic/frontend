@@ -50,7 +50,7 @@ export function RtcFinalizationOverlay({ state }: RtcFinalizationOverlayProps) {
               accessibilityLabel="RTC 방 종료 처리 중"
             />
             <VStack className="items-center gap-2">
-              <Text size="xl" className="text-center font-semibold">
+              <Text size="xl" className="text-center font-paperlogy-semibold">
                 {copy.title}
               </Text>
               <Text className="text-center text-label-muted">
