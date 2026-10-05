@@ -131,7 +131,7 @@ SEARCHING과 ALIGNED에서는 원본 Mask만 보인다.
 
 - elapsed-time EMA, enter/exit hold, component hard-failure, no-frame timeout,
   no-pose/rate-limit/message 단위 테스트 추가
-- Camera Guide 28개, Pose Matching 33개, Pose detection 5개 테스트 통과
+- Camera Guide 30개, Pose Matching 33개, Pose detection 5개 테스트 통과
 - 전체 TypeScript 검사 통과
 - Expo iOS/Android production export 통과
 - Pose Guide hook/controller의 render-time ref 접근을 제거해 해당 feature의 React
