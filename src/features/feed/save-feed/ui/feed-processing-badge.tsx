@@ -163,7 +163,7 @@ export function FeedProcessingBadge() {
               <ActivityIndicator color="white" size="small" />
             )}
             <Text
-              className="shrink font-semibold text-white"
+              className="shrink font-paperlogy-semibold text-white"
               size="sm"
               numberOfLines={2}
             >
@@ -218,7 +218,7 @@ export function FeedProcessingBadge() {
             <IconCheck color="white" size={19} />
           ) : null}
           <Text
-            className="shrink font-semibold text-white"
+            className="shrink font-paperlogy-semibold text-white"
             size="sm"
             numberOfLines={1}
           >

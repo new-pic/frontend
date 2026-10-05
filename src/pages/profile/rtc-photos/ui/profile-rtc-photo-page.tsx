@@ -92,7 +92,7 @@ export function ProfileRtcPhotoPage() {
           >
             <ButtonIcon as={IconChevronLeft} />
           </Button>
-          <Text className="font-semibold" size="lg">
+          <Text className="font-paperlogy-semibold" size="lg">
             최근 촬영 사진
           </Text>
           <Box className="w-12" />

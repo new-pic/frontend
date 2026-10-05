@@ -26,7 +26,7 @@ const badgeStyle = tva({
 });
 
 const badgeTextStyle = tva({
-  base: "text-sm font-medium tracking-normal uppercase",
+  base: "text-sm font-paperlogy-medium tracking-normal uppercase",
   parentVariants: {
     variant: {
       default: "text-white",

@@ -682,7 +682,7 @@ export function CustomCamera({
   if (!hasPermission) {
     return (
       <VStack className="h-full items-center justify-center bg-white">
-        <Text className="mb-4 font-bold text-black whitespace-pre-line">
+        <Text className="mb-4 font-paperlogy-bold text-black whitespace-pre-line">
           {`사진 촬영과 원격 촬영 화면 공유를 사용하려면 
           카메라 접근이 필요합니다.`}
         </Text>

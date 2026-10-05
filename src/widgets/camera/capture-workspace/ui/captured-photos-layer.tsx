@@ -175,7 +175,7 @@ export function CapturedPhotosLayer({
                 <ButtonIcon as={IconChevronLeft} />
               </Button>
             </Box>
-            <Text size="lg" className="font-semibold">
+            <Text size="lg" className="font-paperlogy-semibold">
               촬영한 사진
             </Text>
             <Pressable

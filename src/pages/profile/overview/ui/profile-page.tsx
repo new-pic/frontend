@@ -191,7 +191,7 @@ export function ProfilePage() {
               )}
             </Avatar>
             <VStack className="justify-center">
-              <Text className="font-medium">{data?.nickname}</Text>
+              <Text className="font-paperlogy-medium">{data?.nickname}</Text>
               <Button
                 variant="ghost"
                 size="sm"
@@ -234,7 +234,7 @@ export function ProfilePage() {
             ) : null}
             <Divider className="bg-outline" />
             <Pressable className="p-6" onPress={handleLogout}>
-              <Text size="md" className="text-red-500 font-semibold">
+              <Text size="md" className="text-red-500 font-paperlogy-semibold">
                 로그아웃
               </Text>
             </Pressable>
@@ -246,7 +246,10 @@ export function ProfilePage() {
                   disabled={isDeleting}
                   onPress={deleteAccount}
                 >
-                  <Text size="md" className="text-red-500 font-semibold">
+                  <Text
+                    size="md"
+                    className="text-red-500 font-paperlogy-semibold"
+                  >
                     회원 탈퇴
                   </Text>
                 </Pressable>

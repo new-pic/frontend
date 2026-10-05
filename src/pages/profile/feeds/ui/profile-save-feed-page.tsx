@@ -43,7 +43,7 @@ export function ProfileSaveFeedPage() {
           >
             <ButtonIcon as={IconChevronLeft} />
           </Button>
-          <Text className="font-semibold" size="lg">
+          <Text className="font-paperlogy-semibold" size="lg">
             내가 저장한 피드
           </Text>
           <Box className="w-12" />

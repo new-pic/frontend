@@ -50,7 +50,7 @@ const buttonStyle = tva({
   },
 });
 const buttonTextStyle = tva({
-  base: "web:select-none",
+  base: "font-paperlogy-regular web:select-none",
   parentVariants: {
     variant: {
       default: "text-primary-foreground",

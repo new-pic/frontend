@@ -227,7 +227,7 @@ test("약관 안내 Card는 공용 테두리를 사용하고 체크박스 label�
   );
   assert.match(
     checkboxSource,
-    /checkboxLabelStyle = tva\(\{[\s\S]*font-medium/,
+    /checkboxLabelStyle = tva\(\{[\s\S]*font-paperlogy-medium/,
   );
   assert.doesNotMatch(
     checkboxSource,
@@ -253,7 +253,7 @@ test("약관 동의는 BottomSheet에서 명시적으로 확정한다", () => {
   );
   assert.match(
     welcomeSource,
-    /<Button[\s\S]*className="w-full h-12\.5 p-0 rounded-xl"[\s\S]*<ButtonText size="lg" className="font-semibold">[\s\S]*동의하고 계속/,
+    /<Button[\s\S]*className="w-full h-12\.5 p-0 rounded-xl"[\s\S]*<ButtonText size="lg" className="font-paperlogy-semibold">[\s\S]*동의하고 계속/,
   );
 });
 

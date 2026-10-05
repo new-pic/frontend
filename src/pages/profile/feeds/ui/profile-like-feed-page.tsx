@@ -43,7 +43,7 @@ export function ProfileLikeFeedPage() {
           >
             <ButtonIcon as={IconChevronLeft} />
           </Button>
-          <Text className="font-semibold" size="lg">
+          <Text className="font-paperlogy-semibold" size="lg">
             찜한 피드
           </Text>
           <Box className="w-12" />

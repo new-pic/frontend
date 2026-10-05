@@ -165,7 +165,7 @@ export function ContentActionsMenu({
                   className="min-h-12 justify-center px-[1.125rem]"
                 >
                   <Text
-                    className={`font-medium ${item.destructive ? "text-red-600" : ""}`}
+                    className={`font-paperlogy-medium ${item.destructive ? "text-red-600" : ""}`}
                   >
                     {item.label}
                   </Text>

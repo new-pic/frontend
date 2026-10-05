@@ -215,7 +215,7 @@ export function WelcomPage() {
           }}
         >
           <VStack space="xs">
-            <Text size="xl" className="font-bold">
+            <Text size="xl" className="font-paperlogy-bold">
               이용약관 및 개인정보 처리방침
             </Text>
             <Text className="text-label-muted">
@@ -224,7 +224,7 @@ export function WelcomPage() {
           </VStack>
 
           <Card size="sm" className="gap-3 border-outline shadow-none">
-            <Text size="sm" className="font-semibold">
+            <Text size="sm" className="font-paperlogy-semibold">
               NewPic이 처리하는 정보
             </Text>
             <VStack className="gap-1">
@@ -250,7 +250,7 @@ export function WelcomPage() {
             >
               <Text
                 size="sm"
-                className="font-semibold text-link-text underline"
+                className="font-paperlogy-semibold text-link-text underline"
               >
                 이용약관 및 개인정보 처리방침 전문 보기
               </Text>
@@ -266,7 +266,7 @@ export function WelcomPage() {
               <CheckboxIndicator className="mt-1 h-6 w-6 rounded-md">
                 <CheckboxIcon as={IconCheck} className="h-4 w-4" />
               </CheckboxIndicator>
-              <CheckboxLabel className="flex-1 font-normal">
+              <CheckboxLabel className="flex-1 font-paperlogy-regular">
                 (필수) 위 내용을 확인했으며 이용약관과 개인정보 처리방침에
                 동의합니다.
               </CheckboxLabel>
@@ -279,7 +279,7 @@ export function WelcomPage() {
             disabled={!draftTermsAgreed || disabled || hasExistingSession}
             onPress={handleAcceptTerms}
           >
-            <ButtonText size="lg" className="font-semibold">
+            <ButtonText size="lg" className="font-paperlogy-semibold">
               동의하고 계속
             </ButtonText>
           </Button>

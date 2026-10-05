@@ -79,7 +79,7 @@ export const ProfileRtcPhotoPreview = memo(function ProfileRtcPhotoPreview({
         />
         <Box className="absolute inset-0 bg-black/25" />
         <VStack className="absolute right-5 bottom-4.5 left-5">
-          <Text className="text-white font-semibold" size="lg">
+          <Text className="text-white font-paperlogy-semibold" size="lg">
             최근 촬영 사진
           </Text>
           <Text className="text-white/85" size="sm">

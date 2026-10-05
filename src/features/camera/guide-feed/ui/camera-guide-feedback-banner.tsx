@@ -36,7 +36,7 @@ export function CameraGuideFeedbackBanner({
           paddingVertical: 10,
         }}
       >
-        <Text className="text-center font-semibold text-sm text-white">
+        <Text className="text-center font-paperlogy-semibold text-sm text-white">
           {message}
         </Text>
       </View>
