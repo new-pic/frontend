@@ -27,7 +27,8 @@ interface AuthStore {
   userId: string | null;
   isGuest: boolean;
   isInitialized: boolean;
-  authRecoveryStatus: "initializing" | "ready" | "recoverable-error";
+  authRecoveryStatus:
+    "initializing" | "retrying" | "ready" | "recoverable-error";
   termsAgreed: boolean;
   authEntryIntent: AuthEntryIntent;
 
@@ -151,9 +152,12 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       authEntryIntent: AUTH_ENTRY_INTENT.LINK_GUEST_ACCOUNT,
     })),
   beginAuthRecovery: () =>
-    set(() => ({
+    set((state) => ({
       isInitialized: false,
-      authRecoveryStatus: "initializing",
+      authRecoveryStatus:
+        state.authRecoveryStatus === "recoverable-error"
+          ? "retrying"
+          : "initializing",
     })),
   restorePersistedSession: (accessToken) => {
     const { userId, isGuest } = parseTokenState(accessToken);

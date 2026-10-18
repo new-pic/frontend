@@ -150,11 +150,16 @@ export default function RootLayout() {
 
   if (!loaded || authRecoveryStatus === "initializing") return null;
 
-  if (authRecoveryStatus === "recoverable-error") {
+  if (
+    authRecoveryStatus === "recoverable-error" ||
+    authRecoveryStatus === "retrying"
+  ) {
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
         <GluestackUIProvider>
-          <AuthRecoveryErrorScreen />
+          <AuthRecoveryErrorScreen
+            isRetrying={authRecoveryStatus === "retrying"}
+          />
         </GluestackUIProvider>
       </GestureHandlerRootView>
     );

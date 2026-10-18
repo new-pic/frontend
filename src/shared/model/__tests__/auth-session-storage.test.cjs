@@ -149,6 +149,19 @@ test("token 갱신은 refresh token을 다시 쓰지 않고 access token만 교�
   assert.equal(useAuthStore.getState().authRecoveryStatus, "ready");
 });
 
+test("복구 오류 화면에서 다시 시도하면 retrying 상태를 유지한다", () => {
+  seedAuthenticatedState();
+  useAuthStore.setState({
+    isInitialized: false,
+    authRecoveryStatus: "recoverable-error",
+  });
+
+  useAuthStore.getState().beginAuthRecovery();
+
+  assert.equal(useAuthStore.getState().authRecoveryStatus, "retrying");
+  assert.equal(useAuthStore.getState().isInitialized, false);
+});
+
 test("access token 저장 실패 시 영속 session을 rollback하고 runtime session을 유지한다", async () => {
   seedAuthenticatedState();
   rejectedSetKey = AUTH_SESSION_STORAGE_KEYS.ACCESS_TOKEN;

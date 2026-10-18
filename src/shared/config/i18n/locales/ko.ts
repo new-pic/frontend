@@ -135,6 +135,9 @@ export const ko = {
     deleteAccountConfirm: "탈퇴",
     deleteAccountFailedTitle: "회원 탈퇴 실패",
     deleteAccountFailed: "회원 탈퇴를 요청하지 못했습니다. 다시 시도해주세요.",
+    authRecoveryTitle: "자동 로그인을 확인하지 못했어요",
+    authRecoveryDescription:
+      "네트워크 연결을 확인한 뒤 다시 시도해주세요. 로그인 정보는 삭제하지 않았어요.",
   },
   photo: {
     permissionTitle: "사진 권한 필요",

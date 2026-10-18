@@ -121,6 +121,8 @@ const refreshModule = require(
 );
 Module._load = originalLoad;
 
+const projectRoot = path.resolve(__dirname, "../../../../../");
+
 const reset = () => {
   secureValues.clear();
   secureStoreReadError = null;
@@ -282,4 +284,25 @@ test("runtime token refresh 성공 시 access token만 갱신한다", async () =
   assert.deepEqual(calls.setRefreshedAccessToken, [
     { accessToken: "refreshed-access-token", termsAgreed: true },
   ]);
+});
+
+test("복구 재시도 중에는 오류 화면을 유지하고 버튼에 loading을 표시한다", () => {
+  const layoutSource = fs.readFileSync(
+    path.join(projectRoot, "src/app/_layout.tsx"),
+    "utf8",
+  );
+  const errorScreenSource = fs.readFileSync(
+    path.join(
+      projectRoot,
+      "src/features/user/restore-auth-session/ui/auth-recovery-error-screen.tsx",
+    ),
+    "utf8",
+  );
+
+  assert.match(
+    layoutSource,
+    /authRecoveryStatus === "recoverable-error"[\s\S]*authRecoveryStatus === "retrying"[\s\S]*<AuthRecoveryErrorScreen[\s\S]*isRetrying=/,
+  );
+  assert.match(errorScreenSource, /isLoading=\{isRetrying\}/);
+  assert.doesNotMatch(errorScreenSource, /[가-힣]/);
 });

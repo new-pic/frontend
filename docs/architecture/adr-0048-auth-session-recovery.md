@@ -1,4 +1,4 @@
-# ADR-0047: 앱 시작 인증 세션 복구와 실패 정책
+# ADR-0048: 앱 시작 인증 세션 복구와 실패 정책
 
 ## Decision
 
@@ -20,8 +20,10 @@ restore-auth-session
 인증 상태는 `shared/model`의 auth store가 소유한다. refresh transport와 terminal 오류
 분류는 `shared/api`가 담당하고, 앱 시작 복구 순서와 lifecycle은
 `features/user/restore-auth-session`이 담당한다. 같은 feature가 재시도 UI를 제공하고,
-Root layout은 use case를 시작한 뒤 `initializing`, `ready`, `recoverable-error` 상태에
-따라 앱 라우팅과 복구 UI를 조립한다.
+Root layout은 use case를 시작한 뒤 `initializing`, `retrying`, `ready`,
+`recoverable-error` 상태에 따라 앱 라우팅과 복구 UI를 조립한다. 최초 초기화에서는
+splash 화면을 유지하고, 오류 화면에서 재시도한 동안에는 같은 화면과 loading 상태를
+유지한다.
 
 ## Context
 
@@ -61,6 +63,7 @@ SecureStore 오류까지 모두 logout으로 처리했다. 일시적인 외부 �
 
 - 만료 token을 갱신하는 동안 첫 화면이 잠시 대기한다.
 - 일시적 실패에서는 앱 본문 대신 명시적인 재시도 화면을 표시한다.
+- 재시도 중에는 오류 화면을 유지하고 버튼 loading으로 진행 상태를 알린다.
 - HTTP 408, 429, 5xx와 응답 없는 통신 오류는 recoverable로 취급한다.
 - 그 외 4xx는 refresh 요청 자체 또는 credential이 유효하지 않은 terminal 오류로
   취급한다.
@@ -73,3 +76,12 @@ SecureStore 오류까지 모두 logout으로 처리했다. 일시적인 외부 �
 - refresh 성공 시 기존 refresh token을 다시 쓰지 않고 access token만 교체한다.
 - recoverable 오류에서는 SecureStore token을 삭제하지 않고 재시도 화면을 표시한다.
 - terminal 오류와 불완전 session만 logout 경로로 정리한다.
+- 복구 오류와 재시도 문구는 앱 locale에 따라 한국어 또는 영어로 표시한다.
+
+## Remaining decision
+
+현재 정책은 access token 없이 refresh token만 남아 있어도 복구를 시도한다. 명시적
+logout에서 access token 삭제는 성공하고 refresh token 삭제만 실패하면, 다음 앱
+시작에서 잔존 refresh token으로 이전 계정이 다시 복구될 수 있다. refresh-only 상태를
+불완전 session으로 정리할지, logout invalidation marker 또는 서버 revoke 계약을
+도입할지 결정하기 전에는 이 PR을 병합하지 않는다.
