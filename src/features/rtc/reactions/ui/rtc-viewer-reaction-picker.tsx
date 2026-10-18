@@ -1,6 +1,7 @@
 import { useAppTranslation } from "@shared/lib";
+import { Text } from "@shared/ui";
 import { useMemo } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { adaptRtcReactionEmojis } from "../lib/rtc-reaction-domain";
 import { useRtcReactionChannel } from "../model/use-rtc-reaction-channel";
 import { RtcViewerReactionButton } from "./rtc-viewer-reaction-button";

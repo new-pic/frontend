@@ -9,19 +9,18 @@
   --color-link-text: #1d7bef;
   --color-blue-bg: #65aaff;
   --color-label-muted: #9f9f9f;
-  /* 🌟 v5 정석: 기본 sans 계열을 리스트 형태로 덮어써야 시스템 폰트를 완전히 밀어냅니다. */
   --font-sans: Paperlogy-4Regular;
 
-  /* 💡 굵기별 세팅은 NativeWind 컴파일러가 유틸리티로 인식하도록 다음과 같이 등록합니다. */
-  --font-thin: Paperlogy-1Thin;
-  --font-extralight: Paperlogy-2ExtraLight;
-  --font-light: Paperlogy-3Light;
-  --font-regular: Paperlogy-4Regular;
-  --font-medium: Paperlogy-5Medium;
-  --font-semibold: Paperlogy-6SemiBold;
-  --font-bold: Paperlogy-7Bold;
-  --font-extrabold: Paperlogy-8ExtraBold;
-  --font-black: Paperlogy-9Black;
+  /* Tailwind font-weight 유틸리티와 충돌하지 않는 Paperlogy font-family 토큰 */
+  --font-paperlogy-thin: Paperlogy-1Thin;
+  --font-paperlogy-extralight: Paperlogy-2ExtraLight;
+  --font-paperlogy-light: Paperlogy-3Light;
+  --font-paperlogy-regular: Paperlogy-4Regular;
+  --font-paperlogy-medium: Paperlogy-5Medium;
+  --font-paperlogy-semibold: Paperlogy-6SemiBold;
+  --font-paperlogy-bold: Paperlogy-7Bold;
+  --font-paperlogy-extrabold: Paperlogy-8ExtraBold;
+  --font-paperlogy-black: Paperlogy-9Black;
 }
 
 @layer base {

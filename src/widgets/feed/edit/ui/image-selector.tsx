@@ -79,7 +79,7 @@ function ImageSelectorView({
       <VStack space="md" className="border-t pt-3 border-outline-light flex-1">
         <Pressable className="px-6" onPress={handleOpenAlbumSheet}>
           <HStack className="items-center" space="sm">
-            <Text className="font-semibold" size="lg">
+            <Text className="font-paperlogy-semibold" size="lg">
               {selectedAlbum?.title ?? t("feed.selectAlbum")}
             </Text>
             <Icon as={IconChevronRight} />

@@ -91,7 +91,7 @@ export function ProfileRtcPhotoPage() {
           >
             <ButtonIcon as={IconChevronLeft} />
           </Button>
-          <Text className="font-semibold" size="lg">
+          <Text className="font-paperlogy-semibold" size="lg">
             {t("profile.recentRtcPhotos")}
           </Text>
           <Box className="w-12" />

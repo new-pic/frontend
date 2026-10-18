@@ -217,14 +217,14 @@ export function WelcomPage() {
           }}
         >
           <VStack space="xs">
-            <Text size="xl" className="font-bold">
+            <Text size="xl" className="font-paperlogy-bold">
               {t("welcome.termsTitle")}
             </Text>
             <Text className="text-label-muted">{t("welcome.termsIntro")}</Text>
           </VStack>
 
           <Card size="sm" className="gap-3 border-outline shadow-none">
-            <Text size="sm" className="font-semibold">
+            <Text size="sm" className="font-paperlogy-semibold">
               {t("welcome.dataTitle")}
             </Text>
             <VStack className="gap-1">
@@ -241,7 +241,7 @@ export function WelcomPage() {
             >
               <Text
                 size="sm"
-                className="font-semibold text-link-text underline"
+                className="font-paperlogy-semibold text-link-text underline"
               >
                 {t("welcome.viewFullTerms")}
               </Text>
@@ -257,7 +257,7 @@ export function WelcomPage() {
               <CheckboxIndicator className="mt-1 h-6 w-6 rounded-md">
                 <CheckboxIcon as={IconCheck} className="h-4 w-4" />
               </CheckboxIndicator>
-              <CheckboxLabel className="flex-1 font-normal">
+              <CheckboxLabel className="flex-1 font-paperlogy-regular">
                 {t("welcome.requiredConsent")}
               </CheckboxLabel>
             </Checkbox>
@@ -269,7 +269,7 @@ export function WelcomPage() {
             disabled={!draftTermsAgreed || disabled || hasExistingSession}
             onPress={handleAcceptTerms}
           >
-            <ButtonText size="lg" className="font-semibold">
+            <ButtonText size="lg" className="font-paperlogy-semibold">
               {t("welcome.acceptAndContinue")}
             </ButtonText>
           </Button>

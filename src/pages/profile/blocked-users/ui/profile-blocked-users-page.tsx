@@ -58,7 +58,7 @@ export function ProfileBlockedUsersPage() {
           >
             <ButtonIcon as={IconChevronLeft} />
           </Button>
-          <Text className="font-semibold" size="lg">
+          <Text className="font-paperlogy-semibold" size="lg">
             {t("profile.blockedUsers")}
           </Text>
           <Box className="w-12" />
@@ -118,7 +118,10 @@ export function ProfileBlockedUsersPage() {
                       <AvatarImage source={{ uri: blockedUser.profileImage }} />
                     ) : null}
                   </Avatar>
-                  <Text className="flex-1 font-semibold" numberOfLines={1}>
+                  <Text
+                    className="flex-1 font-paperlogy-semibold"
+                    numberOfLines={1}
+                  >
                     {blockedUser.nickname}
                   </Text>
                   <Button

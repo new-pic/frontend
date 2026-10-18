@@ -156,7 +156,7 @@ export function RtcCameraRoomMenu({
           >
             {mode === "LIVE" ? (
               <>
-                <Text className="px-4 pb-2 pt-4 font-semibold">
+                <Text className="px-4 pb-2 pt-4 font-paperlogy-semibold">
                   {t("rtc.host.participants", {
                     count: participants.length,
                   })}
@@ -185,7 +185,10 @@ export function RtcCameraRoomMenu({
                             <IconUserFilled size={20} color="white" />
                           </View>
                         )}
-                        <Text numberOfLines={1} className="flex-1 font-medium">
+                        <Text
+                          numberOfLines={1}
+                          className="flex-1 font-paperlogy-medium"
+                        >
                           {item.nickname}
                         </Text>
                       </View>
@@ -205,7 +208,7 @@ export function RtcCameraRoomMenu({
                   onPress={() => runAction(onEndRoomPress)}
                   className="min-h-13 justify-center px-[1.125rem]"
                 >
-                  <Text className="font-semibold text-red-600">
+                  <Text className="font-paperlogy-semibold text-red-600">
                     {t("rtc.host.endRoom")}
                   </Text>
                 </Pressable>
@@ -217,7 +220,9 @@ export function RtcCameraRoomMenu({
                   onPress={() => runAction(onJoinPress)}
                   className="min-h-13 justify-center px-[1.125rem]"
                 >
-                  <Text className="font-medium">{t("rtc.host.join")}</Text>
+                  <Text className="font-paperlogy-medium">
+                    {t("rtc.host.join")}
+                  </Text>
                 </Pressable>
                 <View
                   className="bg-outline"
@@ -232,8 +237,8 @@ export function RtcCameraRoomMenu({
                   <Text
                     className={
                       isCameraReady
-                        ? "font-medium"
-                        : "font-medium text-label-muted"
+                        ? "font-paperlogy-medium"
+                        : "font-paperlogy-medium text-label-muted"
                     }
                   >
                     {isCameraReady

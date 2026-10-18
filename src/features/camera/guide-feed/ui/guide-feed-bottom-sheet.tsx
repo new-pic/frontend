@@ -67,7 +67,9 @@ export function GuideFeedBottomSheet({
         style={{ flexGrow: 1, height: 0, overflow: "hidden" }}
       >
         <HStack className="items-center justify-between px-6 pb-4 pt-3">
-          <Text className="font-semibold text-lg">{t("guide.savedFeeds")}</Text>
+          <Text className="font-paperlogy-semibold text-lg">
+            {t("guide.savedFeeds")}
+          </Text>
           {selectedFeedId ? (
             <Button
               variant="ghost"

@@ -5,14 +5,14 @@ const baseStyle = isWeb
   : "";
 
 export const textStyle = tva({
-  base: `text-foreground font-body ${baseStyle}`,
+  base: `text-foreground font-paperlogy-regular ${baseStyle}`,
 
   variants: {
     isTruncated: {
       true: "web:truncate",
     },
     bold: {
-      true: "font-bold",
+      true: "font-paperlogy-bold",
     },
     underline: {
       true: "underline",

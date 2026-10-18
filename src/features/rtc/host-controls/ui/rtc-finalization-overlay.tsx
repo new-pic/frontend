@@ -49,7 +49,7 @@ export function RtcFinalizationOverlay({ state }: RtcFinalizationOverlayProps) {
               accessibilityLabel={t("rtc.host.finalizingAccessibility")}
             />
             <VStack className="items-center gap-2">
-              <Text size="xl" className="text-center font-semibold">
+              <Text size="xl" className="text-center font-paperlogy-semibold">
                 {copy.title}
               </Text>
               <Text className="text-center text-label-muted">

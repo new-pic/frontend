@@ -122,7 +122,7 @@ export function FeedPage() {
         <VStack className="h-full pt-4">
           <VStack className="mb-2">
             <VStack className="px-6">
-              <Text className="font-semibold mb-2" size="xl">
+              <Text className="font-paperlogy-semibold mb-2" size="xl">
                 {t("feed.title")}
               </Text>
               <Input>

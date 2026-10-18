@@ -177,7 +177,7 @@ export function CapturedPhotosLayer({
                 <ButtonIcon as={IconChevronLeft} />
               </Button>
             </Box>
-            <Text size="lg" className="font-semibold">
+            <Text size="lg" className="font-paperlogy-semibold">
               {t("camera.capturedPhotos")}
             </Text>
             <Pressable

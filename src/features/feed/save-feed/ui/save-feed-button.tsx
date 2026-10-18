@@ -77,7 +77,7 @@ export function SaveFeedButton({ mode, form, feedId }: SaveFeedButtonProps) {
       isLoading={isPending}
       onPress={handlePress}
     >
-      <ButtonText size="lg" className="font-semibold">
+      <ButtonText size="lg" className="font-paperlogy-semibold">
         {isCreate
           ? t("feed.publishing.createButton")
           : t("feed.publishing.updateButton")}
