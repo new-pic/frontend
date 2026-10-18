@@ -142,6 +142,9 @@ export const en = {
     deleteAccountConfirm: "Delete account",
     deleteAccountFailedTitle: "Couldn't delete account",
     deleteAccountFailed: "Couldn't request account deletion. Please try again.",
+    authRecoveryTitle: "We couldn't restore your sign-in",
+    authRecoveryDescription:
+      "Check your network connection and try again. Your saved sign-in information is still available.",
   },
   photo: {
     permissionTitle: "Photo permission required",

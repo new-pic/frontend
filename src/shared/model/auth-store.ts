@@ -27,6 +27,8 @@ interface AuthStore {
   userId: string | null;
   isGuest: boolean;
   isInitialized: boolean;
+  authRecoveryStatus:
+    "initializing" | "retrying" | "ready" | "recoverable-error";
   termsAgreed: boolean;
   authEntryIntent: AuthEntryIntent;
 
@@ -39,10 +41,20 @@ interface AuthStore {
     refreshToken: string;
     termsAgreed: boolean;
   }) => Promise<void>;
+  setRefreshedAccessToken: ({
+    accessToken,
+    termsAgreed,
+  }: {
+    accessToken: string;
+    termsAgreed: boolean;
+  }) => Promise<void>;
   setTermsAgreed: (termsAgreed: boolean) => void;
   logout: () => Promise<void>;
   prepareAccountLink: () => void;
-  initializeAuthState: () => Promise<void>;
+  beginAuthRecovery: () => void;
+  restorePersistedSession: (accessToken: string) => void;
+  finishAuthRecoveryWithoutSession: () => void;
+  failAuthRecovery: () => void;
 }
 
 export const useAuthStore = create<AuthStore>()((set) => ({
@@ -50,6 +62,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
   userId: null,
   isGuest: false,
   isInitialized: false,
+  authRecoveryStatus: "initializing",
   termsAgreed: false,
   authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
 
@@ -82,6 +95,25 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       userId,
       isGuest,
       isInitialized: true,
+      authRecoveryStatus: "ready",
+      termsAgreed: true,
+      authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
+    }));
+  },
+  setRefreshedAccessToken: async ({ accessToken, termsAgreed }) => {
+    if (!termsAgreed) {
+      throw new Error("Terms agreement is required to refresh a session.");
+    }
+
+    const { userId, isGuest } = parseTokenState(accessToken);
+    await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
+
+    set(() => ({
+      accessToken,
+      userId,
+      isGuest,
+      isInitialized: true,
+      authRecoveryStatus: "ready",
       termsAgreed: true,
       authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
     }));
@@ -103,6 +135,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
         userId: null,
         isGuest: false,
         isInitialized: true,
+        authRecoveryStatus: "ready",
         termsAgreed: false,
         authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
       }));
@@ -118,40 +151,40 @@ export const useAuthStore = create<AuthStore>()((set) => ({
     set(() => ({
       authEntryIntent: AUTH_ENTRY_INTENT.LINK_GUEST_ACCOUNT,
     })),
-  initializeAuthState: async () => {
-    try {
-      const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
-      const { userId, isGuest } = parseTokenState(token);
+  beginAuthRecovery: () =>
+    set((state) => ({
+      isInitialized: false,
+      authRecoveryStatus:
+        state.authRecoveryStatus === "recoverable-error"
+          ? "retrying"
+          : "initializing",
+    })),
+  restorePersistedSession: (accessToken) => {
+    const { userId, isGuest } = parseTokenState(accessToken);
 
-      if (token) {
-        set({
-          accessToken: token,
-          userId,
-          isGuest,
-          isInitialized: true,
-          termsAgreed: true,
-          authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
-        });
-      } else {
-        // 토큰이 없다면 게스트 상태이거나 첫 진입
-        set({
-          accessToken: null,
-          userId: null,
-          isGuest,
-          isInitialized: true,
-          termsAgreed: false,
-          authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
-        });
-      }
-    } catch {
-      set({
-        accessToken: null,
-        userId: null,
-        isGuest: false,
-        isInitialized: true,
-        termsAgreed: false,
-        authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
-      });
-    }
+    set(() => ({
+      accessToken,
+      userId,
+      isGuest,
+      isInitialized: true,
+      authRecoveryStatus: "ready",
+      termsAgreed: true,
+      authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
+    }));
   },
+  finishAuthRecoveryWithoutSession: () =>
+    set(() => ({
+      accessToken: null,
+      userId: null,
+      isGuest: false,
+      isInitialized: true,
+      authRecoveryStatus: "ready",
+      termsAgreed: false,
+      authEntryIntent: AUTH_ENTRY_INTENT.DEFAULT,
+    })),
+  failAuthRecovery: () =>
+    set(() => ({
+      isInitialized: false,
+      authRecoveryStatus: "recoverable-error",
+    })),
 }));

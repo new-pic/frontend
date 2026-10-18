@@ -8,6 +8,11 @@ export {
   executeAuthenticatedFetch,
   getFreshAccessToken,
 } from "./authenticated-fetch";
+export {
+  isTerminalAuthRefreshError,
+  MissingRefreshTokenError,
+} from "./auth-refresh-error";
+export { AUTH_ACCESS_TOKEN_EXPIRY_LEEWAY_MS } from "./auth-token-policy";
 export { privateApiClient } from "./api-private-instance";
 export { setupInterceptors } from "./interceptors";
 export { refreshAuthSession } from "./refresh-auth-session";
