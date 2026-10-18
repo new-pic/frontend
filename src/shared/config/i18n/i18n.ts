@@ -1,7 +1,11 @@
 import { getLocales } from "expo-localization";
 import i18next from "i18next";
 import { initReactI18next } from "react-i18next";
-import { resolveAppLanguage, SUPPORTED_APP_LANGUAGES } from "./app-language";
+import {
+  DEFAULT_APP_LANGUAGE,
+  resolveAppLanguage,
+  SUPPORTED_APP_LANGUAGES,
+} from "./app-language";
 import { en } from "./locales/en";
 import { ko } from "./locales/ko";
 import {
@@ -17,7 +21,7 @@ void i18n.use(initReactI18next).init({
     en: { translation: en },
   },
   lng: resolveAppLanguage(getLocales()),
-  fallbackLng: "ko",
+  fallbackLng: DEFAULT_APP_LANGUAGE,
   supportedLngs: [...SUPPORTED_APP_LANGUAGES],
   interpolation: {
     escapeValue: false,

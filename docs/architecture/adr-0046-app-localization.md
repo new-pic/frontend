@@ -4,8 +4,8 @@
 
 앱의 사용자 표시 언어는 `expo-localization`이 제공하는 운영체제·앱별 언어
 설정을 따르고, `i18next`와 `react-i18next`가 정적 번역 리소스를 UI에 공급한다.
-지원 언어는 한국어(`ko`)와 영어(`en`)이며 지원하지 않는 언어의 fallback은
-한국어다.
+지원 언어는 한국어(`ko`)와 영어(`en`)이며 현재 앱·기기의 첫 번째 언어가
+한국어가 아니면 영어로 fallback한다.
 
 - `shared/config/i18n`이 지원 언어, 언어 결정 정책, i18next instance와 번역
   리소스를 소유한다.
@@ -28,7 +28,7 @@ expo-localization
   ↓
 LocaleCoordinator
   ↓
-i18next (ko / en, fallback ko)
+i18next (ko / en, fallback en)
   ├─ useAppTranslation → React UI
   ├─ translate → schema / adapter / fallback errors
   └─ Expo locales → native metadata / permission descriptions
@@ -79,6 +79,9 @@ interpolation과 React binding을 담당한다. 외부 라이브러리와 프로
 기다리지 않는다. 초기 언어도 module 초기화 때 동기적으로 결정하고,
 `LocaleCoordinator`는 실행 중 locale 변경만 반영한다. 한국어·영어 모두 기존
 Paperlogy glyph 범위 안이므로 언어별 font family 분기는 추가하지 않는다.
+언어 결정에는 Expo가 우선순위 순으로 반환하는 locale 중 첫 번째 값만 사용한다.
+첫 번째 언어가 한국어면 한국어를, 영어를 포함한 그 밖의 언어에는 영어를
+사용해 지원하지 않는 언어에서도 국제 사용자용 기본 경험을 제공한다.
 
 ## Trade-off
 
@@ -93,7 +96,7 @@ Paperlogy glyph 범위 안이므로 언어별 font family 분기는 추가하지
 포기하거나 제한된 것:
 
 - 앱 안에는 언어 선택 메뉴가 없다.
-- 지원하지 않는 locale은 한국어로 표시된다.
+- 현재 앱·기기의 첫 번째 locale이 한국어가 아니면 영어로 표시된다.
 - 서버가 자연어 오류만 반환하면 그 문구는 서버가 보낸 언어 그대로 표시된다.
 - 번역 파일이 앱 bundle 크기에 포함된다.
 - 새 사용자 문구를 추가할 때 한국어·영어 resource를 함께 추가해야 한다.

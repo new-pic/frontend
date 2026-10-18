@@ -21,28 +21,24 @@ const {
 } = require("../app-language.ts");
 const { translate } = require("../translation-runtime.ts");
 
-test("지원하는 첫 번째 기기 언어를 선택한다", () => {
+test("첫 번째 앱 언어가 한국어면 한국어를 선택한다", () => {
   assert.equal(
-    resolveAppLanguage([
-      { languageCode: "fr" },
-      { languageCode: "en" },
-      { languageCode: "ko" },
-    ]),
-    "en",
+    resolveAppLanguage([{ languageCode: "ko" }, { languageCode: "en" }]),
+    "ko",
   );
 });
 
-test("지역 코드와 무관하게 한국어와 영어를 정규화한다", () => {
+test("언어 코드의 대소문자와 무관하게 한국어를 정규화한다", () => {
   assert.equal(resolveAppLanguage([{ languageCode: "KO" }]), "ko");
-  assert.equal(resolveAppLanguage([{ languageCode: "EN" }]), "en");
 });
 
-test("지원 언어가 없으면 한국어로 fallback한다", () => {
+test("첫 번째 앱 언어가 한국어가 아니면 영어로 fallback한다", () => {
+  assert.equal(resolveAppLanguage([{ languageCode: "EN" }]), "en");
   assert.equal(
-    resolveAppLanguage([{ languageCode: "ja" }]),
+    resolveAppLanguage([{ languageCode: "ja" }, { languageCode: "ko" }]),
     DEFAULT_APP_LANGUAGE,
   );
-  assert.equal(resolveAppLanguage([]), "ko");
+  assert.equal(resolveAppLanguage([]), "en");
 });
 
 test("React 밖의 번역 포트도 한국어와 영어 resource를 사용한다", () => {
