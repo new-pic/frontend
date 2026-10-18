@@ -1,4 +1,5 @@
 import { RTC_MAX_SELECTED_PHOTOS } from "@entities/rtc-room";
+import { useAppTranslation } from "@shared/lib";
 import {
   Button,
   ButtonText,
@@ -23,6 +24,7 @@ export function RtcEndPhotoSelection({
   photos,
   onConfirm,
 }: RtcEndPhotoSelectionProps) {
+  const { t } = useAppTranslation();
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -51,8 +53,10 @@ export function RtcEndPhotoSelection({
 
   const showSelectionLimitAlert = () => {
     Alert.alert(
-      "사진 선택 한도",
-      `방에 저장할 사진은 최대 ${RTC_MAX_SELECTED_PHOTOS}장까지 선택할 수 있습니다.`,
+      t("rtc.result.selectionLimitTitle"),
+      t("rtc.result.roomSelectionLimit", {
+        count: RTC_MAX_SELECTED_PHOTOS,
+      }),
     );
   };
 
@@ -100,7 +104,7 @@ export function RtcEndPhotoSelection({
         <VStack className="gap-2 border-b border-outline-light px-6 py-4">
           <HStack className="items-center justify-between">
             <Text size="xl" bold>
-              저장할 사진 선택
+              {t("rtc.result.selectTitle")}
             </Text>
             <Pressable
               disabled={photos.length === 0 || isConfirming}
@@ -108,25 +112,33 @@ export function RtcEndPhotoSelection({
               accessibilityRole="button"
               accessibilityLabel={
                 isAllSelectableSelected
-                  ? "전체 선택 해제"
-                  : `최대 ${RTC_MAX_SELECTED_PHOTOS}장 선택`
+                  ? t("common.actions.deselectAll")
+                  : t("rtc.result.maxSelectAccessibility", {
+                      count: RTC_MAX_SELECTED_PHOTOS,
+                    })
               }
             >
               <Text bold className="text-primary">
                 {isAllSelectableSelected
-                  ? "전체 해제"
+                  ? t("common.actions.deselectAll")
                   : photos.length > RTC_MAX_SELECTED_PHOTOS
-                    ? `${RTC_MAX_SELECTED_PHOTOS}장 선택`
-                    : "전체 선택"}
+                    ? t("rtc.result.maxSelect", {
+                        count: RTC_MAX_SELECTED_PHOTOS,
+                      })
+                    : t("common.actions.selectAll")}
               </Text>
             </Pressable>
           </HStack>
           <Text className="text-label-muted">
-            촬영한 사진 중 최대 {RTC_MAX_SELECTED_PHOTOS}장을 방에 저장할 수
-            있습니다.
+            {t("rtc.result.selectionDescription", {
+              count: RTC_MAX_SELECTED_PHOTOS,
+            })}
           </Text>
           <Text className="text-label-muted">
-            선택됨 {selectedPhotos.length} / {RTC_MAX_SELECTED_PHOTOS}
+            {t("rtc.result.selected", {
+              selected: selectedPhotos.length,
+              maximum: RTC_MAX_SELECTED_PHOTOS,
+            })}
           </Text>
         </VStack>
 
@@ -149,8 +161,10 @@ export function RtcEndPhotoSelection({
           >
             <ButtonText>
               {selectedPhotos.length > 0
-                ? `${selectedPhotos.length}장 저장하고 종료`
-                : "사진 없이 종료"}
+                ? t("rtc.result.saveAndEnd", {
+                    count: selectedPhotos.length,
+                  })
+                : t("rtc.result.endWithoutPhotos")}
             </ButtonText>
           </Button>
         </VStack>

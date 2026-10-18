@@ -1,5 +1,6 @@
 import type { FeedBackgroundRemovalResponse } from "@entities/feed";
 import type { CameraGuideContour, CameraGuideOutline } from "../model/types";
+import { translate } from "../../../../shared/config";
 
 function isFiniteNormalizedCoordinate(value: number) {
   return Number.isFinite(value) && value >= 0 && value <= 1;
@@ -17,14 +18,12 @@ function adaptContour(
     !Array.isArray(contour.points) ||
     contour.points.length < 2
   ) {
-    throw new Error("촬영 가이드 윤곽선 형식이 올바르지 않습니다.");
+    throw new Error(translate("guide.invalidContour"));
   }
 
   const points = contour.points.map(({ x, y }) => {
     if (!isFiniteNormalizedCoordinate(x) || !isFiniteNormalizedCoordinate(y)) {
-      throw new Error(
-        "촬영 가이드 윤곽선 좌표가 normalized 범위를 벗어났습니다.",
-      );
+      throw new Error(translate("guide.invalidContourCoordinate"));
     }
     return { x, y };
   });
@@ -42,7 +41,7 @@ export function adaptFeedBackgroundRemoval(
 ): CameraGuideOutline {
   const result = response.output?.result;
   if (response.output?.success !== true || !result) {
-    throw new Error("촬영 가이드 윤곽선 데이터를 사용할 수 없습니다.");
+    throw new Error(translate("guide.contourUnavailable"));
   }
 
   const { imageWidth, imageHeight } = result;
@@ -54,11 +53,11 @@ export function adaptFeedBackgroundRemoval(
     imageWidth <= 0 ||
     imageHeight <= 0
   ) {
-    throw new Error("촬영 가이드 원본 크기가 올바르지 않습니다.");
+    throw new Error(translate("guide.invalidSourceSize"));
   }
 
   if (!Array.isArray(result.contours) || result.contours.length === 0) {
-    throw new Error("촬영 가이드 윤곽선이 없습니다.");
+    throw new Error(translate("guide.missingContour"));
   }
 
   return {

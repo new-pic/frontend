@@ -6,6 +6,7 @@ import {
   ButtonText,
   VStack,
 } from "@shared/ui";
+import { useAppTranslation } from "@shared/lib";
 import { IconCamera, IconUserFilled } from "@tabler/icons-react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Alert } from "react-native";
@@ -28,6 +29,7 @@ export function ProfileImageField({
   value,
   onChange,
 }: ProfileImageFieldProps) {
+  const { t } = useAppTranslation();
   const previewUri = getProfileImagePreviewUri({
     currentImageUrl,
     selectedImage: value,
@@ -46,8 +48,8 @@ export function ProfileImageField({
       onChange(toSelectedProfileImage(result.assets[0]));
     } catch {
       Alert.alert(
-        "사진 선택 실패",
-        "프로필 사진을 선택하지 못했습니다. 다시 시도해주세요.",
+        t("profile.imagePickFailedTitle"),
+        t("profile.imagePickFailed"),
       );
     }
   };
@@ -68,12 +70,14 @@ export function ProfileImageField({
         disabled={disabled}
         onPress={handlePickImage}
         accessibilityLabel={
-          previewUri ? "프로필 사진 변경" : "프로필 사진 선택"
+          previewUri
+            ? t("profile.changeImageAccessibility")
+            : t("profile.selectImageAccessibility")
         }
       >
         <ButtonIcon as={IconCamera} />
         <ButtonText className="text-link-text">
-          {previewUri ? "사진 변경" : "사진 선택"}
+          {previewUri ? t("profile.changeImage") : t("profile.selectImage")}
         </ButtonText>
       </Button>
     </VStack>

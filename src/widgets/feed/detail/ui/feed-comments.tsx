@@ -1,5 +1,6 @@
 import type { FeedCommentResponse } from "@entities/feed";
 import { canReportContent } from "@features/feed/report-content";
+import { useAppTranslation } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import {
   Avatar,
@@ -19,8 +20,8 @@ interface FeedCommentsHeaderProps {
   onChangeSort: (sort: CommentSort) => void;
 }
 
-function formatCommentDate(createdAt: string) {
-  return new Date(createdAt).toLocaleDateString("ko-KR");
+function formatCommentDate(createdAt: string, language: string) {
+  return new Date(createdAt).toLocaleDateString(language);
 }
 
 export function FeedCommentItem({
@@ -34,6 +35,7 @@ export function FeedCommentItem({
   onBlockAuthor: () => void;
   isBlockingAuthor?: boolean;
 }) {
+  const { i18n, t } = useAppTranslation();
   const userId = useAuthStore((state) => state.userId);
   const canReport = canReportContent({
     authorId: comment.user.id,
@@ -53,23 +55,28 @@ export function FeedCommentItem({
           </Text>
           <HStack className="items-center" space="xs">
             <Text size="sm" className="text-label-muted">
-              {formatCommentDate(comment.createdAt)}
+              {formatCommentDate(
+                comment.createdAt,
+                i18n.resolvedLanguage ?? "ko",
+              )}
             </Text>
             {canReport ? (
               <ContentActionsMenu
-                accessibilityLabel={`${comment.user.nickname}님의 댓글 더보기`}
-                accessibilityHint="댓글 신고 및 작성자 차단 메뉴를 엽니다"
+                accessibilityLabel={t("feed.comments.moreAccessibility", {
+                  nickname: comment.user.nickname,
+                })}
+                accessibilityHint={t("feed.comments.moreHint")}
                 iconClassName="h-5 w-5"
                 items={[
                   {
                     key: "report",
-                    label: "신고하기",
+                    label: t("common.actions.report"),
                     destructive: true,
                     onPress: onReport,
                   },
                   {
                     key: "block-author",
-                    label: "작성자 차단하기",
+                    label: t("common.actions.blockAuthor"),
                     destructive: true,
                     disabled: isBlockingAuthor,
                     onPress: onBlockAuthor,
@@ -92,9 +99,13 @@ export function FeedCommentsHeader({
   sort,
   onChangeSort,
 }: FeedCommentsHeaderProps) {
+  const { t } = useAppTranslation();
+
   return (
     <HStack className="px-6 py-3 items-center justify-between border-t border-b border-outline-light">
-      <Text className="font-semibold">댓글 {commentCount}개</Text>
+      <Text className="font-semibold">
+        {t("feed.comments.count", { count: commentCount })}
+      </Text>
       <HStack className="items-center" space="md">
         <Pressable
           accessibilityRole="button"
@@ -110,7 +121,7 @@ export function FeedCommentsHeader({
                 : "text-label-muted"
             }
           >
-            최신순
+            {t("feed.comments.latest")}
           </Text>
         </Pressable>
         <Pressable
@@ -127,7 +138,7 @@ export function FeedCommentsHeader({
                 : "text-label-muted"
             }
           >
-            오래된순
+            {t("feed.comments.oldest")}
           </Text>
         </Pressable>
       </HStack>

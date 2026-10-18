@@ -1,4 +1,5 @@
 import { TagBadge } from "@entities/tag";
+import { useAppTranslation } from "@shared/lib";
 import { HStack, Icon, Pressable, Text } from "@shared/ui";
 import { IconPlus } from "@tabler/icons-react-native";
 import { FlatList } from "react-native";
@@ -19,6 +20,7 @@ export function TagList({
   onPressAddTag,
   contentContainerStyle,
 }: TagListProps) {
+  const { t } = useAppTranslation();
   return (
     <FlatList
       horizontal
@@ -38,7 +40,7 @@ export function TagList({
           <Pressable onPress={onPressAddTag}>
             <HStack className="h-8 px-3 items-center gap-1 rounded-full border border-outline-light">
               <Icon as={IconPlus} size="sm" />
-              <Text size="sm">태그 선택</Text>
+              <Text size="sm">{t("feed.tags.select")}</Text>
             </HStack>
           </Pressable>
         ) : null

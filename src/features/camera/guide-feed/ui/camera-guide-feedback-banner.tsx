@@ -1,4 +1,5 @@
 import { Text } from "@shared/ui";
+import { useAppTranslation } from "@shared/lib";
 import { useMemo } from "react";
 import { View } from "react-native";
 import { mapPoseFeedbackMessage } from "../lib/pose-feedback-message";
@@ -11,7 +12,11 @@ interface CameraGuideFeedbackBannerProps {
 export function CameraGuideFeedbackBanner({
   feedback,
 }: CameraGuideFeedbackBannerProps) {
-  const message = useMemo(() => mapPoseFeedbackMessage(feedback), [feedback]);
+  const { t } = useAppTranslation();
+  const message = useMemo(
+    () => mapPoseFeedbackMessage(feedback, t),
+    [feedback, t],
+  );
   if (!message) return null;
 
   return (

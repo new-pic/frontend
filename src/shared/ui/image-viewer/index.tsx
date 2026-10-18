@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "@shared/lib";
 import React, { useCallback, useState, useEffect, useRef } from "react";
 import {
   View,
@@ -660,6 +661,7 @@ const ImageViewerCloseButton = React.forwardRef<
   React.ElementRef<typeof Pressable>,
   { className?: string }
 >(function ImageViewerCloseButton({ className, ...props }, ref) {
+  const { t } = useAppTranslation();
   const { close } = useImageViewerContext();
 
   return (
@@ -667,7 +669,7 @@ const ImageViewerCloseButton = React.forwardRef<
       ref={ref}
       onPress={close}
       className={imageViewerCloseButtonStyle({ class: className })}
-      accessibilityLabel="Close image viewer"
+      accessibilityLabel={t("photo.closeViewer")}
       accessibilityRole="button"
       {...props}
     >
@@ -679,6 +681,7 @@ const ImageViewerCloseButton = React.forwardRef<
 // Navigation Component
 const ImageViewerNavigation = React.forwardRef<View, { className?: string }>(
   function ImageViewerNavigation({ className }, ref) {
+    const { t } = useAppTranslation();
     const { goPrevious, goNext, currentIndex, images } =
       useImageViewerContext();
 
@@ -694,7 +697,7 @@ const ImageViewerNavigation = React.forwardRef<View, { className?: string }>(
           <TouchableOpacity
             onPress={goPrevious}
             className={imageViewerNavButtonStyle({})}
-            accessibilityLabel="Previous image"
+            accessibilityLabel={t("photo.previous")}
             accessibilityRole="button"
           >
             <Text className="text-white text-2xl font-bold">‹</Text>
@@ -705,7 +708,7 @@ const ImageViewerNavigation = React.forwardRef<View, { className?: string }>(
           <TouchableOpacity
             onPress={goNext}
             className={imageViewerNavButtonStyle({})}
-            accessibilityLabel="Next image"
+            accessibilityLabel={t("photo.next")}
             accessibilityRole="button"
           >
             <Text className="text-white text-2xl font-bold">›</Text>

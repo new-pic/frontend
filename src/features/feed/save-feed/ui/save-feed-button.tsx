@@ -1,6 +1,7 @@
 // 피드 게시하기 / 수정하기 공통 사용 버튼
 
 import type { UpdateFeedRequest } from "@entities/feed";
+import { useAppTranslation } from "@shared/lib";
 import { Button, ButtonText } from "@shared/ui";
 import { router } from "expo-router";
 import { Alert } from "react-native";
@@ -16,24 +17,29 @@ interface SaveFeedButtonProps {
 }
 
 export function SaveFeedButton({ mode, form, feedId }: SaveFeedButtonProps) {
+  const { t } = useAppTranslation();
   const isCreate = mode === "CREATE";
   const enqueue = useFeedPublishingStore((state) => state.enqueue);
   const isPipelineActive = useFeedPublishingPipelineActive();
 
-  const actionText = isCreate ? "등록" : "수정";
+  const actionText = isCreate
+    ? t("feed.publishing.createAction")
+    : t("feed.publishing.updateAction");
   const isPending = form.formState.isSubmitting || isPipelineActive;
 
   const onRequestError = (errorMessage?: string) => {
     const message =
-      errorMessage ??
-      `피드를 ${actionText}하지 못했습니다. 잠시 후 다시 시도해주세요.`;
-    Alert.alert(`피드 ${actionText} 실패`, message);
+      errorMessage ?? t("feed.publishing.failed", { action: actionText });
+    Alert.alert(
+      t("feed.publishing.failedTitle", { action: actionText }),
+      message,
+    );
   };
 
   const handleCreate = (command: CreateFeedPublishingCommand) => {
     const accepted = enqueue(command);
     if (!accepted) {
-      onRequestError("진행 중인 피드 저장 작업을 먼저 완료해주세요.");
+      onRequestError(t("feed.publishing.activeTask"));
       return false;
     }
     router.replace("/feed");
@@ -42,13 +48,13 @@ export function SaveFeedButton({ mode, form, feedId }: SaveFeedButtonProps) {
 
   const handleUpdate = (request: UpdateFeedRequest) => {
     if (!feedId) {
-      onRequestError("수정할 피드 정보를 찾을 수 없습니다.");
+      onRequestError(t("feed.publishing.missingFeed"));
       return false;
     }
 
     const accepted = enqueue({ kind: "UPDATE", feedId, ...request });
     if (!accepted) {
-      onRequestError("진행 중인 피드 저장 작업을 먼저 완료해주세요.");
+      onRequestError(t("feed.publishing.activeTask"));
       return false;
     }
     router.replace("/feed");
@@ -72,7 +78,9 @@ export function SaveFeedButton({ mode, form, feedId }: SaveFeedButtonProps) {
       onPress={handlePress}
     >
       <ButtonText size="lg" className="font-semibold">
-        {isCreate ? "게시하기" : "수정하기"}
+        {isCreate
+          ? t("feed.publishing.createButton")
+          : t("feed.publishing.updateButton")}
       </ButtonText>
     </Button>
   );

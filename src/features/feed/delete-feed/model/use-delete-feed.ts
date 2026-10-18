@@ -1,9 +1,10 @@
-import { useConfirm } from "@shared/lib";
+import { useAppTranslation, useConfirm } from "@shared/lib";
 import { router } from "expo-router";
 import { useCallback } from "react";
 import { deleteFeedQuery } from "../api";
 
 export function useDeleteFeed(feedId: string) {
+  const { t } = useAppTranslation();
   const openConfirm = useConfirm();
   const { isPending, mutate } = deleteFeedQuery.useDeleteFeedMutation();
 
@@ -11,10 +12,10 @@ export function useDeleteFeed(feedId: string) {
     if (isPending) return;
 
     const shouldDelete = await openConfirm({
-      title: "피드 삭제",
-      message: "삭제한 피드는 복구할 수 없습니다. 정말 삭제하시겠습니까?",
-      confirmText: "삭제",
-      cancelText: "취소",
+      title: t("feed.deleteDialog.title"),
+      message: t("feed.deleteDialog.message"),
+      confirmText: t("feed.deleteDialog.confirm"),
+      cancelText: t("common.actions.cancel"),
       destructive: true,
     });
 
@@ -22,7 +23,7 @@ export function useDeleteFeed(feedId: string) {
 
     mutate(feedId);
     router.replace("/feed");
-  }, [feedId, isPending, mutate, openConfirm]);
+  }, [feedId, isPending, mutate, openConfirm, t]);
 
   return {
     deleteFeed,

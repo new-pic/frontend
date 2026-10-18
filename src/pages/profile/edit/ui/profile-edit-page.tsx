@@ -15,6 +15,7 @@ import {
   Text,
   VStack,
 } from "@shared/ui";
+import { useAppTranslation } from "@shared/lib";
 import { IconChevronLeft } from "@tabler/icons-react-native";
 import { router } from "expo-router";
 import { useEffect } from "react";
@@ -22,6 +23,7 @@ import { Controller } from "react-hook-form";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function ProfileEditPage() {
+  const { t } = useAppTranslation();
   const form = useSetupForm();
   const { data } = usersQuery.useReadMe();
   const {
@@ -50,13 +52,13 @@ export function ProfileEditPage() {
             <Button
               variant="ghost"
               size="icon"
-              accessibilityLabel="프로필로 돌아가기"
+              accessibilityLabel={t("common.accessibility.backToProfile")}
               onPress={handleGoBack}
             >
               <ButtonIcon as={IconChevronLeft} />
             </Button>
             <Text className="font-semibold" size="lg">
-              프로필 설정하기
+              {t("profile.editTitle")}
             </Text>
             <Box className="w-12" />
           </HStack>
@@ -82,13 +84,13 @@ export function ProfileEditPage() {
                 control={form.control}
                 render={({ field }) => (
                   <VStack space="xs">
-                    <Text className="font-medium">닉네임</Text>
+                    <Text className="font-medium">{t("profile.nickname")}</Text>
                     <Input>
                       <InputField
                         value={field.value}
                         onChangeText={field.onChange}
                         editable={!isSubmitting}
-                        placeholder="닉네임은 8자까지 가능합니다."
+                        placeholder={t("profile.nicknamePlaceholder")}
                       />
                     </Input>
                   </VStack>

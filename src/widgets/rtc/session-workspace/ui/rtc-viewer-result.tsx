@@ -1,6 +1,7 @@
 import { RTC_MAX_SELECTED_PHOTOS } from "@entities/rtc-room";
 import { RTC_STORED_PHOTO_MAX_TAKE } from "@entities/rtc-stored-photo";
 import { rtcViewerQuery } from "@features/rtc/join-room";
+import { useAppTranslation } from "@shared/lib";
 import { Button, ButtonText, Center, Text, VStack } from "@shared/ui";
 import { useMemo } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -20,6 +21,7 @@ export function RtcViewerResult({
   initialImages,
   onDone,
 }: RtcViewerResultProps) {
+  const { t } = useAppTranslation();
   const {
     data,
     fetchNextPage,
@@ -55,22 +57,20 @@ export function RtcViewerResult({
         <Center className="flex-1 bg-white px-6">
           <VStack className="w-full gap-4">
             <Text size="lg" bold className="text-center">
-              {isError
-                ? "촬영 결과를 불러오지 못했습니다."
-                : "저장된 촬영 사진이 없습니다."}
+              {isError ? t("rtc.result.loadFailed") : t("rtc.result.empty")}
             </Text>
             {isError ? (
               <>
                 <Text className="text-center text-label-muted">
-                  잠시 후 다시 시도해주세요.
+                  {t("rtc.result.retryLater")}
                 </Text>
                 <Button variant="outline" onPress={() => void refetch()}>
-                  <ButtonText>다시 시도</ButtonText>
+                  <ButtonText>{t("common.actions.retry")}</ButtonText>
                 </Button>
               </>
             ) : null}
             <Button variant="ghost" onPress={onDone}>
-              <ButtonText>나가기</ButtonText>
+              <ButtonText>{t("rtc.result.exit")}</ButtonText>
             </Button>
           </VStack>
         </Center>

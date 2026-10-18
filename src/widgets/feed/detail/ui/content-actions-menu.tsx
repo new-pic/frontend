@@ -1,4 +1,5 @@
 import { Button, ButtonIcon, Pressable, Text } from "@shared/ui";
+import { useAppTranslation } from "@shared/lib";
 import { IconDotsVertical } from "@tabler/icons-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -45,6 +46,7 @@ export function ContentActionsMenu({
   items,
   iconClassName = "h-6 w-6",
 }: ContentActionsMenuProps) {
+  const { t } = useAppTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [triggerLayout, setTriggerLayout] = useState<TriggerLayout | null>(
     null,
@@ -127,7 +129,9 @@ export function ContentActionsMenu({
       >
         <View className="flex-1">
           <NativePressable
-            accessibilityLabel={`${accessibilityLabel} 메뉴 닫기`}
+            accessibilityLabel={t("feed.menuClose", {
+              label: accessibilityLabel,
+            })}
             className="absolute inset-0"
             onPress={() => setIsOpen(false)}
           />

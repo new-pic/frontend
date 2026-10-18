@@ -17,6 +17,7 @@ import {
   useConnectionState,
   useRoomContext,
 } from "@livekit/react-native";
+import { useAppTranslation } from "@shared/lib";
 import { Button, ButtonText, Text, VStack } from "@shared/ui";
 import { ConnectionState, Room, RoomEvent } from "livekit-client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -64,6 +65,7 @@ function HostRoomContent({
   onFinalizationStateChange,
   publisher,
 }: HostRoomContentProps) {
+  const { t } = useAppTranslation();
   const room = useRoomContext();
   const connectionState = useConnectionState();
   const isMountedRef = useRef(true);
@@ -118,14 +120,14 @@ function HostRoomContent({
       setPublisherError(
         error instanceof Error
           ? error.message
-          : "VisionCamera 영상 송출을 시작하지 못했습니다.",
+          : t("rtc.host.broadcastStartFailed"),
       );
     } finally {
       if (isMountedRef.current) {
         setIsPublishing(false);
       }
     }
-  }, [connectionState, publisher]);
+  }, [connectionState, publisher, t]);
 
   useEffect(() => {
     if (canPublish && connectionState === ConnectionState.Connected) {
@@ -136,9 +138,7 @@ function HostRoomContent({
   const deliverResult = useCallback(
     async (result: RtcEndRoomResponse) => {
       if (!isActiveRef.current) {
-        throw new Error(
-          "화면을 벗어나 결과 전송이 중단되었습니다. 카메라 화면으로 돌아와 다시 시도해주세요.",
-        );
+        throw new Error(t("rtc.host.resultDeliveryInterrupted"));
       }
 
       if (room.state !== ConnectionState.Connected) {
@@ -146,9 +146,7 @@ function HostRoomContent({
       }
 
       if (!isActiveRef.current) {
-        throw new Error(
-          "화면을 벗어나 결과 전송이 중단되었습니다. 카메라 화면으로 돌아와 다시 시도해주세요.",
-        );
+        throw new Error(t("rtc.host.resultDeliveryInterrupted"));
       }
 
       const payload = encodeRtcRoomEndedRpcPayload(result);
@@ -164,7 +162,9 @@ function HostRoomContent({
 
           if (response !== RTC_ROOM_ENDED_RPC_ACK) {
             throw new Error(
-              `${participant.identity}의 결과 수신 확인값이 올바르지 않습니다.`,
+              t("rtc.host.invalidAck", {
+                identity: participant.identity,
+              }),
             );
           }
         }),
@@ -175,11 +175,11 @@ function HostRoomContent({
 
       if (failedCount > 0) {
         throw new Error(
-          `${failedCount}명의 참여자가 사진 결과를 확인하지 못했습니다.`,
+          t("rtc.host.participantsMissedResult", { count: failedCount }),
         );
       }
     },
-    [ensureConnected, room],
+    [ensureConnected, room, t],
   );
 
   const {
@@ -207,16 +207,16 @@ function HostRoomContent({
     if (!finalizationErrorMessage) return;
 
     Alert.alert(
-      "RTC 방 종료 실패",
+      t("rtc.errors.roomEndTitle"),
       finalizationErrorMessage,
       [
         {
-          text: "닫기",
+          text: t("common.actions.close"),
           style: "cancel",
           onPress: clearFinalizationError,
         },
         {
-          text: "종료 처리 다시 시도",
+          text: t("rtc.host.retryEnding"),
           onPress: () => {
             clearFinalizationError();
             void requestTermination();
@@ -228,7 +228,7 @@ function HostRoomContent({
         onDismiss: clearFinalizationError,
       },
     );
-  }, [clearFinalizationError, finalizationErrorMessage, requestTermination]);
+  }, [clearFinalizationError, finalizationErrorMessage, requestTermination, t]);
 
   useEffect(() => {
     if (endRequestId <= handledEndRequestIdRef.current || endRequestId <= 0) {
@@ -255,7 +255,7 @@ function HostRoomContent({
                 }
                 onPress={() => void startPublisher()}
               >
-                <ButtonText>영상 송출 다시 시작</ButtonText>
+                <ButtonText>{t("rtc.host.retryBroadcast")}</ButtonText>
               </Button>
             </VStack>
           ) : null}
@@ -275,6 +275,7 @@ export function RtcHostLiveKit({
   onFinalizationStateChange,
   publisherFactory = createVisionCameraVideoPublisher,
 }: RtcHostLiveKitProps) {
+  const { t } = useAppTranslation();
   const room = useMemo(
     () =>
       new Room({
@@ -302,9 +303,7 @@ export function RtcHostLiveKit({
 
   const ensureConnected = useCallback(async () => {
     if (!isActiveRef.current) {
-      throw new Error(
-        "카메라 화면이 활성화된 동안에만 LiveKit에 연결할 수 있습니다.",
-      );
+      throw new Error(t("rtc.host.activeCameraRequired"));
     }
 
     const pendingCleanup = cleanupPromiseRef.current;
@@ -313,9 +312,7 @@ export function RtcHostLiveKit({
     }
 
     if (!isActiveRef.current) {
-      throw new Error(
-        "카메라 화면이 활성화된 동안에만 LiveKit에 연결할 수 있습니다.",
-      );
+      throw new Error(t("rtc.host.activeCameraRequired"));
     }
 
     if (isRoomConnected(room)) {
@@ -340,9 +337,7 @@ export function RtcHostLiveKit({
         return;
       }
       if (!isActiveRef.current) {
-        throw new Error(
-          "카메라 화면이 활성화된 동안에만 LiveKit에 연결할 수 있습니다.",
-        );
+        throw new Error(t("rtc.host.activeCameraRequired"));
       }
     }
 
@@ -360,9 +355,7 @@ export function RtcHostLiveKit({
           connectionEpoch !== lifecycleEpochRef.current
         ) {
           await room.disconnect();
-          throw new Error(
-            "카메라 화면이 비활성화되어 LiveKit 연결을 취소했습니다.",
-          );
+          throw new Error(t("rtc.host.inactiveCameraCanceled"));
         }
 
         if (isMountedRef.current) {
@@ -373,7 +366,7 @@ export function RtcHostLiveKit({
         const normalizedError =
           error instanceof Error
             ? error
-            : new Error("LiveKit 연결에 실패했습니다.");
+            : new Error(t("rtc.host.liveKitFailed"));
         if (
           isMountedRef.current &&
           isActiveRef.current &&
@@ -390,7 +383,7 @@ export function RtcHostLiveKit({
       });
     connectPromiseRef.current = connectPromise;
     return connectPromise;
-  }, [connection.token, connection.url, room]);
+  }, [connection.token, connection.url, room, t]);
 
   const stopAndDisconnect = useCallback(() => {
     if (isMountedRef.current) {
@@ -426,7 +419,7 @@ export function RtcHostLiveKit({
     };
     const handleDisconnected = () => {
       if (isMountedRef.current && isActiveRef.current) {
-        setConnectionError("LiveKit 연결이 종료되었습니다.");
+        setConnectionError(t("rtc.host.liveKitEnded"));
       }
     };
 
@@ -444,7 +437,7 @@ export function RtcHostLiveKit({
       // queue를 사용해 track을 먼저 해제한 뒤 Room을 종료합니다.
       void stopAndDisconnect().catch(() => undefined);
     };
-  }, [room, stopAndDisconnect]);
+  }, [room, stopAndDisconnect, t]);
 
   useEffect(() => {
     if (isActive) {

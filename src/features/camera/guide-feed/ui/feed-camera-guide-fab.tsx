@@ -1,4 +1,5 @@
 import type { FeedResponse } from "@entities/feed";
+import { useAppTranslation } from "@shared/lib";
 import { gradients } from "@shared/ui/theme";
 import { Pressable } from "@shared/ui";
 import { IconCamera } from "@tabler/icons-react-native";
@@ -21,14 +22,13 @@ export const FeedCameraGuideFab = memo(function FeedCameraGuideFab({
   size,
   onPress,
 }: FeedCameraGuideFabProps) {
+  const { t } = useAppTranslation();
   const cameraHref = createCameraGuideHref(feed.id);
   const button = (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={
-        onPress
-          ? "이 피드를 촬영 가이드로 선택"
-          : "이 피드를 가이드로 카메라 열기"
+        onPress ? t("guide.selectFromFeed") : t("guide.openCameraFromFeed")
       }
       onPress={onPress}
     >

@@ -1,4 +1,5 @@
 import type { CreateFeedCommentRequest } from "@entities/feed";
+import { useAppTranslation } from "@shared/lib";
 import { Button, ButtonText, Text, VStack } from "@shared/ui";
 import { useWatch } from "react-hook-form";
 import type { UseCreateFeedCommentFormReturn } from "../model/use-create-feed-comment-form";
@@ -15,6 +16,7 @@ export function SaveCommentButton({
   form,
   requireMember,
 }: SaveCommentButtonProps) {
+  const { t } = useAppTranslation();
   const mutationToCreateComment = feedCommentQuery.useCreateFeedComment({
     feedId,
   });
@@ -47,11 +49,11 @@ export function SaveCommentButton({
         isLoading={mutationToCreateComment.isPending}
         onPress={handlePress}
       >
-        <ButtonText>등록</ButtonText>
+        <ButtonText>{t("feed.comments.submit")}</ButtonText>
       </Button>
       {mutationToCreateComment.isError ? (
         <Text size="xs" className="text-destructive">
-          댓글 등록에 실패했습니다.
+          {t("feed.comments.submitFailed")}
         </Text>
       ) : null}
     </VStack>

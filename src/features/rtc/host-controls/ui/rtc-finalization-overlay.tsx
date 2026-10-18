@@ -11,21 +11,20 @@ interface RtcFinalizationOverlayProps {
   state: RtcHostFinalizationState;
 }
 
-const finalizationCopy = {
-  ENDING_ROOM: {
-    title: "촬영 사진을 저장하고 있어요",
-    description: "저장이 끝나면 촬영 결과를 바로 보여드릴게요.",
-  },
-  DELIVERING_RESULT: {
-    title: "촬영 결과를 전달하고 있어요",
-    description: "참여자에게 사진을 전달하는 동안 잠시만 기다려주세요.",
-  },
-} as const;
-
 export function RtcFinalizationOverlay({ state }: RtcFinalizationOverlayProps) {
+  const { t } = useAppTranslation();
   if (!isRtcFinalizationBlocking(state)) return null;
 
-  const copy = finalizationCopy[state];
+  const copy =
+    state === "ENDING_ROOM"
+      ? {
+          title: t("rtc.host.savingPhotos"),
+          description: t("rtc.host.savingPhotosDescription"),
+        }
+      : {
+          title: t("rtc.host.deliveringResults"),
+          description: t("rtc.host.deliveringResultsDescription"),
+        };
 
   return (
     <View
@@ -47,7 +46,7 @@ export function RtcFinalizationOverlay({ state }: RtcFinalizationOverlayProps) {
             <Spinner
               size="large"
               color={colors.brand.primary}
-              accessibilityLabel="RTC 방 종료 처리 중"
+              accessibilityLabel={t("rtc.host.finalizingAccessibility")}
             />
             <VStack className="items-center gap-2">
               <Text size="xl" className="text-center font-semibold">
@@ -63,3 +62,4 @@ export function RtcFinalizationOverlay({ state }: RtcFinalizationOverlayProps) {
     </View>
   );
 }
+import { useAppTranslation } from "@shared/lib";

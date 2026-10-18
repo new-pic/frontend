@@ -1,5 +1,6 @@
 import { decodeAccessToken } from "@shared/lib/jwt";
 import { useAuthStore } from "@shared/model";
+import { translate } from "../config";
 import { refreshAuthSession } from "./refresh-auth-session";
 
 const ACCESS_TOKEN_EXPIRY_LEEWAY_MS = 30_000;
@@ -13,7 +14,7 @@ interface ExecuteAuthenticatedFetchOptions {
 
 function getRequiredAccessToken(): string {
   const accessToken = useAuthStore.getState().accessToken?.trim() ?? "";
-  if (!accessToken) throw new Error("로그인이 필요합니다.");
+  if (!accessToken) throw new Error(translate("common.errors.signInRequired"));
   return accessToken;
 }
 

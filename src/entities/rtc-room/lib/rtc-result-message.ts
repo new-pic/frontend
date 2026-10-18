@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { translate } from "../../../shared/config";
 import { RtcEndRoomResponseSchema, type RtcEndRoomResponse } from "../model";
 
 export const RTC_ROOM_ENDED_RPC_METHOD = "newpic.rtc.room-ended.v1" as const;
@@ -35,9 +36,7 @@ export function encodeRtcRoomEndedRpcPayload(
   if (
     new TextEncoder().encode(payload).byteLength > LIVEKIT_RPC_MAX_PAYLOAD_BYTES
   ) {
-    throw new Error(
-      "RTC 종료 결과가 LiveKit RPC 최대 크기(15KiB)를 초과했습니다.",
-    );
+    throw new Error(translate("rtc.errors.resultPayloadTooLarge"));
   }
 
   return payload;

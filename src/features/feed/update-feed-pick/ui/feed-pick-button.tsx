@@ -1,4 +1,5 @@
 import { colors } from "@shared/ui/theme";
+import { useAppTranslation } from "@shared/lib";
 import { Button, ButtonIcon } from "@shared/ui";
 import { IconBookmarkFilled } from "@tabler/icons-react-native";
 import { useRef } from "react";
@@ -20,6 +21,7 @@ export function FeedPickButton({
   tone = "default",
   requireMember,
 }: FeedPickButtonProps) {
+  const { t } = useAppTranslation();
   const lastPressedAtRef = useRef(0);
   const mutationToSave = feedPickQuery.useSaveFeed();
   const mutationToUnsave = feedPickQuery.useUnsaveFeed();
@@ -79,7 +81,7 @@ export function FeedPickButton({
           : undefined
       }
       disabled={isPending}
-      accessibilityLabel={isPicked ? "피드 저장 취소" : "피드 저장"}
+      accessibilityLabel={isPicked ? t("feed.unsave") : t("feed.save")}
       onPress={handlePress}
     >
       <ButtonIcon

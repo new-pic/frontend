@@ -1,5 +1,6 @@
 import { RTC_MAX_SELECTED_PHOTOS } from "@entities/rtc-room";
 import { useSaveImagesToLibrary } from "@features/photo/save-images-to-library";
+import { useAppTranslation } from "@shared/lib";
 import {
   Button,
   ButtonText,
@@ -36,6 +37,7 @@ export function RtcSessionResult({
   isFetchingNextPage = false,
   onEndReached,
 }: RtcSessionResultProps) {
+  const { t } = useAppTranslation();
   const [selectedImageIds, setSelectedImageIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -80,8 +82,8 @@ export function RtcSessionResult({
 
     if (selectedImageIds.size >= maxSelection) {
       Alert.alert(
-        "사진 선택 한도",
-        `사진은 최대 ${maxSelection}장까지 선택할 수 있습니다.`,
+        t("rtc.result.selectionLimitTitle"),
+        t("rtc.result.selectionLimit", { count: maxSelection }),
       );
       return;
     }
@@ -106,8 +108,8 @@ export function RtcSessionResult({
     if (result.status === "BUSY") return;
     if (result.status === "PERMISSION_DENIED") {
       Alert.alert(
-        "사진 권한 필요",
-        "선택한 사진을 저장하려면 사진 보관함 추가 권한이 필요합니다.",
+        t("photo.permissionTitle"),
+        t("photo.savePermissionDescription"),
       );
       return;
     }
@@ -115,23 +117,23 @@ export function RtcSessionResult({
     setSelectedImageIds(new Set(result.failedImageIds));
     if (result.status === "SAVED") {
       Alert.alert(
-        "사진 저장 완료",
-        `${result.savedCount}장의 사진을 사진 보관함에 저장했습니다.`,
+        t("photo.savedTitle"),
+        t("photo.savedCount", { count: result.savedCount }),
       );
       return;
     }
     if (result.status === "PARTIALLY_SAVED") {
       Alert.alert(
-        "일부 사진 저장 실패",
-        `${result.savedCount}장은 저장했고, ${result.failedImageIds.length}장은 저장하지 못했습니다. 실패한 사진을 다시 시도해주세요.`,
+        t("photo.partiallySavedTitle"),
+        t("photo.partiallySaved", {
+          savedCount: result.savedCount,
+          failedCount: result.failedImageIds.length,
+        }),
       );
       return;
     }
 
-    Alert.alert(
-      "사진 저장 실패",
-      "선택한 사진을 저장하지 못했습니다. 잠시 후 다시 시도해주세요.",
-    );
+    Alert.alert(t("photo.saveFailedTitle"), t("photo.saveFailed"));
   };
 
   return (
@@ -140,7 +142,7 @@ export function RtcSessionResult({
         <VStack className="gap-2 border-b border-outline-light px-6 py-4">
           <HStack className="items-center justify-between">
             <Text size="xl" bold>
-              공유 사진
+              {t("rtc.result.sharedPhotos")}
             </Text>
             <Pressable
               disabled={images.length === 0 || isSaving || isPending}
@@ -148,21 +150,26 @@ export function RtcSessionResult({
               accessibilityRole="button"
               accessibilityLabel={
                 isAllSelectableSelected
-                  ? "전체 선택 해제"
-                  : `최대 ${maxSelection}장 선택`
+                  ? t("common.actions.deselectAll")
+                  : t("rtc.result.maxSelectAccessibility", {
+                      count: maxSelection,
+                    })
               }
             >
               <Text bold className="text-primary">
                 {isAllSelectableSelected
-                  ? "전체 해제"
+                  ? t("common.actions.deselectAll")
                   : images.length > maxSelection
-                    ? `${maxSelection}장 선택`
-                    : "전체 선택"}
+                    ? t("rtc.result.maxSelect", { count: maxSelection })
+                    : t("common.actions.selectAll")}
               </Text>
             </Pressable>
           </HStack>
           <Text className="text-label-muted">
-            선택됨 {selectedImages.length} / 최대 {maxSelection}장
+            {t("rtc.result.selectedMaximum", {
+              selected: selectedImages.length,
+              maximum: maxSelection,
+            })}
           </Text>
         </VStack>
 
@@ -186,10 +193,14 @@ export function RtcSessionResult({
             disabled={selectedImages.length === 0 || isSaving || isPending}
             isLoading={isSaving}
             onPress={() => void handleSaveSelectedImages()}
-            accessibilityLabel={`${selectedImages.length}장의 선택한 사진 저장`}
+            accessibilityLabel={t("rtc.result.saveAccessibility", {
+              count: selectedImages.length,
+            })}
           >
             <ButtonText>
-              {`선택한 사진 저장 (${selectedImages.length})`}
+              {t("rtc.result.saveSelected", {
+                count: selectedImages.length,
+              })}
             </ButtonText>
           </Button>
           <Button
@@ -198,7 +209,7 @@ export function RtcSessionResult({
             disabled={isSaving}
             onPress={onDone}
           >
-            <ButtonText>완료</ButtonText>
+            <ButtonText>{t("rtc.result.done")}</ButtonText>
           </Button>
         </VStack>
       </VStack>

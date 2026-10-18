@@ -28,7 +28,7 @@ import {
 import { RtcHostReactionBubbles } from "@features/rtc/reactions";
 import { visionCameraRtcFrameSink } from "@newpic/vision-camera-rtc";
 import { RTC_NAVIGATION } from "@shared/config";
-import { useConfirm } from "@shared/lib";
+import { useAppTranslation, useConfirm } from "@shared/lib";
 import { Box, FramingGridOverlay, VStack } from "@shared/ui";
 import * as Linking from "expo-linking";
 import {
@@ -83,6 +83,7 @@ export const CameraCaptureWorkspace = forwardRef<
   },
   ref,
 ) {
+  const { t } = useAppTranslation();
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
   const [isGuideSheetOpen, setIsGuideSheetOpen] = useState(false);
   const [isGuideReferenceVisible, setIsGuideReferenceVisible] = useState(false);
@@ -106,10 +107,10 @@ export const CameraCaptureWorkspace = forwardRef<
 
   const handleResultRefreshError = useCallback(() => {
     Alert.alert(
-      "촬영 사진 목록 갱신 실패",
-      "사진은 저장됐지만 프로필 목록을 갱신하지 못했습니다. 프로필에서 다시 시도해주세요.",
+      t("rtc.errors.resultListRefreshTitle"),
+      t("rtc.errors.resultListRefreshDescription"),
     );
-  }, []);
+  }, [t]);
 
   const handleResultReady = useCallback(
     (images: RtcHostResultImage[]) => {
@@ -211,10 +212,10 @@ export const CameraCaptureWorkspace = forwardRef<
 
   const handleOpenShare = useCallback(async () => {
     const confirmed = await openConfirm({
-      title: "실시간 공유를 시작할까요?",
-      message: "촬영 화면이 참여자에게 실시간으로 공유됩니다.",
-      confirmText: "공유 준비하기",
-      cancelText: "취소",
+      title: t("rtc.host.startConfirmTitle"),
+      message: t("rtc.host.startConfirmDescription"),
+      confirmText: t("rtc.host.prepareShare"),
+      cancelText: t("common.actions.cancel"),
     });
     if (!confirmed) return;
 
@@ -229,6 +230,7 @@ export const CameraCaptureWorkspace = forwardRef<
     openConfirm,
     prepareSharing,
     resetEndPhotoPreparation,
+    t,
   ]);
 
   const handleCancelShare = useCallback(async () => {
@@ -251,10 +253,10 @@ export const CameraCaptureWorkspace = forwardRef<
       }
 
       const confirmed = await openConfirm({
-        title: "실시간 공유를 종료할까요?",
-        message: "종료 전에 방에 저장할 촬영 사진을 선택할 수 있습니다.",
-        confirmText: "종료하기",
-        cancelText: "계속 공유",
+        title: t("rtc.host.endConfirmTitle"),
+        message: t("rtc.host.endConfirmDescription"),
+        confirmText: t("rtc.host.end"),
+        cancelText: t("rtc.host.keepSharing"),
         destructive: true,
       });
       if (!confirmed) return;
@@ -267,6 +269,7 @@ export const CameraCaptureWorkspace = forwardRef<
       isFinalizationPending,
       openConfirm,
       requestTermination,
+      t,
     ],
   );
 
@@ -365,8 +368,8 @@ export const CameraCaptureWorkspace = forwardRef<
             }
             onPhotoLimitReached={(maxPhotos) => {
               Alert.alert(
-                "사진 촬영 한도",
-                `한 방에서 사진은 최대 ${maxPhotos}장까지 촬영할 수 있습니다.`,
+                t("camera.captureLimitTitle"),
+                t("camera.captureLimit", { count: maxPhotos }),
               );
             }}
             onOpenPhotos={() => setIsCapturedPhotosOpen(true)}

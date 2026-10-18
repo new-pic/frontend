@@ -7,6 +7,7 @@ import {
   useActiveRtcStoredPhotos,
 } from "@features/rtc-photo/browse-stored-photos";
 import { useSaveRtcStoredPhoto } from "@features/rtc-photo/save-stored-photo";
+import { useAppTranslation } from "@shared/lib";
 import {
   Box,
   Button,
@@ -26,6 +27,7 @@ import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function ProfileRtcPhotoPage() {
+  const { t } = useAppTranslation();
   const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
   const {
     data,
@@ -51,25 +53,22 @@ export function ProfileRtcPhotoPage() {
     const result = await savePhoto(photo);
 
     if (result === "SAVED") {
-      Alert.alert("사진 저장 완료", "현재 사진을 사진 보관함에 저장했습니다.");
+      Alert.alert(t("photo.savedTitle"), t("photo.currentSaved"));
       return;
     }
     if (result === "PERMISSION_DENIED") {
       Alert.alert(
-        "사진 권한 필요",
-        "사진을 저장하려면 사진 보관함 추가 권한이 필요합니다.",
+        t("photo.permissionTitle"),
+        t("photo.currentSavePermissionDescription"),
       );
       return;
     }
     if (result === "EXPIRED") {
-      Alert.alert("사진 만료", "사진 보관 기간이 지나 저장할 수 없습니다.");
+      Alert.alert(t("photo.expiredTitle"), t("photo.expired"));
       return;
     }
     if (result === "FAILED") {
-      Alert.alert(
-        "사진 저장 실패",
-        "사진을 저장하지 못했습니다. 잠시 후 다시 시도해주세요.",
-      );
+      Alert.alert(t("photo.saveFailedTitle"), t("photo.saveFailed"));
     }
   };
 
@@ -87,13 +86,13 @@ export function ProfileRtcPhotoPage() {
           <Button
             variant="ghost"
             size="icon"
-            accessibilityLabel="프로필로 돌아가기"
+            accessibilityLabel={t("common.accessibility.backToProfile")}
             onPress={() => router.back()}
           >
             <ButtonIcon as={IconChevronLeft} />
           </Button>
           <Text className="font-semibold" size="lg">
-            최근 촬영 사진
+            {t("profile.recentRtcPhotos")}
           </Text>
           <Box className="w-12" />
         </HStack>
@@ -102,10 +101,10 @@ export function ProfileRtcPhotoPage() {
           <Center className="flex-1 px-6">
             <VStack className="w-full items-center gap-4">
               <Text className="text-label-muted">
-                촬영 사진을 불러오지 못했습니다.
+                {t("profile.rtcPhotosLoadFailed")}
               </Text>
               <Button variant="outline" onPress={() => void refetch()}>
-                <ButtonText>다시 시도</ButtonText>
+                <ButtonText>{t("common.actions.retry")}</ButtonText>
               </Button>
             </VStack>
           </Center>
@@ -116,7 +115,7 @@ export function ProfileRtcPhotoPage() {
             onEndReached={handleEndReached}
             onRefresh={() => void refetch()}
             refreshing={isRefetching && !isFetchingNextPage}
-            emptyMessage="보관 중인 촬영 사진이 없습니다."
+            emptyMessage={t("profile.rtcPhotosEmpty")}
             isPending={isPending}
             isFetchingNextPage={isFetchingNextPage}
           />
@@ -134,7 +133,7 @@ export function ProfileRtcPhotoPage() {
             disabled={isSaving}
             isLoading={isSaving}
             accessibilityLabel={
-              isSaving ? "사진 저장 중" : "현재 사진 다운로드"
+              isSaving ? t("photo.saving") : t("photo.downloadCurrent")
             }
             onPress={() => void handleDownloadPhoto(activeImage)}
           >

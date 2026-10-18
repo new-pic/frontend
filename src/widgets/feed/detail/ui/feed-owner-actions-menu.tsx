@@ -1,4 +1,5 @@
 import { useDeleteFeed } from "@features/feed/delete-feed";
+import { useAppTranslation } from "@shared/lib";
 import { router } from "expo-router";
 import { ContentActionsMenu } from "./content-actions-menu";
 
@@ -7,6 +8,7 @@ interface FeedOwnerActionsMenuProps {
 }
 
 export function FeedOwnerActionsMenu({ feedId }: FeedOwnerActionsMenuProps) {
+  const { t } = useAppTranslation();
   const { deleteFeed, isDeleting } = useDeleteFeed(feedId);
 
   const handleEdit = () => {
@@ -22,17 +24,17 @@ export function FeedOwnerActionsMenu({ feedId }: FeedOwnerActionsMenuProps) {
 
   return (
     <ContentActionsMenu
-      accessibilityLabel="피드 더보기"
-      accessibilityHint="수정 및 삭제 메뉴를 엽니다"
+      accessibilityLabel={t("feed.moreAccessibility")}
+      accessibilityHint={t("feed.ownerMoreHint")}
       items={[
         {
           key: "edit",
-          label: "수정하기",
+          label: t("common.actions.edit"),
           onPress: handleEdit,
         },
         {
           key: "delete",
-          label: "삭제하기",
+          label: t("common.actions.delete"),
           destructive: true,
           disabled: isDeleting,
           onPress: handleDelete,

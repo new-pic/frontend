@@ -3,7 +3,7 @@ import {
   UpdateFeedRequestSchema,
 } from "@entities/feed";
 import { getApiErrorMessage } from "@shared/api";
-import { deleteStagedUploadFile } from "@shared/lib";
+import { deleteStagedUploadFile, useAppTranslation } from "@shared/lib";
 import { File } from "expo-file-system";
 import { useEffect } from "react";
 import { useFeedProcessingStore } from "../processing/feed-processing-store";
@@ -11,6 +11,7 @@ import { useFeedPublishingStore } from "./feed-publishing-store";
 import { feedPublishingQuery } from "../../api";
 
 export function FeedPublishingCoordinator() {
+  const { t } = useAppTranslation();
   const publishingTask = useFeedPublishingStore(
     (state) => state.publishingTask,
   );
@@ -55,10 +56,13 @@ export function FeedPublishingCoordinator() {
           .getState()
           .setPublishingPhase(publishingTaskId, "completed");
       } catch (error) {
-        const action = command.kind === "CREATE" ? "게시" : "수정";
+        const action =
+          command.kind === "CREATE"
+            ? t("feed.publishing.createAction")
+            : t("feed.publishing.updateAction");
         const message = getApiErrorMessage(
           error,
-          `피드를 ${action}하지 못했습니다. 잠시 후 다시 시도해주세요.`,
+          t("feed.publishing.failed", { action }),
         );
         useFeedPublishingStore
           .getState()
@@ -67,7 +71,7 @@ export function FeedPublishingCoordinator() {
     };
 
     void publish();
-  }, [createFeedMutation, publishingTask, updateFeedMutation]);
+  }, [createFeedMutation, publishingTask, t, updateFeedMutation]);
 
   return null;
 }

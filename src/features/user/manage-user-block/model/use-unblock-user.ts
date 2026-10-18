@@ -1,6 +1,6 @@
 import { userQueryKeys } from "@entities/user";
 import { getApiErrorMessage } from "@shared/api";
-import { useConfirm } from "@shared/lib";
+import { useAppTranslation, useConfirm } from "@shared/lib";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef } from "react";
 import { Alert } from "react-native";
@@ -16,6 +16,7 @@ interface UnblockUserOptions {
 }
 
 export function useUnblockUser() {
+  const { t } = useAppTranslation();
   const openConfirm = useConfirm();
   const queryClient = useQueryClient();
   const unblockMutation = userBlockQuery.useUnblockUserMutation();
@@ -29,10 +30,10 @@ export function useUnblockUser() {
 
       try {
         const shouldUnblock = await openConfirm({
-          title: "차단 해제",
-          message: `${nickname}님의 차단을 해제하시겠습니까?`,
-          confirmText: "해제",
-          cancelText: "취소",
+          title: t("user.unblockTitle"),
+          message: t("user.unblockDescription", { nickname }),
+          confirmText: t("user.unblockConfirm"),
+          cancelText: t("common.actions.cancel"),
         });
 
         if (!shouldUnblock) return false;
@@ -50,11 +51,8 @@ export function useUnblockUser() {
         return true;
       } catch (error) {
         Alert.alert(
-          "차단 해제 실패",
-          getApiErrorMessage(
-            error,
-            "사용자 차단을 해제하지 못했습니다. 다시 시도해주세요.",
-          ),
+          t("user.unblockFailedTitle"),
+          getApiErrorMessage(error, t("user.unblockFailed")),
         );
 
         return false;
@@ -62,7 +60,7 @@ export function useUnblockUser() {
         isUnblockingRef.current = false;
       }
     },
-    [openConfirm, queryClient, unblockMutation],
+    [openConfirm, queryClient, t, unblockMutation],
   );
 
   return {

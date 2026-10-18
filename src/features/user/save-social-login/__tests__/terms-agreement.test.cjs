@@ -253,7 +253,7 @@ test("약관 동의는 BottomSheet에서 명시적으로 확정한다", () => {
   );
   assert.match(
     welcomeSource,
-    /<Button[\s\S]*className="w-full h-12\.5 p-0 rounded-xl"[\s\S]*<ButtonText size="lg" className="font-semibold">[\s\S]*동의하고 계속/,
+    /<Button[\s\S]*className="w-full h-12\.5 p-0 rounded-xl"[\s\S]*<ButtonText size="lg" className="font-semibold">[\s\S]*t\("welcome\.acceptAndContinue"\)/,
   );
 });
 
@@ -271,7 +271,7 @@ test("Apple 로그인은 iOS 지원 여부를 확인하고 시스템 인증 결�
   assert.match(welcomeSource, /<AppleLogo width=\{24\} height=\{24\} \/>/);
   assert.match(
     welcomeSource,
-    /<ButtonText className="text-white">[\s\S]*애플로 시작하기[\s\S]*<\/ButtonText>/,
+    /<ButtonText className="text-white">[\s\S]*t\("welcome\.startWithApple"\)[\s\S]*<\/ButtonText>/,
   );
   assert.match(loginSource, /Platform\.OS !== "ios"/);
   assert.match(loginSource, /AppleAuthentication\.isAvailableAsync\(\)/);
@@ -318,19 +318,16 @@ test("Welcome은 진입 시 약관 핵심 내용과 명시적 동의 UI를 표�
   const welcomeSource = readSource("src/pages/welcome/ui/welcome-page.tsx");
 
   assert.match(welcomeSource, /<ScrollView/);
-  assert.match(
-    welcomeSource,
-    /NewPic 서비스를 시작하기 전에 아래 내용을 확인해주세요/,
-  );
-  assert.match(welcomeSource, /소셜 로그인 정보 또는 기기/);
-  assert.match(welcomeSource, /촬영하거나 업로드한 사진과 작성한 피드·댓글/);
-  assert.match(welcomeSource, /수집 항목, 이용 목적, 보관 기간 및 삭제 방법/);
-  assert.match(welcomeSource, /이용약관 및 개인정보 처리방침 전문 보기/);
-  assert.match(welcomeSource, /\(필수\) 위 내용을 확인했으며/);
+  assert.match(welcomeSource, /t\("welcome\.termsIntro"\)/);
+  assert.match(welcomeSource, /t\("welcome\.dataAccount"\)/);
+  assert.match(welcomeSource, /t\("welcome\.dataContent"\)/);
+  assert.match(welcomeSource, /t\("welcome\.dataPolicy"\)/);
+  assert.match(welcomeSource, /t\("welcome\.viewFullTerms"\)/);
+  assert.match(welcomeSource, /t\("welcome\.requiredConsent"\)/);
   assert.match(welcomeSource, /onChange=\{setDraftTermsAgreed\}/);
   assert.match(
     welcomeSource,
-    /accessibilityLabel="이용약관 및 개인정보 처리방침 보기"/,
+    /accessibilityLabel=\{t\("welcome\.viewTerms"\)\}/,
   );
   assert.doesNotMatch(welcomeSource, /className="absolute bottom-0/);
 });

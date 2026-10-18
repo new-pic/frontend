@@ -1,5 +1,6 @@
 import type { FeedResponse } from "@entities/feed";
 import { canReportContent } from "@features/feed/report-content";
+import { useAppTranslation } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import { Button, ButtonIcon, HStack } from "@shared/ui";
 import { IconChevronLeft } from "@tabler/icons-react-native";
@@ -21,6 +22,7 @@ export function FeedDetailHeader({
   onBlockAuthor,
   isBlockingAuthor = false,
 }: FeedDetailHeaderProps) {
+  const { t } = useAppTranslation();
   const userId = useAuthStore((state) => state.userId);
   const canReport = canReportContent({
     authorId: feed.author.id,
@@ -32,25 +34,25 @@ export function FeedDetailHeader({
       <Button
         variant="ghost"
         size="icon"
-        accessibilityLabel="피드 상세 닫기"
+        accessibilityLabel={t("feed.closeEditor")}
         onPress={onBack}
       >
         <ButtonIcon as={IconChevronLeft} />
       </Button>
       {canReport ? (
         <ContentActionsMenu
-          accessibilityLabel="피드 더보기"
-          accessibilityHint="신고 및 작성자 차단 메뉴를 엽니다"
+          accessibilityLabel={t("feed.moreAccessibility")}
+          accessibilityHint={t("feed.moreHint")}
           items={[
             {
               key: "report",
-              label: "신고하기",
+              label: t("common.actions.report"),
               destructive: true,
               onPress: onReport,
             },
             {
               key: "block-author",
-              label: "작성자 차단하기",
+              label: t("common.actions.blockAuthor"),
               destructive: true,
               disabled: isBlockingAuthor,
               onPress: onBlockAuthor,

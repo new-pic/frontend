@@ -1,4 +1,5 @@
 import { colors } from "@shared/ui/theme";
+import { useAppTranslation } from "@shared/lib";
 import {
   IconCircle,
   IconCircleCheck,
@@ -57,6 +58,7 @@ export function PhotoGalleryModal<
   renderFooterDetails,
   onClose,
 }: PhotoGalleryModalProps<T>) {
+  const { t } = useAppTranslation();
   const safeInitialIndex = clampPhotoGalleryIndex(initialIndex, images.length);
   const [activeIndex, setActiveIndex] = useState(safeInitialIndex);
   const activeImage = images[activeIndex];
@@ -92,12 +94,12 @@ export function PhotoGalleryModal<
                 variant="ghost"
                 size="icon"
                 onPress={onClose}
-                accessibilityLabel="사진 목록으로 돌아가기"
+                accessibilityLabel={t("photo.galleryBack")}
               >
                 <ButtonIcon as={IconChevronLeft} />
               </Button>
               <Text size="lg" className="font-semibold">
-                사진 미리보기
+                {t("photo.preview")}
               </Text>
               <Box className="w-12 items-center">
                 {renderContext ? renderHeaderRight?.(renderContext) : null}
@@ -127,8 +129,8 @@ export function PhotoGalleryModal<
                   accessibilityRole="checkbox"
                   accessibilityLabel={
                     selectedImageIds.has(activeImage.id)
-                      ? "현재 사진 선택 해제"
-                      : "현재 사진 선택"
+                      ? t("photo.deselectCurrent")
+                      : t("photo.selectCurrent")
                   }
                   accessibilityState={{
                     checked: selectedImageIds.has(activeImage.id),
@@ -146,7 +148,9 @@ export function PhotoGalleryModal<
                     <IconCircle size={28} color="white" />
                   )}
                   <Text bold className="text-white">
-                    {selectedImageIds.has(activeImage.id) ? "선택됨" : "선택"}
+                    {selectedImageIds.has(activeImage.id)
+                      ? t("photo.selected")
+                      : t("photo.select")}
                   </Text>
                 </Pressable>
               ) : null}

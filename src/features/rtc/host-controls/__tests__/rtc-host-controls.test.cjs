@@ -187,8 +187,8 @@ test("사진이 포함된 RTC 종료 요청은 호스트 인증과 upload fetch�
 test("RTC 종료 실패는 인라인 문구 대신 재시도 Alert로 표시한다", () => {
   const source = readSource("../ui/rtc-host-livekit.tsx");
 
-  assert.match(source, /Alert\.alert\(\s*"RTC 방 종료 실패"/);
-  assert.match(source, /text: "종료 처리 다시 시도"/);
+  assert.match(source, /Alert\.alert\(\s*t\("rtc\.errors\.roomEndTitle"\)/);
+  assert.match(source, /text: t\("rtc\.host\.retryEnding"\)/);
   assert.doesNotMatch(source, /<ButtonText>종료 처리 다시 시도<\/ButtonText>/);
 });
 

@@ -8,3 +8,4 @@ export * from "./file";
 export * from "./form-data";
 export * from "./jwt";
 export * from "./media";
+export * from "./i18n";

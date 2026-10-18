@@ -9,6 +9,7 @@ import {
   Text,
   VStack,
 } from "@shared/ui";
+import { useAppTranslation } from "@shared/lib";
 import { IconChevronRight } from "@tabler/icons-react-native";
 import * as MediaLibrary from "expo-media-library";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -29,6 +30,7 @@ function ImageSelectorView({
   onSelectImage,
   onLoadingAlbum,
 }: ImageSelectorProps) {
+  const { t } = useAppTranslation();
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState<CustomAlbum | null>(null);
   const {
@@ -78,7 +80,7 @@ function ImageSelectorView({
         <Pressable className="px-6" onPress={handleOpenAlbumSheet}>
           <HStack className="items-center" space="sm">
             <Text className="font-semibold" size="lg">
-              {selectedAlbum?.title ?? "앨범 선택"}
+              {selectedAlbum?.title ?? t("feed.selectAlbum")}
             </Text>
             <Icon as={IconChevronRight} />
           </HStack>
@@ -104,6 +106,7 @@ function ImageSelectorView({
 }
 
 export function ImageSelector({ ...props }: ImageSelectorProps) {
+  const { t } = useAppTranslation();
   const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
   useEffect(() => {
     if (
@@ -120,9 +123,9 @@ export function ImageSelector({ ...props }: ImageSelectorProps) {
     return (
       <SafeAreaView>
         <Center className="flex-1">
-          <Text>갤러리 접근 권한이 필요합니다.</Text>
+          <Text>{t("feed.galleryPermission")}</Text>
           <Button onPress={requestPermission}>
-            <ButtonText>권한 요청하기</ButtonText>
+            <ButtonText>{t("feed.requestPermission")}</ButtonText>
           </Button>
         </Center>
       </SafeAreaView>

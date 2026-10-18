@@ -1,3 +1,4 @@
+import { useAppTranslation } from "@shared/lib";
 import {
   Box,
   Button,
@@ -30,6 +31,7 @@ export function RtcSharingSheet({
   onCancel,
   onStart,
 }: RtcSharingSheetProps) {
+  const { t } = useAppTranslation();
   const { width } = useWindowDimensions();
   const qrSize = Math.min(236, Math.max(176, width - 112));
   const safeParticipantCount = Math.max(0, participantCount);
@@ -53,12 +55,14 @@ export function RtcSharingSheet({
           <Center className="flex-1">
             <VStack className="items-center gap-7">
               <Text size="xl" bold className="text-center text-foreground">
-                실시간 찍히는 내용 공유하기
+                {t("rtc.host.sharingTitle")}
               </Text>
 
               <Box
                 className="rounded-xl bg-white p-2"
-                accessibilityLabel={`공유 QR 코드. 공유 코드는 ${joinCode}입니다.`}
+                accessibilityLabel={t("rtc.host.qrAccessibility", {
+                  code: joinCode,
+                })}
               >
                 <QRCode
                   value={qrValue}
@@ -69,7 +73,7 @@ export function RtcSharingSheet({
               </Box>
 
               <Text size="lg" className="text-center text-foreground">
-                공유 코드 : {joinCode}
+                {t("rtc.host.shareCode", { code: joinCode })}
               </Text>
             </VStack>
           </Center>
@@ -77,11 +81,13 @@ export function RtcSharingSheet({
           <VStack className="gap-7">
             <HStack className="items-center justify-between px-4">
               <Text size="lg" className="text-foreground">
-                QR 읽은 사람
+                {t("rtc.host.qrReaders")}
               </Text>
 
               <Text size="lg" bold className="min-w-10 text-right">
-                {safeParticipantCount}명
+                {t("rtc.host.participantCount", {
+                  count: safeParticipantCount,
+                })}
               </Text>
             </HStack>
 
@@ -92,9 +98,9 @@ export function RtcSharingSheet({
                 className="flex-1"
                 disabled={isStarting}
                 onPress={onCancel}
-                accessibilityLabel="실시간 공유 취소"
+                accessibilityLabel={t("rtc.host.cancelAccessibility")}
               >
-                <ButtonText>취소하기</ButtonText>
+                <ButtonText>{t("rtc.host.cancel")}</ButtonText>
               </Button>
               <Button
                 variant="gradient"
@@ -103,10 +109,12 @@ export function RtcSharingSheet({
                 disabled={isStarting || !canStart}
                 isLoading={isStarting}
                 onPress={onStart}
-                accessibilityLabel="실시간 공유 시작"
+                accessibilityLabel={t("rtc.host.startAccessibility")}
               >
                 <ButtonText>
-                  {canStart ? "공유하기" : "카메라 준비 중"}
+                  {canStart
+                    ? t("rtc.host.share")
+                    : t("rtc.host.cameraPreparing")}
                 </ButtonText>
               </Button>
             </HStack>

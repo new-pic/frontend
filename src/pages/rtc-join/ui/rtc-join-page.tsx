@@ -1,4 +1,5 @@
 import { RtcJoinForm } from "@features/rtc/join-room";
+import { useAppTranslation } from "@shared/lib";
 import { Button, ButtonIcon, HStack, VStack } from "@shared/ui";
 import { IconChevronLeft } from "@tabler/icons-react-native";
 import { Href, router, useLocalSearchParams } from "expo-router";
@@ -6,6 +7,7 @@ import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function RtcJoinPage() {
+  const { t } = useAppTranslation();
   const { code: codeParam } = useLocalSearchParams<{
     code?: string | string[];
   }>();
@@ -36,7 +38,7 @@ export function RtcJoinPage() {
                 variant="ghost"
                 size="icon"
                 onPress={leaveJoinPage}
-                accessibilityLabel="뒤로 가기"
+                accessibilityLabel={t("common.accessibility.goBack")}
               >
                 <ButtonIcon as={IconChevronLeft} />
               </Button>

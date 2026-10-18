@@ -1,4 +1,5 @@
 import { HStack, Text } from "@shared/ui";
+import { useAppTranslation } from "@shared/lib";
 import { useMemo } from "react";
 import { Pressable } from "react-native";
 
@@ -23,6 +24,7 @@ export function ZoomControls({
   zoomLevels,
   onZoomChange,
 }: ZoomControlsProps) {
+  const { t } = useAppTranslation();
   const activeZoomLevel = useMemo(() => {
     return zoomLevels.reduce((closestLevel, level) => {
       const closestDistance = Math.abs(zoomLevel - closestLevel);
@@ -44,7 +46,9 @@ export function ZoomControls({
         return (
           <Pressable
             key={level}
-            accessibilityLabel={`${formatZoomLevel(level)}배 줌`}
+            accessibilityLabel={t("camera.zoomAccessibility", {
+              zoom: formatZoomLevel(level),
+            })}
             accessibilityRole="button"
             accessibilityState={{ selected: isActive }}
             hitSlop={8}

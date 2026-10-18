@@ -7,6 +7,7 @@ import {
   RTC_STORED_PHOTO_GALLERY_CONFIG,
   useActiveRtcStoredPhotos,
 } from "@features/rtc-photo/browse-stored-photos";
+import { useAppTranslation } from "@shared/lib";
 import { Box, Image, Pressable, Text, VStack } from "@shared/ui";
 import { memo, useEffect, useMemo, useState } from "react";
 
@@ -24,6 +25,7 @@ interface ProfileRtcPhotoPreviewProps {
 export const ProfileRtcPhotoPreview = memo(function ProfileRtcPhotoPreview({
   onPress,
 }: ProfileRtcPhotoPreviewProps) {
+  const { t } = useAppTranslation();
   const { data, isSuccess: isStoredPhotoSuccess } =
     rtcStoredPhotoQuery.useReadMyRtcStoredPhotos({
       take: RTC_STORED_PHOTO_GALLERY_CONFIG.pageSize,
@@ -61,7 +63,7 @@ export const ProfileRtcPhotoPreview = memo(function ProfileRtcPhotoPreview({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="최근 RTC 촬영 사진 전체 보기"
+      accessibilityLabel={t("profile.recentRtcPhotosAccessibility")}
       onPress={onPress}
     >
       <Box className="h-47.5 w-full overflow-hidden rounded-3xl bg-background-muted">
@@ -80,10 +82,12 @@ export const ProfileRtcPhotoPreview = memo(function ProfileRtcPhotoPreview({
         <Box className="absolute inset-0 bg-black/25" />
         <VStack className="absolute right-5 bottom-4.5 left-5">
           <Text className="text-white font-semibold" size="lg">
-            최근 촬영 사진
+            {t("profile.recentRtcPhotos")}
           </Text>
           <Text className="text-white/85" size="sm">
-            {displayablePhotos.length}장 · 눌러서 전체 보기
+            {t("profile.recentRtcPhotosCount", {
+              count: displayablePhotos.length,
+            })}
           </Text>
         </VStack>
       </Box>

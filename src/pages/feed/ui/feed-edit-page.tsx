@@ -1,5 +1,6 @@
 import { feedQuery } from "@entities/feed";
 import { SaveFeedButton, useSaveFeedForm } from "@features/feed/save-feed";
+import { useAppTranslation } from "@shared/lib";
 import {
   Box,
   Button,
@@ -31,6 +32,7 @@ interface FeedEditPageProps {
 }
 
 export function FeedEditPage({ id, isEditMode }: FeedEditPageProps) {
+  const { t } = useAppTranslation();
   const { data, isError, isPending, refetch } = feedQuery.useReadFeed({
     feedId: id,
   });
@@ -134,10 +136,10 @@ export function FeedEditPage({ id, isEditMode }: FeedEditPageProps) {
       <SafeAreaView style={{ flex: 1 }}>
         <Center className="flex-1 gap-4 px-6">
           <Text className="text-center text-label-muted">
-            피드 수정 정보를 불러오지 못했습니다.
+            {t("feed.editDataLoadFailed")}
           </Text>
           <Button variant="outline" onPress={() => void refetch()}>
-            <ButtonText>다시 시도</ButtonText>
+            <ButtonText>{t("common.actions.retry")}</ButtonText>
           </Button>
         </Center>
       </SafeAreaView>
@@ -152,13 +154,13 @@ export function FeedEditPage({ id, isEditMode }: FeedEditPageProps) {
             <Button
               variant="ghost"
               size="icon"
-              accessibilityLabel="피드 편집 닫기"
+              accessibilityLabel={t("feed.closeEditor")}
               onPress={handleGoBack}
             >
               <ButtonIcon as={IconChevronLeft} />
             </Button>
             <Text className="font-semibold" size="lg">
-              {isEditMode ? "피드 수정하기" : "피드 작성하기"}
+              {isEditMode ? t("feed.editTitle") : t("feed.createTitle")}
             </Text>
             <Box className="w-12" />
           </HStack>
@@ -189,7 +191,9 @@ export function FeedEditPage({ id, isEditMode }: FeedEditPageProps) {
                   onPress={handlePressButton}
                 >
                   <ButtonText size="lg" className="font-semibold">
-                    {isLoadingAlbum ? "불러오는 중..." : "선택하기"}
+                    {isLoadingAlbum
+                      ? t("common.actions.selecting")
+                      : t("common.actions.select")}
                   </ButtonText>
                 </Button>
               ) : (

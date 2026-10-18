@@ -2,61 +2,71 @@ import type {
   FeedbackPersonPosition,
   PoseGuideFeedbackDescriptor,
 } from "../model";
+import type { TFunction } from "i18next";
 
-const PERSON_POSITION_LABELS: Record<FeedbackPersonPosition, string> = {
-  LEFT: "왼쪽 사람",
-  CENTER: "가운데 사람",
-  RIGHT: "오른쪽 사람",
+const PERSON_POSITION_KEYS: Record<
+  FeedbackPersonPosition,
+  | "guide.personPosition.left"
+  | "guide.personPosition.center"
+  | "guide.personPosition.right"
+> = {
+  LEFT: "guide.personPosition.left",
+  CENTER: "guide.personPosition.center",
+  RIGHT: "guide.personPosition.right",
 };
 
 function getPersonCountMismatchMessage(
+  t: TFunction<"translation">,
   targetPersonCount: number,
   livePersonCount: number,
 ) {
   const difference = targetPersonCount - livePersonCount;
   if (difference > 0) {
-    return "화면에 들어와 주세요";
+    return t("guide.feedback.enterFrame");
   }
   if (difference < 0) {
-    return `화면에 ${targetPersonCount}명만 나오도록 조정해 주세요`;
+    return t("guide.feedback.personCount", { count: targetPersonCount });
   }
-  return "화면 속 인원 위치를 다시 맞춰 주세요";
+  return t("guide.feedback.rearrangePeople");
 }
 
-function getFeedbackInstruction({
-  reason,
-  targetPersonCount,
-  livePersonCount,
-}: PoseGuideFeedbackDescriptor) {
+function getFeedbackInstruction(
+  { reason, targetPersonCount, livePersonCount }: PoseGuideFeedbackDescriptor,
+  t: TFunction<"translation">,
+) {
   switch (reason) {
     case "NO_PERSON":
-      return "카메라 화면 안에 사람이 보이도록 서 주세요";
+      return t("guide.feedback.personVisible");
     case "PERSON_COUNT_MISMATCH":
-      return getPersonCountMismatchMessage(targetPersonCount, livePersonCount);
+      return getPersonCountMismatchMessage(
+        t,
+        targetPersonCount,
+        livePersonCount,
+      );
     case "MOVE_LEFT":
-      return "조금 왼쪽으로 이동해 주세요";
+      return t("guide.feedback.moveLeft");
     case "MOVE_RIGHT":
-      return "조금 오른쪽으로 이동해 주세요";
+      return t("guide.feedback.moveRight");
     case "MOVE_UP":
-      return "조금 위로 이동해 주세요";
+      return t("guide.feedback.moveUp");
     case "MOVE_DOWN":
-      return "조금 아래로 이동해 주세요";
+      return t("guide.feedback.moveDown");
     case "MOVE_CLOSER":
-      return "조금 더 가까이 와 주세요";
+      return t("guide.feedback.moveCloser");
     case "MOVE_FARTHER":
-      return "조금 뒤로 이동해 주세요";
+      return t("guide.feedback.moveFarther");
     case "ADJUST_LEFT_ARM":
-      return "왼팔 위치를 맞춰 주세요";
+      return t("guide.feedback.alignLeftArm");
     case "ADJUST_RIGHT_ARM":
-      return "오른팔 위치를 맞춰 주세요";
+      return t("guide.feedback.alignRightArm");
     case "ADJUST_LEFT_LEG":
-      return "왼쪽 다리 위치를 맞춰 주세요";
+      return t("guide.feedback.alignLeftLeg");
     case "ADJUST_RIGHT_LEG":
-      return "오른쪽 다리 위치를 맞춰 주세요";
+      return t("guide.feedback.alignRightLeg");
     case "ADJUST_TORSO":
-      return "몸의 방향과 자세를 맞춰 주세요";
+      return t("guide.feedback.alignTorso");
     case "LOW_CONFIDENCE":
-      return "전신이 잘 보이도록 화면 안에 서 주세요";
+      return t("guide.feedback.showFullBody");
     case "ALIGNED":
       return null;
   }
@@ -64,13 +74,17 @@ function getFeedbackInstruction({
 
 export function mapPoseFeedbackMessage(
   feedback: PoseGuideFeedbackDescriptor | null,
+  t: TFunction<"translation">,
 ) {
   if (!feedback) return null;
 
-  const instruction = getFeedbackInstruction(feedback);
+  const instruction = getFeedbackInstruction(feedback, t);
   if (!instruction) return null;
 
   return feedback.personPosition
-    ? `${PERSON_POSITION_LABELS[feedback.personPosition]}이 ${instruction}`
+    ? t("guide.feedback.positioned", {
+        person: t(PERSON_POSITION_KEYS[feedback.personPosition]),
+        instruction,
+      })
     : instruction;
 }

@@ -1,4 +1,5 @@
 import { getFreshAccessToken } from "@shared/api";
+import { useAppTranslation } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createSocketIoReactionTransport } from "../api/socket-io-reaction-transport";
@@ -26,6 +27,7 @@ export const useRtcReactionChannel = ({
   participantId,
   onReaction,
 }: UseRtcReactionChannelOptions): RtcReactionChannel => {
+  const { t } = useAppTranslation();
   const accessToken = useAuthStore((state) => state.accessToken);
   const transportRef = useRef<ReturnType<
     typeof createSocketIoReactionTransport
@@ -51,7 +53,7 @@ export const useRtcReactionChannel = ({
       transportRef.current = null;
       lastSentAtRef.current = null;
       setStatus("ERROR");
-      setError("RTC 참여자 정보를 확인할 수 없습니다.");
+      setError(t("rtc.reaction.participantUnavailable"));
       return;
     }
 
@@ -74,7 +76,7 @@ export const useRtcReactionChannel = ({
           setStatus(nextStatus);
           setError(
             nextStatus === "ERROR"
-              ? message || "반응 서버에 연결하지 못했습니다."
+              ? message || t("rtc.reaction.serverConnectionFailed")
               : null,
           );
         },
@@ -84,7 +86,7 @@ export const useRtcReactionChannel = ({
       setError(
         connectionError instanceof Error
           ? connectionError.message
-          : "반응 서버를 준비하지 못했습니다.",
+          : t("rtc.reaction.serverPreparationFailed"),
       );
       return;
     }
@@ -101,7 +103,7 @@ export const useRtcReactionChannel = ({
       lastSentAtRef.current = null;
       transport.disconnect();
     };
-  }, [accessToken, active, participantId, role, roomId]);
+  }, [accessToken, active, participantId, role, roomId, t]);
 
   const sendReaction = useCallback(
     (emojiId: string): boolean => {

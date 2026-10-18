@@ -1,4 +1,5 @@
 import type { RtcRoomParticipant } from "@entities/rtc-room";
+import { useAppTranslation } from "@shared/lib";
 import { colors } from "@shared/ui/theme";
 import { Button, ButtonIcon, Image, Pressable, Text } from "@shared/ui";
 import {
@@ -55,6 +56,7 @@ export function RtcCameraRoomMenu({
   onSharePress,
   onEndRoomPress,
 }: RtcCameraRoomMenuProps) {
+  const { t } = useAppTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({
     top: 52,
@@ -97,10 +99,12 @@ export function RtcCameraRoomMenu({
           disabled={isBusy}
           accessibilityLabel={
             mode === "LIVE"
-              ? `실시간 공유 중, 참여자 ${participants.length}명`
+              ? t("rtc.host.liveParticipantCount", {
+                  count: participants.length,
+                })
               : mode === "BUSY"
-                ? "실시간 공유 상태 변경 중"
-                : "사람들과 촬영 화면 공유"
+                ? t("rtc.host.changingState")
+                : t("rtc.host.shareCamera")
           }
           accessibilityState={{
             disabled: isBusy,
@@ -138,7 +142,7 @@ export function RtcCameraRoomMenu({
       >
         <View className="flex-1">
           <NativePressable
-            accessibilityLabel="RTC 공유 메뉴 닫기"
+            accessibilityLabel={t("rtc.host.closeMenu")}
             className="absolute inset-0"
             onPress={() => setIsOpen(false)}
           />
@@ -153,7 +157,9 @@ export function RtcCameraRoomMenu({
             {mode === "LIVE" ? (
               <>
                 <Text className="px-4 pb-2 pt-4 font-semibold">
-                  참여자 {participants.length}명
+                  {t("rtc.host.participants", {
+                    count: participants.length,
+                  })}
                 </Text>
                 {participants.length > 0 ? (
                   <FlatList
@@ -187,7 +193,7 @@ export function RtcCameraRoomMenu({
                   />
                 ) : (
                   <Text className="px-4 pb-4 text-label-muted">
-                    아직 참여자가 없습니다.
+                    {t("rtc.host.noParticipants")}
                   </Text>
                 )}
                 <View
@@ -200,7 +206,7 @@ export function RtcCameraRoomMenu({
                   className="min-h-13 justify-center px-[1.125rem]"
                 >
                   <Text className="font-semibold text-red-600">
-                    방 종료하기
+                    {t("rtc.host.endRoom")}
                   </Text>
                 </Pressable>
               </>
@@ -211,7 +217,7 @@ export function RtcCameraRoomMenu({
                   onPress={() => runAction(onJoinPress)}
                   className="min-h-13 justify-center px-[1.125rem]"
                 >
-                  <Text className="font-medium">참여하기</Text>
+                  <Text className="font-medium">{t("rtc.host.join")}</Text>
                 </Pressable>
                 <View
                   className="bg-outline"
@@ -230,7 +236,9 @@ export function RtcCameraRoomMenu({
                         : "font-medium text-label-muted"
                     }
                   >
-                    {isCameraReady ? "실시간 공유하기" : "카메라 준비 중"}
+                    {isCameraReady
+                      ? t("rtc.host.shareLive")
+                      : t("rtc.host.cameraPreparing")}
                   </Text>
                 </Pressable>
               </>

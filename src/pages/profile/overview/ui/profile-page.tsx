@@ -1,7 +1,7 @@
 import { usersQuery } from "@entities/user";
 import { useDeleteAccount } from "@features/user/delete-account";
 import { EXTERNAL_LINKS } from "@shared/config";
-import { useConfirm } from "@shared/lib";
+import { useAppTranslation, useConfirm } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import {
   Avatar,
@@ -30,6 +30,7 @@ import { Alert, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 function ProfileButtonMenu() {
+  const { t } = useAppTranslation();
   const handleGoMyFeed = () => {
     router.push("/profile/my");
   };
@@ -63,7 +64,9 @@ function ProfileButtonMenu() {
                 fill={"white"}
                 className="h-8 w-8"
               />
-              <ButtonText className="text-white">내 피드</ButtonText>
+              <ButtonText className="text-white">
+                {t("profile.myFeeds")}
+              </ButtonText>
             </VStack>
           </Button>
           <Divider orientation="vertical" className="h-full w-px bg-white/35" />
@@ -74,7 +77,9 @@ function ProfileButtonMenu() {
                 fill={"white"}
                 className="h-8 w-8"
               />
-              <ButtonText className="text-white">찜한 피드</ButtonText>
+              <ButtonText className="text-white">
+                {t("profile.likedFeeds")}
+              </ButtonText>
             </VStack>
           </Button>
           <Divider orientation="vertical" className="h-full w-px bg-white/35" />
@@ -85,7 +90,9 @@ function ProfileButtonMenu() {
                 fill={"white"}
                 className="h-8 w-8"
               />
-              <ButtonText className="text-white">저장한 피드</ButtonText>
+              <ButtonText className="text-white">
+                {t("profile.savedFeeds")}
+              </ButtonText>
             </VStack>
           </Button>
         </HStack>
@@ -95,6 +102,7 @@ function ProfileButtonMenu() {
 }
 
 export function ProfilePage() {
+  const { t } = useAppTranslation();
   const openConfirm = useConfirm();
 
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -108,8 +116,8 @@ export function ProfilePage() {
 
   const handleLogout = async () => {
     const response = await openConfirm({
-      title: "로그아웃",
-      message: "정말로 로그아웃하시겠습니까?",
+      title: t("profile.logout"),
+      message: t("profile.logoutConfirm"),
       destructive: true,
     });
     if (response) {
@@ -152,8 +160,8 @@ export function ProfilePage() {
       await Linking.openURL(EXTERNAL_LINKS.BUG_REPORT);
     } catch {
       Alert.alert(
-        "페이지 연결 실패",
-        "버그 제보 페이지를 열지 못했습니다. 다시 시도해주세요.",
+        t("common.errors.pageLinkTitle"),
+        t("profile.bugReportOpenFailed"),
       );
     }
   };
@@ -163,8 +171,8 @@ export function ProfilePage() {
       await Linking.openURL(EXTERNAL_LINKS.TERMS_OF_SERVICE);
     } catch {
       Alert.alert(
-        "페이지 연결 실패",
-        "서비스 약관 페이지를 열지 못했습니다. 다시 시도해주세요.",
+        t("common.errors.pageLinkTitle"),
+        t("profile.termsOpenFailed"),
       );
     }
   };
@@ -199,7 +207,9 @@ export function ProfilePage() {
                 onPress={handlePressProfile}
               >
                 <ButtonText className="text-link-text">
-                  {isGuest ? "계정 연결하기" : "프로필 변경"}
+                  {isGuest
+                    ? t("profile.linkAccount")
+                    : t("profile.editProfile")}
                 </ButtonText>
               </Button>
             </VStack>
@@ -214,7 +224,7 @@ export function ProfilePage() {
               onPress={handleOpenBugReport}
               accessibilityRole="link"
             >
-              <Text size="md">버그 제보하기</Text>
+              <Text size="md">{t("profile.bugReport")}</Text>
             </Pressable>
             <Divider className="bg-outline" />
             <Pressable
@@ -222,20 +232,20 @@ export function ProfilePage() {
               onPress={handleOpenTermsOfService}
               accessibilityRole="link"
             >
-              <Text size="md">서비스 약관</Text>
+              <Text size="md">{t("profile.terms")}</Text>
             </Pressable>
             {isAuthenticated ? (
               <>
                 <Divider className="bg-outline" />
                 <Pressable className="p-6" onPress={handleGoBlockedUsers}>
-                  <Text size="md">차단한 사용자</Text>
+                  <Text size="md">{t("profile.blockedUsers")}</Text>
                 </Pressable>
               </>
             ) : null}
             <Divider className="bg-outline" />
             <Pressable className="p-6" onPress={handleLogout}>
               <Text size="md" className="text-red-500 font-semibold">
-                로그아웃
+                {t("profile.logout")}
               </Text>
             </Pressable>
             {isAuthenticated && !isGuest ? (
@@ -247,7 +257,7 @@ export function ProfilePage() {
                   onPress={deleteAccount}
                 >
                   <Text size="md" className="text-red-500 font-semibold">
-                    회원 탈퇴
+                    {t("profile.deleteAccount")}
                   </Text>
                 </Pressable>
               </>

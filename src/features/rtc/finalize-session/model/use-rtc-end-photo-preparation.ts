@@ -1,4 +1,5 @@
 import type { File } from "expo-file-system";
+import { translate } from "@shared/lib";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { prepareRtcEndImages } from "../lib/prepare-rtc-end-images";
 import type { RtcEndSelectablePhoto } from "./models";
@@ -18,7 +19,7 @@ export function useRtcEndPhotoPreparation() {
     return () => {
       preparationGenerationRef.current += 1;
       selectionRequestRef.current?.reject(
-        new Error("화면을 벗어나 사진 선택이 취소되었습니다."),
+        new Error(translate("rtc.result.canceledOnLeave")),
       );
       selectionRequestRef.current = null;
     };
@@ -42,7 +43,7 @@ export function useRtcEndPhotoPreparation() {
     try {
       const preparedImages = await prepareRtcEndImages(selectedPhotos);
       if (generation !== preparationGenerationRef.current) {
-        throw new Error("RTC 사진 준비가 취소되었습니다.");
+        throw new Error(translate("rtc.result.preparationCanceled"));
       }
       preparedImagesRef.current = preparedImages;
     } catch (error) {
@@ -71,7 +72,7 @@ export function useRtcEndPhotoPreparation() {
   const reset = useCallback(() => {
     preparationGenerationRef.current += 1;
     selectionRequestRef.current?.reject(
-      new Error("RTC 사진 선택이 취소되었습니다."),
+      new Error(translate("rtc.result.selectionCanceled")),
     );
     selectionRequestRef.current = null;
     selectedPhotosRef.current = null;
@@ -81,7 +82,7 @@ export function useRtcEndPhotoPreparation() {
 
   const getPreparedImages = useCallback(() => {
     if (!preparedImagesRef.current) {
-      throw new Error("방에 저장할 사진 준비를 완료하지 못했습니다.");
+      throw new Error(translate("rtc.result.preparationIncomplete"));
     }
 
     return preparedImagesRef.current;

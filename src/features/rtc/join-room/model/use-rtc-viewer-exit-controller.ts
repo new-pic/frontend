@@ -1,5 +1,6 @@
 import type { RtcViewerSession } from "@entities/rtc-session";
 import { getApiErrorMessage } from "@shared/api";
+import { useAppTranslation } from "@shared/lib";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { rtcViewerQuery } from "../api";
 
@@ -21,6 +22,7 @@ export function useRtcViewerExitController({
   session,
   onExited,
 }: UseRtcViewerExitControllerOptions) {
+  const { t } = useAppTranslation();
   const { mutateAsync: leaveRoom } = rtcViewerQuery.useLeaveRtcRoom();
   const [isExiting, setIsExiting] = useState(false);
   const isMountedRef = useRef(true);
@@ -41,7 +43,7 @@ export function useRtcViewerExitController({
       if (!participantId) {
         return Promise.resolve<RtcViewerExitResult>({
           ok: false,
-          errorMessage: "RTC 참여 정보가 없습니다.",
+          errorMessage: t("rtc.errors.missingParticipant"),
         });
       }
 
@@ -55,7 +57,7 @@ export function useRtcViewerExitController({
             ok: false,
             errorMessage: getApiErrorMessage(
               error,
-              "방에서 나가지 못했습니다. 잠시 후 다시 시도해주세요.",
+              t("rtc.errors.leaveFailed"),
             ),
           };
         }
@@ -78,7 +80,7 @@ export function useRtcViewerExitController({
       exitPromiseRef.current = exitPromise;
       return exitPromise;
     },
-    [leaveRoom, onExited, session?.participantId],
+    [leaveRoom, onExited, session?.participantId, t],
   );
 
   return { isExiting, requestExit };

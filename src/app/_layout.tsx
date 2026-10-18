@@ -33,7 +33,11 @@ import {
 } from "@tanstack/react-query";
 import "./global.css";
 
-import { shouldLeaveAuthEntry, useAuthStore } from "@shared/model";
+import {
+  LocaleCoordinator,
+  shouldLeaveAuthEntry,
+  useAuthStore,
+} from "@shared/model";
 import { useEffect } from "react";
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -152,6 +156,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <GluestackUIProvider>
         <QueryClientProvider client={queryClient}>
+          <LocaleCoordinator />
           <SessionIdentityQueryCacheCoordinator />
           <FeedPublishingCoordinator />
           <FeedProcessingCoordinator />

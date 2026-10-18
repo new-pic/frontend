@@ -1,4 +1,5 @@
 import type { CameraChromePresentation } from "@features/camera/capture-photo";
+import { useAppTranslation } from "@shared/lib";
 import { Button, ButtonIcon, HStack } from "@shared/ui";
 import { IconChevronLeft, IconSettings } from "@tabler/icons-react-native";
 import type { ReactNode } from "react";
@@ -30,6 +31,7 @@ export function CameraHeader({
   rtcControl,
   presentation,
 }: CameraHeaderProps) {
+  const { t } = useAppTranslation();
   const isOverlay = presentation === "overlay";
 
   return (
@@ -41,7 +43,7 @@ export function CameraHeader({
         size="icon"
         className="rounded-full"
         style={isOverlay ? OVERLAY_ICON_SHADOW_STYLE : undefined}
-        accessibilityLabel="카메라 닫기"
+        accessibilityLabel={t("camera.close")}
         onPress={onBackPress}
       >
         <ButtonIcon
@@ -57,7 +59,7 @@ export function CameraHeader({
           className="rounded-full"
           style={isOverlay ? OVERLAY_ICON_SHADOW_STYLE : undefined}
           onPress={onSettingsPress}
-          accessibilityLabel="카메라 촬영 설정"
+          accessibilityLabel={t("camera.settingsAccessibility")}
         >
           <ButtonIcon
             className="h-6 w-6"

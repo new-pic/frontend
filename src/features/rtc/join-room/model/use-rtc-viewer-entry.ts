@@ -9,6 +9,7 @@ import type {
   RtcLiveKitConnection,
   RtcViewerSession,
 } from "@entities/rtc-session";
+import { translate } from "@shared/lib";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   isRtcViewerEntryCallbackCurrent,
@@ -44,7 +45,7 @@ export interface RtcViewerEntryResult {
 const getErrorMessage = (error: unknown) =>
   error instanceof Error
     ? error.message
-    : "실시간 공유 연결 정보를 불러오지 못했습니다.";
+    : translate("rtc.errors.connectionInfo");
 
 function waitForReconnect(delayMs: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve) => {

@@ -1,4 +1,5 @@
 import type { UseSaveFeedFormReturn } from "@features/feed/save-feed";
+import { useAppTranslation } from "@shared/lib";
 import { TagBottomSheet, TagList } from "@features/tags/select-feed-tags";
 import {
   HStack,
@@ -18,6 +19,7 @@ interface CaptionContentProps {
 }
 
 export function CaptionContent({ form }: CaptionContentProps) {
+  const { t } = useAppTranslation();
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
 
   const selectedTags = useWatch({
@@ -64,7 +66,7 @@ export function CaptionContent({ form }: CaptionContentProps) {
               isDisabled={isSubmitting}
             >
               <TextareaInput
-                placeholder="내용을 입력해주세요."
+                placeholder={t("feed.captionPlaceholder")}
                 value={field.value}
                 onChangeText={field.onChange}
                 onBlur={field.onBlur}
@@ -82,7 +84,7 @@ export function CaptionContent({ form }: CaptionContentProps) {
           <HStack className="border-t border-outline-light">
             <VStack className="flex-1 px-8 py-4" space="sm">
               <HStack className="items-center justify-between">
-                <Text># 해시태그 추가하기</Text>
+                <Text>{t("feed.addHashtag")}</Text>
                 <Icon as={IconChevronRight} />
               </HStack>
               {selectedTags ? (

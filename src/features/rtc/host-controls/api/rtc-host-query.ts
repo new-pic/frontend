@@ -18,7 +18,7 @@ import {
   useRtcStore,
 } from "@entities/rtc-session";
 import { privateApiClient, uploadFetchClient } from "@shared/api";
-import { ObjectToFormData } from "@shared/lib";
+import { ObjectToFormData, translate } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
@@ -64,7 +64,10 @@ export function useReadRtcRoom(
   return useQuery({
     queryKey: rtcRoomQueryKeys.hostRoom(normalizedRoomId),
     queryFn: async () => {
-      const id = verifyRtcId(normalizedRoomId, "RTC 방 ID");
+      const id = verifyRtcId(
+        normalizedRoomId,
+        translate("rtc.errors.invalidRoomId"),
+      );
       const response = await privateApiClient.get<RtcRoomResponse>(
         `/rtc/rooms/${id}`,
         { headers: createRtcHostHeaders(id) },
@@ -81,7 +84,7 @@ export function useReadRtcRoom(
 export function useCreateHostLiveKitToken() {
   return useMutation({
     mutationFn: async ({ roomId }: RtcHostLiveKitTokenRequest) => {
-      const id = verifyRtcId(roomId, "RTC 방 ID");
+      const id = verifyRtcId(roomId, translate("rtc.errors.invalidRoomId"));
       const response = await privateApiClient.post<RtcHostLiveKitTokenResponse>(
         `/rtc/rooms/${id}/livekit-token`,
         undefined,
@@ -95,7 +98,7 @@ export function useCreateHostLiveKitToken() {
 export function useEndRtcRoom() {
   return useMutation({
     mutationFn: async ({ roomId, request = {} }: RtcEndRoomMutationRequest) => {
-      const id = verifyRtcId(roomId, "RTC 방 ID");
+      const id = verifyRtcId(roomId, translate("rtc.errors.invalidRoomId"));
       const headers = createRtcHostHeaders(id);
       const parsedRequest = RtcEndRoomRequestSchema.parse(request);
       const url = `/rtc/rooms/${id}/end`;

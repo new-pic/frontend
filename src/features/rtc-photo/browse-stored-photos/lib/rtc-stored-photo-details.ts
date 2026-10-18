@@ -33,11 +33,12 @@ export function getRtcStoredPhotoExpiryTransitionDelay(
 
 export function formatRtcStoredPhotoCreatedAt(
   createdAt: string,
+  language = "ko",
 ): string | null {
   const timestamp = Date.parse(createdAt);
   if (!Number.isFinite(timestamp)) return null;
 
-  return new Intl.DateTimeFormat("ko-KR", {
+  return new Intl.DateTimeFormat(language, {
     year: "numeric",
     month: "long",
     day: "numeric",

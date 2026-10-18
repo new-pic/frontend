@@ -6,6 +6,7 @@ import {
   useFeedLikeController,
 } from "@features/feed/update-feed-like";
 import { FeedPickButton } from "@features/feed/update-feed-pick";
+import { useAppTranslation } from "@shared/lib";
 import { colors } from "@shared/ui/theme";
 import {
   Avatar,
@@ -44,6 +45,7 @@ export function FeedDetailContent({
   onBlockCommentAuthor,
   isBlockingAuthor = false,
 }: FeedDetailContentProps) {
+  const { i18n, t } = useAppTranslation();
   const feedLike = useFeedLikeController({
     feedId: feed.id,
     isLiked: feed.isLiked,
@@ -52,6 +54,7 @@ export function FeedDetailContent({
   const detailTime = formatFeedDetailTime({
     createdAt: feed.createdAt,
     updatedAt: feed.updatedAt,
+    language: i18n.resolvedLanguage,
   });
 
   const {
@@ -103,7 +106,9 @@ export function FeedDetailContent({
                   onToggle={feedLike.toggle}
                 >
                   <Image
-                    accessibilityLabel={`${feed.author.nickname}님의 피드 이미지`}
+                    accessibilityLabel={t("feed.imageAccessibility", {
+                      nickname: feed.author.nickname,
+                    })}
                     source={{ uri: feed.detailImageUrl }}
                     style={{
                       position: "absolute",
@@ -210,7 +215,7 @@ export function FeedDetailContent({
                         textShadowRadius: 4,
                       }}
                     >
-                      {feed.likeCount ?? 0}개
+                      {t("feed.likesCount", { count: feed.likeCount ?? 0 })}
                     </Text>
                   </HStack>
                 </HStack>
@@ -259,8 +264,8 @@ export function FeedDetailContent({
           ) : (
             <Text className="py-8 text-center text-label-muted">
               {isCommentError
-                ? "댓글을 불러오지 못했습니다."
-                : "아직 작성된 댓글이 없습니다."}
+                ? t("feed.comments.loadFailed")
+                : t("feed.comments.empty")}
             </Text>
           )
         }

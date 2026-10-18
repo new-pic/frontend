@@ -1,10 +1,11 @@
-import { deleteStagedUploadFile } from "@shared/lib";
+import { deleteStagedUploadFile, useAppTranslation } from "@shared/lib";
 import { Pressable, Text } from "@shared/ui";
 import { IconAlertCircle, IconCheck, IconX } from "@tabler/icons-react-native";
 import { router } from "expo-router";
 import { useEffect, useRef } from "react";
 import { ActivityIndicator, AppState, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type { TFunction } from "i18next";
 import { FEED_PROCESSING_CONFIG } from "../config/feed-processing-config";
 import { triggerFeedCompletionHaptic } from "../lib/feed-processing-haptics";
 import {
@@ -17,42 +18,63 @@ import { useFeedProcessingStore } from "../model/processing/feed-processing-stor
 import { useFeedPublishingStore } from "../model/publishing/feed-publishing-store";
 
 function getPublishingBadgeLabel(
+  t: TFunction<"translation">,
   kind: "CREATE" | "UPDATE",
   phase: "queued" | "uploading" | "updating" | "completed" | "failed",
   failureMessage?: string,
 ) {
-  const action = kind === "CREATE" ? "게시" : "수정";
+  const action =
+    kind === "CREATE"
+      ? t("feed.publishing.publishNoun")
+      : t("feed.publishing.updateNoun");
   if (phase === "failed") {
     return failureMessage
-      ? `${action} 실패 · ${failureMessage}`
-      : `${action} 실패 · 눌러서 다시 시도`;
+      ? t("feed.publishing.failedBadge", {
+          action,
+          message: failureMessage,
+        })
+      : t("feed.publishing.retryBadge", { action });
   }
-  if (phase === "completed") return `피드 ${action} 완료`;
-  if (phase === "queued") return `피드 ${action} 준비 중`;
-  return kind === "CREATE" ? "피드 업로드 중" : "피드 수정 중";
+  if (phase === "completed") {
+    return t("feed.publishing.completedBadge", { action });
+  }
+  if (phase === "queued") {
+    return t("feed.publishing.queuedBadge", { action });
+  }
+  return kind === "CREATE"
+    ? t("feed.publishing.uploading")
+    : t("feed.publishing.updating");
 }
 
 function getBadgeLabel(
+  t: TFunction<"translation">,
   phase: "processing" | "completed" | "failed",
   progressPercent: number,
   monitoringState: string,
   feedListSyncState: string,
 ) {
-  if (phase === "failed") return "피드 처리 실패";
+  if (phase === "failed") return t("feed.publishing.processingFailed");
   if (phase === "completed") {
-    if (feedListSyncState === "pending") return "게시 완료 · 목록 갱신 중";
-    if (feedListSyncState === "failed") {
-      return "게시 완료 · 목록 새로고침 필요";
+    if (feedListSyncState === "pending") {
+      return t("feed.publishing.listRefreshing");
     }
-    return "피드 게시 완료";
+    if (feedListSyncState === "failed") {
+      return t("feed.publishing.listRefreshRequired");
+    }
+    return t("feed.publishing.publishCompleted");
   }
   if (monitoringState === "polling" || monitoringState === "disconnected") {
-    return `피드 처리 상태 확인 중 · ${Math.round(progressPercent)}%`;
+    return t("feed.publishing.checkingStatus", {
+      progress: Math.round(progressPercent),
+    });
   }
-  return `피드 처리 중 · ${Math.round(progressPercent)}%`;
+  return t("feed.publishing.processing", {
+    progress: Math.round(progressPercent),
+  });
 }
 
 export function FeedProcessingBadge() {
+  const { t } = useAppTranslation();
   const insets = useSafeAreaInsets();
   const handledHapticKeysRef = useRef(new Set<string>());
   const publishingTask = useFeedPublishingStore(
@@ -144,7 +166,9 @@ export function FeedProcessingBadge() {
         >
           <Pressable
             accessibilityLabel={
-              isFailed ? "실패한 피드 저장 다시 시도" : "피드로 이동"
+              isFailed
+                ? t("feed.publishing.retryAccessibility")
+                : t("feed.publishing.goToFeedAccessibility")
             }
             className="flex-row items-center gap-2 shrink"
             onPress={() => {
@@ -168,6 +192,7 @@ export function FeedProcessingBadge() {
               numberOfLines={2}
             >
               {getPublishingBadgeLabel(
+                t,
                 publishingTask.command.kind,
                 publishingTask.publishingPhase,
                 publishingTask.failureMessage,
@@ -176,7 +201,9 @@ export function FeedProcessingBadge() {
           </Pressable>
           {isFailed || isCompleted ? (
             <Pressable
-              accessibilityLabel="피드 게시 상태 닫기"
+              accessibilityLabel={t(
+                "feed.publishing.closePublishingAccessibility",
+              )}
               className="ml-2"
               onPress={handleDismiss}
             >
@@ -223,6 +250,7 @@ export function FeedProcessingBadge() {
             numberOfLines={1}
           >
             {getBadgeLabel(
+              t,
               processingLifecycle.processingPhase,
               displayProgressPercent,
               processingLifecycle.monitoringState,
@@ -249,7 +277,9 @@ export function FeedProcessingBadge() {
         </Pressable>
         {processingLifecycle.processingPhase !== "processing" ? (
           <Pressable
-            accessibilityLabel="피드 처리 상태 닫기"
+            accessibilityLabel={t(
+              "feed.publishing.closeProcessingAccessibility",
+            )}
             className="z-[1] ml-2"
             onPress={dismissProcessing}
           >

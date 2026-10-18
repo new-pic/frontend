@@ -227,8 +227,8 @@ test("피드와 댓글 메뉴에 신고와 작성자 차단 action을 함께 제
   );
 
   for (const source of [headerSource, commentsSource]) {
-    assert.match(source, /label: "신고하기"/);
-    assert.match(source, /label: "작성자 차단하기"/);
+    assert.match(source, /label: t\("common\.actions\.report"\)/);
+    assert.match(source, /label: t\("common\.actions\.blockAuthor"\)/);
   }
 });
 
@@ -242,10 +242,10 @@ test("프로필에서 Guest를 포함한 사용자 Session에 차단 목록과 �
 
   assert.match(
     profileSource,
-    /\{isAuthenticated \? \([\s\S]*차단한 사용자[\s\S]*로그아웃/,
+    /\{isAuthenticated \? \([\s\S]*profile\.blockedUsers[\s\S]*profile\.logout/,
   );
   assert.match(blockedUsersSource, /useReadBlockedUsers/);
-  assert.match(blockedUsersSource, /차단 해제/);
+  assert.match(blockedUsersSource, /profile\.unblockUserLabel/);
   assert.match(blockedUsersSource, /unblockUser/);
 });
 

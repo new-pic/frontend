@@ -1,0 +1,12 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "NewPic",
+    "NSCameraUsageDescription": "NewPic은 사진 촬영과 원격 촬영 화면 공유를 위해 카메라를 사용합니다.",
+    "NSMicrophoneUsageDescription": "NewPic은 원격 촬영 중 오디오를 전달하기 위해 마이크를 사용합니다.",
+    "NSPhotoLibraryUsageDescription": "NewPic에서 사진을 선택하려면 사진 보관함 접근이 필요합니다.",
+    "NSPhotoLibraryAddUsageDescription": "NewPic에서 촬영한 사진을 저장하려면 사진 보관함 추가 권한이 필요합니다."
+  },
+  "android": {
+    "app_name": "NewPic"
+  }
+}

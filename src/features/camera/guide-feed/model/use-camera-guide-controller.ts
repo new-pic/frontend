@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { translate } from "@shared/lib";
 import {
   adaptDWPoseResult,
   createPoseProjectionContext,
@@ -31,7 +32,7 @@ import { feedGuideQuery } from "../api";
 function getErrorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
-    : "촬영 가이드 데이터를 불러오지 못했습니다.";
+    : translate("guide.dataLoadFailed");
 }
 
 type CameraGuideLogStage =

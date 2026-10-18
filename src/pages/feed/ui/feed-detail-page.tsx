@@ -3,7 +3,7 @@ import {
   parseFeedDetailSource,
   useFeedDetailCollection,
 } from "@features/feed/browse-feed-detail";
-import { getFirstSearchParam } from "@shared/lib";
+import { getFirstSearchParam, useAppTranslation } from "@shared/lib";
 import { Button, ButtonText, Center, Text } from "@shared/ui";
 import { FeedDetailPager, FeedDetailSkeleton } from "@widgets/feed/detail";
 
@@ -20,6 +20,7 @@ interface FeedDetailSearchParams extends Record<string, string | string[]> {
 }
 
 export function FeedDetailPage() {
+  const { t } = useAppTranslation();
   const {
     id,
     index,
@@ -62,10 +63,10 @@ export function FeedDetailPage() {
       <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
         <Center className="flex-1 gap-4 px-6">
           <Text className="text-center text-label-muted">
-            잘못된 피드 목록 경로입니다.
+            {t("feed.invalidListPath")}
           </Text>
           <Button variant="outline" onPress={() => router.back()}>
-            <ButtonText>돌아가기</ButtonText>
+            <ButtonText>{t("common.actions.back")}</ButtonText>
           </Button>
         </Center>
       </SafeAreaView>
@@ -75,9 +76,7 @@ export function FeedDetailPage() {
   if (isPending) return <FeedDetailSkeleton />;
 
   if (isError || feeds.length === 0) {
-    const message = isError
-      ? "피드 목록을 불러오지 못했습니다."
-      : "피드가 삭제되었거나 존재하지 않습니다.";
+    const message = isError ? t("feed.listLoadFailed") : t("feed.missing");
 
     return (
       <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
@@ -85,11 +84,11 @@ export function FeedDetailPage() {
           <Text className="text-center text-label-muted">{message}</Text>
           {isError ? (
             <Button variant="outline" onPress={() => void refetch()}>
-              <ButtonText>다시 시도</ButtonText>
+              <ButtonText>{t("common.actions.retry")}</ButtonText>
             </Button>
           ) : (
             <Button variant="outline" onPress={() => router.back()}>
-              <ButtonText>돌아가기</ButtonText>
+              <ButtonText>{t("common.actions.back")}</ButtonText>
             </Button>
           )}
         </Center>
