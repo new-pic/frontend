@@ -54,7 +54,7 @@ function translatePoseMessage(key, options = {}) {
   );
 }
 const {
-  getPoseGuidePersonLimitNotice,
+  shouldShowPoseGuidePersonLimitNotice,
 } = require("../lib/pose-guide-person-limit.ts");
 const {
   resolveFeedCameraAspectRatio,
@@ -111,20 +111,20 @@ test("4명 target은 선택 시 표시할 인원 제한 안내를 제공한다",
   };
 
   assert.equal(
-    getPoseGuidePersonLimitNotice({ ...input, targetPersonCount: 3 }),
-    null,
-  );
-  assert.match(
-    getPoseGuidePersonLimitNotice({ ...input, targetPersonCount: 4 }),
-    /최대 4명/,
+    shouldShowPoseGuidePersonLimitNotice({ ...input, targetPersonCount: 3 }),
+    false,
   );
   assert.equal(
-    getPoseGuidePersonLimitNotice({
+    shouldShowPoseGuidePersonLimitNotice({ ...input, targetPersonCount: 4 }),
+    true,
+  );
+  assert.equal(
+    shouldShowPoseGuidePersonLimitNotice({
       ...input,
       targetPersonCount: 4,
       notifiedSelectionRequestId: 7,
     }),
-    null,
+    false,
   );
 });
 

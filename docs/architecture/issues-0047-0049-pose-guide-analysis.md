@@ -693,7 +693,8 @@ required group 판정은 `minimumComparableJointsPerGroup`을 사용했지만 �
 최대 인원 안내는 피드 생성 실패가 아니라 Camera Guide의 기능 한계다. 따라서
 `features/camera/guide-feed`가 target 준비 후 인원 수를 확인하고, 4명 target에서
 선택별 한 번 비차단 안내를 표시한다. 안내는 촬영, RTC, Pose Matching 상태를
-변경하지 않으며 5초 후 기존 Alignment 피드백으로 복귀한다.
+변경하지 않으며 5초 후 기존 Alignment 피드백으로 복귀한다. 순수 판정은 노출 여부만
+반환하고, controller가 표시 수명을 소유하며, UI가 현재 앱 locale의 문구로 변환한다.
 
 ## 8. 추천 통합 구조
 

@@ -1,4 +1,4 @@
-# ADR-0046: Pose Guide 최대 인원과 제한 안내
+# ADR-0047: Pose Guide 최대 인원과 제한 안내
 
 ## Decision
 
@@ -56,9 +56,10 @@ Camera Guide가 자신의 지원 범위를 사용자에게 설명한다.
 ## Reason
 
 서버 계약 없이도 사실인 정보만 전달하고, 기존 촬영과 Matching을 차단하지 않는다.
-표시 수명은 target 선택을 조율하는 `features/camera/guide-feed/model`이 소유하고,
-문구와 배너 표현은 같은 feature의 `lib`과 `ui`에 둔다. `save-feed`는 피드 생성이
-실패하지 않으므로 이 정책을 소유하지 않는다.
+노출 여부를 계산하는 순수 판정은 `features/camera/guide-feed/lib`, 표시 수명은
+target 선택을 조율하는 `model`, 번역과 배너 표현은 `ui`에 둔다. domain 판정은
+사용자 문구를 반환하지 않는다. `save-feed`는 피드 생성이 실패하지 않으므로 이 정책을
+소유하지 않는다.
 
 ## Trade-off
 
@@ -73,3 +74,4 @@ Camera Guide가 자신의 지원 범위를 사용자에게 설명한다.
 - target 준비가 완료되고 저장된 target이 4명이면 선택 건마다 한 번 안내한다.
 - 안내는 5초 후 사라지고 현재 Alignment 피드백으로 복귀한다.
 - 1~3명 target에는 제한 안내를 표시하지 않는다.
+- 안내 문구는 앱 locale에 따라 한국어 또는 영어 resource에서 선택한다.

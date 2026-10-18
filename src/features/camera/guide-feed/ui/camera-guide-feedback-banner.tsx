@@ -1,25 +1,28 @@
-import { Text } from "@shared/ui";
 import { useAppTranslation } from "@shared/lib";
+import { Text } from "@shared/ui";
 import { useMemo } from "react";
 import { View } from "react-native";
 import { mapPoseFeedbackMessage } from "../lib/pose-feedback-message";
+import { MAX_POSE_COUNT } from "../lib/pose-detection/pose-detection-config";
 import type { PoseGuideFeedbackDescriptor } from "../model";
 
 interface CameraGuideFeedbackBannerProps {
   feedback: PoseGuideFeedbackDescriptor | null;
-  personLimitNotice?: string | null;
+  isPersonLimitNoticeVisible?: boolean;
 }
 
 export function CameraGuideFeedbackBanner({
   feedback,
-  personLimitNotice,
+  isPersonLimitNoticeVisible,
 }: CameraGuideFeedbackBannerProps) {
   const { t } = useAppTranslation();
   const feedbackMessage = useMemo(
     () => mapPoseFeedbackMessage(feedback, t),
     [feedback, t],
   );
-  const message = personLimitNotice ?? feedbackMessage;
+  const message = isPersonLimitNoticeVisible
+    ? t("guide.personLimitNotice", { count: MAX_POSE_COUNT })
+    : feedbackMessage;
   if (!message) return null;
 
   return (
