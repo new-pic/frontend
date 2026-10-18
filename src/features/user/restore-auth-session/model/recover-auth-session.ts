@@ -32,11 +32,10 @@ export function resolveAuthRecoveryAction({
   if (!normalizedAccessToken && !normalizedRefreshToken) {
     return { type: "finish-without-session" };
   }
-  if (!normalizedRefreshToken) {
+  if (!normalizedAccessToken || !normalizedRefreshToken) {
     return { type: "clear-incomplete-session" };
   }
   if (
-    !normalizedAccessToken ||
     decodeAccessToken.isExpired(
       normalizedAccessToken,
       nowMs,

@@ -165,16 +165,15 @@ test("만료된 access token은 화면 진입 전에 refresh한다", async () =>
   assert.equal(calls.fail, 0);
 });
 
-test("refresh token만 남아 있어도 새 access token으로 복구를 시도한다", async () => {
+test("refresh token만 남은 불완전 세션은 자동 복구하지 않고 정리한다", async () => {
   reset();
   secureValues.set("refreshToken", "valid-refresh-token");
 
   await recoveryModule.recoverAuthSession();
 
-  assert.deepEqual(calls.refresh, [
-    { refreshToken: "valid-refresh-token", termsAgreed: true },
-  ]);
-  assert.equal(calls.logout, 0);
+  assert.equal(calls.logout, 1);
+  assert.equal(calls.refresh.length, 0);
+  assert.equal(calls.restore.length, 0);
 });
 
 test("저장된 token이 없으면 비로그인 초기화를 완료한다", async () => {

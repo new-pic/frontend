@@ -13,6 +13,7 @@ restore-auth-session
   ├─ 유효 access + refresh      → runtime session 복원
   ├─ 만료 access + refresh      → refresh API → session 복원
   ├─ access만 존재              → 불완전 session 정리
+  ├─ refresh만 존재             → 불완전 session 정리
   ├─ refresh 4xx / token 없음   → terminal logout
   └─ network / timeout / 5xx    → token 보존 + 재시도 화면
 ```
@@ -57,7 +58,9 @@ SecureStore 오류까지 모두 logout으로 처리했다. 일시적인 외부 �
 로그아웃은 서버가 refresh token을 거절했거나 복구에 필요한 token이 없는 경우처럼
 세션이 실제로 지속 불가능할 때만 수행해야 한다. 네트워크와 서버 가용성은 사용자
 세션의 유효성과 다른 실패 축이므로 token을 보존하고 사용자가 같은 복구 작업을 다시
-시도할 수 있게 한다.
+시도할 수 있게 한다. 단, access/refresh 중 하나만 남은 상태는 정상적으로 저장된
+session pair가 아니라 부분 삭제 또는 부분 저장의 결과일 수 있으므로 자동 인증에
+사용하지 않고 불완전 session으로 정리한다.
 
 ## Trade-off
 
@@ -67,6 +70,8 @@ SecureStore 오류까지 모두 logout으로 처리했다. 일시적인 외부 �
 - HTTP 408, 429, 5xx와 응답 없는 통신 오류는 recoverable로 취급한다.
 - 그 외 4xx는 refresh 요청 자체 또는 credential이 유효하지 않은 terminal 오류로
   취급한다.
+- access 또는 refresh token 중 하나만 유실된 경우에는 자동 복구 대신 다시 로그인해야
+  한다.
 - 서버가 refresh token rotation을 도입하면 refresh 응답과 저장 계약을 확장해야 한다.
 
 ## Result
@@ -75,13 +80,5 @@ SecureStore 오류까지 모두 logout으로 처리했다. 일시적인 외부 �
 - 만료된 access token은 라우팅 전에 single-flight로 한 번 갱신한다.
 - refresh 성공 시 기존 refresh token을 다시 쓰지 않고 access token만 교체한다.
 - recoverable 오류에서는 SecureStore token을 삭제하지 않고 재시도 화면을 표시한다.
-- terminal 오류와 불완전 session만 logout 경로로 정리한다.
+- terminal 오류와 한 종류의 token만 남은 불완전 session은 logout 경로로 정리한다.
 - 복구 오류와 재시도 문구는 앱 locale에 따라 한국어 또는 영어로 표시한다.
-
-## Remaining decision
-
-현재 정책은 access token 없이 refresh token만 남아 있어도 복구를 시도한다. 명시적
-logout에서 access token 삭제는 성공하고 refresh token 삭제만 실패하면, 다음 앱
-시작에서 잔존 refresh token으로 이전 계정이 다시 복구될 수 있다. refresh-only 상태를
-불완전 session으로 정리할지, logout invalidation marker 또는 서버 revoke 계약을
-도입할지 결정하기 전에는 이 PR을 병합하지 않는다.
