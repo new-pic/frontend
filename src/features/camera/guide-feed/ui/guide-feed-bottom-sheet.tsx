@@ -1,4 +1,5 @@
 import { userFeedQuery } from "@entities/feed";
+import { useAppTranslation } from "@shared/lib";
 import { adaptFeedToGuideSelection } from "../lib/feed-guide-selection-adapter";
 import type { GuideFeedSelection } from "../model";
 import {
@@ -30,6 +31,7 @@ export function GuideFeedBottomSheet({
   onClear,
   onClose,
 }: GuideFeedBottomSheetProps) {
+  const { t } = useAppTranslation();
   const {
     data,
     fetchNextPage,
@@ -65,7 +67,7 @@ export function GuideFeedBottomSheet({
         style={{ flexGrow: 1, height: 0, overflow: "hidden" }}
       >
         <HStack className="items-center justify-between px-6 pb-4 pt-3">
-          <Text className="font-semibold text-lg">저장한 피드</Text>
+          <Text className="font-semibold text-lg">{t("guide.savedFeeds")}</Text>
           {selectedFeedId ? (
             <Button
               variant="ghost"
@@ -75,7 +77,7 @@ export function GuideFeedBottomSheet({
                 onClose();
               }}
             >
-              <ButtonText>가이드 해제</ButtonText>
+              <ButtonText>{t("guide.clear")}</ButtonText>
             </Button>
           ) : null}
         </HStack>
@@ -84,10 +86,10 @@ export function GuideFeedBottomSheet({
           {isError ? (
             <Center className="flex-1 gap-3 px-6">
               <Text className="text-center text-label-muted">
-                저장한 피드를 불러오지 못했습니다.
+                {t("guide.savedFeedsLoadFailed")}
               </Text>
               <Button variant="outline" onPress={() => void refetch()}>
-                <ButtonText>다시 시도</ButtonText>
+                <ButtonText>{t("common.actions.retry")}</ButtonText>
               </Button>
             </Center>
           ) : (

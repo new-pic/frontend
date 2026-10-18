@@ -35,6 +35,7 @@
     "expo-image-picker": "~56.0.20",
     "expo-linear-gradient": "~56.0.4",
     "expo-linking": "~56.0.14",
+    "expo-localization": "~56.0.6",
     "expo-media-library": "~56.0.9",
     "expo-router": "~56.2.11",
     "expo-secure-store": "~56.0.4",
@@ -43,6 +44,7 @@
     "expo-symbols": "~56.0.6",
     "expo-system-ui": "~56.0.5",
     "expo-web-browser": "~56.0.5",
+    "i18next": "^26.4.2",
     "jwt-decode": "^4.0.0",
     "livekit-client": "2.21.0",
     "nativewind": "5.0.0-preview.4",
@@ -50,6 +52,7 @@
     "react-aria": "^3.50.0",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.81.0",
+    "react-i18next": "^17.0.15",
     "react-native": "0.85.3",
     "react-native-css": "^3.0.7",
     "react-native-gesture-handler": "~2.31.1",
@@ -125,7 +128,8 @@
     "test:bottom-sheet": "node --test src/shared/ui/bottomsheet/__tests__/bottom-sheet-presentation.test.cjs",
     "test:rtc-viewer-ui": "node --test src/shared/ui/framing-grid-overlay/__tests__/framing-grid-overlay.test.cjs",
     "test:photo-gallery": "node --test src/shared/ui/photo-gallery/__tests__/photo-gallery-state.test.cjs",
-    "test:ui-metrics": "node --test src/shared/ui/theme/__tests__/ui-metrics.test.cjs"
+    "test:ui-metrics": "node --test src/shared/ui/theme/__tests__/ui-metrics.test.cjs",
+    "test:i18n": "node --test src/shared/config/i18n/__tests__/*.test.cjs"
   },
   "private": true,
   "pnpm": {

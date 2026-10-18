@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "@shared/lib";
 import React, { useCallback, useState, useEffect } from "react";
 import { tva } from "@gluestack-ui/utils/nativewind-utils";
 import { Overlay } from "@gluestack-ui/core/overlay/creator";
@@ -172,6 +173,7 @@ const ImageViewerContent = React.forwardRef<
   HTMLDivElement,
   { children?: React.ReactNode }
 >(function ImageViewerContent({ children }, ref) {
+  const { t } = useAppTranslation();
   const context = useImageViewerContext();
   const { images, currentIndex, isOpen, close, goNext, goPrevious } = context;
   const currentImage = images[currentIndex];
@@ -207,7 +209,10 @@ const ImageViewerContent = React.forwardRef<
             {currentImage && (
               <img
                 src={currentImage.url}
-                alt={currentImage.alt || `Image ${currentIndex + 1}`}
+                alt={
+                  currentImage.alt ||
+                  t("photo.imageNumber", { number: currentIndex + 1 })
+                }
                 className="max-w-full max-h-[80vh] object-contain"
               />
             )}
@@ -224,6 +229,7 @@ const ImageViewerCloseButton = React.forwardRef<
   HTMLButtonElement,
   { className?: string }
 >(function ImageViewerCloseButton({ className, ...props }, ref) {
+  const { t } = useAppTranslation();
   const { close } = useImageViewerContext();
 
   return (
@@ -231,7 +237,7 @@ const ImageViewerCloseButton = React.forwardRef<
       ref={ref}
       onClick={close}
       className={imageViewerCloseButtonStyle({ class: className })}
-      aria-label="Close image viewer"
+      aria-label={t("photo.closeViewer")}
       {...props}
     >
       ✕
@@ -244,6 +250,7 @@ const ImageViewerNavigation = React.forwardRef<
   HTMLDivElement,
   { className?: string }
 >(function ImageViewerNavigation({ className }, ref) {
+  const { t } = useAppTranslation();
   const { goPrevious, goNext, currentIndex, images } = useImageViewerContext();
 
   const canGoPrevious = currentIndex > 0;
@@ -255,7 +262,7 @@ const ImageViewerNavigation = React.forwardRef<
         <button
           onClick={goPrevious}
           className={imageViewerNavButtonStyle({})}
-          aria-label="Previous image"
+          aria-label={t("photo.previous")}
         >
           ‹
         </button>
@@ -265,7 +272,7 @@ const ImageViewerNavigation = React.forwardRef<
         <button
           onClick={goNext}
           className={imageViewerNavButtonStyle({})}
-          aria-label="Next image"
+          aria-label={t("photo.next")}
         >
           ›
         </button>

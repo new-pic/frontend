@@ -1,5 +1,6 @@
 import { useRtcViewerSessionController } from "@features/rtc/join-room";
 import { RTC_NAVIGATION } from "@shared/config";
+import { useAppTranslation } from "@shared/lib";
 import { RtcViewerWorkspace } from "@widgets/rtc/session-workspace";
 import { Href, router } from "expo-router";
 import { usePreventRemove } from "expo-router/react-navigation";
@@ -7,6 +8,7 @@ import { useEffect } from "react";
 import { Alert, BackHandler } from "react-native";
 
 export function RtcViewerPage() {
+  const { t } = useAppTranslation();
   const viewerController = useRtcViewerSessionController();
   const {
     viewerSession,
@@ -60,12 +62,12 @@ export function RtcViewerPage() {
     if (!hasEndedBeforeLive) return;
 
     Alert.alert(
-      "실시간 공유 종료",
-      "호스트가 공유를 시작하기 전에 방을 종료했습니다.",
-      [{ text: "확인", onPress: finishSession }],
+      t("rtc.errors.shareEndedTitle"),
+      t("rtc.errors.hostEndedBeforeStart"),
+      [{ text: t("common.actions.confirm"), onPress: finishSession }],
       { cancelable: false },
     );
-  }, [finishSession, hasEndedBeforeLive]);
+  }, [finishSession, hasEndedBeforeLive, t]);
 
   return (
     <RtcViewerWorkspace

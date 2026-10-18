@@ -8,7 +8,11 @@ import {
 } from "@entities/feed";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { getApiErrorMessage } from "@shared/api";
-import { deleteStagedUploadFile, stageFileForUpload } from "@shared/lib";
+import {
+  deleteStagedUploadFile,
+  stageFileForUpload,
+  useAppTranslation,
+} from "@shared/lib";
 import { useForm } from "react-hook-form";
 import type { CreateFeedPublishingCommand } from "../publishing/feed-publishing-types";
 import type { FeedFormMode } from "./feed-form-types";
@@ -48,6 +52,7 @@ function transformToUpdateFeedRequest(
 }
 
 export function useSaveFeedForm({ mode }: UseSaveFeedFormProps) {
+  const { t } = useAppTranslation();
   const form = useForm<FeedFormValues>({
     resolver: standardSchemaResolver(
       mode === "CREATE" ? CreateFeedFormSchema : UpdateFeedFormSchema,
@@ -80,10 +85,7 @@ export function useSaveFeedForm({ mode }: UseSaveFeedFormProps) {
           await onUpdate(result);
         } catch (error) {
           onErrorResult?.(
-            getApiErrorMessage(
-              error,
-              "피드 저장을 준비하지 못했습니다. 다시 시도해주세요.",
-            ),
+            getApiErrorMessage(error, t("feed.savePreparationFailed")),
           );
         }
       },
@@ -92,7 +94,7 @@ export function useSaveFeedForm({ mode }: UseSaveFeedFormProps) {
           errors.image?.message ??
           errors.description?.message ??
           errors.tags?.message ??
-          "입력 내용을 확인해주세요.";
+          t("feed.validationCheck");
         onErrorResult?.(message);
       },
     );

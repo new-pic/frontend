@@ -36,6 +36,23 @@ const {
   projectGuideSourceToPreviewRect,
 } = require("../lib/guide-contour-projection.ts");
 const { mapPoseFeedbackMessage } = require("../lib/pose-feedback-message.ts");
+
+const POSE_MESSAGE_TRANSLATIONS = {
+  "guide.personPosition.left": "왼쪽 사람",
+  "guide.personPosition.center": "가운데 사람",
+  "guide.personPosition.right": "오른쪽 사람",
+  "guide.feedback.enterFrame": "화면에 들어와 주세요",
+  "guide.feedback.personCount": "화면에 {{count}}명만 나오도록 조정해 주세요",
+  "guide.feedback.moveLeft": "조금 왼쪽으로 이동해 주세요",
+  "guide.feedback.moveRight": "조금 오른쪽으로 이동해 주세요",
+  "guide.feedback.positioned": "{{person}}이 {{instruction}}",
+};
+
+function translatePoseMessage(key, options = {}) {
+  return POSE_MESSAGE_TRANSLATIONS[key].replace(/\{\{(\w+)\}\}/g, (_, name) =>
+    String(options[name]),
+  );
+}
 const {
   resolveFeedCameraAspectRatio,
 } = require("../lib/feed-camera-aspect-ratio.ts");
@@ -106,12 +123,15 @@ test("피드 상세 FAB은 feedId만 Camera route contract로 전달한다", () 
 
 test("Feed DTO는 Camera Guide selection 경계에서 필요한 필드만 남긴다", () => {
   assert.deepEqual(
-    adaptFeedToGuideSelection({
-      id: "feed-a",
-      thumbnailUrl: "https://example.com/a-thumb.webp",
-      detailImageUrl: "https://example.com/a.webp",
-      description: "Camera domain에는 전달하지 않는 값",
-    }),
+    adaptFeedToGuideSelection(
+      {
+        id: "feed-a",
+        thumbnailUrl: "https://example.com/a-thumb.webp",
+        detailImageUrl: "https://example.com/a.webp",
+        description: "Camera domain에는 전달하지 않는 값",
+      },
+      translatePoseMessage,
+    ),
     FEED_A,
   );
 });
@@ -190,28 +210,31 @@ function observe(
 
 test("background-removal DTO adapts normalized contours to a guide outline", () => {
   assert.deepEqual(
-    adaptFeedBackgroundRemoval({
-      output: {
-        success: true,
-        result: {
-          backgroundRemovedImage: "https://example.com/mask.png",
-          imageWidth: 511,
-          imageHeight: 1024,
-          contours: [
-            {
-              contourIndex: 0,
-              closed: true,
-              areaRatio: 0.3821,
-              points: [
-                { x: 0.1, y: 0.2 },
-                { x: 0.8, y: 0.2 },
-                { x: 0.5, y: 0.9 },
-              ],
-            },
-          ],
+    adaptFeedBackgroundRemoval(
+      {
+        output: {
+          success: true,
+          result: {
+            backgroundRemovedImage: "https://example.com/mask.png",
+            imageWidth: 511,
+            imageHeight: 1024,
+            contours: [
+              {
+                contourIndex: 0,
+                closed: true,
+                areaRatio: 0.3821,
+                points: [
+                  { x: 0.1, y: 0.2 },
+                  { x: 0.8, y: 0.2 },
+                  { x: 0.5, y: 0.9 },
+                ],
+              },
+            ],
+          },
         },
       },
-    }),
+      translatePoseMessage,
+    ),
     {
       sourceSize: { width: 511, height: 1024 },
       contours: [
@@ -994,21 +1017,27 @@ test("guide identity and readiness reset all feedback state", () => {
 
 test("feedback message uses correction direction from the domain", () => {
   assert.equal(
-    mapPoseFeedbackMessage({
-      reason: "MOVE_RIGHT",
-      personPosition: null,
-      targetPersonCount: 1,
-      livePersonCount: 1,
-    }),
+    mapPoseFeedbackMessage(
+      {
+        reason: "MOVE_RIGHT",
+        personPosition: null,
+        targetPersonCount: 1,
+        livePersonCount: 1,
+      },
+      translatePoseMessage,
+    ),
     "조금 오른쪽으로 이동해 주세요",
   );
   assert.equal(
-    mapPoseFeedbackMessage({
-      reason: "MOVE_LEFT",
-      personPosition: null,
-      targetPersonCount: 1,
-      livePersonCount: 1,
-    }),
+    mapPoseFeedbackMessage(
+      {
+        reason: "MOVE_LEFT",
+        personPosition: null,
+        targetPersonCount: 1,
+        livePersonCount: 1,
+      },
+      translatePoseMessage,
+    ),
     "조금 왼쪽으로 이동해 주세요",
   );
 });
@@ -1053,28 +1082,34 @@ test("multi-person feedback labels the worst live assignment", () => {
 
   assert.equal(state.feedback.personPosition, "LEFT");
   assert.equal(
-    mapPoseFeedbackMessage(state.feedback),
+    mapPoseFeedbackMessage(state.feedback, translatePoseMessage),
     "왼쪽 사람이 조금 오른쪽으로 이동해 주세요",
   );
 });
 
 test("person-count feedback includes the target and live difference", () => {
   assert.equal(
-    mapPoseFeedbackMessage({
-      reason: "PERSON_COUNT_MISMATCH",
-      personPosition: null,
-      targetPersonCount: 3,
-      livePersonCount: 1,
-    }),
+    mapPoseFeedbackMessage(
+      {
+        reason: "PERSON_COUNT_MISMATCH",
+        personPosition: null,
+        targetPersonCount: 3,
+        livePersonCount: 1,
+      },
+      translatePoseMessage,
+    ),
     "화면에 들어와 주세요",
   );
   assert.equal(
-    mapPoseFeedbackMessage({
-      reason: "PERSON_COUNT_MISMATCH",
-      personPosition: null,
-      targetPersonCount: 2,
-      livePersonCount: 3,
-    }),
+    mapPoseFeedbackMessage(
+      {
+        reason: "PERSON_COUNT_MISMATCH",
+        personPosition: null,
+        targetPersonCount: 2,
+        livePersonCount: 3,
+      },
+      translatePoseMessage,
+    ),
     "화면에 2명만 나오도록 조정해 주세요",
   );
 });

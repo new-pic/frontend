@@ -1,4 +1,5 @@
 import { colors } from "@shared/ui/theme";
+import { useAppTranslation } from "@shared/lib";
 import {
   IconCameraFilled,
   IconLayoutGridFilled,
@@ -7,6 +8,7 @@ import {
 import { Tabs, usePathname } from "expo-router";
 
 export default function TabLayout() {
+  const { t } = useAppTranslation();
   const pathname = usePathname();
 
   return (
@@ -25,7 +27,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="feed"
         options={{
-          title: "피드",
+          title: t("tabs.feed"),
           tabBarIcon: ({ color }) => (
             <IconLayoutGridFilled color={color} size={28} />
           ),
@@ -48,7 +50,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="camera"
         options={{
-          title: "카메라",
+          title: t("tabs.camera"),
           tabBarStyle: { display: "none" },
           tabBarIcon: ({ color }) => (
             <IconCameraFilled color={color} size={28} />
@@ -58,7 +60,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "프로필",
+          title: t("tabs.profile"),
           tabBarStyle:
             pathname === "/profile" ? undefined : { display: "none" },
           tabBarIcon: ({ color }) => <IconUserFilled color={color} size={28} />,

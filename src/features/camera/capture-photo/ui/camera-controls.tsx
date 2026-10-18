@@ -6,6 +6,7 @@ import {
   Text,
   VStack,
 } from "@shared/ui";
+import { useAppTranslation } from "@shared/lib";
 import { IconCameraRotate } from "@tabler/icons-react-native";
 import { Image } from "react-native";
 import { SessionPhoto } from "../model/models";
@@ -30,6 +31,8 @@ export function CameraControls({
   onTakePhoto,
   onChangePosition,
 }: CameraControlsProps) {
+  const { t } = useAppTranslation();
+
   return (
     <VStack className="w-full py-6 px-6 pb-12 bg-white">
       <HStack className="items-center justify-around">
@@ -38,7 +41,7 @@ export function CameraControls({
           onPress={onThumbnailPress}
           accessibilityRole="button"
           accessibilityLabel={
-            thumbnail ? "촬영한 사진 목록 열기" : "촬영한 사진 없음"
+            thumbnail ? t("camera.openPhotos") : t("camera.noPhotos")
           }
           accessibilityState={{ disabled: !thumbnail }}
         >
@@ -52,7 +55,9 @@ export function CameraControls({
               className="w-12 h-12 rounded-lg items-center justify-center"
               style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
             >
-              <Text className="text-white text-xs">최근 사진</Text>
+              <Text className="text-white text-xs">
+                {t("camera.recentPhoto")}
+              </Text>
             </VStack>
           )}
         </Pressable>
@@ -62,7 +67,9 @@ export function CameraControls({
           disabled={isTakePhotoDisabled}
           onPress={onTakePhoto}
           accessibilityLabel={
-            isTakePhotoDisabled ? "사진 촬영 한도에 도달함" : "사진 촬영"
+            isTakePhotoDisabled
+              ? t("camera.captureLimitReached")
+              : t("camera.capture")
           }
         />
         <Button
@@ -70,7 +77,7 @@ export function CameraControls({
           size="icon"
           className="rounded-full"
           onPress={onChangePosition}
-          accessibilityLabel="전후면 카메라 전환"
+          accessibilityLabel={t("camera.flip")}
         >
           <ButtonIcon className="w-8 h-8" as={IconCameraRotate} />
         </Button>

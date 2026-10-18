@@ -1,5 +1,6 @@
 import type { RtcEndRoomResponse } from "@entities/rtc-room";
 import type { RtcHostFinalizationState } from "./rtc-host-control";
+import { translate } from "../../../../shared/config";
 
 export type RtcHostNonFatalTerminationStage =
   "RESULT_DELIVERY" | "PUBLISHER_CLEANUP" | "ROOM_DISCONNECT";
@@ -117,7 +118,7 @@ export async function executeRtcHostTermination({
       status: "FAILED",
       error:
         finalizationError ??
-        new Error("RTC 공유 종료 결과를 확인하지 못했습니다."),
+        new Error(translate("rtc.errors.resultUnavailable")),
     };
   }
 

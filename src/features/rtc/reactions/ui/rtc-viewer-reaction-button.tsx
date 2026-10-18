@@ -1,4 +1,5 @@
 import * as Haptics from "expo-haptics";
+import { useAppTranslation } from "@shared/lib";
 import { useCallback } from "react";
 import { AccessibilityInfo, Pressable, Text, View } from "react-native";
 import Animated, {
@@ -27,6 +28,7 @@ export function RtcViewerReactionButton({
   disabled,
   onSend,
 }: RtcViewerReactionButtonProps) {
+  const { t } = useAppTranslation();
   const successProgress = useSharedValue(0);
   const blockedTranslateX = useSharedValue(0);
 
@@ -52,9 +54,9 @@ export function RtcViewerReactionButton({
     );
 
     AccessibilityInfo.announceForAccessibility(
-      `${emoji.label} 반응을 보냈어요`,
+      t("rtc.reaction.sent", { emoji: emoji.label }),
     );
-  }, [emoji.label, successProgress]);
+  }, [emoji.label, successProgress, t]);
 
   const playBlockedFeedback = useCallback(() => {
     const { blockedShakeDistance, blockedShakeDurationMs } =
@@ -81,9 +83,9 @@ export function RtcViewerReactionButton({
       }),
     );
     AccessibilityInfo.announceForAccessibility(
-      `${emoji.label} 반응을 보내지 못했어요`,
+      t("rtc.reaction.failed", { emoji: emoji.label }),
     );
-  }, [emoji.label, blockedTranslateX]);
+  }, [emoji.label, blockedTranslateX, t]);
   const handlePress = useCallback(() => {
     const sent = onSend(emoji.id);
 
@@ -194,11 +196,13 @@ export function RtcViewerReactionButton({
       <Animated.View style={buttonFeedbackStyle}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`${emoji.label} 반응 보내기`}
+          accessibilityLabel={t("rtc.reaction.sendAccessibility", {
+            emoji: emoji.label,
+          })}
           accessibilityHint={
             disabled
-              ? "반응 서버 연결 후 사용할 수 있습니다."
-              : "선택한 반응을 전송합니다."
+              ? t("rtc.reaction.unavailableHint")
+              : t("rtc.reaction.sendHint")
           }
           accessibilityState={{
             disabled,

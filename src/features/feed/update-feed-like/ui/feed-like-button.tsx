@@ -1,4 +1,5 @@
 import { colors } from "@shared/ui/theme";
+import { useAppTranslation } from "@shared/lib";
 import { Button, ButtonIcon } from "@shared/ui";
 import { IconHeartFilled } from "@tabler/icons-react-native";
 
@@ -15,6 +16,7 @@ export function FeedLikeButton({
   tone = "default",
   onPress,
 }: FeedLikeButtonProps) {
+  const { t } = useAppTranslation();
   const isOnImage = tone === "on-image";
   const iconColor = isOnImage ? "white" : colors.brand.primary;
   const iconFill = isLiked
@@ -29,7 +31,7 @@ export function FeedLikeButton({
       size="icon"
       className="rounded-full"
       disabled={isPending}
-      accessibilityLabel={isLiked ? "좋아요 취소" : "좋아요"}
+      accessibilityLabel={isLiked ? t("feed.unlike") : t("feed.like")}
       onPress={onPress}
     >
       <ButtonIcon

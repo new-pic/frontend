@@ -1,6 +1,6 @@
 import { userQueryKeys } from "@entities/user";
 import { getApiErrorMessage } from "@shared/api";
-import { useConfirm } from "@shared/lib";
+import { useAppTranslation, useConfirm } from "@shared/lib";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef } from "react";
 import { Alert } from "react-native";
@@ -17,6 +17,7 @@ interface BlockUserOptions {
 }
 
 export function useBlockUser() {
+  const { t } = useAppTranslation();
   const openConfirm = useConfirm();
   const queryClient = useQueryClient();
   const blockMutation = userBlockQuery.useBlockUserMutation();
@@ -30,10 +31,10 @@ export function useBlockUser() {
 
       try {
         const shouldBlock = await openConfirm({
-          title: "사용자 차단",
-          message: `${nickname}님의 게시글과 댓글이 더 이상 표시되지 않습니다. 차단한 사용자는 프로필에서 해제할 수 있습니다.`,
-          confirmText: "차단",
-          cancelText: "취소",
+          title: t("user.blockTitle"),
+          message: t("user.blockDescription", { nickname }),
+          confirmText: t("user.blockConfirm"),
+          cancelText: t("common.actions.cancel"),
           destructive: true,
         });
 
@@ -49,15 +50,15 @@ export function useBlockUser() {
         onBlocked?.();
         void refreshUserContentQueries(queryClient);
 
-        Alert.alert("차단 완료", `${nickname}님을 차단했습니다.`);
+        Alert.alert(
+          t("user.blockCompletedTitle"),
+          t("user.blockCompleted", { nickname }),
+        );
         return true;
       } catch (error) {
         Alert.alert(
-          "사용자 차단 실패",
-          getApiErrorMessage(
-            error,
-            "사용자를 차단하지 못했습니다. 다시 시도해주세요.",
-          ),
+          t("user.blockFailedTitle"),
+          getApiErrorMessage(error, t("user.blockFailed")),
         );
 
         return false;
@@ -65,7 +66,7 @@ export function useBlockUser() {
         isBlockingRef.current = false;
       }
     },
-    [blockMutation, openConfirm, queryClient],
+    [blockMutation, openConfirm, queryClient, t],
   );
 
   return {

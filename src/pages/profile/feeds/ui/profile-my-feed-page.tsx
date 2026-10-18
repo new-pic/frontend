@@ -1,5 +1,6 @@
 import { userFeedQuery } from "@entities/feed";
 import { createFeedDetailHref } from "@features/feed/browse-feed-detail";
+import { useAppTranslation } from "@shared/lib";
 import {
   Box,
   Button,
@@ -14,6 +15,7 @@ import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function ProfileMyFeedPage() {
+  const { t } = useAppTranslation();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
     userFeedQuery.useReadMyFeeds({ take: 24 });
   const feeds = data?.pages.flatMap((page) => page.items) ?? [];
@@ -38,13 +40,13 @@ export function ProfileMyFeedPage() {
           <Button
             variant="ghost"
             size="icon"
-            accessibilityLabel="프로필로 돌아가기"
+            accessibilityLabel={t("common.accessibility.backToProfile")}
             onPress={handleGoProfile}
           >
             <ButtonIcon as={IconChevronLeft} />
           </Button>
           <Text className="font-semibold" size="lg">
-            내가 올린 피드
+            {t("profile.myFeedsTitle")}
           </Text>
           <Box className="w-12" />
         </HStack>

@@ -79,14 +79,14 @@ test("서비스 약관 메뉴는 공용 외부 링크를 연다", () => {
 test("프로필 하단 메뉴는 모바일 기본 텍스트 크기를 사용한다", () => {
   const source = readSource("../ui/profile-page.tsx");
 
-  for (const label of [
-    "버그 제보하기",
-    "서비스 약관",
-    "차단한 사용자",
-    "로그아웃",
-    "회원 탈퇴",
+  for (const key of [
+    "profile.bugReport",
+    "profile.terms",
+    "profile.blockedUsers",
+    "profile.logout",
+    "profile.deleteAccount",
   ]) {
-    assert.match(source, new RegExp(`size="md"[^>]*>\\s*${label}\\s*<`));
+    assert.match(source, new RegExp(`size="md"[^>]*>[\\s\\S]*t\\("${key}"\\)`));
   }
 });
 
@@ -94,7 +94,7 @@ test("회원 탈퇴 메뉴는 로그인한 비게스트 회원에게만 로그�
   const source = readSource("../ui/profile-page.tsx");
 
   assert.match(source, /isAuthenticated && !isGuest/);
-  assert.match(source, /로그아웃[\s\S]*회원 탈퇴/);
+  assert.match(source, /profile\.logout[\s\S]*profile\.deleteAccount/);
   assert.match(source, /disabled=\{isDeleting\}/);
   assert.match(source, /onPress=\{deleteAccount\}/);
 });
@@ -109,7 +109,7 @@ test("회원 탈퇴는 유예 API 성공 후 세션을 종료하고 App이 Query
   const appLayoutSource = readSource("../../../../app/_layout.tsx");
 
   assert.match(querySource, /privateApiClient\.delete\("\/users\/me"\)/);
-  assert.match(featureSource, /계정과 작성 데이터는 30일 후 삭제됩니다/);
+  assert.match(featureSource, /t\("user\.deleteAccountDescription"\)/);
   assert.match(
     featureSource,
     /await mutateAsync\(\)[\s\S]*await logout\(\)[\s\S]*router\.replace\("\/"\)/,

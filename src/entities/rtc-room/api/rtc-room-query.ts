@@ -1,5 +1,6 @@
 import { createSseParser, executeAuthenticatedFetch } from "@shared/api";
 import { env } from "@shared/config";
+import { translate } from "@shared/lib";
 import { fetch } from "expo/fetch";
 import { verifyRtcId } from "../lib";
 import { type RtcRoomEvent } from "../model";
@@ -26,7 +27,7 @@ export async function subscribeRtcRoomEvents({
     throw new Error("API_URL is not configured");
   }
 
-  const id = verifyRtcId(roomId, "RTC 방 ID");
+  const id = verifyRtcId(roomId, translate("rtc.errors.invalidRoomId"));
   const response = await executeAuthenticatedFetch({
     signal,
     request: (accessToken) =>

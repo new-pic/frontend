@@ -9,6 +9,7 @@ import {
 import type { RtcEndRoomResponse } from "@entities/rtc-room";
 import type { RtcViewerSession } from "@entities/rtc-session";
 import { RtcViewerReactionPicker } from "@features/rtc/reactions";
+import { useAppTranslation } from "@shared/lib";
 import { useEffect } from "react";
 import { Alert } from "react-native";
 import { RtcViewerResult } from "./rtc-viewer-result";
@@ -46,13 +47,15 @@ export function RtcViewerWorkspace({
   onRoomEnded,
   onResultDone,
 }: RtcViewerWorkspaceProps) {
+  const { t } = useAppTranslation();
+
   useEffect(() => {
     if (!exitErrorMessage) return;
 
-    Alert.alert("RTC 방 나가기 실패", exitErrorMessage, [
-      { text: "확인", onPress: onClearExitError },
+    Alert.alert(t("rtc.errors.roomExitTitle"), exitErrorMessage, [
+      { text: t("common.actions.confirm"), onPress: onClearExitError },
     ]);
-  }, [exitErrorMessage, onClearExitError]);
+  }, [exitErrorMessage, onClearExitError, t]);
 
   if (viewerResult) {
     return (

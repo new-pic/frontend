@@ -1,3 +1,4 @@
+import { useAppTranslation } from "@shared/lib";
 import { Button, ButtonText, Center, Text, VStack } from "@shared/ui";
 import { ActivityIndicator, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,7 +22,9 @@ export function RtcViewerWaiting({
   connectionError,
   onRetry,
 }: RtcViewerWaitingProps) {
-  const displayHostNickname = hostNickname?.trim() || "호스트";
+  const { t } = useAppTranslation();
+  const displayHostNickname =
+    hostNickname?.trim() || t("rtc.join.hostFallback");
   const isPreparingResult = mode === "PREPARING_RESULT";
 
   return (
@@ -31,7 +34,7 @@ export function RtcViewerWaiting({
           <VStack className="w-full items-center gap-12">
             <Image
               source={require("@assets/images/icon.png")}
-              accessibilityLabel="뉴픽 앱 아이콘"
+              accessibilityLabel={t("rtc.join.appIconAccessibility")}
               className="h-40 w-40"
               resizeMode="contain"
             />
@@ -39,8 +42,10 @@ export function RtcViewerWaiting({
             <VStack className="items-center gap-5">
               <Text size="xl" bold className="text-center text-foreground">
                 {isPreparingResult
-                  ? "촬영 결과를 준비하고 있어요"
-                  : `${displayHostNickname}님이 공유 대기 중입니다...`}
+                  ? t("rtc.join.preparingResults")
+                  : t("rtc.join.hostWaiting", {
+                      nickname: displayHostNickname,
+                    })}
               </Text>
               {(isConnecting || isPreparingResult) && (
                 <ActivityIndicator
@@ -48,19 +53,19 @@ export function RtcViewerWaiting({
                   color="#ff7c82"
                   accessibilityLabel={
                     isPreparingResult
-                      ? "촬영 결과 준비 중"
-                      : "실시간 공유 연결 중"
+                      ? t("rtc.join.preparingResultsAccessibility")
+                      : t("rtc.join.connectingAccessibility")
                   }
                 />
               )}
               <Text size="lg" className="text-center text-outline">
                 {isPreparingResult
-                  ? "저장된 사진을 불러오고 있어요"
+                  ? t("rtc.join.loadingPhotos")
                   : connectionError
                     ? connectionError
                     : isConnecting
-                      ? "실시간 공유에 연결하고 있어요"
-                      : "잠시만 기다려주세요"}
+                      ? t("rtc.join.connecting")
+                      : t("rtc.join.wait")}
               </Text>
             </VStack>
 
@@ -71,9 +76,9 @@ export function RtcViewerWaiting({
                     variant="gradient"
                     size="lg"
                     onPress={onRetry}
-                    accessibilityLabel="실시간 공유 연결 다시 시도"
+                    accessibilityLabel={t("rtc.join.retryAccessibility")}
                   >
-                    <ButtonText>다시 시도</ButtonText>
+                    <ButtonText>{t("common.actions.retry")}</ButtonText>
                   </Button>
                 ) : null}
                 <Button
@@ -84,12 +89,12 @@ export function RtcViewerWaiting({
                   onPress={onCancel}
                   accessibilityLabel={
                     isCanceling
-                      ? "RTC 방에서 나가는 중"
-                      : "실시간 공유 대기 취소"
+                      ? t("rtc.join.leavingAccessibility")
+                      : t("rtc.join.cancelWaitingAccessibility")
                   }
                 >
                   <ButtonText>
-                    {isCanceling ? "나가는 중..." : "취소하기"}
+                    {isCanceling ? t("rtc.join.leaving") : t("rtc.join.cancel")}
                   </ButtonText>
                 </Button>
               </VStack>

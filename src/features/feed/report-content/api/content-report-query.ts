@@ -4,6 +4,7 @@ import type {
   CreateContentReportRequest,
 } from "@entities/feed";
 import { privateApiClient } from "@shared/api";
+import { translate } from "@shared/lib/i18n";
 import { useAuthStore } from "@shared/model";
 import { useMutation } from "@tanstack/react-query";
 import { getContentReportPath } from "./content-report-adapter";
@@ -18,7 +19,7 @@ export function useCreateContentReport() {
       request: CreateContentReportRequest;
     }): Promise<ContentReportResponse> => {
       if (useAuthStore.getState().isGuest) {
-        throw new Error("신고하려면 회원 로그인이 필요합니다.");
+        throw new Error(translate("feed.report.memberRequired"));
       }
       const response = await privateApiClient.post<ContentReportResponse>(
         getContentReportPath(target),

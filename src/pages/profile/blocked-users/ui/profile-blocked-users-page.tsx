@@ -1,4 +1,5 @@
 import { useUnblockUser } from "@features/user/manage-user-block";
+import { useAppTranslation } from "@shared/lib";
 import {
   Avatar,
   AvatarFallbackText,
@@ -23,6 +24,7 @@ import { userBlockQuery } from "../api";
 const BLOCKED_USERS_PAGE_SIZE = 20;
 
 export function ProfileBlockedUsersPage() {
+  const { t } = useAppTranslation();
   const {
     data,
     fetchNextPage,
@@ -51,29 +53,29 @@ export function ProfileBlockedUsersPage() {
           <Button
             variant="ghost"
             size="icon"
-            accessibilityLabel="프로필로 돌아가기"
+            accessibilityLabel={t("common.accessibility.backToProfile")}
             onPress={() => router.back()}
           >
             <ButtonIcon as={IconChevronLeft} />
           </Button>
           <Text className="font-semibold" size="lg">
-            차단한 사용자
+            {t("profile.blockedUsers")}
           </Text>
           <Box className="w-12" />
         </HStack>
 
         {isPending ? (
           <Center className="flex-1">
-            <Spinner accessibilityLabel="차단한 사용자 불러오는 중" />
+            <Spinner accessibilityLabel={t("profile.blockedUsersLoading")} />
           </Center>
         ) : isError ? (
           <Center className="flex-1 px-6">
             <VStack className="w-full items-center" space="md">
               <Text className="text-center text-label-muted">
-                차단한 사용자를 불러오지 못했습니다.
+                {t("profile.blockedUsersLoadFailed")}
               </Text>
               <Button variant="outline" onPress={() => void refetch()}>
-                <ButtonText>다시 시도</ButtonText>
+                <ButtonText>{t("common.actions.retry")}</ButtonText>
               </Button>
             </VStack>
           </Center>
@@ -92,7 +94,7 @@ export function ProfileBlockedUsersPage() {
             ListEmptyComponent={
               <Center className="flex-1 px-6">
                 <Text className="text-center text-label-muted">
-                  차단한 사용자가 없습니다.
+                  {t("profile.blockedUsersEmpty")}
                 </Text>
               </Center>
             }
@@ -124,7 +126,9 @@ export function ProfileBlockedUsersPage() {
                     size="sm"
                     isLoading={isCurrentUserUnblocking}
                     disabled={isUnblocking}
-                    accessibilityLabel={`${blockedUser.nickname}님 차단 해제`}
+                    accessibilityLabel={t("profile.unblockUserLabel", {
+                      nickname: blockedUser.nickname,
+                    })}
                     onPress={() =>
                       void unblockUser({
                         userId: blockedUser.id,
@@ -132,7 +136,7 @@ export function ProfileBlockedUsersPage() {
                       })
                     }
                   >
-                    <ButtonText>차단 해제</ButtonText>
+                    <ButtonText>{t("common.actions.unblock")}</ButtonText>
                   </Button>
                 </HStack>
               );

@@ -3,6 +3,7 @@
 
 import { env } from "@shared/config";
 import { fetch } from "expo/fetch";
+import { translate } from "../config";
 import { createApiRequestError } from "./api-error";
 import { executeAuthenticatedFetch } from "./authenticated-fetch";
 
@@ -34,7 +35,7 @@ const coreUploadFetchClient = async (
     throw createApiRequestError({
       payload: responseData,
       status: res.status,
-      fallback: `파일 업로드에 실패했습니다. (${res.status})`,
+      fallback: translate("common.errors.uploadFailed", { status: res.status }),
     });
   }
 

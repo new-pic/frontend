@@ -1,5 +1,5 @@
 import { getApiErrorMessage } from "@shared/api";
-import { normalizeAuthReturnTo } from "@shared/lib";
+import { normalizeAuthReturnTo, useAppTranslation } from "@shared/lib";
 import { Button, ButtonText } from "@shared/ui";
 import { Href, router, useLocalSearchParams } from "expo-router";
 import { Alert } from "react-native";
@@ -9,6 +9,7 @@ import type { UseSetupFormReturn } from "../model/use-setup-form";
 import { userProfileQuery } from "../api";
 
 export function SetupButton({ form }: { form: UseSetupFormReturn }) {
+  const { t } = useAppTranslation();
   const { returnTo: returnToParam } = useLocalSearchParams<{
     returnTo?: string | string[];
   }>();
@@ -23,11 +24,8 @@ export function SetupButton({ form }: { form: UseSetupFormReturn }) {
       );
     } catch (error) {
       Alert.alert(
-        "프로필 수정 실패",
-        getApiErrorMessage(
-          error,
-          "프로필을 수정하지 못했습니다. 다시 시도해주세요.",
-        ),
+        t("profile.updateFailedTitle"),
+        getApiErrorMessage(error, t("profile.updateFailed")),
       );
     }
   };
@@ -44,7 +42,7 @@ export function SetupButton({ form }: { form: UseSetupFormReturn }) {
       onPress={form.handleSubmit(onSubmit)}
     >
       <ButtonText size="lg" className="font-semibold">
-        설정하기
+        {t("profile.setup")}
       </ButtonText>
     </Button>
   );

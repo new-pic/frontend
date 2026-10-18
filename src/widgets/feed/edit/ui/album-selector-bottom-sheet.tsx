@@ -6,6 +6,7 @@ import {
   Text,
   VStack,
 } from "@shared/ui";
+import { useAppTranslation } from "@shared/lib";
 import { IconCheck } from "@tabler/icons-react-native";
 import * as MediaLibrary from "expo-media-library";
 import { useEffect, useState } from "react";
@@ -25,13 +26,14 @@ export function AlbumSelectorBottomSheet({
   onSelectAlbum,
   onClose,
 }: AlbumSelectorBottomSheetProps) {
+  const { t } = useAppTranslation();
   const [albums, setAlbums] = useState<CustomAlbum[]>([]);
 
   useEffect(() => {
     const loadAlbums = async () => {
       const recentAlbum: CustomAlbum = {
         id: "RECENT_PHOTOS",
-        title: "최근 항목",
+        title: t("feed.recentAlbum"),
         rawAlbum: null,
         isRecent: true,
       };
@@ -55,12 +57,14 @@ export function AlbumSelectorBottomSheet({
     };
 
     void loadAlbums();
-  }, [onSelectAlbum]);
+  }, [onSelectAlbum, t]);
 
   return (
     <BottomSheetModal open={isOpen} onClose={onClose}>
       <VStack>
-        <Text className="font-semibold text-lg px-6 py-3">앨범 선택</Text>
+        <Text className="font-semibold text-lg px-6 py-3">
+          {t("feed.selectAlbum")}
+        </Text>
         <FlatList
           data={albums}
           keyExtractor={(item) => item.id}

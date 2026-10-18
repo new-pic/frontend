@@ -2,6 +2,7 @@ import type { RtcEndRoomResponse } from "@entities/rtc-room";
 import { rtcStoredPhotoQuery } from "@entities/rtc-stored-photo";
 import { type RtcLiveKitConnection, useRtcStore } from "@entities/rtc-session";
 import { getApiErrorMessage } from "@shared/api";
+import { useAppTranslation } from "@shared/lib";
 import type { File } from "expo-file-system";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { RtcHostFinalizationState } from "./rtc-host-control";
@@ -45,6 +46,7 @@ export function useRtcHostSessionController({
   onResultReady,
   onResultRefreshError,
 }: UseRtcHostSessionControllerOptions) {
+  const { t } = useAppTranslation();
   const hostSession = useRtcStore((state) => state.hostSession);
   const clearHostSession = useRtcStore((state) => state.clearHostSession);
   const createRoomMutation = rtcHostQuery.useCreateRtcRoom();
@@ -87,11 +89,11 @@ export function useRtcHostSessionController({
       } catch (error) {
         return {
           ok: false,
-          title: "RTC 방 생성 실패",
-          message: getApiErrorMessage(error, "잠시 후 다시 시도해주세요."),
+          title: t("rtc.errors.roomCreateTitle"),
+          message: getApiErrorMessage(error, t("rtc.errors.genericRetry")),
         };
       }
-    }, [createRoomMutation]);
+    }, [createRoomMutation, t]);
 
   const cancelPreparedSharing =
     useCallback(async (): Promise<HostCommandResult | null> => {
@@ -104,11 +106,11 @@ export function useRtcHostSessionController({
       } catch (error) {
         return {
           ok: false,
-          title: "RTC 방 종료 실패",
-          message: getApiErrorMessage(error, "잠시 후 다시 시도해주세요."),
+          title: t("rtc.errors.roomEndTitle"),
+          message: getApiErrorMessage(error, t("rtc.errors.genericRetry")),
         };
       }
-    }, [clearHostSession, endRoomMutation, hostSession]);
+    }, [clearHostSession, endRoomMutation, hostSession, t]);
 
   const startBroadcast =
     useCallback(async (): Promise<HostCommandResult | null> => {
@@ -123,8 +125,8 @@ export function useRtcHostSessionController({
       if (!cameraFocusedRef.current || !cameraRunningRef.current) {
         return {
           ok: false,
-          title: "카메라 준비 중",
-          message: "카메라가 시작된 뒤 다시 공유해주세요.",
+          title: t("rtc.errors.cameraPreparingTitle"),
+          message: t("rtc.errors.cameraPreparingDescription"),
         };
       }
 
@@ -135,8 +137,8 @@ export function useRtcHostSessionController({
         if (!cameraFocusedRef.current || !cameraRunningRef.current) {
           return {
             ok: false,
-            title: "카메라 상태 변경",
-            message: "카메라가 중지되어 LiveKit 송출을 시작하지 않았습니다.",
+            title: t("rtc.errors.cameraStateChangedTitle"),
+            message: t("rtc.errors.cameraStoppedDescription"),
           };
         }
 
@@ -145,15 +147,15 @@ export function useRtcHostSessionController({
       } catch (error) {
         return {
           ok: false,
-          title: "실시간 공유 시작 실패",
-          message: getApiErrorMessage(error, "잠시 후 다시 시도해주세요."),
+          title: t("rtc.errors.shareStartTitle"),
+          message: getApiErrorMessage(error, t("rtc.errors.genericRetry")),
         };
       }
-    }, [broadcastConnection, createHostTokenMutation, hostSession]);
+    }, [broadcastConnection, createHostTokenMutation, hostSession, t]);
 
   const endRoom = useCallback(async (): Promise<RtcEndRoomResponse> => {
     if (!hostSession) {
-      throw new Error("RTC 방 정보가 없습니다. 방 종료를 다시 시도해주세요.");
+      throw new Error(t("rtc.errors.missingRoom"));
     }
 
     const images = getPreparedEndImages();
@@ -164,13 +166,10 @@ export function useRtcHostSessionController({
       });
     } catch (error) {
       throw new Error(
-        getApiErrorMessage(
-          error,
-          "사진 저장 및 RTC 방 종료 요청에 실패했습니다. 종료 처리를 다시 시도해주세요.",
-        ),
+        getApiErrorMessage(error, t("rtc.errors.saveAndEndFailed")),
       );
     }
-  }, [endRoomMutation, getPreparedEndImages, hostSession]);
+  }, [endRoomMutation, getPreparedEndImages, hostSession, t]);
 
   const completeTermination = useCallback(
     async (result: RtcEndRoomResponse) => {

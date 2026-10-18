@@ -3,6 +3,7 @@ import {
   ContentReportTarget,
 } from "@entities/feed";
 import { getApiErrorMessage } from "@shared/api";
+import { useAppTranslation } from "@shared/lib";
 import {
   BottomSheetModal,
   Button,
@@ -23,10 +24,7 @@ import {
 import { useRef, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { Controller, useWatch } from "react-hook-form";
-import {
-  CONTENT_REPORT_REASON_OPTIONS,
-  getContentReportTargetLabel,
-} from "../model/report-content";
+import { CONTENT_REPORT_REASON_OPTIONS } from "../model/report-content";
 import { useContentReportForm } from "../model/use-content-report-form";
 import { feedReportQuery } from "../api";
 
@@ -39,6 +37,7 @@ export function ReportContentModal({
   target,
   onClose,
 }: ReportContentModalProps) {
+  const { t } = useAppTranslation();
   const [isReasonListOpen, setIsReasonListOpen] = useState(false);
   const isSubmittingRef = useRef(false);
   const form = useContentReportForm();
@@ -46,10 +45,16 @@ export function ReportContentModal({
   const reason = useWatch({ control: form.control, name: "reason" });
   const description =
     useWatch({ control: form.control, name: "description" }) ?? "";
-  const targetLabel = getContentReportTargetLabel(target);
-  const selectedReasonLabel = CONTENT_REPORT_REASON_OPTIONS.find(
+  const targetLabel =
+    target.type === "feed"
+      ? t("feed.report.targetFeed")
+      : t("feed.report.targetComment");
+  const selectedReason = CONTENT_REPORT_REASON_OPTIONS.find(
     (option) => option.value === reason,
-  )?.label;
+  );
+  const selectedReasonLabel = selectedReason
+    ? t(selectedReason.translationKey)
+    : undefined;
   const isPending = reportMutation.isPending;
 
   const resetMutationIfIdle = () => {
@@ -82,14 +87,14 @@ export function ReportContentModal({
         <VStack className="flex-1 items-center justify-center px-6" space="xl">
           <VStack className="items-center" space="sm">
             <Text size="xl" className="font-bold">
-              신고가 접수되었습니다
+              {t("feed.report.receivedTitle")}
             </Text>
             <Text className="text-center text-label-muted">
-              접수된 {targetLabel}을 확인한 뒤 필요한 조치를 진행하겠습니다.
+              {t("feed.report.receivedDescription", { target: targetLabel })}
             </Text>
           </VStack>
           <Button variant="gradient" className="w-full" onPress={onClose}>
-            <ButtonText>확인</ButtonText>
+            <ButtonText>{t("common.actions.confirm")}</ButtonText>
           </Button>
         </VStack>
       </BottomSheetModal>
@@ -114,10 +119,10 @@ export function ReportContentModal({
         >
           <VStack space="xs">
             <Text size="xl" className="font-bold">
-              {targetLabel} 신고
+              {t("feed.report.title", { target: targetLabel })}
             </Text>
             <Text className="text-label-muted">
-              신고 사유를 선택하고 필요한 경우 상세 내용을 입력해주세요.
+              {t("feed.report.instructions")}
             </Text>
           </VStack>
 
@@ -126,10 +131,14 @@ export function ReportContentModal({
             control={form.control}
             render={({ field }) => (
               <VStack space="sm">
-                <Text className="font-semibold">신고 사유</Text>
+                <Text className="font-semibold">
+                  {t("feed.report.reasonLabel")}
+                </Text>
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="신고 사유 선택"
+                  accessibilityLabel={t(
+                    "feed.report.selectReasonAccessibility",
+                  )}
                   accessibilityState={{ expanded: isReasonListOpen }}
                   className="min-h-12 flex-row items-center justify-between rounded-lg border border-outline px-4"
                   onPress={() => setIsReasonListOpen((isOpen) => !isOpen)}
@@ -139,7 +148,7 @@ export function ReportContentModal({
                       selectedReasonLabel ? "text-black" : "text-label-muted"
                     }
                   >
-                    {selectedReasonLabel ?? "사유를 선택해주세요."}
+                    {selectedReasonLabel ?? t("feed.report.reasonPlaceholder")}
                   </Text>
                   <Icon
                     as={isReasonListOpen ? IconChevronUp : IconChevronDown}
@@ -165,7 +174,7 @@ export function ReportContentModal({
                           }}
                         >
                           <Text className={isSelected ? "font-semibold" : ""}>
-                            {option.label}
+                            {t(option.translationKey)}
                           </Text>
                           {isSelected ? (
                             <Icon
@@ -188,7 +197,9 @@ export function ReportContentModal({
             render={({ field }) => (
               <VStack space="xs">
                 <HStack className="items-center justify-between">
-                  <Text className="font-semibold">상세 사유 (선택)</Text>
+                  <Text className="font-semibold">
+                    {t("feed.report.detailOptional")}
+                  </Text>
                   <Text size="xs" className="text-label-muted">
                     {description.length}/{CONTENT_REPORT_DESCRIPTION_MAX_LENGTH}
                   </Text>
@@ -204,7 +215,7 @@ export function ReportContentModal({
                       resetMutationIfIdle();
                       field.onChange(value);
                     }}
-                    placeholder="신고 내용을 입력해주세요."
+                    placeholder={t("feed.report.descriptionPlaceholder")}
                     maxLength={CONTENT_REPORT_DESCRIPTION_MAX_LENGTH}
                   />
                 </Textarea>
@@ -221,7 +232,7 @@ export function ReportContentModal({
             <Text className="text-destructive">
               {getApiErrorMessage(
                 reportMutation.error,
-                `${targetLabel} 신고에 실패했습니다. 다시 시도해주세요.`,
+                t("feed.report.submitFailed", { target: targetLabel }),
               )}
             </Text>
           ) : null}
@@ -233,7 +244,7 @@ export function ReportContentModal({
               disabled={isPending}
               onPress={handleClose}
             >
-              <ButtonText>취소</ButtonText>
+              <ButtonText>{t("common.actions.cancel")}</ButtonText>
             </Button>
             <Button
               variant="gradient"
@@ -242,7 +253,7 @@ export function ReportContentModal({
               isLoading={isPending}
               onPress={handleSubmit}
             >
-              <ButtonText>신고하기</ButtonText>
+              <ButtonText>{t("common.actions.report")}</ButtonText>
             </Button>
           </HStack>
         </ScrollView>

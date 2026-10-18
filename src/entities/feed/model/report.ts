@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { translate } from "../../../shared/config";
 
 export const CONTENT_REPORT_DESCRIPTION_MAX_LENGTH = 500;
 
@@ -17,10 +18,12 @@ export const CreateContentReportRequestSchema = z.object({
   description: z
     .string()
     .trim()
-    .max(
-      CONTENT_REPORT_DESCRIPTION_MAX_LENGTH,
-      `상세 사유는 최대 ${CONTENT_REPORT_DESCRIPTION_MAX_LENGTH}자까지 입력할 수 있습니다.`,
-    )
+    .max(CONTENT_REPORT_DESCRIPTION_MAX_LENGTH, {
+      error: () =>
+        translate("feed.report.descriptionMaximum", {
+          count: CONTENT_REPORT_DESCRIPTION_MAX_LENGTH,
+        }),
+    })
     .transform((description) => description || undefined)
     .optional(),
 });

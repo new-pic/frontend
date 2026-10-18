@@ -71,7 +71,7 @@ test("참여자 영상은 전체 구도를 유지하고 그리드와 이모지 f
   );
 
   assert.match(liveKitSource, /objectFit="contain"/);
-  assert.match(liveKitSource, /사진에 찍히는 내 모습/);
+  assert.match(liveKitSource, /t\("rtc\.join\.myCamera"\)/);
   assert.match(liveKitSource, /<FramingGridOverlay \/>/);
   assert.match(liveKitSource, /\{reactionPicker\}/);
   assert.doesNotMatch(liveKitSource, />\s*실시간 공유\s*</);

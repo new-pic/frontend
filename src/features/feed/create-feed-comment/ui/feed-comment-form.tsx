@@ -1,4 +1,5 @@
 import { HStack, Text, Textarea, TextareaInput, VStack } from "@shared/ui";
+import { useAppTranslation } from "@shared/lib";
 import { Controller, useWatch } from "react-hook-form";
 import { useCreateFeedCommentForm } from "../model/use-create-feed-comment-form";
 import { SaveCommentButton } from "./save-comment-button";
@@ -12,6 +13,7 @@ export function FeedCommentForm({
   feedId,
   requireMember,
 }: FeedCommentFormProps) {
+  const { t } = useAppTranslation();
   const form = useCreateFeedCommentForm();
   const content = useWatch({
     control: form.control,
@@ -31,7 +33,7 @@ export function FeedCommentForm({
             <TextareaInput
               value={field.value}
               onChangeText={field.onChange}
-              placeholder="댓글을 입력해주세요."
+              placeholder={t("feed.comments.placeholder")}
               maxLength={500}
             />
           </Textarea>

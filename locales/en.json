@@ -1,0 +1,12 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "NewPic",
+    "NSCameraUsageDescription": "NewPic uses the camera to take photos and share the camera view remotely.",
+    "NSMicrophoneUsageDescription": "NewPic uses the microphone to share audio during remote photo sessions.",
+    "NSPhotoLibraryUsageDescription": "Allow photo library access to select photos in NewPic.",
+    "NSPhotoLibraryAddUsageDescription": "Allow photo library access to save photos captured in NewPic."
+  },
+  "android": {
+    "app_name": "NewPic"
+  }
+}

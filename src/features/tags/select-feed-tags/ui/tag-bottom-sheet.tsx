@@ -1,4 +1,5 @@
 import { colors } from "@shared/ui/theme";
+import { useAppTranslation } from "@shared/lib/i18n";
 import { useDebouncedValue } from "@shared/lib/debounce";
 import {
   Badge,
@@ -38,6 +39,7 @@ export function TagBottomSheet({
   onSelectTag,
   onClose,
 }: TagBottomSheetProps) {
+  const { t } = useAppTranslation();
   const [searchQuery, setSearchQuery] = useState<string>("");
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
   const { data } = feedTagQuery.useReadTags({
@@ -80,11 +82,13 @@ export function TagBottomSheet({
       >
         <VStack className="px-6 pt-3" style={{ flexShrink: 0 }} space="xl">
           <HStack className="justify-center">
-            <Text className="font-semibold text-lg">해시태그 검색</Text>
+            <Text className="font-semibold text-lg">
+              {t("feed.tags.searchTitle")}
+            </Text>
           </HStack>
           <Input>
             <InputField
-              placeholder="검색어를 입력해주세요."
+              placeholder={t("feed.searchPlaceholder")}
               value={searchQuery}
               onChangeText={setSearchQuery}
               returnKeyType="search"
@@ -133,7 +137,7 @@ export function TagBottomSheet({
         >
           <VStack className="flex-1 px-8 py-4" space="md">
             <HStack className="items-center justify-between">
-              <Text className="font-semibold">선택한 해시태그</Text>
+              <Text className="font-semibold">{t("feed.tags.selected")}</Text>
             </HStack>
             <HStack className="gap-1">
               {localSelectedTags?.map((tag) => (
@@ -149,7 +153,7 @@ export function TagBottomSheet({
         </HStack>
         <HStack className="px-8 py-4 gap-2" style={{ flexShrink: 0 }}>
           <Button className="flex-1 h-10" variant="outline" onPress={onClose}>
-            <ButtonText>취소하기</ButtonText>
+            <ButtonText>{t("feed.tags.cancel")}</ButtonText>
           </Button>
           <Button
             className="flex-1 h-10"
@@ -159,7 +163,7 @@ export function TagBottomSheet({
               onClose();
             }}
           >
-            <ButtonText>완료하기</ButtonText>
+            <ButtonText>{t("feed.tags.complete")}</ButtonText>
           </Button>
         </HStack>
       </View>

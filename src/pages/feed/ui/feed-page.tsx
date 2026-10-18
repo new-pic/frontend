@@ -4,7 +4,7 @@ import {
   useRefreshPublishedFeeds,
 } from "@features/feed/save-feed";
 import { TagBottomSheet, TagList } from "@features/tags/select-feed-tags";
-import { useDebouncedValue } from "@shared/lib";
+import { useAppTranslation, useDebouncedValue } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import { gradients } from "@shared/ui/theme";
 
@@ -18,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { FEED_LIST_PAGE_SIZE } from "../model";
 
 export function FeedPage() {
+  const { t } = useAppTranslation();
   const isGuest = useAuthStore((state) => state.isGuest);
   const isPublishing = useFeedPublishingPipelineActive();
   const [searchQuery, setSearchQuery] = useState("");
@@ -111,10 +112,7 @@ export function FeedPage() {
     try {
       await refreshFeeds.mutateAsync();
     } catch {
-      Alert.alert(
-        "피드 새로고침 실패",
-        "목록을 새로고침하지 못했습니다. 다시 시도해주세요.",
-      );
+      Alert.alert(t("feed.refreshFailedTitle"), t("feed.refreshFailed"));
     }
   };
 
@@ -125,11 +123,11 @@ export function FeedPage() {
           <VStack className="mb-2">
             <VStack className="px-6">
               <Text className="font-semibold mb-2" size="xl">
-                피드
+                {t("feed.title")}
               </Text>
               <Input>
                 <InputField
-                  placeholder="검색어를 입력해주세요."
+                  placeholder={t("feed.searchPlaceholder")}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                   returnKeyType="search"
@@ -163,7 +161,7 @@ export function FeedPage() {
               className="w-15 h-15 rounded-full bottom-8 right-8"
               disabled={isPublishing}
               accessibilityLabel={
-                isPublishing ? "다른 피드를 게시하는 중입니다" : "피드 작성"
+                isPublishing ? t("feed.publishingOther") : t("feed.create")
               }
               onPress={handlePressEdit}
             >

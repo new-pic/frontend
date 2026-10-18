@@ -12,6 +12,7 @@
       "bundleIdentifier": "com.significance.newpic",
       "usesAppleSignIn": true,
       "infoPlist": {
+        "CFBundleAllowMixedLocalizations": true,
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "NewPic은 사진 촬영과 원격 촬영 화면 공유를 위해 카메라를 사용합니다. 예를 들어 촬영 가이드에 맞춰 사진을 찍거나 친구에게 현재 카메라 화면을 실시간으로 공유할 때 사용합니다.",
         "NSMicrophoneUsageDescription": "$(PRODUCT_NAME) needs access to your Microphone to record audio for video recordings."
@@ -110,7 +111,13 @@
         }
       ],
       "expo-build-properties",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-localization",
+        {
+          "supportedLocales": ["ko", "en"]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
@@ -121,6 +128,10 @@
       "eas": {
         "projectId": "cb5b045d-94f3-4b70-93eb-2faf7eda768f"
       }
+    },
+    "locales": {
+      "ko": "./locales/ko.json",
+      "en": "./locales/en.json"
     },
     "owner": "newpic"
   }

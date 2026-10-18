@@ -1,4 +1,5 @@
 import { env } from "@shared/config";
+import { translate } from "@shared/lib";
 import { io, type Socket } from "socket.io-client";
 import { RTC_REACTION_SOCKET_CONFIG } from "../config/rtc-reaction-config";
 import {
@@ -98,7 +99,7 @@ export const createSocketIoReactionTransport = ({
               "ERROR",
               error instanceof Error
                 ? error.message
-                : "반응 채널 인증 정보를 갱신하지 못했습니다.",
+                : translate("rtc.reaction.authRefreshFailed"),
             );
             callback({ token: "" });
           });
@@ -138,7 +139,7 @@ export const createSocketIoReactionTransport = ({
     error: Error | null,
     response: RtcReactionJoinResponse | undefined,
   ) =>
-    error?.message || response?.message || "반응 채널에 참여하지 못했습니다.";
+    error?.message || response?.message || translate("rtc.reaction.joinFailed");
 
   function scheduleJoinRetry(
     epoch: number,

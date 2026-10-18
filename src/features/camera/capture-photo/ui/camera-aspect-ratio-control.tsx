@@ -1,4 +1,5 @@
 import { HStack, Text } from "@shared/ui";
+import { useAppTranslation } from "@shared/lib";
 import { Pressable } from "react-native";
 
 import type { CameraAspectRatio } from "../model/models";
@@ -16,6 +17,8 @@ export function CameraAspectRatioControl({
   disabled = false,
   onChange,
 }: CameraAspectRatioControlProps) {
+  const { t } = useAppTranslation();
+
   return (
     <HStack
       className="absolute left-0 right-0 top-3 z-10 justify-center"
@@ -31,7 +34,9 @@ export function CameraAspectRatioControl({
           return (
             <Pressable
               key={option}
-              accessibilityLabel={`${option} 사진 비율`}
+              accessibilityLabel={t("camera.aspectRatioAccessibilityReversed", {
+                ratio: option,
+              })}
               accessibilityRole="button"
               accessibilityState={{
                 disabled,

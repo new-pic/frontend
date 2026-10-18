@@ -1,17 +1,18 @@
 import { File } from "expo-file-system";
 import { z } from "zod";
+import { translate } from "../../../shared/config";
 // 피드 생성 수정 스키마
 
 const FeedTagsSchema = z
   .array(z.string())
-  .min(1, "최소 하나의 태그를 입력해주세요.")
-  .max(3, "최대 3개의 태그만 입력 가능합니다.")
+  .min(1, { error: () => translate("feed.validation.tagRequired") })
+  .max(3, { error: () => translate("feed.validation.tagMaximum") })
   .refine(
     (value) => {
       const tags = value.map((tag) => tag.trim()).filter(Boolean);
       return new Set(tags).size === tags.length;
     },
-    { message: "중복된 태그가 존재합니다." },
+    { error: () => translate("feed.validation.tagDuplicate") },
   );
 
 const FeedFormFieldsSchema = z.object({
@@ -20,13 +21,19 @@ const FeedFormFieldsSchema = z.object({
   description: z
     .string()
     .trim()
-    .min(1, "내용을 입력해주세요.")
-    .max(500, "내용은 최대 500자까지 입력할 수 있습니다."),
+    .min(1, {
+      error: () => translate("feed.validation.descriptionRequired"),
+    })
+    .max(500, {
+      error: () => translate("feed.validation.descriptionMaximum"),
+    }),
   tags: FeedTagsSchema,
 });
 
 export const CreateFeedFormSchema = FeedFormFieldsSchema.extend({
-  image: z.string().min(1, "이미지를 선택해주세요."),
+  image: z
+    .string()
+    .min(1, { error: () => translate("feed.validation.imageRequired") }),
 });
 
 export const UpdateFeedFormSchema = FeedFormFieldsSchema;
@@ -43,8 +50,12 @@ const FeedTransformedFormSchema = z.object({
   description: z
     .string()
     .trim()
-    .min(1, "내용을 입력해주세요.")
-    .max(500, "내용은 최대 500자까지 입력할 수 있습니다."),
+    .min(1, {
+      error: () => translate("feed.validation.descriptionRequired"),
+    })
+    .max(500, {
+      error: () => translate("feed.validation.descriptionMaximum"),
+    }),
 });
 
 /**
@@ -70,6 +81,6 @@ export const CreateFeedCommentRequestSchema = z.object({
   content: z
     .string()
     .trim()
-    .min(1, "댓글 내용을 입력해주세요.")
-    .max(500, "댓글은 최대 500자까지 입력할 수 있습니다."),
+    .min(1, { error: () => translate("feed.validation.commentRequired") })
+    .max(500, { error: () => translate("feed.validation.commentMaximum") }),
 });

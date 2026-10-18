@@ -1,4 +1,5 @@
 import { colors } from "@shared/ui/theme";
+import { translate, useAppTranslation } from "@shared/lib";
 import {
   IconCircle,
   IconCircleCheck,
@@ -45,6 +46,7 @@ const PhotoGridImageTile = memo(function PhotoGridImageTile({
   onPress,
   onSelectionPress,
 }: PhotoGridImageTileProps) {
+  const { t } = useAppTranslation();
   const [loadState, setLoadState] = useState<"loading" | "loaded" | "failed">(
     "loading",
   );
@@ -93,7 +95,9 @@ const PhotoGridImageTile = memo(function PhotoGridImageTile({
       {onSelectionPress ? (
         <Pressable
           accessibilityRole="checkbox"
-          accessibilityLabel={selected ? "사진 선택 해제" : "사진 선택"}
+          accessibilityLabel={
+            selected ? t("photo.deselect") : t("photo.selectAccessibility")
+          }
           accessibilityState={{ checked: selected }}
           onPress={onSelectionPress}
           style={{
@@ -181,7 +185,7 @@ export function PhotoGrid<T extends PhotoGridImage>({
   onEndReached,
   onRefresh,
   refreshing = false,
-  emptyMessage = "이미지가 존재하지 않습니다...",
+  emptyMessage = translate("photo.empty"),
   isPending = false,
   isFetchingNextPage = false,
 }: PhotoGridProps<T>) {

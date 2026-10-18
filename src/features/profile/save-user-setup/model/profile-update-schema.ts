@@ -1,10 +1,11 @@
 import { File } from "expo-file-system";
 import { z } from "zod";
+import { translate } from "../../../../shared/config";
 
 export const NicknameSchema = z
   .string()
-  .min(1, "닉네임은 최소 1글자 이상이어야 합니다.")
-  .max(8, "닉네임은 최대 8글자까지 가능합니다.");
+  .min(1, { error: () => translate("profile.nicknameMinimum") })
+  .max(8, { error: () => translate("profile.nicknameMaximum") });
 
 export const UpdateProfileRequestSchema = z.object({
   nickname: NicknameSchema,

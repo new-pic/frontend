@@ -1,5 +1,6 @@
 import { colors } from "@shared/ui/theme";
 import { Image, Text } from "@shared/ui";
+import { useAppTranslation } from "@shared/lib";
 import { IconEye, IconEyeOff } from "@tabler/icons-react-native";
 import { ActivityIndicator, Pressable, View } from "react-native";
 import type { GuideFeedSelection } from "../model";
@@ -27,6 +28,8 @@ export function GuideSelectionControl({
   onRetry,
   onToggleReference,
 }: GuideSelectionControlProps) {
+  const { t } = useAppTranslation();
+
   return (
     <View
       pointerEvents="box-none"
@@ -42,7 +45,7 @@ export function GuideSelectionControl({
       {hasError ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="촬영 가이드 다시 불러오기"
+          accessibilityLabel={t("guide.retryAccessibility")}
           onPress={onRetry}
           style={{
             position: "absolute",
@@ -54,14 +57,14 @@ export function GuideSelectionControl({
             paddingVertical: 8,
           }}
         >
-          <Text className="text-xs text-white">가이드 오류 · 다시 시도</Text>
+          <Text className="text-xs text-white">{t("guide.retry")}</Text>
         </Pressable>
       ) : null}
 
       {selectedGuide ? (
         <Pressable
           accessibilityRole="switch"
-          accessibilityLabel="원본 가이드 이미지 표시"
+          accessibilityLabel={t("guide.showReference")}
           accessibilityState={{
             checked: isReferenceVisible,
             disabled: !isReferenceAvailable,
@@ -96,7 +99,7 @@ export function GuideSelectionControl({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={
-          selectedGuide ? "선택한 촬영 가이드 변경" : "촬영 가이드 선택"
+          selectedGuide ? t("guide.change") : t("guide.select")
         }
         accessibilityState={{ selected: Boolean(selectedGuide) }}
         onPress={onOpen}
@@ -148,7 +151,7 @@ export function GuideSelectionControl({
         ) : (
           !selectedGuide && (
             <Text className="font-semibold text-xs text-white">
-              가이드 선택
+              {t("guide.selectButton")}
             </Text>
           )
         )}

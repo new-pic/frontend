@@ -13,6 +13,7 @@ import {
   useTracks,
   VideoTrack,
 } from "@livekit/react-native";
+import { useAppTranslation } from "@shared/lib";
 import {
   Box,
   Button,
@@ -62,6 +63,7 @@ function ViewerRoomContent({
   onRequestExit,
   onRoomEnded,
 }: ViewerRoomContentProps) {
+  const { t } = useAppTranslation();
   const room = useRoomContext();
   const connectionState = useConnectionState();
   const cameraTracks = useTracks([Track.Source.Camera], {
@@ -70,7 +72,8 @@ function ViewerRoomContent({
   const remoteCameraTrack = cameraTracks.find(
     ({ participant }) => !participant.isLocal,
   );
-  const hostNickname = rtcRoom?.host.nickname.trim() || "호스트";
+  const hostNickname =
+    rtcRoom?.host.nickname.trim() || t("rtc.join.hostFallback");
   const isHandlingRoomEndRef = useRef(false);
   const handledExitRequestIdRef = useRef(exitRequestId);
   const deliveredResultRef = useRef<RtcEndRoomResponse | null>(null);
@@ -78,9 +81,9 @@ function ViewerRoomContent({
   const handleCancel = useCallback(async () => {
     const result = await onRequestExit(() => room.disconnect());
     if (!result.ok) {
-      Alert.alert("RTC 방 나가기 실패", result.errorMessage);
+      Alert.alert(t("rtc.errors.roomExitTitle"), result.errorMessage);
     }
-  }, [onRequestExit, room]);
+  }, [onRequestExit, room, t]);
 
   useEffect(() => {
     room.registerRpcMethod(
@@ -94,7 +97,7 @@ function ViewerRoomContent({
           !result ||
           result.roomId !== roomId
         ) {
-          throw new Error("유효하지 않은 RTC 종료 결과입니다.");
+          throw new Error(t("rtc.errors.invalidResult"));
         }
 
         if (!isHandlingRoomEndRef.current) {
@@ -129,7 +132,7 @@ function ViewerRoomContent({
     return () => {
       room.unregisterRpcMethod(RTC_ROOM_ENDED_RPC_METHOD);
     };
-  }, [onRoomEnded, room, roomId]);
+  }, [onRoomEnded, room, roomId, t]);
 
   useEffect(() => {
     if (
@@ -176,7 +179,9 @@ function ViewerRoomContent({
           disabled={isExiting}
           isLoading={isExiting}
           accessibilityLabel={
-            isExiting ? "실시간 공유에서 나가는 중" : "실시간 공유 나가기"
+            isExiting
+              ? t("rtc.join.leaveShareAccessibility")
+              : t("rtc.join.leaveAccessibility")
           }
           onPress={() => void handleCancel()}
         >
@@ -185,10 +190,10 @@ function ViewerRoomContent({
 
         <VStack className="items-center gap-1">
           <Text className="text-center text-label-muted">
-            {hostNickname} 님의 실시간 공유
+            {t("rtc.join.liveTitle", { nickname: hostNickname })}
           </Text>
           <Text size="2xl" bold className="text-center text-foreground">
-            사진에 찍히는 내 모습
+            {t("rtc.join.myCamera")}
           </Text>
         </VStack>
       </View>
@@ -224,6 +229,7 @@ export function RtcViewerLiveKit({
   onRequestExit,
   onRoomEnded,
 }: RtcViewerLiveKitProps) {
+  const { t } = useAppTranslation();
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
   return (
@@ -235,9 +241,7 @@ export function RtcViewerLiveKit({
       video={false}
       options={{ adaptiveStream: { pixelDensity: "screen" } }}
       onConnected={() => setConnectionError(null)}
-      onDisconnected={() =>
-        setConnectionError("LiveKit 연결이 종료되었습니다.")
-      }
+      onDisconnected={() => setConnectionError(t("rtc.host.liveKitEnded"))}
       onError={(error) => setConnectionError(error.message)}
     >
       <ViewerRoomContent

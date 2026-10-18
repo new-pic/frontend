@@ -1,3 +1,4 @@
+import { useAppTranslation } from "@shared/lib";
 import { useMemo } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { adaptRtcReactionEmojis } from "../lib/rtc-reaction-domain";
@@ -16,6 +17,7 @@ export function RtcViewerReactionPicker({
   roomId,
   participantId,
 }: RtcViewerReactionPickerProps) {
+  const { t } = useAppTranslation();
   const {
     data,
     isError: isEmojiError,
@@ -38,17 +40,17 @@ export function RtcViewerReactionPicker({
         {isEmojiError ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="이모지 목록 다시 불러오기"
+            accessibilityLabel={t("rtc.reaction.retryListAccessibility")}
             onPress={() => void refetchEmojis()}
             className="self-center px-5 py-3"
           >
             <Text className="text-sm text-label-muted">
-              반응을 불러오지 못함 · 다시 시도
+              {t("rtc.reaction.loadFailed")}
             </Text>
           </Pressable>
         ) : channel.status === "ERROR" ? (
           <Text className="self-center px-5 py-3 text-sm text-label-muted">
-            반응 서버 다시 연결 중...
+            {t("rtc.reaction.reconnecting")}
           </Text>
         ) : (
           <ScrollView
@@ -74,7 +76,7 @@ export function RtcViewerReactionPicker({
             ))}
             {emojis.length === 0 && !isEmojiError ? (
               <Text className="px-3 text-sm text-label-muted">
-                반응 불러오는 중...
+                {t("rtc.reaction.loading")}
               </Text>
             ) : null}
           </ScrollView>

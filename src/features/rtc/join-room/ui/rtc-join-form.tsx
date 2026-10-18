@@ -5,6 +5,7 @@ import {
   RTC_NAVIGATION,
 } from "@shared/config";
 import { normalizeAuthReturnTo } from "@shared/lib";
+import { useAppTranslation } from "@shared/lib";
 import { useAuthStore } from "@shared/model";
 import {
   Button,
@@ -30,14 +31,14 @@ export interface RtcJoinFormProps {
 }
 
 export function RtcJoinFormHeader() {
+  const { t } = useAppTranslation();
+
   return (
     <VStack className="gap-3">
       <Text size="xl" bold>
-        실시간 공유 참여
+        {t("rtc.join.title")}
       </Text>
-      <Text className="text-label-muted">
-        호스트 화면에 표시된 6자리 코드를 입력해주세요.
-      </Text>
+      <Text className="text-label-muted">{t("rtc.join.description")}</Text>
     </VStack>
   );
 }
@@ -48,6 +49,7 @@ export function RtcJoinForm({
   loginReturnRoute = "rtc-join",
   showHeader = true,
 }: RtcJoinFormProps) {
+  const { t } = useAppTranslation();
   const joinRoomMutation = rtcViewerQuery.useJoinRtcRoom();
   const isInitialized = useAuthStore((state) => state.isInitialized);
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -83,7 +85,10 @@ export function RtcJoinForm({
     }
 
     if (code.length !== 6) {
-      Alert.alert("참여 코드 확인", "6자리 숫자를 입력해주세요.");
+      Alert.alert(
+        t("rtc.join.codeCheckTitle"),
+        t("rtc.join.codeCheckDescription"),
+      );
       return;
     }
 
@@ -96,11 +101,8 @@ export function RtcJoinForm({
       router.replace(RTC_NAVIGATION.paths.viewer as Href);
     } catch (error) {
       Alert.alert(
-        "RTC 방 참여 실패",
-        getApiErrorMessage(
-          error,
-          "방에 참여하지 못했습니다. 코드를 확인하고 다시 시도해주세요.",
-        ),
+        t("rtc.join.failedTitle"),
+        getApiErrorMessage(error, t("rtc.join.failedDescription")),
       );
     } finally {
       joinLockRef.current = false;
@@ -112,12 +114,12 @@ export function RtcJoinForm({
       {showHeader ? <RtcJoinFormHeader /> : null}
 
       <VStack className="gap-3">
-        <Text bold>공유 코드</Text>
+        <Text bold>{t("rtc.join.codeLabel")}</Text>
         <Input className="h-14 rounded-xl">
           <InputField
             value={code}
             onChangeText={(value) => setCode(sanitizeCode(value))}
-            placeholder="6자리 숫자"
+            placeholder={t("rtc.join.codePlaceholder")}
             keyboardType="number-pad"
             maxLength={6}
             editable={!isRequestPending}
@@ -126,7 +128,7 @@ export function RtcJoinForm({
             onSubmitEditing={() => void handleJoin()}
             className="text-center text-xl"
             style={{ letterSpacing: code.length > 0 ? 4 : 0 }}
-            accessibilityLabel="6자리 공유 코드"
+            accessibilityLabel={t("rtc.join.codeAccessibility")}
           />
         </Input>
       </VStack>
@@ -140,7 +142,7 @@ export function RtcJoinForm({
             disabled={isRequestPending}
             onPress={onCancel}
           >
-            <ButtonText>취소하기</ButtonText>
+            <ButtonText>{t("rtc.join.cancel")}</ButtonText>
           </Button>
         ) : null}
         <Button
@@ -153,12 +155,12 @@ export function RtcJoinForm({
         >
           <ButtonText>
             {!isInitialized
-              ? "세션 확인 중..."
+              ? t("rtc.join.checking")
               : isRequestPending
-                ? "참여 중..."
+                ? t("rtc.join.joining")
                 : accessToken
-                  ? "참여하기"
-                  : "로그인 후 참여"}
+                  ? t("rtc.join.join")
+                  : t("rtc.join.signInToJoin")}
           </ButtonText>
         </Button>
       </HStack>

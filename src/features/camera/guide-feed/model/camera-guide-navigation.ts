@@ -1,4 +1,5 @@
 import type { Href } from "expo-router";
+import { translate } from "../../../../shared/config";
 
 export const CAMERA_GUIDE_NAVIGATION = {
   params: {
@@ -16,7 +17,7 @@ export type CameraGuideNavigationSearchParams = Partial<
 function normalizeGuideFeedId(feedId: string) {
   const normalizedFeedId = feedId.trim();
   if (!normalizedFeedId) {
-    throw new Error("가이드 피드 ID가 필요합니다.");
+    throw new Error(translate("guide.feedIdRequired"));
   }
   return normalizedFeedId;
 }

@@ -1,4 +1,5 @@
 import { useAuthStore } from "@shared/model";
+import { translate } from "../../../shared/config";
 import { useRtcStore } from "../model";
 
 const RTC_HOST_ACCESS_TOKEN_HEADER = "x-rtc-host-access-token";
@@ -7,7 +8,7 @@ export const assertRtcAppAccessToken = (): string => {
   const accessToken = useAuthStore.getState().accessToken?.trim() ?? "";
 
   if (!accessToken) {
-    throw new Error("로그인이 필요합니다.");
+    throw new Error(translate("common.errors.signInRequired"));
   }
 
   return accessToken;
@@ -17,7 +18,7 @@ const getRtcHostAccessToken = (roomId: string): string => {
   const hostSession = useRtcStore.getState().hostSession;
 
   if (hostSession?.roomId !== roomId || !hostSession.hostAccessToken) {
-    throw new Error("RTC 촬영자 인증 토큰이 없습니다. 방을 다시 생성해주세요.");
+    throw new Error(translate("rtc.errors.missingHostToken"));
   }
 
   return hostSession.hostAccessToken;

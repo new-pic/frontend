@@ -1,14 +1,16 @@
 import { useCallback } from "react";
 import { Alert } from "react-native";
+import { useAppTranslation } from "./i18n";
 import type { ConfirmOptions } from "./confirm-types";
 
 export function useConfirm() {
+  const { t } = useAppTranslation();
   return useCallback(
     ({
       title,
       message,
-      confirmText = "예",
-      cancelText = "아니오",
+      confirmText = t("common.actions.yes"),
+      cancelText = t("common.actions.no"),
       destructive = false,
     }: ConfirmOptions) =>
       new Promise<boolean>((resolve) => {
@@ -42,6 +44,6 @@ export function useConfirm() {
           },
         );
       }),
-    [],
+    [t],
   );
 }

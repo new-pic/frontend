@@ -1,5 +1,6 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import * as MediaLibrary from "expo-media-library";
+import { translate } from "@shared/lib";
 import { CustomAlbum, ImageParams, mediaLibraryQueryKeys } from "../model";
 const PAGE_SIZE = 20;
 
@@ -56,7 +57,7 @@ export function useReadAlbumImages(album: CustomAlbum | null) {
     queryKey: mediaLibraryQueryKeys.albumImages(album?.id),
     queryFn: ({ pageParam }) => {
       if (!album) {
-        throw new Error("조회할 앨범이 선택되지 않았습니다.");
+        throw new Error(translate("feed.albumRequired"));
       }
 
       return readAlbumImages({ album, offset: pageParam });

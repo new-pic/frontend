@@ -1,14 +1,23 @@
 import type { ContentReportReason, ContentReportTarget } from "@entities/feed";
+import { translate } from "../../../../shared/config";
 
 export const CONTENT_REPORT_REASON_OPTIONS: readonly {
   value: ContentReportReason;
-  label: string;
+  translationKey:
+    | "feed.report.reasons.spam"
+    | "feed.report.reasons.harassment"
+    | "feed.report.reasons.hateSpeech"
+    | "feed.report.reasons.inappropriate"
+    | "feed.report.reasons.other";
 }[] = [
-  { value: "SPAM", label: "스팸 또는 광고" },
-  { value: "HARASSMENT", label: "괴롭힘 또는 모욕" },
-  { value: "HATE_SPEECH", label: "혐오 발언" },
-  { value: "INAPPROPRIATE", label: "부적절한 콘텐츠" },
-  { value: "OTHER", label: "기타" },
+  { value: "SPAM", translationKey: "feed.report.reasons.spam" },
+  { value: "HARASSMENT", translationKey: "feed.report.reasons.harassment" },
+  { value: "HATE_SPEECH", translationKey: "feed.report.reasons.hateSpeech" },
+  {
+    value: "INAPPROPRIATE",
+    translationKey: "feed.report.reasons.inappropriate",
+  },
+  { value: "OTHER", translationKey: "feed.report.reasons.other" },
 ];
 
 export function canReportContent({
@@ -22,5 +31,7 @@ export function canReportContent({
 }
 
 export function getContentReportTargetLabel(target: ContentReportTarget) {
-  return target.type === "feed" ? "피드" : "댓글";
+  return target.type === "feed"
+    ? translate("feed.report.targetFeed")
+    : translate("feed.report.targetComment");
 }

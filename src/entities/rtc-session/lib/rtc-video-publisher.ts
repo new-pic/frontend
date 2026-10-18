@@ -4,6 +4,7 @@ import {
 } from "@newpic/vision-camera-rtc";
 import type { MediaStreamTrack } from "@livekit/react-native-webrtc";
 import { Track, type LocalTrack, type Room } from "livekit-client";
+import { translate } from "../../../shared/config";
 
 /**
  * RTC 영상 송출 구현을 LiveKit 연결/UI에서 분리하는 경계입니다.
@@ -61,9 +62,7 @@ export class VisionCameraVideoPublisher implements RtcVideoPublisher {
         );
 
         if (!publication.track) {
-          throw new Error(
-            "VisionCamera 영상 track을 LiveKit에 게시하지 못했습니다.",
-          );
+          throw new Error(translate("rtc.errors.publishTrackFailed"));
         }
 
         this.localTrack = publication.track;

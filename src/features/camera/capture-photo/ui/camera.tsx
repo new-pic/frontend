@@ -1,4 +1,5 @@
 import { Button, ButtonText, Text, VStack } from "@shared/ui";
+import { useAppTranslation } from "@shared/lib";
 import {
   type ReactNode,
   useCallback,
@@ -127,6 +128,7 @@ function CameraView({
   renderStageControl,
   onRuntimeGeometryChange,
 }: CustomCameraProps) {
+  const { t } = useAppTranslation();
   const cameraRef = useRef<CameraRef>(null);
   const isTakingPhotoRef = useRef(false);
 
@@ -562,13 +564,13 @@ function CameraView({
   if (!device) {
     return (
       <VStack className="h-full items-center justify-center bg-black">
-        <Text className="text-white">카메라를 사용할 수 없습니다.</Text>
+        <Text className="text-white">{t("camera.unavailable")}</Text>
         <Text className="text-sm text-gray-400">
-          실제 기기에서 실행해주세요.
+          {t("camera.physicalDeviceOnly")}
         </Text>
         {onClose ? (
           <Button onPress={onClose} className="mt-4">
-            <ButtonText>돌아가기</ButtonText>
+            <ButtonText>{t("common.actions.back")}</ButtonText>
           </Button>
         ) : null}
       </VStack>
@@ -676,6 +678,7 @@ export function CustomCamera({
   renderStageControl,
   onRuntimeGeometryChange,
 }: CustomCameraProps) {
+  const { t } = useAppTranslation();
   const { hasPermission, requestPermission } = useCameraPermission();
 
   // ⭐️ 권한이 없으면 아래 CameraView(무거운 훅들)를 아예 렌더링하지 않고 여기서 끝냅니다.
@@ -683,11 +686,10 @@ export function CustomCamera({
     return (
       <VStack className="h-full items-center justify-center bg-white">
         <Text className="mb-4 font-bold text-black whitespace-pre-line">
-          {`사진 촬영과 원격 촬영 화면 공유를 사용하려면 
-          카메라 접근이 필요합니다.`}
+          {t("camera.permission")}
         </Text>
         <Button variant="outline" onPress={requestPermission}>
-          <ButtonText>계속</ButtonText>
+          <ButtonText>{t("common.actions.continue")}</ButtonText>
         </Button>
       </VStack>
     );
