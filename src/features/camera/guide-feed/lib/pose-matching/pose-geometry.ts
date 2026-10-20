@@ -52,6 +52,58 @@ function isUsablePoint(
   );
 }
 
+function getComparableJoints(
+  target: CommonPose,
+  live: CommonPose,
+  config: PoseMatchConfig,
+) {
+  return COMMON_JOINTS.filter(
+    (joint) =>
+      isUsablePoint(target.joints[joint], config) &&
+      isUsablePoint(live.joints[joint], config),
+  );
+}
+
+function selectPoseJoints(
+  pose: CommonPose,
+  joints: readonly CommonJoint[],
+): CommonPose {
+  return {
+    joints: Object.fromEntries(
+      joints.map((joint) => [joint, pose.joints[joint]]),
+    ),
+  };
+}
+
+function getRequiredJointGroups(target: CommonPose, config: PoseMatchConfig) {
+  return (
+    Object.entries(config.jointGroups) as [
+      PoseJointGroup,
+      readonly CommonJoint[],
+    ][]
+  )
+    .filter(
+      ([, joints]) =>
+        joints.filter((joint) => isUsablePoint(target.joints[joint], config))
+          .length >= config.minimumComparableJointsPerGroup,
+    )
+    .map(([group]) => group);
+}
+
+function getMissingRequiredJointGroups(
+  comparableJoints: readonly CommonJoint[],
+  requiredGroups: readonly PoseJointGroup[],
+  config: PoseMatchConfig,
+) {
+  const comparableJointSet = new Set(comparableJoints);
+
+  return requiredGroups.filter(
+    (group) =>
+      config.jointGroups[group].filter((joint) => comparableJointSet.has(joint))
+        .length < config.minimumComparableJointsPerGroup,
+  );
+}
+
 export function getPoseBoundingBox(
   pose: CommonPose,
   config: PoseMatchConfig,
@@ -215,7 +267,7 @@ function getJointGroupScores(
     const errors = joints
       .map((joint) => jointErrors[joint])
       .filter((error): error is number => error !== undefined);
-    if (errors.length < 2) continue;
+    if (errors.length < config.minimumComparableJointsPerGroup) continue;
 
     scores[group] =
       errors.reduce(
@@ -251,8 +303,17 @@ export function matchPosePair(
   live: CommonPose,
   config: PoseMatchConfig,
 ): PosePairMatch {
-  const targetBoundingBox = getPoseBoundingBox(target, config);
-  const liveBoundingBox = getPoseBoundingBox(live, config);
+  const comparableJoints = getComparableJoints(target, live, config);
+  const comparableTarget = selectPoseJoints(target, comparableJoints);
+  const comparableLive = selectPoseJoints(live, comparableJoints);
+  const requiredJointGroups = getRequiredJointGroups(target, config);
+  const missingRequiredJointGroups = getMissingRequiredJointGroups(
+    comparableJoints,
+    requiredJointGroups,
+    config,
+  );
+  const targetBoundingBox = getPoseBoundingBox(comparableTarget, config);
+  const liveBoundingBox = getPoseBoundingBox(comparableLive, config);
 
   if (
     !targetBoundingBox ||
@@ -268,19 +329,27 @@ export function matchPosePair(
     };
   }
 
-  const targetCenter = getBodyCenter(target, targetBoundingBox, config);
-  const liveCenter = getBodyCenter(live, liveBoundingBox, config);
+  const targetCenter = getBodyCenter(
+    comparableTarget,
+    targetBoundingBox,
+    config,
+  );
+  const liveCenter = getBodyCenter(comparableLive, liveBoundingBox, config);
   const centerDelta = {
     x: liveCenter.x - targetCenter.x,
     y: liveCenter.y - targetCenter.y,
   };
   const centerDistance = Math.hypot(centerDelta.x, centerDelta.y);
   const scaleRatio = Math.sqrt(liveBoundingBox.area / targetBoundingBox.area);
-  const targetBodyScale = getBodyScale(target, targetBoundingBox, config);
-  const liveBodyScale = getBodyScale(live, liveBoundingBox, config);
+  const targetBodyScale = getBodyScale(
+    comparableTarget,
+    targetBoundingBox,
+    config,
+  );
+  const liveBodyScale = getBodyScale(comparableLive, liveBoundingBox, config);
   const jointErrors = getComparableJointErrors(
-    target,
-    live,
+    comparableTarget,
+    comparableLive,
     targetCenter,
     liveCenter,
     targetBodyScale,
@@ -289,7 +358,9 @@ export function matchPosePair(
   );
   const comparableJointCount = Object.keys(jointErrors).length;
   const jointGroupScores = getJointGroupScores(jointErrors, config);
-  const isComparable = comparableJointCount >= config.minimumComparableJoints;
+  const isComparable =
+    comparableJointCount >= config.minimumComparableJoints &&
+    missingRequiredJointGroups.length === 0;
   const position = scoreError(centerDistance, config.positionTolerance);
   const scale = scoreError(
     Math.abs(Math.log(scaleRatio)),
@@ -330,6 +401,8 @@ export function matchPosePair(
       liveBoundingBox,
       scaleRatio,
       comparableJointCount,
+      requiredJointGroups,
+      missingRequiredJointGroups,
       jointErrors,
       jointGroupScores,
     },

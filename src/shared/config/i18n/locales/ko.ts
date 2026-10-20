@@ -359,6 +359,8 @@ export const ko = {
     change: "선택한 촬영 가이드 변경",
     select: "촬영 가이드 선택",
     selectButton: "가이드 선택",
+    personLimitNotice:
+      "촬영 가이드는 최대 {{count}}명까지 인식해요. 사진에 더 많은 사람이 있다면 일부 인물은 가이드에서 제외될 수 있어요.",
     personPosition: {
       left: "왼쪽 사람",
       center: "가운데 사람",
