@@ -66,7 +66,7 @@ Capture CommonPose ──────→ PoseSceneMatchResult ───→ Align
 | `CHOKIDAR_USEPOLLING=1 pnpm fsd:check`            | 위반 없음        |
 | Expo production export                            | iOS/Android 통과 |
 
-77개 관련 테스트가 현재 의도한 수학과 정책을 보존한다는 것을 확인했다. 그러나
+79개 관련 테스트가 현재 의도한 수학과 정책을 보존한다는 것을 확인했다. 그러나
 테스트가 의도 자체의 타당성, 실제 카메라 output 간 crop, 전면 카메라 mirror를
 증명하지는 않는다.
 
