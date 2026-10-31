@@ -415,6 +415,9 @@ export const CameraCaptureWorkspace = forwardRef<
             previewControl={
               <CameraGuideFeedbackBanner
                 feedback={cameraGuide.alignment.feedback}
+                isPersonLimitNoticeVisible={
+                  cameraGuide.isPersonLimitNoticeVisible
+                }
               />
             }
             renderStageControl={({ presentation }) => (

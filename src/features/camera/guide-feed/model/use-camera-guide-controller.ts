@@ -17,6 +17,10 @@ import {
   projectDWPosePoseToCapture,
   readExpoFeedReferenceImageSize,
 } from "../lib/pose-matching";
+import {
+  POSE_GUIDE_PERSON_LIMIT_NOTICE_DURATION_MS,
+  shouldShowPoseGuidePersonLimitNotice,
+} from "../lib/pose-guide-person-limit";
 import { adaptFeedBackgroundRemoval } from "../lib/feed-guide-contour-adapter";
 import { cameraGuideReducer, INITIAL_CAMERA_GUIDE_STATE } from "./guide-state";
 import type { DetectedPoseFrame } from "./pose-types";
@@ -80,7 +84,20 @@ export function useCameraGuideController({
   const [targetPreparationError, setTargetPreparationError] = useState<
     string | null
   >(null);
+  const [isPersonLimitNoticeVisible, setIsPersonLimitNoticeVisible] =
+    useState(false);
   const requestIdRef = useRef(0);
+  const personLimitNotifiedRequestIdRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!isPersonLimitNoticeVisible) return;
+
+    const timeout = setTimeout(
+      () => setIsPersonLimitNoticeVisible(false),
+      POSE_GUIDE_PERSON_LIMIT_NOTICE_DURATION_MS,
+    );
+    return () => clearTimeout(timeout);
+  }, [isPersonLimitNoticeVisible]);
 
   const selectedFeedId = state.selected?.feedId;
   const {
@@ -102,6 +119,7 @@ export function useCameraGuideController({
 
   const selectGuide = useCallback((selection: GuideFeedSelection) => {
     const requestId = ++requestIdRef.current;
+    setIsPersonLimitNoticeVisible(false);
     setReferenceError(null);
     setOutlinePreparationError(null);
     setTargetPreparationError(null);
@@ -110,6 +128,7 @@ export function useCameraGuideController({
 
   const clearGuide = useCallback(() => {
     const requestId = ++requestIdRef.current;
+    setIsPersonLimitNoticeVisible(false);
     setReferenceError(null);
     setOutlinePreparationError(null);
     setTargetPreparationError(null);
@@ -277,6 +296,15 @@ export function useCameraGuideController({
         sourceSize,
         poseCount: sourcePoses.length,
       });
+      const shouldShowPersonLimitNotice = shouldShowPoseGuidePersonLimitNotice({
+        targetPersonCount: sourcePoses.length,
+        selectionRequestId: requestId,
+        notifiedSelectionRequestId: personLimitNotifiedRequestIdRef.current,
+      });
+      if (shouldShowPersonLimitNotice) {
+        personLimitNotifiedRequestIdRef.current = requestId;
+        setIsPersonLimitNoticeVisible(true);
+      }
       setTargetPreparationError(null);
       dispatch({
         type: "TARGET_READY",
@@ -441,6 +469,7 @@ export function useCameraGuideController({
     isOutlineLoading: Boolean(state.selected) && isOutlinePending,
     isTargetLoading: Boolean(state.selected) && isPosePending,
     errors,
+    isPersonLimitNoticeVisible,
     alignment,
     poseDetection: livePoseDetection,
     selectGuide,

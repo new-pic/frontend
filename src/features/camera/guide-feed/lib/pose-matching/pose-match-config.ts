@@ -4,6 +4,7 @@ export interface PoseMatchConfig {
   minConfidence: number;
   excludeOutsideCapture: boolean;
   minimumComparableJoints: number;
+  minimumComparableJointsPerGroup: number;
   scoreWeights: {
     position: number;
     scale: number;
@@ -39,6 +40,7 @@ export const DEFAULT_POSE_MATCH_CONFIG: PoseMatchConfig = {
   minConfidence: 0.5,
   excludeOutsideCapture: true,
   minimumComparableJoints: 6,
+  minimumComparableJointsPerGroup: 2,
   scoreWeights: {
     position: 0.3,
     scale: 0.2,

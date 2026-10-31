@@ -27,13 +27,38 @@ const {
   createTargetPoseProjectionTransform,
   createFeedPoseTargetPreparer,
   createCaptureCanvasSize,
+  DEFAULT_POSE_MATCH_CONFIG,
   matchPoseScene,
   normalizeDWPosePeople,
   orientCoordinateSize,
   projectSourceCanvasToPreviewRect,
   projectDWPosePoseToCapture,
   projectMediaPipePoseToCapture,
+  resolveExpoImagePixelSize,
 } = require("../index.ts");
+
+test("Expo ImageRef logical size is converted to DWPose pixel dimensions", () => {
+  const sourceSize = resolveExpoImagePixelSize({
+    width: 600,
+    height: 800,
+    scale: 2,
+  });
+
+  assert.deepEqual(sourceSize, { width: 1200, height: 1600 });
+
+  const pose = adaptDWPosePose(
+    {
+      personIndex: 0,
+      landmarks: [{ index: 0, x: 600, y: 800, visibility: 1 }],
+    },
+    sourceSize,
+  );
+  assert.deepEqual(pose.joints.NOSE, {
+    x: 0.5,
+    y: 0.5,
+    confidence: 1,
+  });
+});
 
 test("guide source composes through capture space before preview", () => {
   const rect = projectSourceCanvasToPreviewRect(
@@ -228,6 +253,55 @@ test("low-confidence landmarks are excluded from pose error", () => {
   assert.equal(result.aligned, true);
   assert.ok(result.sceneScore > 95);
   assert.equal(result.assignments[0].match.metrics.comparableJointCount, 12);
+});
+
+test("joint group scoring uses the configured minimum comparable joint count", () => {
+  const target = mapPose(createPose(), (value, joint) =>
+    joint === "LEFT_WRIST" ? { ...value, confidence: 0 } : value,
+  );
+  const result = matchPoseScene([target], [target], {
+    ...DEFAULT_POSE_MATCH_CONFIG,
+    minimumComparableJointsPerGroup: 3,
+  });
+
+  assert.equal(
+    result.assignments[0].match.metrics.jointGroupScores.LEFT_ARM,
+    undefined,
+  );
+});
+
+test("pairwise geometry treats missing body groups as confidence loss, not distance", () => {
+  const target = createPose();
+  const live = mapPose(target, (value, joint) =>
+    joint.includes("KNEE") || joint.includes("ANKLE")
+      ? { ...value, confidence: 0 }
+      : value,
+  );
+  const result = matchPoseScene([target], [live]);
+  const metrics = result.assignments[0].match.metrics;
+
+  assert.equal(result.feedback, "LOW_CONFIDENCE");
+  assert.ok(Math.abs(metrics.scaleRatio - 1) < 1e-9);
+  assert.deepEqual(metrics.missingRequiredJointGroups, [
+    "LEFT_LEG",
+    "RIGHT_LEG",
+  ]);
+});
+
+test("an upper-body target only requires body groups visible in the target", () => {
+  const upperBodyTarget = mapPose(createPose(), (value, joint) =>
+    joint.includes("KNEE") || joint.includes("ANKLE")
+      ? { ...value, confidence: 0 }
+      : value,
+  );
+  const result = matchPoseScene([upperBodyTarget], [upperBodyTarget]);
+
+  assert.equal(result.aligned, true);
+  assert.deepEqual(result.assignments[0].match.metrics.requiredJointGroups, [
+    "TORSO",
+    "LEFT_ARM",
+    "RIGHT_ARM",
+  ]);
 });
 
 test("4:3 and 16:9 cover transforms map into capture coordinates", () => {

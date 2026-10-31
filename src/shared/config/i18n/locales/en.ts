@@ -365,6 +365,8 @@ export const en = {
     change: "Change selected capture guide",
     select: "Select a capture guide",
     selectButton: "Select guide",
+    personLimitNotice:
+      "Capture guides can recognize up to {{count}} people. If the photo includes more people, some may be excluded from the guide.",
     personPosition: {
       left: "The person on the left",
       center: "The person in the center",
