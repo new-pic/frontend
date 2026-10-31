@@ -1,6 +1,15 @@
 import type { ImageRef } from "expo-image";
 import type { LoadedFeedReferenceImage } from "./feed-pose-target-preparer";
 
+export function resolveExpoImagePixelSize(
+  image: Pick<ImageRef, "width" | "height" | "scale">,
+) {
+  return {
+    width: image.width * image.scale,
+    height: image.height * image.scale,
+  };
+}
+
 /**
  * Loads the selected Feed source once so its decoded size can choose the
  * Camera aspect ratio. The returned ImageRef can be reused by a renderer.
@@ -12,10 +21,7 @@ export async function loadExpoFeedReferenceImage(
   const image = await Image.loadAsync(imageUrl);
   return {
     image,
-    size: {
-      width: image.width,
-      height: image.height,
-    },
+    size: resolveExpoImagePixelSize(image),
   };
 }
 

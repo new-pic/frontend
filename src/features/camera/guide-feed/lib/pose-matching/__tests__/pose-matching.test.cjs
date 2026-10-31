@@ -34,7 +34,31 @@ const {
   projectSourceCanvasToPreviewRect,
   projectDWPosePoseToCapture,
   projectMediaPipePoseToCapture,
+  resolveExpoImagePixelSize,
 } = require("../index.ts");
+
+test("Expo ImageRef logical size is converted to DWPose pixel dimensions", () => {
+  const sourceSize = resolveExpoImagePixelSize({
+    width: 600,
+    height: 800,
+    scale: 2,
+  });
+
+  assert.deepEqual(sourceSize, { width: 1200, height: 1600 });
+
+  const pose = adaptDWPosePose(
+    {
+      personIndex: 0,
+      landmarks: [{ index: 0, x: 600, y: 800, visibility: 1 }],
+    },
+    sourceSize,
+  );
+  assert.deepEqual(pose.joints.NOSE, {
+    x: 0.5,
+    y: 0.5,
+    confidence: 1,
+  });
+});
 
 test("guide source composes through capture space before preview", () => {
   const rect = projectSourceCanvasToPreviewRect(

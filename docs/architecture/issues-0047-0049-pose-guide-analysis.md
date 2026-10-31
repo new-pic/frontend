@@ -37,18 +37,23 @@ Capture CommonPose ──────→ PoseSceneMatchResult ───→ Align
 | #48  | 클라이언트 구현 완료 | pairwise 공통 관절 계산과 target-relative body group coverage를 구현했다. 4명 target은 선택별 한 번 지원 범위 안내를 표시한다.                                            |
 | #49  | 구현 완료            | elapsed-time EMA와 진입/이탈 hold를 적용하고 component 실패, detector idle/error, camera 비활성, frame stall에서 stale `ALIGNED`가 해제되도록 구현했다.                   |
 
-우선순위가 높은 발견 사항은 다음과 같다.
+구현 전 발견 사항과 현재 외부 검증 대기 항목은 다음과 같다. `resolved`는
+클라이언트 구현과 자동 검증이 완료된 상태, `accepted policy`는 현재 제품 정책으로
+수용한 상태, `external validation pending`은 실제 기기나 운영 데이터 검증이 필요한
+상태다.
 
-| 우선순위 | 발견 사항                                                                             | 확인 수준                                                     | 영향                                          |
-| -------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------- |
-| P0       | Android 전면 카메라에서 FrameOutput과 PhotoOutput의 `auto` mirror 의미가 다를 수 있음 | 설치된 VisionCamera 5.0.11 소스에서 정적 확인, 기기 재현 필요 | 좌우 반전된 matching 및 잘못된 이동/팔 피드백 |
-| P0       | `ALIGNED` 상태가 component 실패를 무시하고 유지될 수 있음                             | 순수 함수로 재현                                              | 잘못된 정렬 성공 표시                         |
-| P1       | 16:9 FrameOutput → 4:3 capture 투영이 실제 crop metadata 없이 `cover`로 고정됨        | 코드 확인, 기기 측정 필요                                     | 4:3에서 위치·크기 점수의 구조적 편향          |
-| P1       | target/live의 서로 다른 관절 집합으로 bbox/center/scale 계산                          | 순수 함수로 재현                                              | 가림을 `MOVE_CLOSER` 등으로 오안내            |
-| P1       | target 인원이 5명 이상이면 detector는 4명으로 clamp되어 성공 불가능                   | 코드 확인                                                     | 영구적인 인원 불일치                          |
-| P1       | detector stop/error/stall이 Alignment policy를 reset하지 않음                         | 코드 확인                                                     | 오래된 `ALIGNED`/feedback 표시                |
-| P2       | Pose API 계약에 source 크기·orientation·schema/model version이 없음                   | 코드 확인                                                     | 서버 변경 또는 EXIF/CDN 차이를 조용히 오해석  |
-| P2       | iOS/Android MediaPipe SDK 버전이 각각 0.10.21/0.10.35로 다름                          | build 설정 확인                                               | 플랫폼별 결과 차이와 ADR 문서 불일치          |
+| 우선순위 | 구현 전 발견 사항 또는 검증 항목                                                      | 현재 상태                     | 확인 수준                                                     | 영향                                          |
+| -------- | ------------------------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------- | --------------------------------------------- |
+| P0       | Android 전면 카메라에서 FrameOutput과 PhotoOutput의 `auto` mirror 의미가 다를 수 있음 | `external validation pending` | 설치된 VisionCamera 5.0.11 소스에서 정적 확인, 기기 재현 필요 | 좌우 반전된 matching 및 잘못된 이동/팔 피드백 |
+| P0       | `ALIGNED` 상태가 component 실패를 무시하고 유지될 수 있음                             | `resolved`                    | 순수 함수 및 회귀 테스트로 확인                               | 잘못된 정렬 성공 표시                         |
+| P1       | 16:9 FrameOutput → 4:3 capture 투영이 실제 crop metadata 없이 `cover`로 고정됨        | `external validation pending` | 코드 확인, 기기 측정 필요                                     | 4:3에서 위치·크기 점수의 구조적 편향          |
+| P1       | target/live의 서로 다른 관절 집합으로 bbox/center/scale 계산                          | `resolved`                    | 공통 관절 기반 회귀 테스트로 확인                             | 가림을 `MOVE_CLOSER` 등으로 오안내            |
+| P1       | target 인원이 5명 이상이면 detector는 4명으로 clamp되어 성공 불가능                   | `accepted policy`             | 서버·클라이언트 4명 제한과 비차단 안내 적용                   | 원본 인원과 target 인원의 불일치 가능         |
+| P1       | detector stop/error/stall이 Alignment policy를 reset하지 않음                         | `resolved`                    | lifecycle 회귀 테스트로 확인                                  | 오래된 `ALIGNED`/feedback 표시                |
+| P1       | 운영 DWPose fixture와 decoded source pixel 크기의 일치 검증                           | `external validation pending` | frontend에 운영 응답 fixture 없음                             | target pose 좌표 정규화 오차                  |
+| P1       | 촬영 결과 이미지와 target/live projection의 end-to-end 비교                           | `external validation pending` | 실제 촬영 결과 이미지 필요                                    | 실제 촬영 구도와 판정 좌표 불일치             |
+| P2       | Pose API 계약에 source 크기·orientation·schema/model version이 없음                   | `accepted policy`             | 현재 계약을 수용하고 backend 개선 항목으로 유지               | 서버 변경 또는 EXIF/CDN 차이를 조용히 오해석  |
+| P2       | iOS/Android MediaPipe SDK 버전이 각각 0.10.21/0.10.35로 다름                          | `external validation pending` | build 설정 확인, 플랫폼별 결과 비교 필요                      | 플랫폼별 결과 차이와 ADR 문서 불일치          |
 
 ## 2. 분석 범위와 검증 결과
 
@@ -56,17 +61,17 @@ Capture CommonPose ──────→ PoseSceneMatchResult ───→ Align
 
 | 검증                                              | 결과             |
 | ------------------------------------------------- | ---------------- |
-| `pnpm test:pose-match`                            | 33/33 통과       |
+| `pnpm test:pose-match`                            | 34/34 통과       |
 | `pnpm test:camera-guide`                          | 30/30 통과       |
 | `pnpm test:pose-detection`                        | 5/5 통과         |
 | `pnpm test:camera-settings`                       | 11/11 통과       |
 | `pnpm typecheck`                                  | 통과             |
-| `pnpm lint`                                       | 오류 0, 경고 86  |
+| `pnpm lint`                                       | 오류 0, 경고 95  |
 | `pnpm exec eslint src/features/camera/guide-feed` | 오류 0, 경고 2   |
 | `CHOKIDAR_USEPOLLING=1 pnpm fsd:check`            | 위반 없음        |
 | Expo production export                            | iOS/Android 통과 |
 
-79개 관련 테스트가 현재 의도한 수학과 정책을 보존한다는 것을 확인했다. 그러나
+80개 관련 테스트가 현재 의도한 수학과 정책을 보존한다는 것을 확인했다. 그러나
 테스트가 의도 자체의 타당성, 실제 카메라 output 간 crop, 전면 카메라 mirror를
 증명하지는 않는다.
 
@@ -77,8 +82,9 @@ Capture CommonPose ──────→ PoseSceneMatchResult ───→ Align
 
 ### 2.2 확인한 외부 계약
 
-- 프로젝트는 Expo SDK 56(`expo ~56.0.12`)이며 이미지 크기는 Expo 56의
-  `Image.loadAsync()`가 반환하는 decoded `ImageRef.width/height`를 사용한다.
+- 프로젝트는 Expo SDK 56(`expo ~56.0.12`)이며 `Image.loadAsync()`가 반환하는
+  decoded `ImageRef.width/height`는 logical dimensions다. Expo adapter에서 각 값에
+  `ImageRef.scale`을 곱해 DWPose source pixel dimensions로 변환한다.
   [Expo SDK 56 Image 문서](https://docs.expo.dev/versions/v56.0.0/sdk/image/)
 - MediaPipe Pose Landmarker의 image landmark `x/y`는 입력 이미지의 width/height로
   정규화되고, pose마다 33개 landmark와 visibility/presence를 제공한다.
@@ -170,8 +176,8 @@ PhotoOutput orientation lifecycle에 결합되지 않는다.
 
 ### 4.1 현재 확인된 동작
 
-1. DWPose source pixel은 pose 응답의 `imageUrl`을 decode한 width/height로 나눠
-   `DWPoseSourcePose`로 만든다.
+1. DWPose source pixel은 pose 응답의 `imageUrl`을 decode한 `ImageRef`의
+   `width * scale`, `height * scale`로 나눠 `DWPoseSourcePose`로 만든다.
 2. MediaPipe frame은 native에서 upright bitmap/pixel buffer로 실제 회전한 후
    추론하므로 JS에서 rotation을 다시 적용하지 않는다.
 3. target과 live를 각각 capture canvas로 center-cover한 뒤 같은 `CommonPose`로
@@ -827,6 +833,8 @@ validity → alignment state machine 순서로 작게 구현**하는 것이 가�
   공유한다. 실제 input→capture 상대 반전은 Frame metadata를 사용한다.
 - 47-B: VisionCamera `mirrorMode`를 front=`on`, back=`off`로 명시하고 runtime
   geometry가 동일한 mirror 계약을 전달한다.
+- 47-B: Expo `ImageRef`의 logical dimensions에 `scale`을 적용해 DWPose source
+  pixel dimensions로 변환한다.
 - 48-A: bbox, center, body scale, pose normalization을 target/live 공통 관절
   집합에서 계산한다.
 - 48-A: target에 joint 2개 이상이 있는 신체 그룹만 required group으로 보고,
@@ -841,7 +849,7 @@ validity → alignment state machine 순서로 작게 구현**하는 것이 가�
 - 사용되지 않던 raw matching snapshot ref를 제거하고 render-time ref 접근을 effect
   경계로 옮겨 Pose Guide 영역의 React Compiler 경고를 줄였다.
 
-자동 검증 결과는 Pose Matching 33/33, Camera Guide 30/30, Pose Detection 5/5,
+자동 검증 결과는 Pose Matching 34/34, Camera Guide 30/30, Pose Detection 5/5,
 Camera Settings 11/11이며 TypeScript와 FSD 검사는 통과했다. FSD 검사는 현재
 환경의 native watcher 제한을 피하기 위해 polling mode로 실행했다. Expo iOS/Android
 production export도 모두 통과했다.
@@ -887,6 +895,8 @@ Steiger FSD 검사도 위반 없이 통과했다. 따라서 현재 구현에서 
 7. #49는 FPS 독립적인 시간 기반 상태 머신인 49-B를 선택한다.
 8. 이 환경에서 Expo 개발 서버를 LAN에 공개하는 실제 iPhone 검증은 진행하지 않는다.
 9. 서버가 원본 인원이나 잘림 여부를 보장하지 않으므로 5명 이상이라고 단정하지 않는다.
+10. Expo `ImageRef`의 logical dimensions는 Guide의 Expo adapter 경계에서
+    `scale`을 곱해 DWPose source pixel dimensions로 변환한다.
 
 [결정이 필요한 사항]
 
